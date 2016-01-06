@@ -1,0 +1,34 @@
+//---------------------------------------------------------------------------
+
+#ifndef WaveGraphicH
+#define WaveGraphicH
+//---------------------------------------------------------------------------
+#include <ExtCtrls.hpp>
+#include "FilterPanelSet.h"
+
+void InitGdipus();
+
+class PaintAgent : public TObject
+{
+public:
+    PaintAgent(TPaintBox* paint_box, class FilterSet& filter_set);
+
+    void __fastcall OnMouseWheel(TObject *Sender, TShiftState Shift,
+      int WheelDelta, TPoint &MousePos, bool &Handled);
+    void Repaint()
+    {
+        paint_control->Repaint();
+    }
+
+    FilterSet& _filter_set;
+private:
+    void __fastcall OnMouseDown(TObject *Sender, TMouseButton Button, TShiftState Shift, int X, int Y);
+    void __fastcall OnMouseUp(TObject *Sender, TMouseButton Button, TShiftState Shift, int X, int Y);
+    void __fastcall OnMouseMove(TObject *Sender, TShiftState Shift, int X, int Y);
+    void __fastcall OnPaint(TObject * Sender);
+
+    TPaintBox* paint_control;
+    bool is_mouse_down;
+};
+
+#endif
