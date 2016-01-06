@@ -3897,6 +3897,7 @@ object Form1: TForm1
           Ctl3D = True
           ParentCtl3D = False
           TabOrder = 8
+          Visible = False
           object cbType0: TComboBox
             Left = 0
             Top = 71
