@@ -595,6 +595,8 @@ void __fastcall TForm1::SpeedButton77Click(TObject *Sender)
         {
             lblDSPInfo->Caption = "Output Channel " + IntToStr(btn->Parent->Tag) + " DSP Setup";
         }
+
+        // TODO: 加载面板参数和不同类型
     }
     else
     {
