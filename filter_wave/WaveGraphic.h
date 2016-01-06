@@ -21,13 +21,13 @@ public:
     }
 
     FilterSet& _filter_set;
+    TPaintBox* paint_control;
 private:
     void __fastcall OnMouseDown(TObject *Sender, TMouseButton Button, TShiftState Shift, int X, int Y);
     void __fastcall OnMouseUp(TObject *Sender, TMouseButton Button, TShiftState Shift, int X, int Y);
     void __fastcall OnMouseMove(TObject *Sender, TShiftState Shift, int X, int Y);
     void __fastcall OnPaint(TObject * Sender);
 
-    TPaintBox* paint_control;
     bool is_mouse_down;
 };
 

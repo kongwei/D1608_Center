@@ -31,7 +31,7 @@ public:
 
         ChangFilterParameter("Peaking", 1000, 0, 4);
     }
-
+    WideString name;
     double GetFreq() const
     {
         return _freq;

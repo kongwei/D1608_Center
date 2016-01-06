@@ -385,18 +385,17 @@ void DrawThumb(PaintAgent* paint_agent, Gdiplus::Graphics &gdiplus_g)
         int x = Freq2Canvas(freq);
         int y = Gain2Canvas(gain);
 
-        wchar_t * band_str[9] = {L"0",L"1",L"2",L"3",L"4",L"5",L"6",L"7",L"8"};
         if (gain >= 0)
         {
             PointF p = PointF(x-3, y-20);
             Gdiplus::Font f(L"Arial", 8);
-            gdiplus_g.DrawString(band_str[band], 1, &f, p, &brush);
+            gdiplus_g.DrawString(paint_agent->_filter_set.GetFilter(band)->name, 1, &f, p, &brush);
         }
         else
         {
             PointF p = PointF(x-3, y+10);
             Gdiplus::Font f(L"Arial", 8);
-            gdiplus_g.DrawString(band_str[band], 1, &f, p, &brush);
+            gdiplus_g.DrawString(paint_agent->_filter_set.GetFilter(band)->name, 1, &f, p, &brush);
         }
     }
 }

@@ -95,9 +95,13 @@ __fastcall TForm1::TForm1(TComponent* Owner)
     {
         filter_set.SetBypass(i, false);
         filter_set.GetFilter(i)->ChangFilterParameter("Peaking", 1000, 0, 4.09);
+        filter_set.GetFilter(i)->name = IntToStr(i-1);
     }
     filter_set.GetFilter(1)->ChangFilterParameter("LowShelving", 1000, 0, 4.09);
     filter_set.GetFilter(7)->ChangFilterParameter("HighShelving", 1000, 0, 4.09);
+
+    filter_set.GetFilter(1)->name = "L";
+    filter_set.GetFilter(7)->name = "H";
 
     pnlDspDetail->DoubleBuffered = true;
 
