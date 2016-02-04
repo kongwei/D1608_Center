@@ -48,6 +48,10 @@ public:
     {
         return _type;
     }
+    int GetTypeId() const
+    {
+        return _type_id;
+    }
     void SetFreqGain(double freq, double gain)
     {
         ChangFilterParameter(_type, freq, gain, _q);
@@ -86,38 +90,47 @@ public:
         if (type == "Peaking")
         {
             Peaking(freq, gain, q);
+            _type_id = 1;
         }
         else if (type == "BandPass")
         {
             BandPass(freq, gain, q);
+            _type_id = 2;
         }
         else if (type == "HighShelving")
         {
             HighShelving(freq, gain, q);
+            _type_id = 3;
         }
         else if (type == "LowShelving")
         {
             LowShelving(freq, gain, q);
+            _type_id = 4;
         }
         else if (type == "Notch")
         {
             Notch(freq, gain, q);
+            _type_id = 5;
         }
         else if (type == "High Butterworth 2nd")
         {
             HighPassButterworth2(freq);
+            _type_id = 0;
         }
         else if (type == "High Butterworth 4nd")
         {
             HighPassButterworth4(freq);
+            _type_id = 0;
         }
         else if (type == "Low Butterworth 2nd")
         {
             LowPassButterworth2(freq);
+            _type_id = 0;
         }
         else if (type == "Low Butterworth 4nd")
         {
             LowPassButterworth4(freq);
+            _type_id = 0;
         }
     }
     void EqualizerOff()
@@ -377,6 +390,7 @@ private:
     }
 
     String _type;
+    int _type_id;
     double _freq;
     double _gain;
     double _q;

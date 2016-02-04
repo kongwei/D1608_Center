@@ -44,6 +44,7 @@
     };
     struct T_slp_pack
     {
+        __int8 ip[4];
         __int8 flag1[10];
         __int8 flag2[26];
         __int8 flag3[64];
@@ -52,7 +53,6 @@
         __int8 ver[16];
         __int8 fwdate[20];
         __int8 mac[6];
-        __int8 ip[4];
         __int8 mask[4];
         __int8 gateway[4];
         __int16 port;
@@ -414,6 +414,7 @@ __published:	// IDE-managed Components
     TEdit *edtGain0;
     TEdit *edtQ0;
     TCheckBox *cbBypass0;
+    TButton *Button1;
     void __fastcall FormCreate(TObject *Sender);
     void __fastcall FormDestroy(TObject *Sender);
     void __fastcall btnRefreshClick(TObject *Sender);
@@ -458,6 +459,8 @@ __published:	// IDE-managed Components
     void __fastcall TrackBar27Change(TObject *Sender);
     void __fastcall FormMouseWheel(TObject *Sender, TShiftState Shift,
           int WheelDelta, TPoint &MousePos, bool &Handled);
+    void __fastcall Button1Click(TObject *Sender);
+
 private:
     // 已经选择设备
     bool flag_ip_selected;
@@ -498,6 +501,7 @@ private:
     FilterSet filter_set;
 public:		// User declarations
     __fastcall TForm1(TComponent* Owner);
+    void SendCmd2(D1608Cmd2& cmd);
 };
 //---------------------------------------------------------------------------
 extern PACKAGE TForm1 *Form1;

@@ -156,6 +156,17 @@ void TForm1::SendCmd(D1608Cmd& cmd)
     udpControl->SendBuffer(dst_ip, 2305, &cmd, sizeof(cmd));
 }
 //---------------------------------------------------------------------------
+void TForm1::SendCmd2(D1608Cmd2& cmd)
+{
+    edtDebug->Text = "";
+    unsigned __int8 * p = (unsigned __int8*)&cmd;
+    for (int i=30;i<sizeof(cmd);i++)
+    {
+        edtDebug->Text = edtDebug->Text + IntToHex(p[i], 2) + " ";
+    }
+    udpControl->SendBuffer(dst_ip, 2305, &cmd, sizeof(cmd));
+}
+//---------------------------------------------------------------------------
 void __fastcall TForm1::btnRefreshClick(TObject *Sender)
 {
     AppendLog("Ë¢ĞÂÉè±¸");
@@ -299,9 +310,10 @@ void __fastcall TForm1::tmSLPTimer(TObject *Sender)
         udpSLP->Bindings->Add();
         udpSLP->Bindings->Items[0]->IP = local_broadcast_ip;
         udpSLP->Bindings->Items[0]->Port = 0;
+        udpSLP->BroadcastEnabled = true;
         udpSLP->Active = true;
-        char search_flag[] = "\x53\x65\x74\x50\x61\x72\x61\x00\x00\x00\x4d\x41\x54\x31\x36\x31\x30\x43\x6f\x6e\x66\x69\x67\x44\x61\x74\x61\x00\x00\x00\xca\x03\x00\x00\xd8\x00\x00\x00";
-        udpSLP->SendBuffer("255.255.255.255", 2305, search_flag, sizeof(search_flag));
+        char search_flag[] = "rep";
+        udpSLP->SendBuffer("255.255.255.255", 888, search_flag, sizeof(search_flag));
     }
     else
     {
@@ -330,14 +342,23 @@ void __fastcall TForm1::TrackBar1Change(TObject *Sender)
 
     if (last_out_num_btn == NULL)
     {
+#if 0
         D1608Cmd cmd = InputVolume(dsp_num, value);
         SendCmd(cmd);
+#endif
+        D1608Cmd2 cmd = InputVolume2(dsp_num, value);
+        SendCmd2(cmd);
     }
     else
     {
+#if 0
         int out_dsp_num = last_out_num_btn->Parent->Tag;
         D1608Cmd cmd = IOVolume(out_dsp_num, dsp_num, value);
         SendCmd(cmd);
+#endif
+        int out_dsp_num = last_out_num_btn->Parent->Tag;
+        D1608Cmd2 cmd = IOVolume2(out_dsp_num-1, dsp_num-1, value);
+        SendCmd2(cmd);
     }
 }
 //---------------------------------------------------------------------------
@@ -733,6 +754,23 @@ void __fastcall TForm1::FormMouseWheel(TObject *Sender, TShiftState Shift,
     if (!Handled)
     {
         panel_agent->OnMouseWheel(ActiveControl, Shift, WheelDelta, MousePos, Handled);
+    }
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::Button1Click(TObject *Sender)
+{
+    int dsp_id = pnlDspDetail->Tag;
+    {
+        D1608Cmd2 cmd;
+        cmd.dsp = dsp_id + 0x80;
+        cmd.channel_id = dsp_id;
+        cmd.filter_id = 0;
+        cmd.type = filter_set.GetFilter(cmd.filter_id)->GetTypeId();
+        cmd.gain = filter_set.GetFilter(cmd.filter_id)->GetGain() * 2 + 200;
+        cmd.freq = filter_set.GetFilter(cmd.filter_id)->GetFreq();
+        cmd.q = filter_set.GetFilter(cmd.filter_id)->GetQ()*100;
+
+        SendCmd2(cmd);
     }
 }
 //---------------------------------------------------------------------------

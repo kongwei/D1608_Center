@@ -6,11 +6,22 @@
 #pragma pack(push, 1)
 struct D1608Cmd
 {
-    char flag[30];
-    unsigned __int16 type;
+    //char flag[30];
+    unsigned __int32 type;
     unsigned __int32 id;
     unsigned __int32 value;
 };
+struct D1608Cmd2
+{
+    unsigned int dsp;	// dsp id
+    unsigned int channel_id;	// filter_id
+    unsigned int filter_id;	// filter_id
+    unsigned int type;	// type
+    unsigned int gain;	// (gain+100) * 2
+    unsigned int freq;	// freq
+    unsigned int q;		// q*100
+};
+
 #pragma pack(pop)
 
 D1608Cmd InputVolume(int dsp_num, int volume);
@@ -40,6 +51,11 @@ D1608Cmd HighShelf(int mute_bits);
 D1608Cmd DspEQSwitch(int eq_id, int mute_bits);
 D1608Cmd DspInputVolume(int dsp_num, int volume);
 
+D1608Cmd CoefParam(int dsp_num, int gain, int freq);
+
 D1608Cmd Watch();
+
+D1608Cmd2 IOVolume2(int out_dsp_num, int in_dsp_num, int volume);
+D1608Cmd2 InputVolume2(int dsp_num, int volume);
 
 #endif

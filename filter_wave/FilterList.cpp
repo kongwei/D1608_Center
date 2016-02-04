@@ -4,6 +4,7 @@
 #pragma hdrstop
 
 #include "FilterList.h"
+#include "untMain.h"
 #include <StdCtrls.hpp>
 //---------------------------------------------------------------------------
 
@@ -38,14 +39,14 @@ bool FilterSet::IsBandForbidden(int band)
     return false;
 }
 
-void FilterSet::OnParameterChange(int band)
+/*void FilterSet::OnParameterChange(int band)
 {
     double freq = edtFreq[band]->Text.ToDouble();
     double gain = edtGain[band]->Text.ToDouble();
     double q = edtQ[band]->Text.ToDouble();
     String type = GetFilter(band)->GetType();
     GetFilter(band)->ChangFilterParameter(type, freq, gain, q);
-}
+}*/
 
 Coefficient* FilterSet::GetFilter(int band)
 {
@@ -87,5 +88,21 @@ void FilterSet::RepaintPaint(int band)
     {
         panel_agent_ref->UpdateFreqQGain(band);
     }
+
+    int dsp_id = Form1->pnlDspDetail->Tag;
+    char in_out = Form1->lblDSPInfo->Caption[1];
+    {
+        D1608Cmd2 cmd;
+        cmd.dsp = in_out=='I' ? 1 : 2;
+        cmd.channel_id = dsp_id;
+        cmd.filter_id = select_band;
+        cmd.type = GetFilter(cmd.filter_id)->GetTypeId();
+        cmd.gain = GetFilter(cmd.filter_id)->GetGain() * 10 + 1000;
+        cmd.freq = GetFilter(cmd.filter_id)->GetFreq();
+        cmd.q = GetFilter(cmd.filter_id)->GetQ()*100;
+
+        Form1->SendCmd2(cmd);
+    }
+
 }
 

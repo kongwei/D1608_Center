@@ -1,7 +1,7 @@
 object Form1: TForm1
-  Left = 245
-  Top = 0
-  Width = 1286
+  Left = 192
+  Top = 14
+  Width = 1280
   Height = 739
   Caption = 'D1608'
   Color = clBtnFace
@@ -19,7 +19,7 @@ object Form1: TForm1
   object PageControl1: TPageControl
     Left = 0
     Top = 0
-    Width = 1270
+    Width = 1264
     Height = 701
     ActivePage = tsOperator
     Align = alClient
@@ -28,18 +28,18 @@ object Form1: TForm1
     object tsSearch: TTabSheet
       Caption = #26597#35810#35774#22791
       DesignSize = (
-        1262
+        1256
         673)
       object Bevel1: TBevel
         Left = 8
         Top = 527
-        Width = 1134
+        Width = 1128
         Height = 10
         Anchors = [akLeft, akRight, akBottom]
         Shape = bsBottomLine
       end
       object Label1: TLabel
-        Left = 1153
+        Left = 1147
         Top = 52
         Width = 53
         Height = 13
@@ -49,14 +49,14 @@ object Form1: TForm1
       object mmLog: TMemo
         Left = 8
         Top = 546
-        Width = 1134
+        Width = 1128
         Height = 126
         Anchors = [akLeft, akRight, akBottom]
         ReadOnly = True
         TabOrder = 0
       end
       object btnRefresh: TButton
-        Left = 1152
+        Left = 1146
         Top = 5
         Width = 106
         Height = 25
@@ -68,7 +68,7 @@ object Form1: TForm1
       object lvDevice: TListView
         Left = 8
         Top = 0
-        Width = 1134
+        Width = 1128
         Height = 523
         Anchors = [akLeft, akTop, akRight, akBottom]
         Columns = <
@@ -118,7 +118,7 @@ object Form1: TForm1
         Visible = False
       end
       object cbAutoRefresh: TCheckBox
-        Left = 1153
+        Left = 1147
         Top = 32
         Width = 97
         Height = 17
@@ -129,7 +129,7 @@ object Form1: TForm1
         TabOrder = 4
       end
       object spInterval: TCSpinEdit
-        Left = 1209
+        Left = 1203
         Top = 48
         Width = 49
         Height = 22
@@ -140,7 +140,7 @@ object Form1: TForm1
         Value = 1
       end
       object btnSelect: TButton
-        Left = 1152
+        Left = 1146
         Top = 77
         Width = 106
         Height = 25
@@ -3308,7 +3308,7 @@ object Form1: TForm1
         end
       end
       object pnlDspDetail: TPanel
-        Left = 8
+        Left = 56
         Top = 208
         Width = 769
         Height = 457
@@ -3955,6 +3955,15 @@ object Form1: TForm1
             TabOrder = 4
             OnClick = SpeedButton87Click
           end
+        end
+        object Button1: TButton
+          Left = 624
+          Top = 376
+          Width = 75
+          Height = 25
+          Caption = 'Button1'
+          TabOrder = 9
+          OnClick = Button1Click
         end
       end
       object edtDebug: TEdit

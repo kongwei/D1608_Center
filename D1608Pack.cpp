@@ -15,7 +15,7 @@ static char head[] = "\x53\x65\x74\x50\x61\x72\x61\x00\x00\x00\x4D\x41\x54\x31\x
 static D1608Cmd GetDefaultData()
 {
     D1608Cmd result;
-    memmove(result.flag, head, 30);
+    //memmove(result.flag, head, 30);
     result.type = 0x060a;
     result.id = 0;
     result.value = 0;
@@ -24,7 +24,7 @@ static D1608Cmd GetDefaultData()
 static D1608Cmd GetCheckData()
 {
     D1608Cmd result;
-    memmove(result.flag, head, 30);
+    //memmove(result.flag, head, 30);
     result.type = 0x03ca;
     result.id = 0;
     result.value = 0;
@@ -37,6 +37,15 @@ D1608Cmd InputVolume(int dsp_num, int volume)
     D1608Cmd result = GetDefaultData();
     result.id = 0x00010101 + dsp_num;
     result.value = volume;
+    return result;
+}
+D1608Cmd2 InputVolume2(int dsp_num, int volume)
+{
+    D1608Cmd2 result;
+    result.type = 10;
+    result.dsp = 1;
+    result.channel_id = dsp_num;
+    result.gain = volume;
     return result;
 }
 
@@ -64,6 +73,15 @@ D1608Cmd IOVolume(int out_dsp_num, int in_dsp_num, int volume)
     D1608Cmd result = GetDefaultData();
     result.id = 0x000104B3 + out_dsp_num*17-17 + in_dsp_num;
     result.value = volume;
+    return result;
+}
+D1608Cmd2 IOVolume2(int out_dsp_num, int in_dsp_num, int volume)
+{
+    D1608Cmd2 result;
+    result.type = 12;
+    result.channel_id = out_dsp_num;
+    result.filter_id = in_dsp_num;
+    result.gain = volume;
     return result;
 }
 
@@ -266,6 +284,15 @@ D1608Cmd DspInputVolume(int dsp_num, int volume)
     D1608Cmd result = GetDefaultData();
     result.id = 0x000100f1 + dsp_num;
     result.value = volume;
+    return result;
+}
+
+D1608Cmd CoefParam(int dsp_num, int gain, int freq)
+{
+    D1608Cmd result = GetCheckData();
+    result.type = dsp_num;
+    result.id = gain;
+    result.value = freq;
     return result;
 }
 
