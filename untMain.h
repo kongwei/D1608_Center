@@ -25,6 +25,7 @@
 #include "WaveGraphic.h"
 #include "FilterPanelSet.h"
 #include "FilterList.h"
+#include "AdvTrackBar.hpp"
 
 #define UDP_PORT 65518
 #define TCP_PORT 15288
@@ -110,7 +111,6 @@ __published:	// IDE-managed Components
     TSpeedButton *SpeedButton13;
     TSpeedButton *SpeedButton14;
     TLabel *Label3;
-    TTrackBar *TrackBar2;
     TSpeedButton *SpeedButton11;
     TPanel *Panel2;
     TSpeedButton *SpeedButton1;
@@ -121,7 +121,6 @@ __published:	// IDE-managed Components
     TSpeedButton *SpeedButton6;
     TLabel *Label2;
     TSpeedButton *SpeedButton7;
-    TTrackBar *TrackBar1;
     TPanel *Panel3;
     TSpeedButton *SpeedButton15;
     TSpeedButton *SpeedButton16;
@@ -131,7 +130,6 @@ __published:	// IDE-managed Components
     TSpeedButton *SpeedButton20;
     TLabel *Label4;
     TSpeedButton *SpeedButton21;
-    TTrackBar *TrackBar3;
     TPanel *Panel4;
     TSpeedButton *SpeedButton22;
     TSpeedButton *SpeedButton23;
@@ -141,7 +139,6 @@ __published:	// IDE-managed Components
     TSpeedButton *SpeedButton27;
     TLabel *Label5;
     TSpeedButton *SpeedButton28;
-    TTrackBar *TrackBar4;
     TPanel *Panel5;
     TSpeedButton *SpeedButton29;
     TSpeedButton *SpeedButton30;
@@ -151,7 +148,6 @@ __published:	// IDE-managed Components
     TSpeedButton *SpeedButton34;
     TLabel *Label6;
     TSpeedButton *SpeedButton35;
-    TTrackBar *TrackBar5;
     TPanel *Panel6;
     TSpeedButton *SpeedButton36;
     TSpeedButton *SpeedButton37;
@@ -161,7 +157,6 @@ __published:	// IDE-managed Components
     TSpeedButton *SpeedButton41;
     TLabel *Label7;
     TSpeedButton *SpeedButton42;
-    TTrackBar *TrackBar6;
     TCheckBox *cbWatch;
     TTimer *tmWatch;
     TPanel *Panel7;
@@ -173,7 +168,6 @@ __published:	// IDE-managed Components
     TSpeedButton *SpeedButton48;
     TLabel *Label8;
     TSpeedButton *SpeedButton49;
-    TTrackBar *TrackBar7;
     TPanel *Panel8;
     TSpeedButton *SpeedButton50;
     TSpeedButton *SpeedButton51;
@@ -183,7 +177,6 @@ __published:	// IDE-managed Components
     TSpeedButton *SpeedButton55;
     TLabel *Label9;
     TSpeedButton *SpeedButton56;
-    TTrackBar *TrackBar8;
     TPanel *Panel9;
     TSpeedButton *SpeedButton57;
     TSpeedButton *SpeedButton58;
@@ -193,7 +186,6 @@ __published:	// IDE-managed Components
     TSpeedButton *SpeedButton62;
     TLabel *Label10;
     TSpeedButton *SpeedButton63;
-    TTrackBar *TrackBar9;
     TPanel *Panel10;
     TSpeedButton *SpeedButton64;
     TSpeedButton *SpeedButton65;
@@ -203,7 +195,6 @@ __published:	// IDE-managed Components
     TSpeedButton *SpeedButton69;
     TLabel *Label11;
     TSpeedButton *SpeedButton70;
-    TTrackBar *TrackBar10;
     TPanel *Panel11;
     TSpeedButton *SpeedButton71;
     TSpeedButton *SpeedButton72;
@@ -211,7 +202,6 @@ __published:	// IDE-managed Components
     TSpeedButton *SpeedButton75;
     TSpeedButton *SpeedButton76;
     TLabel *Label12;
-    TTrackBar *TrackBar11;
     TPanel *Panel12;
     TSpeedButton *SpeedButton78;
     TSpeedButton *SpeedButton79;
@@ -219,7 +209,6 @@ __published:	// IDE-managed Components
     TSpeedButton *SpeedButton82;
     TSpeedButton *SpeedButton83;
     TLabel *Label13;
-    TTrackBar *TrackBar12;
     TPanel *Panel13;
     TSpeedButton *SpeedButton85;
     TSpeedButton *SpeedButton86;
@@ -227,7 +216,6 @@ __published:	// IDE-managed Components
     TSpeedButton *SpeedButton89;
     TSpeedButton *SpeedButton90;
     TLabel *Label14;
-    TTrackBar *TrackBar13;
     TPanel *Panel14;
     TSpeedButton *SpeedButton92;
     TSpeedButton *SpeedButton93;
@@ -235,7 +223,6 @@ __published:	// IDE-managed Components
     TSpeedButton *SpeedButton96;
     TSpeedButton *SpeedButton97;
     TLabel *Label15;
-    TTrackBar *TrackBar14;
     TPanel *Panel15;
     TSpeedButton *SpeedButton99;
     TSpeedButton *SpeedButton100;
@@ -243,7 +230,6 @@ __published:	// IDE-managed Components
     TSpeedButton *SpeedButton103;
     TSpeedButton *SpeedButton104;
     TLabel *Label16;
-    TTrackBar *TrackBar15;
     TPanel *Panel16;
     TSpeedButton *SpeedButton106;
     TSpeedButton *SpeedButton107;
@@ -251,7 +237,6 @@ __published:	// IDE-managed Components
     TSpeedButton *SpeedButton110;
     TSpeedButton *SpeedButton111;
     TLabel *Label17;
-    TTrackBar *TrackBar16;
     TPanel *Panel17;
     TSpeedButton *SpeedButton113;
     TSpeedButton *SpeedButton114;
@@ -415,6 +400,24 @@ __published:	// IDE-managed Components
     TEdit *edtQ0;
     TCheckBox *cbBypass0;
     TButton *Button1;
+    TAdvTrackBar *AdvTrackBar1;
+    TAdvTrackBar *AdvTrackBar2;
+    TAdvTrackBar *AdvTrackBar3;
+    TAdvTrackBar *AdvTrackBar4;
+    TAdvTrackBar *AdvTrackBar5;
+    TAdvTrackBar *AdvTrackBar6;
+    TAdvTrackBar *AdvTrackBar7;
+    TAdvTrackBar *AdvTrackBar8;
+    TAdvTrackBar *AdvTrackBar9;
+    TAdvTrackBar *AdvTrackBar10;
+    TAdvTrackBar *AdvTrackBar11;
+    TAdvTrackBar *AdvTrackBar12;
+    TAdvTrackBar *AdvTrackBar13;
+    TAdvTrackBar *AdvTrackBar14;
+    TAdvTrackBar *AdvTrackBar15;
+    TAdvTrackBar *AdvTrackBar16;
+    TIdUDPServer *IdUDPServer1;
+    TTimer *Timer1;
     void __fastcall FormCreate(TObject *Sender);
     void __fastcall FormDestroy(TObject *Sender);
     void __fastcall btnRefreshClick(TObject *Sender);

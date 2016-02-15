@@ -9,6 +9,7 @@
 //---------------------------------------------------------------------------
 #pragma package(smart_init)
 #pragma link "CSPIN"
+#pragma link "AdvTrackBar"
 #pragma resource "*.dfm"
 #pragma comment(lib, "gdiplus.lib")
 TForm1 *Form1;
