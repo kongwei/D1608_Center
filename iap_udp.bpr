@@ -13,8 +13,8 @@
     <DEFFILE value=""/>
     <RESDEPEN value="$(RESFILES) untMain.dfm"/>
     <LIBFILES value=""/>
-    <LIBRARIES value="tmstrackbar.lib bcbsmp.lib vclx.lib indy.lib rtl.lib vcl.lib"/>
-    <SPARELIBS value="vcl.lib rtl.lib indy.lib vclx.lib bcbsmp.lib tmstrackbar.lib"/>
+    <LIBRARIES value="dclusr.lib tmstrackbar.lib bcbsmp.lib vclx.lib indy.lib rtl.lib vcl.lib"/>
+    <SPARELIBS value="vcl.lib rtl.lib indy.lib vclx.lib bcbsmp.lib tmstrackbar.lib dclusr.lib"/>
     <PACKAGES value="vcl.bpi rtl.bpi dbrtl.bpi adortl.bpi vcldb.bpi vclx.bpi bdertl.bpi 
       vcldbx.bpi ibxpress.bpi dsnap.bpi cds.bpi bdecds.bpi qrpt.bpi teeui.bpi 
       teedb.bpi tee.bpi dss.bpi teeqr.bpi visualclx.bpi visualdbclx.bpi 
@@ -31,13 +31,13 @@
     <USERDEFINES value="_DEBUG;STRICT"/>
     <SYSDEFINES value="NO_STRICT"/>
     <MAINSOURCE value="iap_udp.cpp"/>
-    <INCLUDEPATH value="&quot;..\..\vcl component pack v6.0.2.0&quot;;filter_wave;..\..\CSP_850_A\版本上传上位机（iap_version）\iap_version;&quot;C:\Program Files\Borland\CBuilder6\Projects&quot;;F:\神州II号\iap_version;$(BCB)\include;$(BCB)\include\vcl"/>
+    <INCLUDEPATH value="$(BCB)\Lib;&quot;..\..\vcl component pack v6.0.2.0&quot;;filter_wave;..\..\CSP_850_A\版本上传上位机（iap_version）\iap_version;&quot;C:\Program Files\Borland\CBuilder6\Projects&quot;;F:\神州II号\iap_version;$(BCB)\include;$(BCB)\include\vcl"/>
     <LIBPATH value="$(BCB)\Projects\Lib;&quot;..\..\vcl component pack v6.0.2.0&quot;;filter_wave;..\..\CSP_850_A\版本上传上位机（iap_version）\iap_version;&quot;C:\Program Files\Borland\CBuilder6\Projects&quot;;F:\神州II号\iap_version;$(BCB)\lib\obj;$(BCB)\lib"/>
     <WARNINGS value="-w-par"/>
     <OTHERFILES value=""/>
   </MACROS>
   <OPTIONS>
-    <IDLCFLAGS value="-I&quot;..\..\vcl component pack v6.0.2.0&quot; -Ifilter_wave 
+    <IDLCFLAGS value="-I$(BCB)\Lib -I&quot;..\..\vcl component pack v6.0.2.0&quot; -Ifilter_wave 
       -I..\..\CSP_850_A\版本上传上位机（iap_version）\iap_version 
       -I&quot;C:\Program Files\Borland\CBuilder6\Projects&quot; -IF:\神州II号\iap_version 
       -I$(BCB)\include -I$(BCB)\include\vcl -src_suffix cpp -D_DEBUG -DSTRICT -boa"/>
