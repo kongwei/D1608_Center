@@ -29,6 +29,7 @@
 #include <Graphics.hpp>
 #include <ImgList.hpp>
 #include "SpeedButtonNoFrame.h"
+#include <Menus.hpp>
 
 #define UDP_PORT 65518
 #define TCP_PORT 15288
@@ -99,17 +100,15 @@ __published:	// IDE-managed Components
     TSpeedButtonNoFrame *output_panel_invert_btn;
     TSpeedButtonNoFrame *output_panel_mute_btn;
     TSpeedButtonNoFrame *SpeedButton119;
-    TPanel *Panel25;
+    TPanel *mix_panel;
     TSpeedButtonNoFrame *SpeedButton73;
     TSpeedButtonNoFrame *SpeedButton80;
     TSpeedButtonNoFrame *btnMixMute;
-    TLabel *Label26;
     TSpeedButtonNoFrame *input_panel_dsp_btn;
     TSpeedButtonNoFrame *btnMAXON;
     TSpeedButtonNoFrame *output_panel_dsp_btn;
     TSpeedButtonNoFrame *SpeedButton108;
     TSpeedButtonNoFrame *btnPRIORITY;
-    TLabel *Label27;
     TSpeedButtonNoFrame *btnMasterMute;
     TPanel *pnlDspDetail;
     TLabel *lblDSPInfo;
@@ -178,14 +177,30 @@ __published:	// IDE-managed Components
     TLabel *label_watch;
     TProgressBar *pb_watch;
     TImageList *ImageList1;
-    TAdvTrackBar *AdvTrackBar2;
-    TAdvTrackBar *AdvTrackBar3;
     TImage *input_panel_bkground;
     TAdvTrackBar *input_panel_trackbar;
     TAdvTrackBar *output_panel_trackbar;
     TImage *output_panel_bkground;
     TEdit *input_panel_level_edit;
     TEdit *output_panel_level_edit;
+    TStaticText *input_panel_dsp_num;
+    TStaticText *output_panel_dsp_num;
+    TAdvTrackBar *AdvTrackBar1;
+    TAdvTrackBar *AdvTrackBar2;
+    TImage *Image1;
+    TEdit *mix_panel_level_edit;
+    TEdit *master_panel_level_edit;
+    TStaticText *StaticText1;
+    TStaticText *StaticText2;
+    TPanel *Panel1;
+    TImage *Image2;
+    TProgressBar *ProgressBar1;
+    TLabel *input_type;
+    TPopupMenu *PopupMenu1;
+    TMenuItem *M11;
+    TMenuItem *M21;
+    TMenuItem *M31;
+    TMenuItem *M41;
     void __fastcall FormCreate(TObject *Sender);
     void __fastcall FormDestroy(TObject *Sender);
     void __fastcall btnRefreshClick(TObject *Sender);
@@ -230,6 +245,13 @@ __published:	// IDE-managed Components
     void __fastcall TrackBar27Change(TObject *Sender);
     void __fastcall FormMouseWheel(TObject *Sender, TShiftState Shift,
           int WheelDelta, TPoint &MousePos, bool &Handled);
+    void __fastcall input_typeMouseDown(TObject *Sender,
+          TMouseButton Button, TShiftState Shift, int X, int Y);
+    void __fastcall M41Click(TObject *Sender);
+    void __fastcall M41DrawItem(TObject *Sender, TCanvas *ACanvas,
+          TRect &ARect, bool Selected);
+    void __fastcall M41MeasureItem(TObject *Sender, TCanvas *ACanvas,
+          int &Width, int &Height);
 
 private:
     // 已经选择设备
@@ -272,7 +294,7 @@ private:
 public:		// User declarations
     __fastcall TForm1(TComponent* Owner);
     TProgressBar * pb_watch_list[24];
-    TEdit* input_level_edit[16];
+    TEdit* input_level_edit[17];
     TEdit* output_level_edit[16];
 };
 //---------------------------------------------------------------------------

@@ -13,6 +13,9 @@
 #pragma link "SpeedButtonNoFrame"
 #pragma resource "*.dfm"
 #pragma comment(lib, "gdiplus.lib")
+
+#define PANEL_WIDTH 48
+
 TForm1 *Form1;
 //---------------------------------------------------------------------------
 static int SetBit(int old_value, int bit, bool is_set)
@@ -103,10 +106,12 @@ static TImage * CopyInputPanelBkground(TImage * src_img, TPanel * input_panel)
     bkground->SendToBack();
     return bkground;
 }
-static TAdvTrackBar * CopyInputPanelBkground(TAdvTrackBar * src_trackbar, TPanel * input_panel)
+static TAdvTrackBar * CopyInputPanelTrackbar(TAdvTrackBar * src_trackbar, TPanel * input_panel)
 {
     TAdvTrackBar * trackbar = new TAdvTrackBar(input_panel);
     trackbar->Parent = input_panel;
+
+    trackbar->OnChange = src_trackbar->OnChange;
 
     trackbar->Buttons->Size = src_trackbar->Buttons->Size;
     trackbar->Buttons->Spacing = src_trackbar->Buttons->Spacing;
@@ -126,8 +131,9 @@ static TAdvTrackBar * CopyInputPanelBkground(TAdvTrackBar * src_trackbar, TPanel
 
     trackbar->Thumb->Picture = src_trackbar->Thumb->Picture;
 
-    trackbar->OnChange = src_trackbar->OnChange;
     trackbar->BoundsRect = src_trackbar->BoundsRect;
+
+    trackbar->OnChange(trackbar);
 
     return trackbar;
 }
@@ -142,10 +148,19 @@ static TEdit * CopyInputPanelEdit(TEdit * src_edit, TPanel * input_panel)
     SetWindowLong(edit->Handle, GWL_STYLE, GetWindowLong(edit->Handle, GWL_STYLE) | ES_RIGHT);
     return edit;
 }
+static TStaticText * CopyInputPanelLabel(TStaticText * src_label, TPanel * input_panel)
+{
+    TStaticText * label = new TStaticText(input_panel);
+    label->BoundsRect = src_label->BoundsRect;
+    label->Color = src_label->Color;
+    label->Font = src_label->Font;
+    label->Parent = input_panel;
+    return label;
+}
 static void CreateInputPanel(int panel_id, TForm1 * form)
 {
     TPanel * input_panel = new TPanel(form->tsOperator);
-    input_panel->SetBounds((panel_id-1) * 48, form->input_panel->Top, form->input_panel->Width, form->input_panel->Height); // TODO Panel_Width
+    input_panel->SetBounds(form->input_panel->Left+(panel_id-1) * PANEL_WIDTH, form->input_panel->Top, form->input_panel->Width, form->input_panel->Height);
     input_panel->Parent = form->tsOperator;
     input_panel->Color = form->input_panel->Color;
     input_panel->BevelOuter = bvNone;
@@ -158,14 +173,15 @@ static void CreateInputPanel(int panel_id, TForm1 * form)
     CopyInputPanelButton(form->input_panel_invert_btn, input_panel);
     CopyInputPanelButton(form->input_panel_noise_btn, input_panel);
     CopyInputPanelButton(form->input_panel_mute_btn, input_panel);
-    CopyInputPanelBkground(form->input_panel_trackbar, input_panel);
-    CopyInputPanelBkground(form->input_panel_bkground, input_panel);
     form->input_level_edit[panel_id-1] = CopyInputPanelEdit(form->input_panel_level_edit, input_panel);
+    CopyInputPanelTrackbar(form->input_panel_trackbar, input_panel);
+    CopyInputPanelLabel(form->input_panel_dsp_num, input_panel)->Caption = String(char('A'-1+panel_id));
+    CopyInputPanelBkground(form->input_panel_bkground, input_panel);
 }
 static void CreateOutputPanel(int panel_id, TForm1 * form)
 {
     TPanel * output_panel = new TPanel(form->tsOperator);
-    output_panel->SetBounds(872+(panel_id-1) * 48, form->output_panel->Top, form->output_panel->Width, form->output_panel->Height);
+    output_panel->SetBounds(form->output_panel->Left+(panel_id-1) * PANEL_WIDTH, form->output_panel->Top, form->output_panel->Width, form->output_panel->Height);
     output_panel->Parent = form->tsOperator;
     output_panel->Color = form->output_panel->Color;
     output_panel->BevelOuter = bvNone;
@@ -178,18 +194,18 @@ static void CreateOutputPanel(int panel_id, TForm1 * form)
     Graphics::TBitmap * bmp = new Graphics::TBitmap();
     form->ImageList1->GetBitmap(panel_id-1, bmp);
     CopyInputPanelButton(form->output_panel_number_btn, output_panel, bmp);
-    delete bmp;
 
     CopyInputPanelButton(form->output_panel_invert_btn, output_panel);
     CopyInputPanelButton(form->output_panel_mute_btn, output_panel);
-    CopyInputPanelBkground(form->output_panel_trackbar, output_panel);
-    CopyInputPanelBkground(form->output_panel_bkground, output_panel);
     form->output_level_edit[panel_id-1] = CopyInputPanelEdit(form->output_panel_level_edit, output_panel);
+    CopyInputPanelTrackbar(form->output_panel_trackbar, output_panel);
+    CopyInputPanelLabel(form->output_panel_dsp_num, output_panel)->Caption = IntToStr(panel_id);
+    CopyInputPanelBkground(form->output_panel_bkground, output_panel);
 }
 static void CopyWatchPanel(int panel_id, TForm1 * form, char label, int left)
 {
     TPanel * watch_panel = new TPanel(form->tsOperator);
-    watch_panel->SetBounds(left+(panel_id-1) * 48, form->watch_panel->Top, form->watch_panel->Width, form->watch_panel->Height);
+    watch_panel->SetBounds(left, form->watch_panel->Top, form->watch_panel->Width, form->watch_panel->Height);
     watch_panel->BevelOuter = form->watch_panel->BevelOuter;
     watch_panel->Parent = form->tsOperator;
     watch_panel->Color = form->watch_panel->Color;
@@ -214,6 +230,16 @@ static void CopyWatchPanel(int panel_id, TForm1 * form, char label, int left)
     label_watch->Transparent = form->label_watch->Transparent;
     label_watch->BoundsRect = form->label_watch->BoundsRect;
     label_watch->Parent = watch_panel;
+
+    TLabel * input_type = new TLabel(watch_panel);
+    input_type->Caption = "MIC";
+    input_type->AutoSize = form->input_type->AutoSize;
+    input_type->BoundsRect = form->input_type->BoundsRect;
+    input_type->OnMouseDown = form->input_type->OnMouseDown;
+    input_type->Font = form->input_type->Font;
+    input_type->Transparent = form->input_type->Transparent;
+    input_type->Alignment = form->input_type->Alignment;
+    input_type->Parent = watch_panel;
 }
 __fastcall TForm1::TForm1(TComponent* Owner)
     : TForm(Owner)
@@ -223,20 +249,26 @@ __fastcall TForm1::TForm1(TComponent* Owner)
     for (int i=2;i<=16;i++)
     {
         CreateInputPanel(i, this);
-        CopyWatchPanel(i, this, 'A'-1+i, 0);
+        CopyWatchPanel(i, this, 'A'-1+i, (i-1) * PANEL_WIDTH);
     }
     for (int i=2;i<=8;i++)
     {
         CreateOutputPanel(i, this);
     }
-    for (int i=1;i<=8;i++)
+    for (int i=17;i<=17+7;i++)
     {
-        CopyWatchPanel(i+16, this, '1'-1+i, 104);
+        CopyWatchPanel(i, this, '1'+(i-17), mix_panel->Left + mix_panel->Width + (i-17) * PANEL_WIDTH);
     }
     input_level_edit[0] = input_panel_level_edit;
-    output_level_edit[0] = output_panel_level_edit;
     SetWindowLong(input_panel_level_edit->Handle, GWL_STYLE, GetWindowLong(input_panel_level_edit->Handle, GWL_STYLE) | ES_RIGHT);
+
+    output_level_edit[0] = output_panel_level_edit;
     SetWindowLong(output_panel_level_edit->Handle, GWL_STYLE, GetWindowLong(output_panel_level_edit->Handle, GWL_STYLE) | ES_RIGHT);
+
+    input_level_edit[16] = mix_panel_level_edit;
+    SetWindowLong(mix_panel_level_edit->Handle, GWL_STYLE, GetWindowLong(mix_panel_level_edit->Handle, GWL_STYLE) | ES_RIGHT);
+
+    SetWindowLong(master_panel_level_edit->Handle, GWL_STYLE, GetWindowLong(master_panel_level_edit->Handle, GWL_STYLE) | ES_RIGHT);
 
     // DSP详细配置界面的数据
     last_default_btn = NULL;
@@ -758,6 +790,8 @@ void __fastcall TForm1::ToggleDSP(TObject *Sender)
     if (btn->Down)
     {
         last_dsp_btn = btn;
+        pnlDspDetail->Left = 0;
+        pnlDspDetail->Top = 192;
         pnlDspDetail->Show();
         pnlDspDetail->Tag = btn->Parent->Tag;
         
@@ -786,6 +820,7 @@ void __fastcall TForm1::SpeedButton80Click(TObject *Sender)
     mix_panel_state = SetBit(mix_panel_state, 3, btn->Down);
     D1608Cmd cmd = Mix_MaxPrio_Invert_Mute(mix_panel_state);
     udpControl->SendBuffer(dst_ip, 2305, &cmd, sizeof(cmd)-1);
+    SendCmd(cmd);
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::btnMAXONClick(TObject *Sender)
@@ -811,11 +846,11 @@ void __fastcall TForm1::SpeedButton73Click(TObject *Sender)
     SendCmd(cmd);
 }
 //---------------------------------------------------------------------------
-
 void __fastcall TForm1::MasterVolumeChange(TObject *Sender)
 {
     TAdvTrackBar* track = (TAdvTrackBar*)Sender;
     int value = track->Max - track->Position;
+    master_panel_level_edit->Text = value;
     D1608Cmd cmd = MasterVolume(value);
     SendCmd(cmd);
 }
@@ -898,6 +933,54 @@ void __fastcall TForm1::FormMouseWheel(TObject *Sender, TShiftState Shift,
     {
         panel_agent->OnMouseWheel(ActiveControl, Shift, WheelDelta, MousePos, Handled);
     }
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::input_typeMouseDown(TObject *Sender,
+      TMouseButton Button, TShiftState Shift, int X, int Y)
+{
+    if (Button == mbLeft)
+    {
+        TLabel * input_type = (TLabel*)Sender;
+        TPoint p(input_type->Left, input_type->Top+input_type->Height);
+        p = input_type->Parent->ClientToScreen(p);
+        PopupMenu1->PopupComponent = input_type;
+        PopupMenu1->Popup(p.x, p.y);
+    }
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::M41Click(TObject *Sender)
+{
+    TLabel * popup_label = (TLabel*)PopupMenu1->PopupComponent;
+    popup_label->Caption = ((TMenuItem*)Sender)->Caption;
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::M41DrawItem(TObject *Sender, TCanvas *ACanvas,
+      TRect &ARect, bool Selected)
+{
+    ACanvas->Font->Name = "MS Sans Serif";
+    ACanvas->Font->Color = clAqua;
+    ACanvas->Font->Style = TFontStyles()<< fsBold;
+
+    if (Selected)
+    {
+        ACanvas->Brush->Color = (TColor)0x00808000;
+    }
+    else
+    {
+        ACanvas->Brush->Color = (TColor)0x004A392C;
+    }
+    
+    int text_width = ACanvas->TextWidth(((TMenuItem*)Sender)->Caption);
+    int left = (ARect.Width() - text_width) / 2;
+    int text_height = ACanvas->TextHeight(((TMenuItem*)Sender)->Caption);
+    int top = ARect.Top + (ARect.Height() - text_height) / 2;
+    ACanvas->TextRect(ARect, left, top, ((TMenuItem*)Sender)->Caption);
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::M41MeasureItem(TObject *Sender, TCanvas *ACanvas,
+      int &Width, int &Height)
+{
+    Width = Label1->Width-19;
 }
 //---------------------------------------------------------------------------
 
