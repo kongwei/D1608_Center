@@ -209,6 +209,18 @@ static TEdit * CopyInputPanelEdit(TEdit * src_edit, TWinControl * input_panel)
     SetWindowLong(edit->Handle, GWL_STYLE, GetWindowLong(edit->Handle, GWL_STYLE) | ES_RIGHT);
     return edit;
 }
+static TEdit * CopyInputPanelEdit(TEdit * src_edit, int dsp_id)
+{
+    TEdit * edit = new TEdit(src_edit->Parent);
+    edit->BoundsRect = src_edit->BoundsRect;
+    edit->Left = src_edit->Left + (dsp_id-1) * PANEL_WIDTH;
+    edit->BorderStyle = src_edit->BorderStyle;
+    edit->Color = src_edit->Color;
+    edit->Font = src_edit->Font;
+    edit->Parent = src_edit->Parent;
+    SetWindowLong(edit->Handle, GWL_STYLE, GetWindowLong(edit->Handle, GWL_STYLE) | ES_RIGHT);
+    return edit;
+}
 static TStaticText * CopyInputPanelLabel(TStaticText * src_label, TWinControl * input_panel)
 {
     TStaticText * label = new TStaticText(input_panel);
@@ -238,7 +250,7 @@ static void CreateInputPanel(int panel_id, TForm1 * form)
     CopyInputPanelButton(form->input_panel_invert_btn, panel_id);
     CopyInputPanelButton(form->input_panel_noise_btn, panel_id);
     CopyInputPanelButton(form->input_panel_mute_btn, panel_id);
-    form->input_level_edit[panel_id-1] = CopyInputPanelEdit(form->input_panel_level_edit, form->tsOperator);
+    form->input_level_edit[panel_id-1] = CopyInputPanelEdit(form->input_panel_level_edit, panel_id);
     CopyInputPanelTrackbar(form->input_panel_trackbar, panel_id);
     CopyInputPanelLabel(form->input_panel_dsp_num, panel_id)->Caption = String(char('A'-1+panel_id));
 }
@@ -439,6 +451,9 @@ void TForm1::SendCmd(D1608Cmd& cmd)
     {
         edtDebug->Text = edtDebug->Text + IntToHex(p[i], 2) + " ";
     }
+    // TODO:
+    return;
+    
     udpControl->SendBuffer(dst_ip, 2305, &cmd, sizeof(cmd));
 }
 //---------------------------------------------------------------------------

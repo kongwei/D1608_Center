@@ -22236,13 +22236,13 @@ object Form1: TForm1
     Top = 40
   end
   object tmSLP: TTimer
+    Enabled = False
     Interval = 500
     OnTimer = tmSLPTimer
     Left = 480
     Top = 40
   end
   object udpControl: TIdUDPServer
-    Active = True
     Bindings = <
       item
         IP = '127.0.0.1'
@@ -22254,6 +22254,7 @@ object Form1: TForm1
     Top = 40
   end
   object tmWatch: TTimer
+    Enabled = False
     OnTimer = tmWatchTimer
     Left = 416
     Top = 40
@@ -22267,6 +22268,7 @@ object Form1: TForm1
     Top = 96
   end
   object Timer1: TTimer
+    Enabled = False
     Interval = 500
     Left = 448
     Top = 96
