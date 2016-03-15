@@ -242,7 +242,7 @@ __fastcall TForm1::TForm1(TComponent* Owner)
                                 templet_image_rect.Top,
                                 (i+1)*PANEL_WIDTH,
                                 templet_image_rect.Bottom);
-        input_panel_bkground->Picture->Bitmap->Canvas->CopyRect(dest_rect, input_panel_bkground->Canvas, templet_image_rect);
+        input_panel_bkground->Canvas->CopyRect(dest_rect, input_panel_bkground->Canvas, templet_image_rect);
     }
     // Éú³ÉInputPanel
     for (int i=2;i<=16;i++)
@@ -260,7 +260,7 @@ __fastcall TForm1::TForm1(TComponent* Owner)
                                 templet_image_rect.Top,
                                 (i+1)*PANEL_WIDTH,
                                 templet_image_rect.Bottom);
-        output_panel_bkground->Picture->Bitmap->Canvas->CopyRect(dest_rect, output_panel_bkground->Picture->Bitmap->Canvas, templet_image_rect);
+        output_panel_bkground->Canvas->CopyRect(dest_rect, output_panel_bkground->Canvas, templet_image_rect);
     }
     for (int i=2;i<=8;i++)
     {
