@@ -12123,7 +12123,7 @@ object Form1: TForm1
         OnClick = ToogleOutputEQ
       end
       object output_panel_dsp_btn: TSpeedButtonNoFrame
-        Tag = 2
+        Tag = 101
         Left = 868
         Top = 163
         Width = 39

@@ -173,7 +173,9 @@ static void CreateInputPanel(int panel_id, TForm1 * form)
 }
 static void CreateOutputPanel(int panel_id, TForm1 * form)
 {
-    CopyInputPanelButton(form->output_panel_dsp_btn, panel_id)->Caption = "DSP" + IntToStr(panel_id);
+    TSpeedButton * btn_output_dsp = CopyInputPanelButton(form->output_panel_dsp_btn, panel_id);
+        btn_output_dsp->Caption = "DSP" + IntToStr(panel_id);
+        btn_output_dsp->Tag = 100 + panel_id;
     CopyInputPanelButton(form->output_panel_eq_btn, panel_id);
     CopyInputPanelButton(form->output_panel_limit_btn, panel_id);
 
@@ -805,13 +807,13 @@ void __fastcall TForm1::ToggleDSP(TObject *Sender)
         pnlDspDetail->Show();
         pnlDspDetail->Tag = btn->Tag;
         
-        if (btn->Tag > 100)
+        if (btn->Tag < 100)
         {
             lblDSPInfo->Caption = "Input Channel " + IntToStr(btn->Tag) + " DSP Setup";
         }
         else
         {
-            lblDSPInfo->Caption = "Output Channel " + IntToStr(btn->Tag) + " DSP Setup";
+            lblDSPInfo->Caption = "Output Channel " + IntToStr(btn->Tag-100) + " DSP Setup";
         }
 
         // TODO: 加载面板参数和不同类型
