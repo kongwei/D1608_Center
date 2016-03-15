@@ -74,7 +74,7 @@ int GetLocalIpList(TStrings * IpList)
     }
 }
 //---------------------------------------------------------------------------
-static TSpeedButton * CopyInputPanelButton(TSpeedButton * src_btn, TPanel * input_panel, Graphics::TBitmap* bmp=NULL)
+static TSpeedButton * CopyInputPanelButton(TSpeedButton * src_btn, TWinControl * input_panel, Graphics::TBitmap* bmp=NULL)
 {
     TSpeedButton * dsp_btn = new TSpeedButtonNoFrame(input_panel);
     dsp_btn->Caption = src_btn->Caption;
@@ -97,7 +97,34 @@ static TSpeedButton * CopyInputPanelButton(TSpeedButton * src_btn, TPanel * inpu
 
     return dsp_btn;
 }
-static TImage * CopyInputPanelBkground(TImage * src_img, TPanel * input_panel)
+static TSpeedButton * CopyInputPanelButton(TSpeedButton * src_btn, int dsp_id, Graphics::TBitmap* bmp=NULL)
+{
+    TSpeedButton * dsp_btn = new TSpeedButtonNoFrame(src_btn->Parent);
+    dsp_btn->Caption = src_btn->Caption;
+    dsp_btn->BoundsRect = src_btn->BoundsRect;
+    dsp_btn->Left = src_btn->Left + (dsp_id-1) * PANEL_WIDTH;
+    dsp_btn->AllowAllUp = src_btn->AllowAllUp;
+    dsp_btn->GroupIndex = src_btn->GroupIndex;
+    dsp_btn->Flat = src_btn->Flat;
+    if (bmp == NULL)
+    {
+        dsp_btn->Glyph = src_btn->Glyph;
+    }
+    else
+    {
+        dsp_btn->Glyph = bmp;
+    }
+    dsp_btn->NumGlyphs = src_btn->NumGlyphs;
+    dsp_btn->Layout = src_btn->Layout;
+    dsp_btn->OnClick = src_btn->OnClick;
+    dsp_btn->Parent = src_btn->Parent;
+
+    dsp_btn->Tag = dsp_id;
+    dsp_btn->GroupIndex = (int)dsp_btn; // 所有按钮互不影响
+
+    return dsp_btn;
+}
+static TImage * CopyInputPanelBkground(TImage * src_img, TWinControl * input_panel)
 {
     TImage * bkground = new TImage(input_panel);
     bkground->Picture->Bitmap = src_img->Picture->Bitmap;
@@ -106,7 +133,7 @@ static TImage * CopyInputPanelBkground(TImage * src_img, TPanel * input_panel)
     bkground->SendToBack();
     return bkground;
 }
-static TAdvTrackBar * CopyInputPanelTrackbar(TAdvTrackBar * src_trackbar, TPanel * input_panel)
+static TAdvTrackBar * CopyInputPanelTrackbar(TAdvTrackBar * src_trackbar, TWinControl * input_panel)
 {
     TAdvTrackBar * trackbar = new TAdvTrackBar(input_panel);
     trackbar->Parent = input_panel;
@@ -137,7 +164,41 @@ static TAdvTrackBar * CopyInputPanelTrackbar(TAdvTrackBar * src_trackbar, TPanel
 
     return trackbar;
 }
-static TEdit * CopyInputPanelEdit(TEdit * src_edit, TPanel * input_panel)
+static TAdvTrackBar * CopyInputPanelTrackbar(TAdvTrackBar * src_trackbar, int dsp_id)
+{
+    TAdvTrackBar * trackbar = new TAdvTrackBar(src_trackbar->Parent);
+    trackbar->Parent = src_trackbar->Parent;
+
+    trackbar->OnChange = src_trackbar->OnChange;
+
+    trackbar->Buttons->Size = src_trackbar->Buttons->Size;
+    trackbar->Buttons->Spacing = src_trackbar->Buttons->Spacing;
+    trackbar->Direction  = src_trackbar->Direction ;
+    trackbar->Max        = src_trackbar->Max       ;
+    trackbar->Min        = src_trackbar->Min       ;
+    trackbar->Orientation = src_trackbar->Orientation;
+
+    trackbar->Slider->Visible = src_trackbar->Slider->Visible;
+    trackbar->Slider->Offset = src_trackbar->Slider->Offset;
+    trackbar->Slider->Size = src_trackbar->Slider->Size;
+
+    trackbar->TickMark->Style = src_trackbar->TickMark->Style;
+
+    trackbar->BackGround = src_trackbar->BackGround;
+    trackbar->BackGroundStretched = src_trackbar->BackGroundStretched;
+
+    trackbar->Thumb->Picture = src_trackbar->Thumb->Picture;
+
+    trackbar->BoundsRect = src_trackbar->BoundsRect;
+    trackbar->Left = src_trackbar->Left + (dsp_id-1) * PANEL_WIDTH;
+
+    trackbar->Tag = dsp_id;
+
+    trackbar->OnChange(trackbar);
+
+    return trackbar;
+}
+static TEdit * CopyInputPanelEdit(TEdit * src_edit, TWinControl * input_panel)
 {
     TEdit * edit = new TEdit(input_panel);
     edit->BoundsRect = src_edit->BoundsRect;
@@ -148,7 +209,7 @@ static TEdit * CopyInputPanelEdit(TEdit * src_edit, TPanel * input_panel)
     SetWindowLong(edit->Handle, GWL_STYLE, GetWindowLong(edit->Handle, GWL_STYLE) | ES_RIGHT);
     return edit;
 }
-static TStaticText * CopyInputPanelLabel(TStaticText * src_label, TPanel * input_panel)
+static TStaticText * CopyInputPanelLabel(TStaticText * src_label, TWinControl * input_panel)
 {
     TStaticText * label = new TStaticText(input_panel);
     label->BoundsRect = src_label->BoundsRect;
@@ -157,26 +218,29 @@ static TStaticText * CopyInputPanelLabel(TStaticText * src_label, TPanel * input
     label->Parent = input_panel;
     return label;
 }
+static TStaticText * CopyInputPanelLabel(TStaticText * src_label, int dsp_id)
+{
+    TStaticText * label = new TStaticText(src_label->Parent);
+    label->BoundsRect = src_label->BoundsRect;
+    label->Left = src_label->Left + (dsp_id-1) * PANEL_WIDTH;
+    label->Color = src_label->Color;
+    label->Font = src_label->Font;
+    label->Parent = src_label->Parent;
+    return label;
+}
 static void CreateInputPanel(int panel_id, TForm1 * form)
 {
-    TPanel * input_panel = new TPanel(form->tsOperator);
-    input_panel->SetBounds(form->input_panel->Left+(panel_id-1) * PANEL_WIDTH, form->input_panel->Top, form->input_panel->Width, form->input_panel->Height);
-    input_panel->Parent = form->tsOperator;
-    input_panel->Color = form->input_panel->Color;
-    input_panel->BevelOuter = bvNone;
-    input_panel->Tag = panel_id;
-    CopyInputPanelButton(form->input_panel_dsp_btn, input_panel)->Caption = "DSP " + String(char('A'-1+panel_id));
-    CopyInputPanelButton(form->input_panel_eq_btn, input_panel);
-    CopyInputPanelButton(form->input_panel_comp_btn, input_panel);
-    CopyInputPanelButton(form->input_panel_auto_btn, input_panel);
-    CopyInputPanelButton(form->input_panel_default_btn, input_panel);
-    CopyInputPanelButton(form->input_panel_invert_btn, input_panel);
-    CopyInputPanelButton(form->input_panel_noise_btn, input_panel);
-    CopyInputPanelButton(form->input_panel_mute_btn, input_panel);
-    form->input_level_edit[panel_id-1] = CopyInputPanelEdit(form->input_panel_level_edit, input_panel);
-    CopyInputPanelTrackbar(form->input_panel_trackbar, input_panel);
-    CopyInputPanelLabel(form->input_panel_dsp_num, input_panel)->Caption = String(char('A'-1+panel_id));
-    CopyInputPanelBkground(form->input_panel_bkground, input_panel);
+    CopyInputPanelButton(form->input_panel_dsp_btn, panel_id)->Caption = "DSP " + String(char('A'-1+panel_id));
+    CopyInputPanelButton(form->input_panel_eq_btn, panel_id);
+    CopyInputPanelButton(form->input_panel_comp_btn, panel_id);
+    CopyInputPanelButton(form->input_panel_auto_btn, panel_id);
+    CopyInputPanelButton(form->input_panel_default_btn, panel_id);
+    CopyInputPanelButton(form->input_panel_invert_btn, panel_id);
+    CopyInputPanelButton(form->input_panel_noise_btn, panel_id);
+    CopyInputPanelButton(form->input_panel_mute_btn, panel_id);
+    form->input_level_edit[panel_id-1] = CopyInputPanelEdit(form->input_panel_level_edit, form->tsOperator);
+    CopyInputPanelTrackbar(form->input_panel_trackbar, panel_id);
+    CopyInputPanelLabel(form->input_panel_dsp_num, panel_id)->Caption = String(char('A'-1+panel_id));
 }
 static void CreateOutputPanel(int panel_id, TForm1 * form)
 {
@@ -245,6 +309,20 @@ __fastcall TForm1::TForm1(TComponent* Owner)
     : TForm(Owner)
 {
     pb_watch_list[0] = pb_watch;
+
+    // 生成input背景
+    Image3->Left = 0;
+    Image3->Top = 0;
+    input_panel_bkground->Picture->Bitmap->Width = 16 * PANEL_WIDTH;
+    for (int i=0;i<16;i++)
+    {
+        TRect templet_image_rect = Image3->BoundsRect;
+        TRect dest_rect = TRect(i*PANEL_WIDTH,
+                                templet_image_rect.Top,
+                                (i+1)*PANEL_WIDTH,
+                                templet_image_rect.Bottom);
+        input_panel_bkground->Picture->Bitmap->Canvas->CopyRect(dest_rect, Image3->Picture->Bitmap->Canvas, templet_image_rect);
+    }
     // 生成InputPanel
     for (int i=2;i<=16;i++)
     {
@@ -535,7 +613,7 @@ void __fastcall TForm1::InputVolumeChange(TObject *Sender)
 {
     TAdvTrackBar* track = (TAdvTrackBar*)Sender;
     int value = track->Max - track->Position;
-    int dsp_num = track->Parent->Tag;
+    int dsp_num = track->Tag;
 
     if (input_level_edit[dsp_num-1] != NULL)
     {
@@ -549,7 +627,7 @@ void __fastcall TForm1::InputVolumeChange(TObject *Sender)
     }
     else
     {
-        int out_dsp_num = last_out_num_btn->Parent->Tag;
+        int out_dsp_num = last_out_num_btn->Tag;
         D1608Cmd cmd = IOVolume(out_dsp_num, dsp_num, value);
         SendCmd(cmd);
     }
@@ -558,7 +636,7 @@ void __fastcall TForm1::InputVolumeChange(TObject *Sender)
 void __fastcall TForm1::ToogleMute(TObject *Sender)
 {
     TSpeedButton* btn = (TSpeedButton*)Sender;
-    int dsp_id = btn->Parent->Tag;
+    int dsp_id = btn->Tag;
     static int input_mute = 0;
     input_mute = SetBit(input_mute, dsp_id, btn->Down);
     D1608Cmd cmd = InputMute(input_mute);
@@ -568,7 +646,7 @@ void __fastcall TForm1::ToogleMute(TObject *Sender)
 void __fastcall TForm1::ToogleNoise(TObject *Sender)
 {
     TSpeedButton* btn = (TSpeedButton*)Sender;
-    int dsp_id = btn->Parent->Tag;
+    int dsp_id = btn->Tag;
     static int input_noise = 0;
     input_noise = SetBit(input_noise, dsp_id, btn->Down);
     D1608Cmd cmd = InputNoise(input_noise);
@@ -578,7 +656,7 @@ void __fastcall TForm1::ToogleNoise(TObject *Sender)
 void __fastcall TForm1::ToogleInvert(TObject *Sender)
 {
     TSpeedButton* btn = (TSpeedButton*)Sender;
-    int dsp_id = btn->Parent->Tag;
+    int dsp_id = btn->Tag;
     static int input_invert = 0;
     input_invert = SetBit(input_invert, dsp_id, btn->Down);
     D1608Cmd cmd = InputInvert(input_invert);
@@ -596,7 +674,7 @@ void __fastcall TForm1::ToogleDefault(TObject *Sender)
     if (btn->Down)
     {
         last_default_btn = btn;
-        int dsp_id = btn->Parent->Tag;
+        int dsp_id = btn->Tag;
         D1608Cmd cmd = InputDefault(dsp_id);
         SendCmd(cmd);
     }
@@ -612,7 +690,7 @@ void __fastcall TForm1::ToogleDefault(TObject *Sender)
 void __fastcall TForm1::ToogleAuto(TObject *Sender)
 {
     TSpeedButton* btn = (TSpeedButton*)Sender;
-    int dsp_id = btn->Parent->Tag;
+    int dsp_id = btn->Tag;
     static int input_auto = 0;
     input_auto = SetBit(input_auto, dsp_id, btn->Down);
     D1608Cmd cmd = InputAuto(input_auto);
@@ -622,7 +700,7 @@ void __fastcall TForm1::ToogleAuto(TObject *Sender)
 void __fastcall TForm1::ToogleCOMP(TObject *Sender)
 {
     TSpeedButton* btn = (TSpeedButton*)Sender;
-    int dsp_id = btn->Parent->Tag;
+    int dsp_id = btn->Tag;
     static int input_comp = 0;
     input_comp = SetBit(input_comp, dsp_id, btn->Down);
     D1608Cmd cmd = InputComp(input_comp);
@@ -632,7 +710,7 @@ void __fastcall TForm1::ToogleCOMP(TObject *Sender)
 void __fastcall TForm1::ToogleEQ(TObject *Sender)
 {
     TSpeedButton* btn = (TSpeedButton*)Sender;
-    int dsp_id = btn->Parent->Tag;
+    int dsp_id = btn->Tag;
     static int input_eq = 0;
     input_eq = SetBit(input_eq, dsp_id, btn->Down);
     D1608Cmd cmd = InputEQ(input_eq);
@@ -686,7 +764,7 @@ void __fastcall TForm1::tmWatchTimer(TObject *Sender)
 void __fastcall TForm1::ToogleOutputMute(TObject *Sender)
 {
     TSpeedButton* btn = (TSpeedButton*)Sender;
-    int dsp_id = btn->Parent->Tag;
+    int dsp_id = btn->Tag;
     static int output_mute = 0;
     output_mute = SetBit(output_mute, dsp_id, btn->Down);
     D1608Cmd cmd = OutputMute(output_mute);
@@ -696,7 +774,7 @@ void __fastcall TForm1::ToogleOutputMute(TObject *Sender)
 void __fastcall TForm1::ToogleOutputInvert(TObject *Sender)
 {
     TSpeedButton* btn = (TSpeedButton*)Sender;
-    int dsp_id = btn->Parent->Tag;
+    int dsp_id = btn->Tag;
     static int output_invert = 0;
     output_invert = SetBit(output_invert, dsp_id, btn->Down);
     D1608Cmd cmd = OutputInvert(output_invert);
@@ -735,7 +813,7 @@ void __fastcall TForm1::ToogleOutputMix(TObject *Sender)
 void __fastcall TForm1::ToogleLimit(TObject *Sender)
 {
     TSpeedButton* btn = (TSpeedButton*)Sender;
-    int dsp_id = btn->Parent->Tag;
+    int dsp_id = btn->Tag;
     static int output_limit = 0;
     output_limit = SetBit(output_limit, dsp_id, btn->Down);
     D1608Cmd cmd = OutputLimit(output_limit);
@@ -745,7 +823,7 @@ void __fastcall TForm1::ToogleLimit(TObject *Sender)
 void __fastcall TForm1::ToogleOutputEQ(TObject *Sender)
 {
     TSpeedButton* btn = (TSpeedButton*)Sender;
-    int dsp_id = btn->Parent->Tag;
+    int dsp_id = btn->Tag;
     static int output_eq = 0;
     output_eq = SetBit(output_eq, dsp_id, btn->Down);
     D1608Cmd cmd = OutputEQ(output_eq);
@@ -756,7 +834,7 @@ void __fastcall TForm1::OutputVolumeChange(TObject *Sender)
 {
     TAdvTrackBar* track = (TAdvTrackBar*)Sender;
     int value = track->Max - track->Position;
-    int dsp_num = track->Parent->Tag;
+    int dsp_num = track->Tag;
 
     if (output_level_edit[dsp_num-1] != NULL)
     {
@@ -793,15 +871,15 @@ void __fastcall TForm1::ToggleDSP(TObject *Sender)
         pnlDspDetail->Left = 0;
         pnlDspDetail->Top = 192;
         pnlDspDetail->Show();
-        pnlDspDetail->Tag = btn->Parent->Tag;
+        pnlDspDetail->Tag = btn->Tag;
         
-        if (btn->Tag == 1)
+        if (btn->Tag > 100)
         {
-            lblDSPInfo->Caption = "Input Channel " + IntToStr(btn->Parent->Tag) + " DSP Setup";
+            lblDSPInfo->Caption = "Input Channel " + IntToStr(btn->Tag) + " DSP Setup";
         }
         else
         {
-            lblDSPInfo->Caption = "Output Channel " + IntToStr(btn->Parent->Tag) + " DSP Setup";
+            lblDSPInfo->Caption = "Output Channel " + IntToStr(btn->Tag) + " DSP Setup";
         }
 
         // TODO: 加载面板参数和不同类型
@@ -813,7 +891,7 @@ void __fastcall TForm1::ToggleDSP(TObject *Sender)
     }
 }
 //---------------------------------------------------------------------------
-void __fastcall TForm1::SpeedButton80Click(TObject *Sender)
+void __fastcall TForm1::btnMixInvertClick(TObject *Sender)
 {
     // mix_panel_state bit3
     TSpeedButton* btn = (TSpeedButton*)Sender;
@@ -831,7 +909,7 @@ void __fastcall TForm1::btnMAXONClick(TObject *Sender)
     SendCmd(cmd);
 }
 //---------------------------------------------------------------------------
-void __fastcall TForm1::SpeedButton108Click(TObject *Sender)
+void __fastcall TForm1::btnLastOnClick(TObject *Sender)
 {
     TSpeedButton* btn = (TSpeedButton*)Sender;
     D1608Cmd cmd = LastOn(btn->Down);
@@ -839,7 +917,7 @@ void __fastcall TForm1::SpeedButton108Click(TObject *Sender)
 }
 //---------------------------------------------------------------------------
 
-void __fastcall TForm1::SpeedButton73Click(TObject *Sender)
+void __fastcall TForm1::btnFShiftClick(TObject *Sender)
 {
     TSpeedButton* btn = (TSpeedButton*)Sender;
     D1608Cmd cmd = FShift(btn->Down);
@@ -871,7 +949,7 @@ void __fastcall TForm1::btnMasterMuteClick(TObject *Sender)
     SendCmd(cmd);
 }
 //---------------------------------------------------------------------------
-void __fastcall TForm1::SpeedButton84Click(TObject *Sender)
+void __fastcall TForm1::btnPhantonClick(TObject *Sender)
 {
     TSpeedButton* btn = (TSpeedButton*)Sender;
     int dsp_id = btn->Parent->Tag;
