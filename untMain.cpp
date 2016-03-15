@@ -74,29 +74,6 @@ int GetLocalIpList(TStrings * IpList)
     }
 }
 //---------------------------------------------------------------------------
-static TSpeedButton * CopyInputPanelButton(TSpeedButton * src_btn, TWinControl * input_panel, Graphics::TBitmap* bmp=NULL)
-{
-    TSpeedButton * dsp_btn = new TSpeedButtonNoFrame(input_panel);
-    dsp_btn->Caption = src_btn->Caption;
-    dsp_btn->BoundsRect = src_btn->BoundsRect;
-    dsp_btn->AllowAllUp = src_btn->AllowAllUp;
-    dsp_btn->GroupIndex = src_btn->GroupIndex;
-    dsp_btn->Flat = src_btn->Flat;
-    if (bmp == NULL)
-    {
-        dsp_btn->Glyph = src_btn->Glyph;
-    }
-    else
-    {
-        dsp_btn->Glyph = bmp;
-    }
-    dsp_btn->NumGlyphs = src_btn->NumGlyphs;
-    dsp_btn->Layout = src_btn->Layout;
-    dsp_btn->OnClick = src_btn->OnClick;
-    dsp_btn->Parent = input_panel;
-
-    return dsp_btn;
-}
 static TSpeedButton * CopyInputPanelButton(TSpeedButton * src_btn, int dsp_id, Graphics::TBitmap* bmp=NULL)
 {
     TSpeedButton * dsp_btn = new TSpeedButtonNoFrame(src_btn->Parent);
@@ -123,46 +100,6 @@ static TSpeedButton * CopyInputPanelButton(TSpeedButton * src_btn, int dsp_id, G
     dsp_btn->GroupIndex = (int)dsp_btn; // 所有按钮互不影响
 
     return dsp_btn;
-}
-static TImage * CopyInputPanelBkground(TImage * src_img, TWinControl * input_panel)
-{
-    TImage * bkground = new TImage(input_panel);
-    bkground->Picture->Bitmap = src_img->Picture->Bitmap;
-    bkground->BoundsRect = src_img->BoundsRect;
-    bkground->Parent = input_panel;
-    bkground->SendToBack();
-    return bkground;
-}
-static TAdvTrackBar * CopyInputPanelTrackbar(TAdvTrackBar * src_trackbar, TWinControl * input_panel)
-{
-    TAdvTrackBar * trackbar = new TAdvTrackBar(input_panel);
-    trackbar->Parent = input_panel;
-
-    trackbar->OnChange = src_trackbar->OnChange;
-
-    trackbar->Buttons->Size = src_trackbar->Buttons->Size;
-    trackbar->Buttons->Spacing = src_trackbar->Buttons->Spacing;
-    trackbar->Direction  = src_trackbar->Direction ;
-    trackbar->Max        = src_trackbar->Max       ;
-    trackbar->Min        = src_trackbar->Min       ;
-    trackbar->Orientation = src_trackbar->Orientation;
-
-    trackbar->Slider->Visible = src_trackbar->Slider->Visible;
-    trackbar->Slider->Offset = src_trackbar->Slider->Offset;
-    trackbar->Slider->Size = src_trackbar->Slider->Size;
-
-    trackbar->TickMark->Style = src_trackbar->TickMark->Style;
-
-    trackbar->BackGround = src_trackbar->BackGround;
-    trackbar->BackGroundStretched = src_trackbar->BackGroundStretched;
-
-    trackbar->Thumb->Picture = src_trackbar->Thumb->Picture;
-
-    trackbar->BoundsRect = src_trackbar->BoundsRect;
-
-    trackbar->OnChange(trackbar);
-
-    return trackbar;
 }
 static TAdvTrackBar * CopyInputPanelTrackbar(TAdvTrackBar * src_trackbar, int dsp_id)
 {
@@ -198,17 +135,6 @@ static TAdvTrackBar * CopyInputPanelTrackbar(TAdvTrackBar * src_trackbar, int ds
 
     return trackbar;
 }
-static TEdit * CopyInputPanelEdit(TEdit * src_edit, TWinControl * input_panel)
-{
-    TEdit * edit = new TEdit(input_panel);
-    edit->BoundsRect = src_edit->BoundsRect;
-    edit->BorderStyle = src_edit->BorderStyle;
-    edit->Color = src_edit->Color;
-    edit->Font = src_edit->Font;
-    edit->Parent = input_panel;
-    SetWindowLong(edit->Handle, GWL_STYLE, GetWindowLong(edit->Handle, GWL_STYLE) | ES_RIGHT);
-    return edit;
-}
 static TEdit * CopyInputPanelEdit(TEdit * src_edit, int dsp_id)
 {
     TEdit * edit = new TEdit(src_edit->Parent);
@@ -220,15 +146,6 @@ static TEdit * CopyInputPanelEdit(TEdit * src_edit, int dsp_id)
     edit->Parent = src_edit->Parent;
     SetWindowLong(edit->Handle, GWL_STYLE, GetWindowLong(edit->Handle, GWL_STYLE) | ES_RIGHT);
     return edit;
-}
-static TStaticText * CopyInputPanelLabel(TStaticText * src_label, TWinControl * input_panel)
-{
-    TStaticText * label = new TStaticText(input_panel);
-    label->BoundsRect = src_label->BoundsRect;
-    label->Color = src_label->Color;
-    label->Font = src_label->Font;
-    label->Parent = input_panel;
-    return label;
 }
 static TStaticText * CopyInputPanelLabel(TStaticText * src_label, int dsp_id)
 {
@@ -256,27 +173,19 @@ static void CreateInputPanel(int panel_id, TForm1 * form)
 }
 static void CreateOutputPanel(int panel_id, TForm1 * form)
 {
-    TPanel * output_panel = new TPanel(form->tsOperator);
-    output_panel->SetBounds(form->output_panel->Left+(panel_id-1) * PANEL_WIDTH, form->output_panel->Top, form->output_panel->Width, form->output_panel->Height);
-    output_panel->Parent = form->tsOperator;
-    output_panel->Color = form->output_panel->Color;
-    output_panel->BevelOuter = bvNone;
-    output_panel->Tag = panel_id;
-
-    CopyInputPanelButton(form->output_panel_dsp_btn, output_panel)->Caption = "DSP" + IntToStr(panel_id);
-    CopyInputPanelButton(form->output_panel_eq_btn, output_panel);
-    CopyInputPanelButton(form->output_panel_limit_btn, output_panel);
+    CopyInputPanelButton(form->output_panel_dsp_btn, panel_id)->Caption = "DSP" + IntToStr(panel_id);
+    CopyInputPanelButton(form->output_panel_eq_btn, panel_id);
+    CopyInputPanelButton(form->output_panel_limit_btn, panel_id);
 
     Graphics::TBitmap * bmp = new Graphics::TBitmap();
     form->ImageList1->GetBitmap(panel_id-1, bmp);
-    CopyInputPanelButton(form->output_panel_number_btn, output_panel, bmp);
+    CopyInputPanelButton(form->output_panel_number_btn, panel_id, bmp);
 
-    CopyInputPanelButton(form->output_panel_invert_btn, output_panel);
-    CopyInputPanelButton(form->output_panel_mute_btn, output_panel);
-    form->output_level_edit[panel_id-1] = CopyInputPanelEdit(form->output_panel_level_edit, output_panel);
-    CopyInputPanelTrackbar(form->output_panel_trackbar, output_panel);
-    CopyInputPanelLabel(form->output_panel_dsp_num, output_panel)->Caption = IntToStr(panel_id);
-    CopyInputPanelBkground(form->output_panel_bkground, output_panel);
+    CopyInputPanelButton(form->output_panel_invert_btn, panel_id);
+    CopyInputPanelButton(form->output_panel_mute_btn, panel_id);
+    form->output_level_edit[panel_id-1] = CopyInputPanelEdit(form->output_panel_level_edit, panel_id);
+    CopyInputPanelTrackbar(form->output_panel_trackbar, panel_id);
+    CopyInputPanelLabel(form->output_panel_dsp_num, panel_id)->Caption = IntToStr(panel_id);
 }
 static void CopyWatchPanel(int panel_id, TForm1 * form, char label, int left)
 {
@@ -323,8 +232,6 @@ __fastcall TForm1::TForm1(TComponent* Owner)
     pb_watch_list[0] = pb_watch;
 
     // 生成input背景
-    Image3->Left = 0;
-    Image3->Top = 0;
     input_panel_bkground->Picture->Bitmap->Width = 16 * PANEL_WIDTH;
     for (int i=0;i<16;i++)
     {
@@ -333,13 +240,25 @@ __fastcall TForm1::TForm1(TComponent* Owner)
                                 templet_image_rect.Top,
                                 (i+1)*PANEL_WIDTH,
                                 templet_image_rect.Bottom);
-        input_panel_bkground->Picture->Bitmap->Canvas->CopyRect(dest_rect, Image3->Picture->Bitmap->Canvas, templet_image_rect);
+        input_panel_bkground->Picture->Bitmap->Canvas->CopyRect(dest_rect, input_panel_bkground->Canvas, templet_image_rect);
     }
     // 生成InputPanel
     for (int i=2;i<=16;i++)
     {
         CreateInputPanel(i, this);
         CopyWatchPanel(i, this, 'A'-1+i, (i-1) * PANEL_WIDTH);
+    }
+
+    output_panel_bkground->Width = 8 * PANEL_WIDTH;
+    output_panel_bkground->Picture->Bitmap->Width = 8 * PANEL_WIDTH;
+    for (int i=1;i<8;i++)
+    {
+        TRect templet_image_rect = Image3->BoundsRect;
+        TRect dest_rect = TRect(i*PANEL_WIDTH,
+                                templet_image_rect.Top,
+                                (i+1)*PANEL_WIDTH,
+                                templet_image_rect.Bottom);
+        output_panel_bkground->Picture->Bitmap->Canvas->CopyRect(dest_rect, output_panel_bkground->Picture->Bitmap->Canvas, templet_image_rect);
     }
     for (int i=2;i<=8;i++)
     {
@@ -451,8 +370,6 @@ void TForm1::SendCmd(D1608Cmd& cmd)
     {
         edtDebug->Text = edtDebug->Text + IntToHex(p[i], 2) + " ";
     }
-    // TODO:
-    return;
     
     udpControl->SendBuffer(dst_ip, 2305, &cmd, sizeof(cmd));
 }
