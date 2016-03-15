@@ -1,6 +1,6 @@
 object Form1: TForm1
-  Left = 2
-  Top = 6
+  Left = 234
+  Top = 30
   Width = 1280
   Height = 739
   Caption = 'D1608'
@@ -22322,13 +22322,13 @@ object Form1: TForm1
     Top = 40
   end
   object tmSLP: TTimer
-    Enabled = False
     Interval = 500
     OnTimer = tmSLPTimer
     Left = 480
     Top = 40
   end
   object udpControl: TIdUDPServer
+    Active = True
     Bindings = <
       item
         IP = '127.0.0.1'
