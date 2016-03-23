@@ -95,7 +95,6 @@ __published:	// IDE-managed Components
     TSpeedButtonNoFrame *btnMasterMute;
     TPanel *pnlDspDetail;
     TLabel *lblDSPInfo;
-    TTrackBar *TrackBar27;
     TSpeedButtonNoFrame *btnPhanton;
     TSpeedButtonNoFrame *btnDSPCOMP;
     TEdit *edtDebug;
@@ -200,6 +199,8 @@ __published:	// IDE-managed Components
     TSpeedButtonNoFrame *output_panel_dsp_btn;
     TEdit *output_panel_level_edit;
     TStaticText *output_panel_dsp_num;
+    TAdvTrackBar *TrackBar27;
+    TLabel *Label2;
     void __fastcall FormCreate(TObject *Sender);
     void __fastcall FormDestroy(TObject *Sender);
     void __fastcall btnRefreshClick(TObject *Sender);

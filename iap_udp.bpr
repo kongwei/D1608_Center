@@ -6,12 +6,12 @@
     <PROJECT value="iap_udp.exe"/>
     <OBJFILES value="tmp\iap_udp.obj tmp\untMain.obj tmp\D1608Pack.obj tmp\Coefficient.obj 
       tmp\FilterList.obj tmp\FilterPanelSet.obj tmp\SelectSort.obj 
-      tmp\WaveGraphic.obj"/>
+      tmp\WaveGraphic.obj tmp\Unit2.obj"/>
     <RESFILES value="iap_udp.res"/>
     <IDLFILES value=""/>
     <IDLGENFILES value=""/>
     <DEFFILE value=""/>
-    <RESDEPEN value="$(RESFILES) untMain.dfm"/>
+    <RESDEPEN value="$(RESFILES) untMain.dfm ..\..\new\CentCtrl\Unit2.dfm"/>
     <LIBFILES value=""/>
     <LIBRARIES value="dclusr.lib tmstrackbar.lib bcbsmp.lib vclx.lib indy.lib rtl.lib vcl.lib"/>
     <SPARELIBS value="vcl.lib rtl.lib indy.lib vclx.lib bcbsmp.lib tmstrackbar.lib dclusr.lib"/>
@@ -21,7 +21,7 @@
       dsnapcrba.bpi dsnapcon.bpi vclie.bpi xmlrtl.bpi inet.bpi inetdbbde.bpi 
       inetdbxpress.bpi nmfast.bpi webdsnap.bpi bcbie.bpi soaprtl.bpi dclocx.bpi 
       dbexpress.bpi dbxcds.bpi indy.bpi bcb2kaxserver.bpi tmstrackbar.bpi"/>
-    <PATHCPP value=".;filter_wave;filter_wave;filter_wave;filter_wave;filter_wave"/>
+    <PATHCPP value=".;filter_wave;filter_wave;filter_wave;filter_wave;filter_wave;..\..\new\CentCtrl"/>
     <PATHPAS value=".;"/>
     <PATHRC value=".;"/>
     <PATHASM value=".;"/>
@@ -31,14 +31,14 @@
     <USERDEFINES value="_DEBUG;STRICT"/>
     <SYSDEFINES value="NO_STRICT"/>
     <MAINSOURCE value="iap_udp.cpp"/>
-    <INCLUDEPATH value="$(BCB)\Lib;&quot;..\..\vcl component pack v6.0.2.0&quot;;filter_wave;..\..\CSP_850_A\版本上传上位机（iap_version）\iap_version;&quot;C:\Program Files\Borland\CBuilder6\Projects&quot;;F:\神州II号\iap_version;$(BCB)\include;$(BCB)\include\vcl"/>
-    <LIBPATH value="$(BCB)\Projects\Lib;&quot;..\..\vcl component pack v6.0.2.0&quot;;filter_wave;..\..\CSP_850_A\版本上传上位机（iap_version）\iap_version;&quot;C:\Program Files\Borland\CBuilder6\Projects&quot;;F:\神州II号\iap_version;$(BCB)\lib\obj;$(BCB)\lib"/>
+    <INCLUDEPATH value="..\..\new\CentCtrl;$(BCB)\Lib;&quot;..\..\vcl component pack v6.0.2.0&quot;;filter_wave;..\..\CSP_850_A\版本上传上位机（iap_version）\iap_version;&quot;C:\Program Files\Borland\CBuilder6\Projects&quot;;F:\神州II号\iap_version;$(BCB)\include;$(BCB)\include\vcl"/>
+    <LIBPATH value="..\..\new\CentCtrl;$(BCB)\Projects\Lib;&quot;..\..\vcl component pack v6.0.2.0&quot;;filter_wave;..\..\CSP_850_A\版本上传上位机（iap_version）\iap_version;&quot;C:\Program Files\Borland\CBuilder6\Projects&quot;;F:\神州II号\iap_version;$(BCB)\lib\obj;$(BCB)\lib"/>
     <WARNINGS value="-w-par"/>
     <OTHERFILES value=""/>
   </MACROS>
   <OPTIONS>
-    <IDLCFLAGS value="-I$(BCB)\Lib -I&quot;..\..\vcl component pack v6.0.2.0&quot; -Ifilter_wave 
-      -I..\..\CSP_850_A\版本上传上位机（iap_version）\iap_version 
+    <IDLCFLAGS value="-I..\..\new\CentCtrl -I$(BCB)\Lib -I&quot;..\..\vcl component pack v6.0.2.0&quot; 
+      -Ifilter_wave -I..\..\CSP_850_A\版本上传上位机（iap_version）\iap_version 
       -I&quot;C:\Program Files\Borland\CBuilder6\Projects&quot; -IF:\神州II号\iap_version 
       -I$(BCB)\include -I$(BCB)\include\vcl -src_suffix cpp -D_DEBUG -DSTRICT -boa"/>
     <CFLAG1 value="-Od -H=$(BCB)\lib\vcl60.csm -Hc -Vx -Ve -X- -r- -a8 -b- -k -y -v -vi- -c 
@@ -65,6 +65,7 @@
       <FILE FILENAME="filter_wave\FilterPanelSet.cpp" FORMNAME="" UNITNAME="FilterPanelSet.cpp" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
       <FILE FILENAME="filter_wave\SelectSort.cpp" FORMNAME="" UNITNAME="SelectSort.cpp" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
       <FILE FILENAME="filter_wave\WaveGraphic.cpp" FORMNAME="" UNITNAME="WaveGraphic.cpp" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\..\new\CentCtrl\Unit2.cpp" FORMNAME="Form2" UNITNAME="Unit2" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
   </FILELIST>
   <BUILDTOOLS>
   </BUILDTOOLS>
