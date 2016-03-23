@@ -20,6 +20,8 @@ public:
     TEdit* GetFreqText(int band);
     TEdit* GetQText(int band);
     TEdit* GetGainText(int band);
+    TComboBox* GetType(int band);
+    TCheckBox* GetByPass(int band);
 
     void __fastcall OnMouseWheel(TObject *Sender, TShiftState Shift,
       int WheelDelta, TPoint &MousePos, bool &Handled);
@@ -32,6 +34,9 @@ private:
     TEdit* _edtFreq[9];
     TEdit* _edtQ[9];
     TEdit* _edtGain[9];
+    TComboBox* _cbType[9];
+    TCheckBox* _cbBypass[9];
+
 
     void __fastcall cbTypeChange(TObject *Sender);
     void __fastcall cbBypassClick(TObject *Sender);

@@ -151,7 +151,7 @@ void __fastcall PaintAgent::OnMouseMove(TObject *Sender, TShiftState Shift,
     if (!_filter_set.IsBandForbidden(_filter_set.GetActiveBand()) && is_mouse_down)
     {
         String type = _filter_set.GetFilter(_filter_set.GetActiveBand())->GetType();
-        if ((type == "BandPass")
+        if ((type == "Band Pass")
           ||(type == "Notch")
           ||(type == "High Butterworth 2nd")
           ||(type == "High Butterworth 4nd")

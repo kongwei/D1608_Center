@@ -34,6 +34,8 @@ void PanelAgent::SetPanel(int band, TPanel* panel, TEdit* edtFreq, TEdit* edtQ, 
     _edtFreq[band] = edtFreq;
     _edtQ[band] = edtQ;
     _edtGain[band] = edtGain;
+    _cbType[band] = cbType;
+    _cbBypass[band] = cbBypass;
 
     edtFreq->Tag = 101;
     edtQ->Tag = 102;
@@ -74,6 +76,14 @@ TEdit* PanelAgent::GetGainText(int band)
 {
     return _edtGain[band];
 }
+TComboBox* PanelAgent::GetType(int band)
+{
+    return _cbType[band];
+}
+TCheckBox* PanelAgent::GetByPass(int band)
+{
+    return _cbBypass[band];
+}
 
 void PanelAgent::SetPanelUnselect(int band)
 {
@@ -93,7 +103,7 @@ void __fastcall PanelAgent::cbTypeChange(TObject *Sender)
     _filter_set.GetFilter(band)->SetType(type_ccombobox->Text);
 
     String type = type_ccombobox->Text;
-    if ((type == "BandPass")
+    if ((type == "Band Pass")
       ||(type == "Notch")
       ||(type == "High Butterworth 2nd")
       ||(type == "High Butterworth 4nd")
@@ -110,7 +120,7 @@ void __fastcall PanelAgent::cbTypeChange(TObject *Sender)
         GetGainText(band)->Enabled = true;
     }
 
-    if (band == 1)
+    /*if (band == 1)
     {
         // band 2 ʧЧ
         GetPanel(2)->Enabled = (type != "High Butterworth 4nd");
@@ -125,7 +135,7 @@ void __fastcall PanelAgent::cbTypeChange(TObject *Sender)
         GetFreqText(7)->Enabled = (type != "Low Butterworth 4nd");
         GetQText(7)->Enabled = (type != "Low Butterworth 4nd");
         GetGainText(7)->Enabled = (type != "Low Butterworth 4nd");
-    }
+    }*/
 
     _filter_set.GetFilter(band)->SetType(type_ccombobox->Text);
     _filter_set.RepaintPaint();
@@ -217,7 +227,7 @@ void __fastcall PanelAgent::edtGainKeyDown(TObject *Sender, WORD &Key,
         int band = ((TControl*)Sender)->Parent->Tag;
 
         String type = _filter_set.GetFilter(band)->GetType();
-        if ((type == "BandPass")
+        if ((type == "Band Pass")
           ||(type == "Notch")
           ||(type == "High Butterworth 2nd")
           ||(type == "High Butterworth 4nd")

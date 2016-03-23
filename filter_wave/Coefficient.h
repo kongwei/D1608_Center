@@ -29,7 +29,7 @@ public:
         InitFreqPoint();
         EqualizerOff();
 
-        ChangFilterParameter("Peaking", 1000, 0, 4);
+        ChangFilterParameter("Parametric", 1000, 0, 4);
     }
     WideString name;
     double GetFreq() const
@@ -87,22 +87,22 @@ public:
         _gain = gain;
         _q = q;
 
-        if (type == "Peaking")
+        if (type == "Parametric")
         {
             Peaking(freq, gain, q);
             _type_id = 1;
         }
-        else if (type == "BandPass")
+        else if (type == "Band Pass")
         {
             BandPass(freq, gain, q);
             _type_id = 2;
         }
-        else if (type == "HighShelving")
+        else if (type == "High Shelf")
         {
             HighShelving(freq, gain, q);
             _type_id = 3;
         }
-        else if (type == "LowShelving")
+        else if (type == "Low Shelf")
         {
             LowShelving(freq, gain, q);
             _type_id = 4;

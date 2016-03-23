@@ -306,25 +306,26 @@ __fastcall TForm1::TForm1(TComponent* Owner)
     for (int i=0;i<9;i++)
     {
         filter_set.SetBypass(i, false);
-        filter_set.GetFilter(i)->ChangFilterParameter("Peaking", 1000, 0, 4.09);
-        filter_set.GetFilter(i)->name = IntToStr(i-1);
+        filter_set.GetFilter(i)->ChangFilterParameter("Parametric", 1000, 0, 4.09);
+        filter_set.GetFilter(i)->name = IntToStr(i);
     }
-    filter_set.GetFilter(1)->ChangFilterParameter("LowShelving", 1000, 0, 4.09);
-    filter_set.GetFilter(7)->ChangFilterParameter("HighShelving", 1000, 0, 4.09);
+    filter_set.GetFilter(1)->ChangFilterParameter("Low Shelf", 1000, 0, 4.09);
+    filter_set.GetFilter(8)->ChangFilterParameter("High Shelf", 1000, 0, 4.09);
 
-    filter_set.GetFilter(1)->name = "L";
-    filter_set.GetFilter(7)->name = "H";
+    //filter_set.GetFilter(1)->name = "L";
+    //filter_set.GetFilter(8)->name = "H";
 
     pnlDspDetail->DoubleBuffered = true;
 
     panel_agent->SetPanel(0, panelBand0, edtFreq0, edtQ0, edtGain0, cbType0, cbBypass0);
-    panel_agent->SetPanel(1, panelBandL, edtFreqL, edtQL, edtGainL, cbTypeL, cbBypassL);
-    panel_agent->SetPanel(2, panelBand1, edtFreq1, edtQ1, edtGain1, cbType1, cbBypass1);
-    panel_agent->SetPanel(3, panelBand2, edtFreq2, edtQ2, edtGain2, cbType2, cbBypass2);
-    panel_agent->SetPanel(4, panelBand3, edtFreq3, edtQ3, edtGain3, cbType3, cbBypass3);
-    panel_agent->SetPanel(5, panelBand4, edtFreq4, edtQ4, edtGain4, cbType4, cbBypass4);
-    panel_agent->SetPanel(6, panelBand5, edtFreq5, edtQ5, edtGain5, cbType5, cbBypass5);
-    panel_agent->SetPanel(7, panelBandH, edtFreqH, edtQH, edtGainH, cbTypeH, cbBypassH);
+    panel_agent->SetPanel(1, panelBand1, edtFreq1, edtQ1, edtGain1, cbType1, cbBypass1);
+    panel_agent->SetPanel(2, panelBand2, edtFreq2, edtQ2, edtGain2, cbType2, cbBypass2);
+    panel_agent->SetPanel(3, panelBand3, edtFreq3, edtQ3, edtGain3, cbType3, cbBypass3);
+    panel_agent->SetPanel(4, panelBand4, edtFreq4, edtQ4, edtGain4, cbType4, cbBypass4);
+    panel_agent->SetPanel(5, panelBand5, edtFreq5, edtQ5, edtGain5, cbType5, cbBypass5);
+    panel_agent->SetPanel(6, panelBand6, edtFreq6, edtQ6, edtGain6, cbType6, cbBypass6);
+    panel_agent->SetPanel(7, panelBand7, edtFreq7, edtQ7, edtGain7, cbType7, cbBypass7);
+    panel_agent->SetPanel(8, panelBand8, edtFreq8, edtQ8, edtGain8, cbType8, cbBypass8);
 
     InitGdipus();
 
@@ -339,9 +340,9 @@ void __fastcall TForm1::FormCreate(TObject *Sender)
     // Label->Caption
 
     mmLog->Text = Now();
-
+                                     
     if (FileExists("iap.log"))
-    {
+    {                                                             
         log_file = new TFileStream("iap.log", fmOpenWrite);
         log_file->Seek(0, soFromEnd);
     }
@@ -353,6 +354,7 @@ void __fastcall TForm1::FormCreate(TObject *Sender)
     btnRefresh->Click();
 
     //tsSearch->Show();
+    this->Repaint();
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::FormDestroy(TObject *Sender)
@@ -803,8 +805,8 @@ void __fastcall TForm1::ToggleDSP(TObject *Sender)
     if (btn->Down)
     {
         last_dsp_btn = btn;
-        pnlDspDetail->Left = 0;
-        pnlDspDetail->Top = 192;
+        //pnlDspDetail->Left = 0;
+        //pnlDspDetail->Top = 192;
         pnlDspDetail->Show();
         pnlDspDetail->Tag = btn->Tag;
         
@@ -919,11 +921,11 @@ void __fastcall TForm1::ToogleHighShelf(TObject *Sender)
 void __fastcall TForm1::ToogleEQ_DSP(TObject *Sender)
 {
     // TODO: ·¢ËÍÃüÁî
-    TCheckBox* btn = (TCheckBox*)Sender;
+    TSpeedButton* btn = (TSpeedButton*)Sender;
     int dsp_id = btn->Parent->Tag;
     int eq_id = btn->Tag;
     static int eq_switch[5] = {0,0,0,0,0};
-    eq_switch[eq_id-1] = SetBit(eq_switch[eq_id-1], dsp_id, btn->Checked);
+    eq_switch[eq_id-1] = SetBit(eq_switch[eq_id-1], dsp_id, btn->Down);
     D1608Cmd cmd = DspEQSwitch(eq_id, eq_switch[eq_id-1]);
     SendCmd(cmd);
 }
@@ -994,6 +996,35 @@ void __fastcall TForm1::M41MeasureItem(TObject *Sender, TCanvas *ACanvas,
       int &Width, int &Height)
 {
     Width = Label1->Width-19;
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::btnDspResetEQClick(TObject *Sender)
+{
+    edtQ0->Text = "0";
+    for (int i=1;i<=8;i++)
+    {
+        panel_agent->GetFreqText(i)->Text = "1000";
+        panel_agent->GetQText(i)->Text = "4";
+        panel_agent->GetGainText(i)->Text = "0";
+        panel_agent->GetType(i)->ItemIndex = 0;
+        panel_agent->GetByPass(i)->Checked = false;
+    }
+    panel_agent->GetType(1)->ItemIndex = 1;
+    panel_agent->GetType(8)->ItemIndex = 2;
+
+    for (int i=1;i<=8;i++)
+    {
+        filter_set.SetBypass(i, false);
+        filter_set.GetFilter(i)->ChangFilterParameter("Parametric", 1000, 0, 4.09);
+        filter_set.GetFilter(i)->name = IntToStr(i);
+    }
+    filter_set.GetFilter(1)->ChangFilterParameter("Low Shelf", 1000, 0, 4.09);
+    filter_set.GetFilter(8)->ChangFilterParameter("High Shelf", 1000, 0, 4.09);
+
+    for (int i=1;i<=8;i++)
+    {
+        filter_set.RepaintPaint(i);
+    }
 }
 //---------------------------------------------------------------------------
 
