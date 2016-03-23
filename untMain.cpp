@@ -303,18 +303,6 @@ __fastcall TForm1::TForm1(TComponent* Owner)
     paint_agent = new PaintAgent(PaintBox1, filter_set);
     filter_set.Register(paint_agent, panel_agent);
 
-    for (int i=0;i<9;i++)
-    {
-        filter_set.SetBypass(i, false);
-        filter_set.GetFilter(i)->ChangFilterParameter("Parametric", 1000, 0, 4.09);
-        filter_set.GetFilter(i)->name = IntToStr(i);
-    }
-    filter_set.GetFilter(1)->ChangFilterParameter("Low Shelf", 1000, 0, 4.09);
-    filter_set.GetFilter(8)->ChangFilterParameter("High Shelf", 1000, 0, 4.09);
-
-    //filter_set.GetFilter(1)->name = "L";
-    //filter_set.GetFilter(8)->name = "H";
-
     pnlDspDetail->DoubleBuffered = true;
 
     panel_agent->SetPanel(0, panelBand0, edtFreq0, edtQ0, edtGain0, cbType0, cbBypass0);
@@ -326,6 +314,8 @@ __fastcall TForm1::TForm1(TComponent* Owner)
     panel_agent->SetPanel(6, panelBand6, edtFreq6, edtQ6, edtGain6, cbType6, cbBypass6);
     panel_agent->SetPanel(7, panelBand7, edtFreq7, edtQ7, edtGain7, cbType7, cbBypass7);
     panel_agent->SetPanel(8, panelBand8, edtFreq8, edtQ8, edtGain8, cbType8, cbBypass8);
+
+    btnDspResetEQ->Click();
 
     InitGdipus();
 
@@ -1000,29 +990,19 @@ void __fastcall TForm1::M41MeasureItem(TObject *Sender, TCanvas *ACanvas,
 //---------------------------------------------------------------------------
 void __fastcall TForm1::btnDspResetEQClick(TObject *Sender)
 {
-    edtQ0->Text = "0";
-    for (int i=1;i<=8;i++)
-    {
-        panel_agent->GetFreqText(i)->Text = "1000";
-        panel_agent->GetQText(i)->Text = "4";
-        panel_agent->GetGainText(i)->Text = "0";
-        panel_agent->GetType(i)->ItemIndex = 0;
-        panel_agent->GetByPass(i)->Checked = false;
-    }
-    panel_agent->GetType(1)->ItemIndex = 1;
-    panel_agent->GetType(8)->ItemIndex = 2;
+    filter_set.GetFilter(1)->ChangFilterParameter("Low Shelf", 50, 0, 4.09);
+    filter_set.GetFilter(2)->ChangFilterParameter("Parametric", 100, 0, 4.09);
+    filter_set.GetFilter(3)->ChangFilterParameter("Parametric", 200, 0, 4.09);
+    filter_set.GetFilter(4)->ChangFilterParameter("Parametric", 500, 0, 4.09);
+    filter_set.GetFilter(5)->ChangFilterParameter("Parametric", 1000, 0, 4.09);
+    filter_set.GetFilter(6)->ChangFilterParameter("Parametric", 2000, 0, 4.09);
+    filter_set.GetFilter(7)->ChangFilterParameter("Parametric", 5000, 0, 4.09);
+    filter_set.GetFilter(8)->ChangFilterParameter("High Shelf", 10000, 0, 4.09);
 
     for (int i=1;i<=8;i++)
     {
-        filter_set.SetBypass(i, false);
-        filter_set.GetFilter(i)->ChangFilterParameter("Parametric", 1000, 0, 4.09);
         filter_set.GetFilter(i)->name = IntToStr(i);
-    }
-    filter_set.GetFilter(1)->ChangFilterParameter("Low Shelf", 1000, 0, 4.09);
-    filter_set.GetFilter(8)->ChangFilterParameter("High Shelf", 1000, 0, 4.09);
-
-    for (int i=1;i<=8;i++)
-    {
+        filter_set.SetBypass(i, false);
         filter_set.RepaintPaint(i);
     }
 }

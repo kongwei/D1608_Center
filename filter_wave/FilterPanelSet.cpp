@@ -337,5 +337,15 @@ void PanelAgent::UpdateFreqQGain(int band)
     _edtFreq[band]->Text = _filter_set.GetFilter(band)->GetFreq();
     _edtQ[band]->Text = _filter_set.GetFilter(band)->GetQ();
     _edtGain[band]->Text = _filter_set.GetFilter(band)->GetGain();
+    _cbBypass[band]->Checked = _filter_set.IsBypass(band);
+
+    for (int i=0;i<_cbType[band]->Items->Count;i++)
+    {
+        if (_cbType[band]->Items->Strings[i] == _filter_set.GetFilter(band)->GetType())
+        {
+            _cbType[band]->ItemIndex = i;
+            break;
+        }
+    }
 }
 
