@@ -6,12 +6,12 @@
     <PROJECT value="iap_udp.exe"/>
     <OBJFILES value="tmp\iap_udp.obj tmp\untMain.obj tmp\Coefficient.obj tmp\FilterList.obj 
       tmp\FilterPanelSet.obj tmp\SelectSort.obj tmp\WaveGraphic.obj 
-      tmp\Unit2.obj tmp\D1608Pack.obj"/>
+      tmp\D1608Pack.obj"/>
     <RESFILES value="iap_udp.res"/>
     <IDLFILES value=""/>
     <IDLGENFILES value=""/>
     <DEFFILE value=""/>
-    <RESDEPEN value="$(RESFILES) untMain.dfm ..\..\new\CentCtrl\Unit2.dfm"/>
+    <RESDEPEN value="$(RESFILES) untMain.dfm"/>
     <LIBFILES value=""/>
     <LIBRARIES value="dclusr.lib tmstrackbar.lib bcbsmp.lib vclx.lib indy.lib rtl.lib vcl.lib"/>
     <SPARELIBS value="vcl.lib rtl.lib indy.lib vclx.lib bcbsmp.lib tmstrackbar.lib dclusr.lib"/>
@@ -21,7 +21,7 @@
       dsnapcrba.bpi dsnapcon.bpi vclie.bpi xmlrtl.bpi inet.bpi inetdbbde.bpi 
       inetdbxpress.bpi nmfast.bpi webdsnap.bpi bcbie.bpi soaprtl.bpi dclocx.bpi 
       dbexpress.bpi dbxcds.bpi indy.bpi bcb2kaxserver.bpi tmstrackbar.bpi"/>
-    <PATHCPP value=".;filter_wave;filter_wave;filter_wave;filter_wave;filter_wave;..\..\new\CentCtrl"/>
+    <PATHCPP value=".;filter_wave;filter_wave;filter_wave;filter_wave;filter_wave"/>
     <PATHPAS value=".;"/>
     <PATHRC value=".;"/>
     <PATHASM value=".;"/>
@@ -64,7 +64,6 @@
       <FILE FILENAME="filter_wave\FilterPanelSet.cpp" FORMNAME="" UNITNAME="FilterPanelSet.cpp" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
       <FILE FILENAME="filter_wave\SelectSort.cpp" FORMNAME="" UNITNAME="SelectSort.cpp" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
       <FILE FILENAME="filter_wave\WaveGraphic.cpp" FORMNAME="" UNITNAME="WaveGraphic.cpp" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
-      <FILE FILENAME="..\..\new\CentCtrl\Unit2.cpp" FORMNAME="Form2" UNITNAME="Unit2" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
       <FILE FILENAME="D1608Pack.c" FORMNAME="" UNITNAME="D1608Pack" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
   </FILELIST>
   <BUILDTOOLS>
