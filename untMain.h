@@ -20,8 +20,14 @@
 #include <IdUDPServer.hpp>
 #include "CSPIN.h"
 #include <ActnList.hpp>
+#include "AdvTrackBar.hpp"
+#include "SpeedButtonNoFrame.h"
+#include <Graphics.hpp>
+#include <ImgList.hpp>
+#include <Menus.hpp>
+extern "C"{
 #include "D1608Pack.h"
-
+}
 #include "WaveGraphic.h"
 #include "FilterPanelSet.h"
 #include "FilterList.h"
@@ -230,6 +236,8 @@ __published:	// IDE-managed Components
     TEdit *edtQ0;
     TCheckBox *cbBypass0;
     TSpeedButton *btnDspResetEQ;
+    TMenuItem *N22dBu1;
+    TMenuItem *N24dBu1;
     void __fastcall FormCreate(TObject *Sender);
     void __fastcall FormDestroy(TObject *Sender);
     void __fastcall btnRefreshClick(TObject *Sender);
@@ -314,7 +322,7 @@ private:
     int eq_freq[8];
     int eq_gain[8];
     int eq_q[8];
-
+public:
     void SendCmd(D1608Cmd& cmd);
 //----------------------------------
 private:

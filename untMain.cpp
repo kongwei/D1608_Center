@@ -12,12 +12,16 @@
 #pragma link "CSPIN"
 #pragma link "AdvTrackBar"
 #pragma link "SpeedButtonNoFrame"
+#pragma link "AdvTrackBar"
+#pragma link "SpeedButtonNoFrame"
 #pragma resource "*.dfm"
 #pragma comment(lib, "gdiplus.lib")
 
 #define PANEL_WIDTH 48
 
 TForm1 *Form1;
+ConfigMap config_map;
+
 //---------------------------------------------------------------------------
 static int SetBit(int old_value, int bit, bool is_set)
 {
@@ -228,6 +232,7 @@ static void CopyWatchPanel(int panel_id, TForm1 * form, char label, int left)
     input_type->Transparent = form->input_type->Transparent;
     input_type->Alignment = form->input_type->Alignment;
     input_type->Parent = watch_panel;
+    input_type->Tag = panel_id;
 }
 __fastcall TForm1::TForm1(TComponent* Owner)
     : TForm(Owner)
@@ -252,6 +257,7 @@ __fastcall TForm1::TForm1(TComponent* Owner)
         CopyWatchPanel(i, this, 'A'-1+i, (i-1) * PANEL_WIDTH);
     }
 
+    //------------------------------------
     output_panel_bkground->Width = 8 * PANEL_WIDTH;
     output_panel_bkground->Picture->Bitmap->Width = 8 * PANEL_WIDTH;
     for (int i=1;i<8;i++)
@@ -267,15 +273,19 @@ __fastcall TForm1::TForm1(TComponent* Owner)
     {
         CreateOutputPanel(i, this);
     }
+
+    //----------------------------------
     for (int i=17;i<=17+7;i++)
     {
         CopyWatchPanel(i, this, '1'+(i-17), mix_panel->Left + mix_panel->Width + (i-17) * PANEL_WIDTH);
     }
     input_level_edit[0] = input_panel_level_edit;
     SetWindowLong(input_panel_level_edit->Handle, GWL_STYLE, GetWindowLong(input_panel_level_edit->Handle, GWL_STYLE) | ES_RIGHT);
+    input_panel_trackbar->OnChange(input_panel_trackbar);
 
     output_level_edit[0] = output_panel_level_edit;
     SetWindowLong(output_panel_level_edit->Handle, GWL_STYLE, GetWindowLong(output_panel_level_edit->Handle, GWL_STYLE) | ES_RIGHT);
+    output_panel_trackbar->OnChange(output_panel_trackbar);
 
     input_level_edit[16] = mix_panel_level_edit;
     SetWindowLong(mix_panel_level_edit->Handle, GWL_STYLE, GetWindowLong(mix_panel_level_edit->Handle, GWL_STYLE) | ES_RIGHT);
@@ -539,21 +549,32 @@ void __fastcall TForm1::tmSLPTimer(TObject *Sender)
 void __fastcall TForm1::InputVolumeChange(TObject *Sender)
 {
     TAdvTrackBar* track = (TAdvTrackBar*)Sender;
-    int value = track->Max - track->Position;
+    int value = track->Position;
     int dsp_num = track->Tag;
 
     if (input_level_edit[dsp_num-1] != NULL)
     {
-        input_level_edit[dsp_num-1]->Text = value;
+        if (value == -720)
+        {
+            input_level_edit[dsp_num-1]->Text = " -- ";
+        }
+        else
+        {
+            String x;
+            input_level_edit[dsp_num-1]->Text = x.sprintf("%1.1f", value/10.0);
+        }
     }
 
     if (last_out_num_btn == NULL)
     {
-        D1608Cmd cmd = InputVolume(dsp_num, value);
+        D1608Cmd cmd;
+        cmd.id = GerOffsetOfData(&config_map.input_dsp[dsp_num-1].level_a);
+        cmd.value = value;
         SendCmd(cmd);
     }
     else
     {
+        // TODO: MIX Level
         int out_dsp_num = last_out_num_btn->Tag;
         D1608Cmd cmd = IOVolume(out_dsp_num, dsp_num, value);
         SendCmd(cmd);
@@ -564,9 +585,10 @@ void __fastcall TForm1::ToogleMute(TObject *Sender)
 {
     TSpeedButton* btn = (TSpeedButton*)Sender;
     int dsp_id = btn->Tag;
-    static int input_mute = 0;
-    input_mute = SetBit(input_mute, dsp_id, btn->Down);
-    D1608Cmd cmd = InputMute(input_mute);
+
+    D1608Cmd cmd;
+    cmd.id = GerOffsetOfData(&config_map.input_dsp[dsp_id-1].mute_switch);
+    cmd.value = btn->Down;
     SendCmd(cmd);
 }
 //---------------------------------------------------------------------------
@@ -584,9 +606,10 @@ void __fastcall TForm1::ToogleInvert(TObject *Sender)
 {
     TSpeedButton* btn = (TSpeedButton*)Sender;
     int dsp_id = btn->Tag;
-    static int input_invert = 0;
-    input_invert = SetBit(input_invert, dsp_id, btn->Down);
-    D1608Cmd cmd = InputInvert(input_invert);
+
+    D1608Cmd cmd;
+    cmd.id = GerOffsetOfData(&config_map.input_dsp[dsp_id-1].invert_switch);
+    cmd.value = btn->Down;
     SendCmd(cmd);
 }
 //---------------------------------------------------------------------------
@@ -602,14 +625,14 @@ void __fastcall TForm1::ToogleDefault(TObject *Sender)
     {
         last_default_btn = btn;
         int dsp_id = btn->Tag;
-        D1608Cmd cmd = InputDefault(dsp_id);
+        D1608Cmd cmd = InputDefault(dsp_id, 0);
         SendCmd(cmd);
     }
     else
     {
         // default 缺少取消所有 default
         last_default_btn = NULL;
-        D1608Cmd cmd = InputDefault(0);
+        D1608Cmd cmd = InputDefault(0, 0);
         SendCmd(cmd);
     }
 }
@@ -638,9 +661,10 @@ void __fastcall TForm1::ToogleEQ(TObject *Sender)
 {
     TSpeedButton* btn = (TSpeedButton*)Sender;
     int dsp_id = btn->Tag;
-    static int input_eq = 0;
-    input_eq = SetBit(input_eq, dsp_id, btn->Down);
-    D1608Cmd cmd = InputEQ(input_eq);
+
+    D1608Cmd cmd;
+    cmd.id = GerOffsetOfData(&config_map.input_dsp[dsp_id-1].eq_switch);
+    cmd.value = btn->Down;
     SendCmd(cmd);
 }
 //---------------------------------------------------------------------------
@@ -760,12 +784,20 @@ void __fastcall TForm1::ToogleOutputEQ(TObject *Sender)
 void __fastcall TForm1::OutputVolumeChange(TObject *Sender)
 {
     TAdvTrackBar* track = (TAdvTrackBar*)Sender;
-    int value = track->Max - track->Position;
+    int value = track->Position;
     int dsp_num = track->Tag;
 
     if (output_level_edit[dsp_num-1] != NULL)
     {
-        output_level_edit[dsp_num-1]->Text = value;
+        if (value == -720)
+        {
+            output_level_edit[dsp_num-1]->Text = " -- ";
+        }
+        else
+        {
+            String x;
+            output_level_edit[dsp_num-1]->Text = x.sprintf("%1.1f", value/10.0);
+        }
     }
 
     D1608Cmd cmd = OutputVolume(dsp_num, value);
@@ -795,19 +827,21 @@ void __fastcall TForm1::ToggleDSP(TObject *Sender)
     if (btn->Down)
     {
         last_dsp_btn = btn;
-        //pnlDspDetail->Left = 0;
-        //pnlDspDetail->Top = 192;
-        pnlDspDetail->Show();
-        pnlDspDetail->Tag = btn->Tag;
-        
+
         if (btn->Tag < 100)
         {
             lblDSPInfo->Caption = "Input Channel " + IntToStr(btn->Tag) + " DSP Setup";
+            pnlDspDetail->Left = 0;
         }
         else
         {
             lblDSPInfo->Caption = "Output Channel " + IntToStr(btn->Tag-100) + " DSP Setup";
+            pnlDspDetail->Left = Width - pnlDspDetail->Width;
         }
+
+        pnlDspDetail->Top = 192;
+        pnlDspDetail->Show();
+        pnlDspDetail->Tag = btn->Tag;
 
         // TODO: 加载面板参数和不同类型
     }
@@ -839,7 +873,7 @@ void __fastcall TForm1::btnMAXONClick(TObject *Sender)
 void __fastcall TForm1::btnLastOnClick(TObject *Sender)
 {
     TSpeedButton* btn = (TSpeedButton*)Sender;
-    D1608Cmd cmd = LastOn(btn->Down);
+    D1608Cmd cmd = InputDefault(0, btn->Down);
     SendCmd(cmd);
 }
 //---------------------------------------------------------------------------
@@ -854,7 +888,7 @@ void __fastcall TForm1::btnFShiftClick(TObject *Sender)
 void __fastcall TForm1::MasterVolumeChange(TObject *Sender)
 {
     TAdvTrackBar* track = (TAdvTrackBar*)Sender;
-    int value = track->Max - track->Position;
+    int value = track->Position;
     master_panel_level_edit->Text = value;
     D1608Cmd cmd = MasterVolume(value);
     SendCmd(cmd);
@@ -880,15 +914,15 @@ void __fastcall TForm1::btnPhantonClick(TObject *Sender)
 {
     TSpeedButton* btn = (TSpeedButton*)Sender;
     int dsp_id = btn->Parent->Tag;
-    static int phanton = 0;
-    phanton = SetBit(phanton, dsp_id, btn->Down);
-    D1608Cmd cmd = Phanton(phanton);
+
+    D1608Cmd cmd;
+    cmd.id = GerOffsetOfData(&config_map.input_dsp[dsp_id-1].phantom_switch);
+    cmd.value = btn->Down;
     SendCmd(cmd);
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::ToogleLowShelf(TObject *Sender)
 {
-    // TODO: 发送命令
     TCheckBox* btn = (TCheckBox*)Sender;
     int dsp_id = btn->Parent->Parent->Tag;
     static int low = 0;
@@ -899,7 +933,6 @@ void __fastcall TForm1::ToogleLowShelf(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TForm1::ToogleHighShelf(TObject *Sender)
 {
-    // TODO: 发送命令
     TCheckBox* btn = (TCheckBox*)Sender;
     int dsp_id = btn->Parent->Tag;
     static int high = 0;
@@ -910,7 +943,6 @@ void __fastcall TForm1::ToogleHighShelf(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TForm1::ToogleEQ_DSP(TObject *Sender)
 {
-    // TODO: 发送命令
     TSpeedButton* btn = (TSpeedButton*)Sender;
     int dsp_id = btn->Parent->Tag;
     int eq_id = btn->Tag;
@@ -922,11 +954,13 @@ void __fastcall TForm1::ToogleEQ_DSP(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TForm1::TrackBar27Change(TObject *Sender)
 {
-    TTrackBar* track = (TTrackBar*)Sender;
-    int value = track->Max - track->Position;
+    TAdvTrackBar* track = (TAdvTrackBar*)Sender;
+    int value = track->Position;
     int dsp_num = track->Parent->Tag;
 
-    D1608Cmd cmd = DspInputVolume(dsp_num, value);
+    D1608Cmd cmd;
+    cmd.id = GerOffsetOfData(&config_map.input_dsp[dsp_num-1].level_b);
+    cmd.value = value;
     SendCmd(cmd);
 }
 //---------------------------------------------------------------------------
@@ -957,6 +991,35 @@ void __fastcall TForm1::M41Click(TObject *Sender)
 {
     TLabel * popup_label = (TLabel*)PopupMenu1->PopupComponent;
     popup_label->Caption = ((TMenuItem*)Sender)->Caption;
+    int dsp_num = popup_label->Tag;
+
+    D1608Cmd cmd;
+    cmd.id = GerOffsetOfData(&config_map.input_dsp[dsp_num-1].gain);
+    if (popup_label->Caption == "MIC")
+    {
+        cmd.value = 0;
+    }
+    else if (popup_label->Caption == "MIC(0)")
+    {
+        cmd.value = 1;
+    }
+    else if (popup_label->Caption == "400mv")
+    {
+        cmd.value = 5;
+    }
+    else if (popup_label->Caption == "10dBv")
+    {
+        cmd.value = 6;
+    }
+    else if (popup_label->Caption == "22dBu")
+    {
+        cmd.value = 3;
+    }
+    else if (popup_label->Caption == "24dBu")
+    {
+        cmd.value = 7;
+    }
+    SendCmd(cmd);
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::M41DrawItem(TObject *Sender, TCanvas *ACanvas,

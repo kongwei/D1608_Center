@@ -4,9 +4,9 @@
   <MACROS>
     <VERSION value="BCB.06.00"/>
     <PROJECT value="iap_udp.exe"/>
-    <OBJFILES value="tmp\iap_udp.obj tmp\untMain.obj tmp\D1608Pack.obj tmp\Coefficient.obj 
-      tmp\FilterList.obj tmp\FilterPanelSet.obj tmp\SelectSort.obj 
-      tmp\WaveGraphic.obj tmp\Unit2.obj"/>
+    <OBJFILES value="tmp\iap_udp.obj tmp\untMain.obj tmp\Coefficient.obj tmp\FilterList.obj 
+      tmp\FilterPanelSet.obj tmp\SelectSort.obj tmp\WaveGraphic.obj 
+      tmp\Unit2.obj tmp\D1608Pack.obj"/>
     <RESFILES value="iap_udp.res"/>
     <IDLFILES value=""/>
     <IDLGENFILES value=""/>
@@ -41,8 +41,8 @@
       -Ifilter_wave -I..\..\CSP_850_A\版本上传上位机（iap_version）\iap_version 
       -I&quot;C:\Program Files\Borland\CBuilder6\Projects&quot; -IF:\神州II号\iap_version 
       -I$(BCB)\include -I$(BCB)\include\vcl -src_suffix cpp -D_DEBUG -DSTRICT -boa"/>
-    <CFLAG1 value="-vGc -vGt -vGd -Od -H=$(BCB)\lib\vcl60.csm -Hc -Vx -Ve -X- -r- -a8 -b- -k 
-      -y -v -vi- -c -tW -tWM"/>
+    <CFLAG1 value="-Od -H=$(BCB)\lib\vcl60.csm -Hc -Vx -Ve -X- -r- -a8 -b- -k -y -v -vi- -c 
+      -tW -tWM"/>
     <PFLAGS value="-N2.\tmp -N0.\tmp -$YD -$W -$O- -$A8 -v -JPHNE -M"/>
     <RFLAGS value=""/>
     <AFLAGS value="/mx /w2 /zd"/>
@@ -52,20 +52,20 @@
   <LINKER>
     <ALLOBJ value="c0w32.obj sysinit.obj $(OBJFILES)"/>
     <ALLRES value="$(RESFILES)"/>
-    <ALLLIB value="cg32.lib $(LIBFILES) $(LIBRARIES) import32.lib cp32mt.lib"/>
+    <ALLLIB value="$(LIBFILES) $(LIBRARIES) import32.lib cp32mt.lib"/>
     <OTHERFILES value=""/>
   </LINKER>
   <FILELIST>
       <FILE FILENAME="iap_udp.res" FORMNAME="" UNITNAME="iap_udp.res" CONTAINERID="ResTool" DESIGNCLASS="" LOCALCOMMAND=""/>
       <FILE FILENAME="iap_udp.cpp" FORMNAME="" UNITNAME="iap_udp" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
       <FILE FILENAME="untMain.cpp" FORMNAME="Form1" UNITNAME="untMain" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
-      <FILE FILENAME="D1608Pack.cpp" FORMNAME="" UNITNAME="D1608Pack" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
       <FILE FILENAME="filter_wave\Coefficient.cpp" FORMNAME="" UNITNAME="Coefficient.cpp" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
       <FILE FILENAME="filter_wave\FilterList.cpp" FORMNAME="" UNITNAME="FilterList.cpp" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
       <FILE FILENAME="filter_wave\FilterPanelSet.cpp" FORMNAME="" UNITNAME="FilterPanelSet.cpp" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
       <FILE FILENAME="filter_wave\SelectSort.cpp" FORMNAME="" UNITNAME="SelectSort.cpp" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
       <FILE FILENAME="filter_wave\WaveGraphic.cpp" FORMNAME="" UNITNAME="WaveGraphic.cpp" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
       <FILE FILENAME="..\..\new\CentCtrl\Unit2.cpp" FORMNAME="Form2" UNITNAME="Unit2" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="D1608Pack.c" FORMNAME="" UNITNAME="D1608Pack" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
   </FILELIST>
   <BUILDTOOLS>
   </BUILDTOOLS>
@@ -139,7 +139,7 @@ RemoteDebug=0
 [Compiler]
 ShowInfoMsgs=0
 LinkDebugVcl=0
-LinkCGLIB=1
+LinkCGLIB=0
 
 [CORBA]
 AddServerUnit=1

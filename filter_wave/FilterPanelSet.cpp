@@ -147,7 +147,7 @@ void __fastcall PanelAgent::cbBypassClick(TObject *Sender)
     TCheckBox * bypass_checkbox = (TCheckBox*)Sender;
     _filter_set.SetBypass(band, bypass_checkbox->Checked);
 
-    _filter_set.RepaintPaint();
+    _filter_set.RepaintPaint(band);
 }
 
 void __fastcall PanelAgent::edtSelectAllOnClick(TObject *Sender)

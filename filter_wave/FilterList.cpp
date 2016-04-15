@@ -78,6 +78,7 @@ void FilterSet::Register(PaintAgent* paint_agent, PanelAgent* panel_agent)
     paint_agent_ref = paint_agent;
     panel_agent_ref = panel_agent;
 }
+
 void FilterSet::RepaintPaint(int band)
 {
     if (paint_agent_ref != NULL)
@@ -91,9 +92,27 @@ void FilterSet::RepaintPaint(int band)
 
     int dsp_id = Form1->pnlDspDetail->Tag;
     char in_out = Form1->lblDSPInfo->Caption[1];
+    if (band == 0)
+        band = select_band;
+
+    if (band > 0)
     {
         // TODO: 下发系数
-    }
+        D1608Cmd cmd;
+        double tmp;
+        cmd.id = GerOffsetOfData(&config_map.input_dsp[dsp_id-1].filter[band-1]);
+        cmd.value = GetFilter(band)->GetTypeId();   // type
 
+        tmp = GetFilterFreq(band)*10;
+        cmd.value2 = tmp;           // FREQ
+
+        tmp = GetFilterGain(band)*10;
+        cmd.value3 = tmp;           // GAIN
+
+        tmp = GetFilter(band)->GetQ()*100;       // Q
+        cmd.value4 = tmp;
+
+        Form1->SendCmd(cmd);
+    }
 }
 
