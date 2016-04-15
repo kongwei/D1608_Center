@@ -4,7 +4,6 @@
 #pragma hdrstop
 
 #include "untMain.h"
-#include "Unit2.h"
 #include <winsock2.h>
 #include <algorithm>
 //---------------------------------------------------------------------------
