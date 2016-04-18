@@ -115,22 +115,22 @@ public:
         else if (type == "High Butterworth 2nd")
         {
             HighPassButterworth2(freq);
-            _type_id = 0;
+            _type_id = 11;
         }
         else if (type == "High Butterworth 4nd")
         {
             HighPassButterworth4(freq);
-            _type_id = 0;
+            _type_id = 12;
         }
         else if (type == "Low Butterworth 2nd")
         {
             LowPassButterworth2(freq);
-            _type_id = 0;
+            _type_id = 13;
         }
         else if (type == "Low Butterworth 4nd")
         {
             LowPassButterworth4(freq);
-            _type_id = 0;
+            _type_id = 14;
         }
     }
     void EqualizerOff()

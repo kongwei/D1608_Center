@@ -21476,8 +21476,8 @@ object Form1: TForm1
         Ctl3D = False
         Direction = gdVertical
         Color = clNone
-        Max = 12
-        Min = -72
+        Max = 120
+        Min = -720
         Orientation = trVertical
         ParentCtl3D = False
         Slider.BorderColor = clNone
@@ -21682,8 +21682,8 @@ object Form1: TForm1
         TabOrder = 12
       end
       object pnlDspDetail: TPanel
-        Left = 448
-        Top = 160
+        Left = 16
+        Top = 176
         Width = 777
         Height = 497
         Color = 13684944
@@ -31167,6 +31167,41 @@ object Form1: TForm1
     object N24dBu1: TMenuItem
       Caption = '24dBu'
       OnClick = M41Click
+      OnDrawItem = M41DrawItem
+      OnMeasureItem = M41MeasureItem
+    end
+  end
+  object PopupMenu2: TPopupMenu
+    AutoHotkeys = maManual
+    AutoLineReduction = maManual
+    AutoPopup = False
+    BiDiMode = bdLeftToRight
+    OwnerDraw = True
+    ParentBiDiMode = False
+    TrackButton = tbLeftButton
+    Left = 152
+    Top = 112
+    object MenuItem3: TMenuItem
+      Caption = '200mv'
+      OnClick = MenuItem3Click
+      OnDrawItem = M41DrawItem
+      OnMeasureItem = M41MeasureItem
+    end
+    object MenuItem4: TMenuItem
+      Caption = '10dBv'
+      OnClick = MenuItem3Click
+      OnDrawItem = M41DrawItem
+      OnMeasureItem = M41MeasureItem
+    end
+    object MenuItem5: TMenuItem
+      Caption = '22dBu'
+      OnClick = MenuItem3Click
+      OnDrawItem = M41DrawItem
+      OnMeasureItem = M41MeasureItem
+    end
+    object MenuItem6: TMenuItem
+      Caption = '24dBu'
+      OnClick = MenuItem3Click
       OnDrawItem = M41DrawItem
       OnMeasureItem = M41MeasureItem
     end

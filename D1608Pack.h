@@ -39,14 +39,33 @@ typedef struct
     int level_b;
     int gain;
     unsigned int delay;
+    FilterConfigMap filter_pad1;
+    FilterConfigMap filter_pad2;
+    FilterConfigMap filter[8];
+}InputConfigMap;
+typedef struct
+{
+    unsigned char eq_switch;
+    unsigned char comp_switch;
+    unsigned char invert_switch;
+    unsigned char mute_switch;
+    unsigned char pad1;
+    unsigned char pad2;
+    unsigned char pad3;
+    unsigned char pad4;
+    int level_a;
+    int level_b;
+    int gain;
+    unsigned int pad5;
     FilterConfigMap high_pass;
     FilterConfigMap low_pass;
     FilterConfigMap filter[8];
-}InputConfigMap;
+}OutputConfigMap;
 
 typedef struct
 {
     InputConfigMap input_dsp[INPUT_DSP_NUM];
+    OutputConfigMap output_dsp[OUTPUT_DSP_NUM];
 }ConfigMap;
 
 extern ConfigMap config_map;

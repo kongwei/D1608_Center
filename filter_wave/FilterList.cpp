@@ -100,7 +100,15 @@ void FilterSet::RepaintPaint(int band)
         // TODO: 下发系数
         D1608Cmd cmd;
         double tmp;
-        cmd.id = GerOffsetOfData(&config_map.input_dsp[dsp_id-1].filter[band-1]);
+
+        if (dsp_id < 100)
+        {
+            cmd.id = GerOffsetOfData(&config_map.input_dsp[dsp_id-1].filter[band-1]);
+        }
+        else
+        {
+            cmd.id = GerOffsetOfData(&config_map.output_dsp[dsp_id-101].filter[band-1]);
+        }
         cmd.value = GetFilter(band)->GetTypeId();   // type
 
         tmp = GetFilterFreq(band)*10;

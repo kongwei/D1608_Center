@@ -238,6 +238,11 @@ __published:	// IDE-managed Components
     TSpeedButton *btnDspResetEQ;
     TMenuItem *N22dBu1;
     TMenuItem *N24dBu1;
+    TPopupMenu *PopupMenu2;
+    TMenuItem *MenuItem3;
+    TMenuItem *MenuItem4;
+    TMenuItem *MenuItem5;
+    TMenuItem *MenuItem6;
     void __fastcall FormCreate(TObject *Sender);
     void __fastcall FormDestroy(TObject *Sender);
     void __fastcall btnRefreshClick(TObject *Sender);
@@ -290,6 +295,7 @@ __published:	// IDE-managed Components
     void __fastcall M41MeasureItem(TObject *Sender, TCanvas *ACanvas,
           int &Width, int &Height);
     void __fastcall btnDspResetEQClick(TObject *Sender);
+    void __fastcall MenuItem3Click(TObject *Sender);
 
 private:
     // 已经选择设备
