@@ -1,6 +1,6 @@
 object Form1: TForm1
-  Left = 2
-  Top = 19
+  Left = 288
+  Top = 18
   Width = 1278
   Height = 734
   Caption = 'D1608'
@@ -25084,7 +25084,7 @@ object Form1: TForm1
             Tag = 101
             Left = 104
             Top = 9
-            Width = 65
+            Width = 113
             Height = 14
             BorderStyle = bsNone
             Color = clBtnFace
@@ -25097,7 +25097,7 @@ object Form1: TForm1
             Tag = 101
             Left = 104
             Top = 65
-            Width = 65
+            Width = 113
             Height = 14
             BorderStyle = bsNone
             Color = clBtnFace
@@ -25139,6 +25139,22 @@ object Form1: TForm1
             Items.Strings = (
               'Low Butterworth 2nd'
               'Low Butterworth 4nd')
+          end
+          object cbBypassHP: TCheckBox
+            Left = 224
+            Top = 7
+            Width = 15
+            Height = 17
+            TabOrder = 4
+            OnClick = ToogleEQ_DSP
+          end
+          object cbBypassLP: TCheckBox
+            Left = 224
+            Top = 63
+            Width = 15
+            Height = 17
+            TabOrder = 5
+            OnClick = ToogleEQ_DSP
           end
         end
         object panelBand2: TPanel

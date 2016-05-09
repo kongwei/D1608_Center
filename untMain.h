@@ -243,6 +243,8 @@ __published:	// IDE-managed Components
     TMenuItem *MenuItem4;
     TMenuItem *MenuItem5;
     TMenuItem *MenuItem6;
+    TCheckBox *cbBypassHP;
+    TCheckBox *cbBypassLP;
     void __fastcall FormCreate(TObject *Sender);
     void __fastcall FormDestroy(TObject *Sender);
     void __fastcall btnRefreshClick(TObject *Sender);
