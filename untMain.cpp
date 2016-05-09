@@ -595,9 +595,10 @@ void __fastcall TForm1::ToogleNoise(TObject *Sender)
 {
     TSpeedButton* btn = (TSpeedButton*)Sender;
     int dsp_id = btn->Tag;
-    static int input_noise = 0;
-    input_noise = SetBit(input_noise, dsp_id, btn->Down);
-    D1608Cmd cmd = InputNoise(input_noise);
+
+    D1608Cmd cmd;
+    cmd.id = GerOffsetOfData(&config_map.input_dsp[dsp_id-1].noise_switch);
+    cmd.value = btn->Down;
     SendCmd(cmd);
 }
 //---------------------------------------------------------------------------
