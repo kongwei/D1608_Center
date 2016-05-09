@@ -132,6 +132,11 @@ public:
             LowPassButterworth4(freq);
             _type_id = 14;
         }
+        else if (type == "Pink")
+        {
+            Pink(freq, gain, q);
+            _type_id = 7;
+        }
     }
     void EqualizerOff()
     {
@@ -229,6 +234,30 @@ public:
         b2 = 1;
 
         PrepreMiddle();
+    }
+    void Pink(double freq, double gain, double q)
+    {
+        //
+        double alpha = 1.0;
+        a0 = 1;
+        a1 = (1-1-alpha/2.0)*a0/1;
+        a2 = (2-1-alpha/2.0)*a1/2;
+        b0 = 1;
+        b1 = 0;
+        b2 = 0;
+
+        b0 = 1;
+        b1 = 0.5;
+        b2 = -0.125;
+        a0 = 1;
+        a1 = -0.5;
+        a2 = -0.125;
+/**/
+        PrepreMiddle();
+
+        /*Coefficient second_filter;
+        second_filter.LowPassButterworth4_second(freq);
+        second_filter.AddToMiddle(middles);*/
     }
 
     void HighPassButterworth2(double freq)
@@ -350,6 +379,16 @@ private:
     }
 
     double middles[1001];
+    /*void PrepreMiddle()
+    {
+        for (int i=0;i<1001;i++)
+        {
+            middles[i] = FilterCoe(freq_point[i] / SAMPLE_FREQ);
+
+            middles[i] = 20 * Log10(middles[i]);
+        }
+    }*/
+    // 用二阶滤波器方式生成图像
     void PrepreMiddle()
     {
         for (int i=0;i<1001;i++)
