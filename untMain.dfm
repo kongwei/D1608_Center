@@ -23749,10 +23749,10 @@ object Form1: TForm1
           Version = '1.6.2.0'
           OnChange = TrackBar27Change
         end
-        object panelBand1: TPanel
-          Tag = 1
+        object panelBand9: TPanel
+          Tag = 9
           Left = 387
-          Top = 32
+          Top = 193
           Width = 382
           Height = 23
           Alignment = taLeftJustify
@@ -23767,11 +23767,11 @@ object Form1: TForm1
             Width = 8
             Height = 13
             AutoSize = False
-            Caption = '1'
+            Caption = '8'
             Color = clBtnFace
             ParentColor = False
           end
-          object cbType1: TComboBox
+          object cbType9: TComboBox
             Left = 224
             Top = 1
             Width = 105
@@ -23780,9 +23780,9 @@ object Form1: TForm1
             Color = clBtnFace
             DropDownCount = 20
             ItemHeight = 13
-            ItemIndex = 1
+            ItemIndex = 0
             TabOrder = 3
-            Text = 'Low Shelf'
+            Text = 'Parametric'
             Items.Strings = (
               'Parametric'
               'Low Shelf'
@@ -23790,9 +23790,11 @@ object Form1: TForm1
               'Band Pass'
               'Notch'
               'High Butterworth 2nd'
-              'High Butterworth 4nd')
+              'High Butterworth 4nd'
+              'Low Butterworth 2nd'
+              'Low Butterworth 4nd')
           end
-          object edtFreq1: TEdit
+          object edtFreq9: TEdit
             Tag = 101
             Left = 32
             Top = 5
@@ -23805,7 +23807,7 @@ object Form1: TForm1
             TabOrder = 0
             Text = '1000'
           end
-          object edtGain1: TEdit
+          object edtGain9: TEdit
             Left = 152
             Top = 5
             Width = 65
@@ -23817,7 +23819,7 @@ object Form1: TForm1
             TabOrder = 2
             Text = '0'
           end
-          object edtQ1: TEdit
+          object edtQ9: TEdit
             Tag = 102
             Left = 104
             Top = 5
@@ -23830,7 +23832,7 @@ object Form1: TForm1
             TabOrder = 1
             Text = '4.09'
           end
-          object cbBypass1: TCheckBox
+          object cbBypass9: TCheckBox
             Left = 346
             Top = 2
             Width = 31
@@ -25020,11 +25022,12 @@ object Form1: TForm1
           TrackLabel.Spacing = 0
           Version = '1.6.2.0'
         end
-        object Panel7: TPanel
+        object panelBand1: TPanel
+          Tag = 1
           Left = 128
           Top = 32
           Width = 249
-          Height = 121
+          Height = 61
           BevelOuter = bvNone
           Color = 15248250
           TabOrder = 4
@@ -25054,33 +25057,7 @@ object Form1: TForm1
             Font.Style = []
             ParentFont = False
           end
-          object Label13: TLabel
-            Left = 8
-            Top = 64
-            Width = 70
-            Height = 13
-            Caption = 'Low Pass Freq'
-            Font.Charset = DEFAULT_CHARSET
-            Font.Color = 1579032
-            Font.Height = -11
-            Font.Name = 'MS Sans Serif'
-            Font.Style = []
-            ParentFont = False
-          end
-          object Label14: TLabel
-            Left = 8
-            Top = 88
-            Width = 73
-            Height = 13
-            Caption = 'Low Pass Type'
-            Font.Charset = DEFAULT_CHARSET
-            Font.Color = 1579032
-            Font.Height = -11
-            Font.Name = 'MS Sans Serif'
-            Font.Style = []
-            ParentFont = False
-          end
-          object Edit22: TEdit
+          object edtFreq1: TEdit
             Tag = 101
             Left = 104
             Top = 9
@@ -25093,20 +25070,7 @@ object Form1: TForm1
             TabOrder = 0
             Text = '1000'
           end
-          object Edit23: TEdit
-            Tag = 101
-            Left = 104
-            Top = 65
-            Width = 113
-            Height = 14
-            BorderStyle = bsNone
-            Color = clBtnFace
-            Ctl3D = False
-            ParentCtl3D = False
-            TabOrder = 1
-            Text = '1000'
-          end
-          object ComboBox8: TComboBox
+          object cbType1: TComboBox
             Left = 104
             Top = 33
             Width = 137
@@ -25115,52 +25079,63 @@ object Form1: TForm1
             Color = clBtnFace
             DropDownCount = 20
             ItemHeight = 13
-            ItemIndex = 0
-            TabOrder = 2
-            Text = 'High Butterworth 2nd'
-            Visible = False
+            ItemIndex = 2
+            TabOrder = 1
+            Text = '12dB Butterworth'
             Items.Strings = (
-              'High Butterworth 2nd'
-              'High Butterworth 4nd')
+              '6dB Bansen'
+              '12dB Bessel'
+              '12dB Butterworth'
+              '12dB Linkwitz-Riley'
+              '18dB Bessel'
+              '18dB Butterworth'
+              '24dB Bessel'
+              '24dB Butterworth'
+              '24dB Linkwitz-Riley'
+              '48dB Bessel'
+              '48dB Butterworth'
+              '48dB Linkwitz-Riley')
           end
-          object ComboBox9: TComboBox
-            Left = 104
-            Top = 89
-            Width = 137
-            Height = 21
-            Style = csDropDownList
-            Color = clBtnFace
-            DropDownCount = 20
-            ItemHeight = 13
-            ItemIndex = 0
-            TabOrder = 3
-            Text = 'Low Butterworth 2nd'
-            Visible = False
-            Items.Strings = (
-              'Low Butterworth 2nd'
-              'Low Butterworth 4nd')
-          end
-          object cbBypassHP: TCheckBox
+          object cbBypass1: TCheckBox
             Left = 224
             Top = 7
             Width = 15
             Height = 17
-            TabOrder = 4
+            TabOrder = 2
             OnClick = ToogleEQ_DSP
           end
-          object cbBypassLP: TCheckBox
-            Left = 224
-            Top = 63
-            Width = 15
-            Height = 17
-            TabOrder = 5
-            OnClick = ToogleEQ_DSP
+          object edtQ1: TEdit
+            Tag = 102
+            Left = 16
+            Top = 61
+            Width = 41
+            Height = 14
+            BorderStyle = bsNone
+            Color = clBtnFace
+            Ctl3D = False
+            ParentCtl3D = False
+            TabOrder = 3
+            Text = '4.09'
+            Visible = False
+          end
+          object edtGain1: TEdit
+            Left = 64
+            Top = 61
+            Width = 65
+            Height = 14
+            BorderStyle = bsNone
+            Color = clBtnFace
+            Ctl3D = False
+            ParentCtl3D = False
+            TabOrder = 4
+            Text = '0'
+            Visible = False
           end
         end
         object panelBand2: TPanel
           Tag = 2
           Left = 387
-          Top = 55
+          Top = 32
           Width = 382
           Height = 23
           Alignment = taLeftJustify
@@ -25175,7 +25150,7 @@ object Form1: TForm1
             Width = 8
             Height = 13
             AutoSize = False
-            Caption = '2'
+            Caption = '1'
             Color = clBtnFace
             ParentColor = False
           end
@@ -25188,9 +25163,9 @@ object Form1: TForm1
             Color = clBtnFace
             DropDownCount = 20
             ItemHeight = 13
-            ItemIndex = 0
+            ItemIndex = 1
             TabOrder = 3
-            Text = 'Parametric'
+            Text = 'Low Shelf'
             Items.Strings = (
               'Parametric'
               'Low Shelf'
@@ -25250,7 +25225,7 @@ object Form1: TForm1
         object panelBand3: TPanel
           Tag = 3
           Left = 387
-          Top = 78
+          Top = 55
           Width = 382
           Height = 23
           Alignment = taLeftJustify
@@ -25265,7 +25240,7 @@ object Form1: TForm1
             Width = 8
             Height = 13
             AutoSize = False
-            Caption = '3'
+            Caption = '2'
             Color = clBtnFace
             ParentColor = False
           end
@@ -25340,7 +25315,7 @@ object Form1: TForm1
         object panelBand4: TPanel
           Tag = 4
           Left = 387
-          Top = 101
+          Top = 78
           Width = 382
           Height = 23
           Alignment = taLeftJustify
@@ -25355,7 +25330,7 @@ object Form1: TForm1
             Width = 8
             Height = 13
             AutoSize = False
-            Caption = '4'
+            Caption = '3'
             Color = clBtnFace
             ParentColor = False
           end
@@ -25378,7 +25353,9 @@ object Form1: TForm1
               'Band Pass'
               'Notch'
               'High Butterworth 2nd'
-              'High Butterworth 4nd')
+              'High Butterworth 4nd'
+              'Low Butterworth 2nd'
+              'Low Butterworth 4nd')
           end
           object edtFreq4: TEdit
             Tag = 101
@@ -25430,7 +25407,7 @@ object Form1: TForm1
         object panelBand5: TPanel
           Tag = 5
           Left = 387
-          Top = 124
+          Top = 101
           Width = 382
           Height = 23
           Alignment = taLeftJustify
@@ -25445,7 +25422,7 @@ object Form1: TForm1
             Width = 8
             Height = 13
             AutoSize = False
-            Caption = '5'
+            Caption = '4'
             Color = clBtnFace
             ParentColor = False
           end
@@ -25520,7 +25497,7 @@ object Form1: TForm1
         object panelBand6: TPanel
           Tag = 6
           Left = 387
-          Top = 147
+          Top = 124
           Width = 382
           Height = 23
           Alignment = taLeftJustify
@@ -25535,7 +25512,7 @@ object Form1: TForm1
             Width = 8
             Height = 13
             AutoSize = False
-            Caption = '6'
+            Caption = '5'
             Color = clBtnFace
             ParentColor = False
           end
@@ -25610,7 +25587,7 @@ object Form1: TForm1
         object panelBand7: TPanel
           Tag = 7
           Left = 387
-          Top = 170
+          Top = 147
           Width = 382
           Height = 23
           Alignment = taLeftJustify
@@ -25625,7 +25602,7 @@ object Form1: TForm1
             Width = 8
             Height = 13
             AutoSize = False
-            Caption = '7'
+            Caption = '6'
             Color = clBtnFace
             ParentColor = False
           end
@@ -25700,7 +25677,7 @@ object Form1: TForm1
         object panelBand8: TPanel
           Tag = 8
           Left = 387
-          Top = 193
+          Top = 170
           Width = 382
           Height = 23
           Alignment = taLeftJustify
@@ -25715,7 +25692,7 @@ object Form1: TForm1
             Width = 8
             Height = 13
             AutoSize = False
-            Caption = '8'
+            Caption = '7'
             Color = clBtnFace
             ParentColor = False
           end
@@ -25728,9 +25705,9 @@ object Form1: TForm1
             Color = clBtnFace
             DropDownCount = 20
             ItemHeight = 13
-            ItemIndex = 2
+            ItemIndex = 0
             TabOrder = 3
-            Text = 'High Shelf'
+            Text = 'Parametric'
             Items.Strings = (
               'Parametric'
               'Low Shelf'
@@ -25877,6 +25854,115 @@ object Form1: TForm1
             Height = 17
             TabOrder = 4
             OnClick = ToogleEQ_DSP
+          end
+        end
+        object panelBand10: TPanel
+          Tag = 10
+          Left = 128
+          Top = 93
+          Width = 249
+          Height = 61
+          BevelOuter = bvNone
+          Color = 15248250
+          TabOrder = 13
+          object Label13: TLabel
+            Left = 8
+            Top = 8
+            Width = 70
+            Height = 13
+            Caption = 'Low Pass Freq'
+            Font.Charset = DEFAULT_CHARSET
+            Font.Color = 1579032
+            Font.Height = -11
+            Font.Name = 'MS Sans Serif'
+            Font.Style = []
+            ParentFont = False
+          end
+          object Label14: TLabel
+            Left = 8
+            Top = 32
+            Width = 73
+            Height = 13
+            Caption = 'Low Pass Type'
+            Font.Charset = DEFAULT_CHARSET
+            Font.Color = 1579032
+            Font.Height = -11
+            Font.Name = 'MS Sans Serif'
+            Font.Style = []
+            ParentFont = False
+          end
+          object edtFreq10: TEdit
+            Tag = 101
+            Left = 104
+            Top = 9
+            Width = 113
+            Height = 14
+            BorderStyle = bsNone
+            Color = clBtnFace
+            Ctl3D = False
+            ParentCtl3D = False
+            TabOrder = 0
+            Text = '1000'
+          end
+          object cbBypass10: TCheckBox
+            Left = 224
+            Top = 7
+            Width = 15
+            Height = 17
+            TabOrder = 1
+            OnClick = ToogleEQ_DSP
+          end
+          object cbType10: TComboBox
+            Left = 104
+            Top = 33
+            Width = 137
+            Height = 21
+            Style = csDropDownList
+            Color = clBtnFace
+            DropDownCount = 20
+            ItemHeight = 13
+            TabOrder = 2
+            Items.Strings = (
+              '6dB Bansen'
+              '12dB Bessel'
+              '12dB Butterworth'
+              '12dB Linkwitz-Riley'
+              '18dB Bessel'
+              '18dB Butterworth'
+              '24dB Bessel'
+              '24dB Butterworth'
+              '24dB Linkwitz-Riley'
+              '48dB Bessel'
+              '48dB Butterworth'
+              '48dB Linkwitz-Riley'
+              '')
+          end
+          object edtQ10: TEdit
+            Tag = 102
+            Left = 8
+            Top = 67
+            Width = 41
+            Height = 14
+            BorderStyle = bsNone
+            Color = clBtnFace
+            Ctl3D = False
+            ParentCtl3D = False
+            TabOrder = 3
+            Text = '4.09'
+            Visible = False
+          end
+          object edtGain10: TEdit
+            Left = 56
+            Top = 67
+            Width = 65
+            Height = 14
+            BorderStyle = bsNone
+            Color = clBtnFace
+            Ctl3D = False
+            ParentCtl3D = False
+            TabOrder = 4
+            Text = '0'
+            Visible = False
           end
         end
       end

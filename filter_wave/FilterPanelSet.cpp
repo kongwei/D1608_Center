@@ -100,15 +100,20 @@ void __fastcall PanelAgent::cbTypeChange(TObject *Sender)
 {
     int band = ((TControl*)Sender)->Parent->Tag;
     TComboBox * type_ccombobox = (TComboBox*)Sender;
-    _filter_set.GetFilter(band)->SetType(type_ccombobox->Text);
-
     String type = type_ccombobox->Text;
-    if ((type == "Band Pass")
-      ||(type == "Notch")
-      ||(type == "High Butterworth 2nd")
-      ||(type == "High Butterworth 4nd")
-      ||(type == "Low Butterworth 2nd")
-      ||(type == "Low Butterworth 4nd"))
+
+    if (type_ccombobox->Parent->Tag == 1)
+    {
+        type = type + " High";
+    }
+    else if (type_ccombobox->Parent->Tag == 10)
+    {
+        type = type + " Low";
+    }
+
+    _filter_set.GetFilter(band)->SetType(type);
+
+    if (_filter_set.GetFilter(band)->IsGainEnabled())
     {
         GetGainText(band)->Text = "0";
         GetGainText(band)->Enabled = false;
@@ -120,22 +125,23 @@ void __fastcall PanelAgent::cbTypeChange(TObject *Sender)
         GetGainText(band)->Enabled = true;
     }
 
-    /*if (band == 1)
+    int IIRCount = _filter_set.GetFilter(band)->UseIIRCount();
+    if (band == 1)
     {
         // band 2 ʧЧ
-        GetPanel(2)->Enabled = (type != "High Butterworth 4nd");
-        GetFreqText(2)->Enabled = (type != "High Butterworth 4nd");
-        GetQText(2)->Enabled = (type != "High Butterworth 4nd");
-        GetGainText(2)->Enabled = (type != "High Butterworth 4nd");
+        GetPanel(band+1)->Enabled = IIRCount<=1;
+        GetFreqText(band+1)->Enabled = IIRCount<=1;
+        GetQText(band+1)->Enabled = IIRCount<=1;
+        GetGainText(band+1)->Enabled = IIRCount<=1;
     }
-    if (band == 8)
+    if (band == 10)
     {
-        // band 7 ʧЧ
-        GetPanel(7)->Enabled = (type != "Low Butterworth 4nd");
-        GetFreqText(7)->Enabled = (type != "Low Butterworth 4nd");
-        GetQText(7)->Enabled = (type != "Low Butterworth 4nd");
-        GetGainText(7)->Enabled = (type != "Low Butterworth 4nd");
-    }*/
+        // band 9 ʧЧ
+        GetPanel(band-1)->Enabled = IIRCount<=1;
+        GetFreqText(band-1)->Enabled = IIRCount<=1;
+        GetQText(band-1)->Enabled = IIRCount<=1;
+        GetGainText(band-1)->Enabled = IIRCount<=1;
+    }
 
     _filter_set.GetFilter(band)->SetType(type_ccombobox->Text);
     _filter_set.RepaintPaint();
@@ -227,12 +233,7 @@ void __fastcall PanelAgent::edtGainKeyDown(TObject *Sender, WORD &Key,
         int band = ((TControl*)Sender)->Parent->Tag;
 
         String type = _filter_set.GetFilter(band)->GetType();
-        if ((type == "Band Pass")
-          ||(type == "Notch")
-          ||(type == "High Butterworth 2nd")
-          ||(type == "High Butterworth 4nd")
-          ||(type == "Low Butterworth 2nd")
-          ||(type == "Low Butterworth 4nd"))
+        if (!_filter_set.GetFilter(band)->IsGainEnabled())
         {
             TEdit * edtGain = (TEdit*)Sender;
             edtGain->Text = 0;

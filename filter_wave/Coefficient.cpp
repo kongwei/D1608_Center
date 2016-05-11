@@ -112,3 +112,19 @@ double ClosestFreq(double freq)
     }
 }
 
+void Coefficient::PrepreMiddle()
+{
+    for (int i=0;i<1001;i++)
+    {
+        middles[i] = FilterCoe(freq_point[i] / SAMPLE_FREQ);
+        if (middles[i] <= 0.00001)
+        {
+            middles[i] = middles[i-1];
+        }
+        else
+        {
+            middles[i] = 20 * Log10(middles[i]);
+        }
+    }
+}
+

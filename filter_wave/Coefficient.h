@@ -68,6 +68,57 @@ public:
     {
         ChangFilterParameter(_type, _freq, _gain, q);
     }
+    bool IsGainEnabled()
+    {
+        if ((_type == "Band Pass")
+          ||(_type == "Notch")
+          ||(_type == "12dB Butterworth High")
+          ||(_type == "24dB Butterworth High")
+    //      ||(_type == "36dB Butterworth High")
+          ||(_type == "48dB Butterworth High")
+          ||(_type == "12dB Butterworth Low")
+          ||(_type == "24dB Butterworth Low")
+    //      ||(_type == "36dB Butterworth Low")
+          ||(_type == "48dB Butterworth Low"))
+        {
+            return false;
+        }
+        else
+        {
+            return true;
+        }
+    }
+    int UseIIRCount()
+    {
+        if (_type == "24dB Butterworth High")
+        {
+            return 2;
+        }
+        else if (_type == "24dB Butterworth Low")
+        {
+            return 2;
+        }
+        else if (_type == "36dB Butterworth High")
+        {
+            return 3;
+        }
+        else if (_type == "36dB Butterworth Low")
+        {
+            return 3;
+        }
+        else if (_type == "248dB Butterworth High")
+        {
+            return 2;
+        }
+        else if (_type == "48dB Butterworth Low")
+        {
+            return 2;
+        }
+        else
+        {
+            return 1;
+        }
+    }
     void SetType(String type)
     {
         ChangFilterParameter(type, _freq, _gain, _q);
@@ -112,25 +163,45 @@ public:
             Notch(freq, gain, q);
             _type_id = 5;
         }
-        else if (type == "High Butterworth 2nd")
+        else if (type == "12dB Butterworth High")
         {
             HighPassButterworth2(freq);
             _type_id = 11;
         }
-        else if (type == "High Butterworth 4nd")
+        else if (type == "24dB Butterworth High")
         {
             HighPassButterworth4(freq);
             _type_id = 12;
         }
-        else if (type == "Low Butterworth 2nd")
+        /*else if (type == "High Butterworth 6nd")
+        {
+            HighPassButterworth2(freq);
+            _type_id = 13;
+        }*/
+        else if (type == "48dB Butterworth High")
+        {
+            HighPassButterworth4(freq);
+            _type_id = 14;
+        }
+        else if (type == "12dB Butterworth Low")
         {
             LowPassButterworth2(freq);
-            _type_id = 13;
+            _type_id = 21;
         }
-        else if (type == "Low Butterworth 4nd")
+        else if (type == "24dB Butterworth Low")
         {
             LowPassButterworth4(freq);
-            _type_id = 14;
+            _type_id = 22;
+        }
+        /*else if (type == "36dB Butterworth Low")
+        {
+            LowPassButterworth2(freq);
+            _type_id = 23;
+        }*/
+        else if (type == "48dB Butterworth Low")
+        {
+            LowPassButterworth4(freq);
+            _type_id = 24;
         }
         else if (type == "Pink")
         {
@@ -379,25 +450,8 @@ private:
     }
 
     double middles[1001];
-    /*void PrepreMiddle()
-    {
-        for (int i=0;i<1001;i++)
-        {
-            middles[i] = FilterCoe(freq_point[i] / SAMPLE_FREQ);
-
-            middles[i] = 20 * Log10(middles[i]);
-        }
-    }*/
     // 用二阶滤波器方式生成图像
-    void PrepreMiddle()
-    {
-        for (int i=0;i<1001;i++)
-        {
-            middles[i] = FilterCoe(freq_point[i] / SAMPLE_FREQ);
-
-            middles[i] = 20 * Log10(middles[i]);
-        }
-    }
+    void PrepreMiddle();
 
     void HighPassButterworth4_second(double freq)
     {

@@ -116,7 +116,7 @@ PaintAgent::PaintAgent(TPaintBox* paint_box, FilterSet& filter_set)
 void __fastcall PaintAgent::OnMouseDown(TObject *Sender,
     TMouseButton Button, TShiftState Shift, int X, int Y)
 {
-    for (int i=0;i<9;i++)
+    for (int i=0;i<11;i++)
     {
         int band = GetSortElem(i);
         if (_filter_set.IsBandForbidden(band))
@@ -151,12 +151,7 @@ void __fastcall PaintAgent::OnMouseMove(TObject *Sender, TShiftState Shift,
     if (!_filter_set.IsBandForbidden(_filter_set.GetActiveBand()) && is_mouse_down)
     {
         String type = _filter_set.GetFilter(_filter_set.GetActiveBand())->GetType();
-        if ((type == "Band Pass")
-          ||(type == "Notch")
-          ||(type == "High Butterworth 2nd")
-          ||(type == "High Butterworth 4nd")
-          ||(type == "Low Butterworth 2nd")
-          ||(type == "Low Butterworth 4nd"))
+        if (_filter_set.GetFilter(_filter_set.GetActiveBand())->IsGainEnabled())
         {
             gain = 0;
         }
@@ -280,7 +275,7 @@ void __fastcall PaintAgent::OnPaint(TObject * Sender)
 
     // »æÖÆËùÓÐfilterÍ¼Ïñ
     Coefficient::InitPointData(point);
-    for (int i=1;i<9;i++)
+    for (int i=1;i<11;i++)
     {
         if (!_filter_set.IsBypass(i) && !_filter_set.IsBandForbidden(i))
         {
@@ -360,7 +355,7 @@ void DrawFillWave(double point[1001], Gdiplus::Graphics &gdiplus_g)
 //---------------------------------------------------------------------------
 void DrawThumb(PaintAgent* paint_agent, Gdiplus::Graphics &gdiplus_g)
 {
-    for (int i=8;i>=0;i--)
+    for (int i=10;i>=0;i--)
     {
         int band = GetSortElem(i);
         if (paint_agent->_filter_set.IsBandForbidden(band))
@@ -389,13 +384,15 @@ void DrawThumb(PaintAgent* paint_agent, Gdiplus::Graphics &gdiplus_g)
         {
             PointF p = PointF(x-3, y-20);
             Gdiplus::Font f(L"Arial", 8);
-            gdiplus_g.DrawString(paint_agent->_filter_set.GetFilter(band)->name, 1, &f, p, &brush);
+            WideString name = paint_agent->_filter_set.GetFilter(band)->name;
+            gdiplus_g.DrawString(name, 1, &f, p, &brush);
         }
         else
         {
             PointF p = PointF(x-3, y+10);
             Gdiplus::Font f(L"Arial", 8);
-            gdiplus_g.DrawString(paint_agent->_filter_set.GetFilter(band)->name, 1, &f, p, &brush);
+            WideString name = paint_agent->_filter_set.GetFilter(band)->name;
+            gdiplus_g.DrawString(name, 1, &f, p, &brush);
         }
     }
 }

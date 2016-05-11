@@ -30,12 +30,12 @@ public:
     void SetPanelUnselect(int band);
     void SetPanelSelect(int band);
 private:
-    TPanel* _panel[9];
-    TEdit* _edtFreq[9];
-    TEdit* _edtQ[9];
-    TEdit* _edtGain[9];
-    TComboBox* _cbType[9];
-    TCheckBox* _cbBypass[9];
+    TPanel* _panel[11];
+    TEdit* _edtFreq[11];
+    TEdit* _edtQ[11];
+    TEdit* _edtGain[11];
+    TComboBox* _cbType[11];
+    TCheckBox* _cbBypass[11];
 
 
     void __fastcall cbTypeChange(TObject *Sender);

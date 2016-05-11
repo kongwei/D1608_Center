@@ -23,6 +23,7 @@ typedef struct
     int GAIN;
     unsigned int FREQ;
     unsigned int Q;
+	int bypass;
 }FilterConfigMap;
 
 typedef struct
@@ -41,7 +42,7 @@ typedef struct
     unsigned int delay;
     FilterConfigMap filter_pad1;
     FilterConfigMap filter_pad2;
-    FilterConfigMap filter[8];
+    FilterConfigMap filter[11];
 }InputConfigMap;
 typedef struct
 {
@@ -59,7 +60,7 @@ typedef struct
     unsigned int pad5;
     FilterConfigMap high_pass;
     FilterConfigMap low_pass;
-    FilterConfigMap filter[8];
+    FilterConfigMap filter[11];
 }OutputConfigMap;
 
 typedef struct
@@ -80,6 +81,7 @@ typedef struct
     int value2;
     int value3;
     int value4;
+    int value5;
 }D1608Cmd;
 
 void LoadDefaultConfig(ConfigMap * p_config_map);

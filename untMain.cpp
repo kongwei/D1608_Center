@@ -323,6 +323,8 @@ __fastcall TForm1::TForm1(TComponent* Owner)
     panel_agent->SetPanel(6, panelBand6, edtFreq6, edtQ6, edtGain6, cbType6, cbBypass6);
     panel_agent->SetPanel(7, panelBand7, edtFreq7, edtQ7, edtGain7, cbType7, cbBypass7);
     panel_agent->SetPanel(8, panelBand8, edtFreq8, edtQ8, edtGain8, cbType8, cbBypass8);
+    panel_agent->SetPanel(9, panelBand9, edtFreq9, edtQ9, edtGain9, cbType9, cbBypass9);
+    panel_agent->SetPanel(10, panelBand10, edtFreq10, edtQ10, edtGain10, cbType10, cbBypass10);
 
     btnDspResetEQ->Click();
 
@@ -1107,21 +1109,31 @@ void __fastcall TForm1::M41MeasureItem(TObject *Sender, TCanvas *ACanvas,
 //---------------------------------------------------------------------------
 void __fastcall TForm1::btnDspResetEQClick(TObject *Sender)
 {
-    filter_set.GetFilter(1)->ChangFilterParameter("Low Shelf", 50, 0, 4.09);
-    filter_set.GetFilter(2)->ChangFilterParameter("Parametric", 100, 0, 4.09);
-    filter_set.GetFilter(3)->ChangFilterParameter("Parametric", 200, 0, 4.09);
-    filter_set.GetFilter(4)->ChangFilterParameter("Parametric", 500, 0, 4.09);
-    filter_set.GetFilter(5)->ChangFilterParameter("Parametric", 1000, 0, 4.09);
-    filter_set.GetFilter(6)->ChangFilterParameter("Parametric", 2000, 0, 4.09);
-    filter_set.GetFilter(7)->ChangFilterParameter("Parametric", 5000, 0, 4.09);
-    filter_set.GetFilter(8)->ChangFilterParameter("High Shelf", 10000, 0, 4.09);
+    filter_set.GetFilter(2)->ChangFilterParameter("Low Shelf", 50, 0, 4.09);
+    filter_set.GetFilter(3)->ChangFilterParameter("Parametric", 100, 0, 4.09);
+    filter_set.GetFilter(4)->ChangFilterParameter("Parametric", 200, 0, 4.09);
+    filter_set.GetFilter(5)->ChangFilterParameter("Parametric", 500, 0, 4.09);
+    filter_set.GetFilter(6)->ChangFilterParameter("Parametric", 1000, 0, 4.09);
+    filter_set.GetFilter(7)->ChangFilterParameter("Parametric", 2000, 0, 4.09);
+    filter_set.GetFilter(8)->ChangFilterParameter("Parametric", 5000, 0, 4.09);
+    filter_set.GetFilter(9)->ChangFilterParameter("High Shelf", 10000, 0, 4.09);
 
-    for (int i=1;i<=8;i++)
+    for (int i=2;i<=9;i++)
     {
-        filter_set.GetFilter(i)->name = IntToStr(i);
+        filter_set.GetFilter(i)->name = IntToStr(i-1);
         filter_set.SetBypass(i, false);
         filter_set.RepaintPaint(i);
     }
+
+    filter_set.GetFilter(1)->ChangFilterParameter("12dB Butterworth High", 20, 0, 4.09);
+    filter_set.SetBypass(1, true);
+    filter_set.GetFilter(1)->name = "H";
+    filter_set.RepaintPaint(1);
+
+    filter_set.GetFilter(10)->ChangFilterParameter("12dB Butterworth Low", 20000, 0, 4.09);
+    filter_set.SetBypass(10, true);
+    filter_set.GetFilter(10)->name = "L";
+    filter_set.RepaintPaint(10);
 }
 //---------------------------------------------------------------------------
 

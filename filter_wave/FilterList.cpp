@@ -28,25 +28,16 @@ bool FilterSet::IsBandForbidden(int band)
     {
         return true;
     }
-    if (band == 2 && GetFilter(1)->GetType() == "High Butterworth 4nd")
+    if (band == 2 && GetFilter(1)->UseIIRCount()>=2)
     {
         return true;
     }
-    if (band == 7 && GetFilter(8)->GetType() == "Low Butterworth 4nd")
+    if (band == 9 && GetFilter(10)->UseIIRCount()>=2)
     {
         return true;
     }
     return false;
 }
-
-/*void FilterSet::OnParameterChange(int band)
-{
-    double freq = edtFreq[band]->Text.ToDouble();
-    double gain = edtGain[band]->Text.ToDouble();
-    double q = edtQ[band]->Text.ToDouble();
-    String type = GetFilter(band)->GetType();
-    GetFilter(band)->ChangFilterParameter(type, freq, gain, q);
-}*/
 
 Coefficient* FilterSet::GetFilter(int band)
 {
@@ -119,6 +110,9 @@ void FilterSet::RepaintPaint(int band)
 
         tmp = GetFilter(band)->GetQ()*100;       // Q
         cmd.value4 = tmp;
+
+        tmp = IsBypass(band) ? 1 : 0;   // Bypass
+        cmd.value5 = tmp;
 
         Form1->SendCmd(cmd);
     }

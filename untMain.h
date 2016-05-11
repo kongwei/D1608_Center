@@ -162,23 +162,19 @@ __published:	// IDE-managed Components
     TPaintBox *PaintBox1;
     TPanel *Panel8;
     TAdvTrackBar *TrackBar27;
-    TPanel *panelBand1;
+    TPanel *panelBand9;
     TLabel *Label4;
-    TComboBox *cbType1;
-    TEdit *edtFreq1;
-    TEdit *edtGain1;
-    TEdit *edtQ1;
-    TCheckBox *cbBypass1;
+    TComboBox *cbType9;
+    TEdit *edtFreq9;
+    TEdit *edtGain9;
+    TEdit *edtQ9;
+    TCheckBox *cbBypass9;
     TAdvTrackBar *AdvTrackBar3;
-    TPanel *Panel7;
+    TPanel *panelBand1;
     TLabel *Label11;
     TLabel *Label12;
-    TLabel *Label13;
-    TLabel *Label14;
-    TEdit *Edit22;
-    TEdit *Edit23;
-    TComboBox *ComboBox8;
-    TComboBox *ComboBox9;
+    TEdit *edtFreq1;
+    TComboBox *cbType1;
     TPanel *panelBand2;
     TLabel *Label5;
     TComboBox *cbType2;
@@ -243,8 +239,17 @@ __published:	// IDE-managed Components
     TMenuItem *MenuItem4;
     TMenuItem *MenuItem5;
     TMenuItem *MenuItem6;
-    TCheckBox *cbBypassHP;
-    TCheckBox *cbBypassLP;
+    TCheckBox *cbBypass1;
+    TEdit *edtQ1;
+    TEdit *edtGain1;
+    TPanel *panelBand10;
+    TLabel *Label13;
+    TEdit *edtFreq10;
+    TCheckBox *cbBypass10;
+    TLabel *Label14;
+    TComboBox *cbType10;
+    TEdit *edtQ10;
+    TEdit *edtGain10;
     void __fastcall FormCreate(TObject *Sender);
     void __fastcall FormDestroy(TObject *Sender);
     void __fastcall btnRefreshClick(TObject *Sender);
@@ -327,9 +332,9 @@ private:
     int high_freq;
     int high_gain;
 
-    int eq_freq[8];
-    int eq_gain[8];
-    int eq_q[8];
+    int eq_freq[11];
+    int eq_gain[11];
+    int eq_q[11];
 public:
     void SendCmd(D1608Cmd& cmd);
 //----------------------------------

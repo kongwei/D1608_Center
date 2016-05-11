@@ -28,11 +28,8 @@ public:
     void Register(PaintAgent* paint_agent, PanelAgent* panel_agent);
     void RepaintPaint(int band=0);
 private:
-    //TEdit* edtFreq[9];
-    //TEdit* edtQ[9];
-    //TEdit* edtGain[9];
-    bool bypass[9];
-    Coefficient filter[9];
+    bool bypass[11];
+    Coefficient filter[11];
     int select_band;
     PaintAgent* paint_agent_ref;
     PanelAgent* panel_agent_ref;
