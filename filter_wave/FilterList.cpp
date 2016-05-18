@@ -32,7 +32,24 @@ bool FilterSet::IsBandForbidden(int band)
     {
         return true;
     }
+    if (band == 3 && GetFilter(1)->UseIIRCount()>=3)
+    {
+        return true;
+    }
+    if (band == 4 && GetFilter(1)->UseIIRCount()>=4)
+    {
+        return true;
+    }
+
     if (band == 9 && GetFilter(10)->UseIIRCount()>=2)
+    {
+        return true;
+    }
+    if (band == 8 && GetFilter(10)->UseIIRCount()>=3)
+    {
+        return true;
+    }
+    if (band == 7 && GetFilter(10)->UseIIRCount()>=4)
     {
         return true;
     }

@@ -113,7 +113,7 @@ void __fastcall PanelAgent::cbTypeChange(TObject *Sender)
 
     _filter_set.GetFilter(band)->SetType(type);
 
-    if (_filter_set.GetFilter(band)->IsGainEnabled())
+    if (!_filter_set.GetFilter(band)->IsGainEnabled())
     {
         GetGainText(band)->Text = "0";
         GetGainText(band)->Enabled = false;
@@ -125,7 +125,15 @@ void __fastcall PanelAgent::cbTypeChange(TObject *Sender)
         GetGainText(band)->Enabled = true;
     }
 
-    int IIRCount = _filter_set.GetFilter(band)->UseIIRCount();
+    for (int i=1;i<=10;i++)
+    {
+        bool band_forbidden = _filter_set.IsBandForbidden(i);
+        GetPanel(i)->Enabled = !band_forbidden;
+        GetFreqText(i)->Enabled = !band_forbidden;
+        GetQText(i)->Enabled = !band_forbidden;
+        GetGainText(i)->Enabled = !band_forbidden;
+    }
+    /*int IIRCount = _filter_set.GetFilter(band)->UseIIRCount();
     if (band == 1)
     {
         // band 2 ʧЧ
@@ -141,9 +149,8 @@ void __fastcall PanelAgent::cbTypeChange(TObject *Sender)
         GetFreqText(band-1)->Enabled = IIRCount<=1;
         GetQText(band-1)->Enabled = IIRCount<=1;
         GetGainText(band-1)->Enabled = IIRCount<=1;
-    }
+    }*/
 
-    _filter_set.GetFilter(band)->SetType(type_ccombobox->Text);
     _filter_set.RepaintPaint();
 }
 

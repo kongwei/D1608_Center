@@ -151,7 +151,7 @@ void __fastcall PaintAgent::OnMouseMove(TObject *Sender, TShiftState Shift,
     if (!_filter_set.IsBandForbidden(_filter_set.GetActiveBand()) && is_mouse_down)
     {
         String type = _filter_set.GetFilter(_filter_set.GetActiveBand())->GetType();
-        if (_filter_set.GetFilter(_filter_set.GetActiveBand())->IsGainEnabled())
+        if (!_filter_set.GetFilter(_filter_set.GetActiveBand())->IsGainEnabled())
         {
             gain = 0;
         }

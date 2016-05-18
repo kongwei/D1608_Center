@@ -127,4 +127,172 @@ void Coefficient::PrepreMiddle()
         }
     }
 }
+void Coefficient::ChangFilterParameter(String type, double freq, double gain, double q)
+{
+    if ((type == _type)
+      &&(freq == _freq)
+      &&(gain == _gain)
+      &&(q == _q))
+    {
+        return;
+    }
 
+    _type = type;
+    _freq = freq;
+    _gain = gain;
+    _q = q;
+
+    if (type == "Parametric")
+    {
+        Peaking(freq, gain, q);
+        _type_id = 1;
+    }
+    else if (type == "Band Pass")
+    {
+        BandPass(freq, gain, q);
+        _type_id = 2;
+    }
+    else if (type == "High Shelf")
+    {
+        HighShelving(freq, gain, q);
+        _type_id = 3;
+    }
+    else if (type == "Low Shelf")
+    {
+        LowShelving(freq, gain, q);
+        _type_id = 4;
+    }
+    else if (type == "Notch")
+    {
+        Notch(freq, gain, q);
+        _type_id = 5;
+    }
+    else if (type == "12dB Bessel High")
+    {
+        HighBessel_12dB(freq);
+        _type_id = 1202;
+    }
+    else if (type == "12dB Bessel Low")
+    {
+        LowBessel_12dB(freq);
+        _type_id = 1212;
+    }
+    else if (type == "18dB Bessel High")
+    {
+        HighBessel_18dB(freq);
+        _type_id = 1802;
+    }
+    else if (type == "18dB Bessel Low")
+    {
+        LowBessel_18dB(freq);
+        _type_id = 1812;
+    }
+    else if (type == "24dB Bessel High")
+    {
+        HighBessel_24dB(freq);
+        _type_id = 2402;
+    }
+    else if (type == "24dB Bessel Low")
+    {
+        LowBessel_24dB(freq);
+        _type_id = 2412;
+    }
+
+    else if (type == "12dB Linkwitz-Riley High")
+    {
+        HighLinkwitz_12dB(freq);
+        _type_id = 1203;
+    }
+    else if (type == "12dB Linkwitz-Riley Low")
+    {
+        LowLinkwitz_12dB(freq);
+        _type_id = 1213;
+    }
+    else if (type == "24dB Linkwitz-Riley High")
+    {
+        HighLinkwitz_24dB(freq);
+        _type_id = 2403;
+    }
+    else if (type == "24dB Linkwitz-Riley Low")
+    {
+        LowLinkwitz_24dB(freq);
+        _type_id = 2413;
+    }
+    else if (type == "48dB Linkwitz-Riley High")
+    {
+        HighLinkwitz_48dB(freq);
+        _type_id = 4803;
+    }
+    else if (type == "48dB Linkwitz-Riley Low")
+    {
+        LowLinkwitz_48dB(freq);
+        _type_id = 4813;
+    }
+
+    else if (type == "6dB Bansen High")
+    {
+        HighBansen(freq);
+        _type_id = 604;
+    }
+    else if (type == "6dB Bansen Low")
+    {
+        LowBansen(freq);
+        _type_id = 614;
+    }
+
+    else if (type == "12dB Butterworth High")
+    {
+        HighPassButterworth_12dB(freq);
+        _type_id = 1201;
+    }
+    else if (type == "18dB Butterworth High")
+    {
+        HighPassButterworth_18dB(freq);
+        _type_id = 1801;
+    }
+    else if (type == "24dB Butterworth High")
+    {
+        HighPassButterworth_24dB(freq);
+        _type_id = 2401;
+    }
+    /*else if (type == "36dB Butterworth High")
+    {
+        HighPassButterworth_36dB(freq);
+        _type_id = 3601;
+    }*/
+    else if (type == "48dB Butterworth High")
+    {
+        HighPassButterworth_48dB(freq);
+        _type_id = 4801;
+    }
+    else if (type == "12dB Butterworth Low")
+    {
+        LowPassButterworth_12dB(freq);
+        _type_id = 1211;
+    }
+    else if (type == "18dB Butterworth Low")
+    {
+        LowPassButterworth_18dB(freq);
+        _type_id = 1811;
+    }
+    else if (type == "24dB Butterworth Low")
+    {
+        LowPassButterworth_24dB(freq);
+        _type_id = 2411;
+    }
+    /*else if (type == "36dB Butterworth Low")
+    {
+        LowPassButterworth_36dB(freq);
+        _type_id = 3611;
+    }*/
+    else if (type == "48dB Butterworth Low")
+    {
+        LowPassButterworth_48dB(freq);
+        _type_id = 4811;
+    }
+    else if (type == "Pink")
+    {
+        Pink(freq, gain, q);
+        _type_id = 7;
+    }
+}

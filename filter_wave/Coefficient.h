@@ -72,6 +72,20 @@ public:
     {
         if ((_type == "Band Pass")
           ||(_type == "Notch")
+          ||(_type == "6dB Bansen High")
+          ||(_type == "6dB Bansen Low")
+          ||(_type == "12dB Bessel High")
+          ||(_type == "12dB Bessel Low")
+          ||(_type == "18dB Bessel High")
+          ||(_type == "18dB Bessel Low")
+          ||(_type == "24dB Bessel High")
+          ||(_type == "24dB Bessel Low")
+          ||(_type == "12dB Linkwitz-Riley High")
+          ||(_type == "12dB Linkwitz-Riley Low")
+          ||(_type == "24dB Linkwitz-Riley High")
+          ||(_type == "24dB Linkwitz-Riley Low")
+          ||(_type == "48dB Linkwitz-Riley High")
+          ||(_type == "48dB Linkwitz-Riley Low")
           ||(_type == "12dB Butterworth High")
           ||(_type == "24dB Butterworth High")
     //      ||(_type == "36dB Butterworth High")
@@ -90,7 +104,57 @@ public:
     }
     int UseIIRCount()
     {
-        if (_type == "24dB Butterworth High")
+        if (_type == "18dB Bessel High")
+        {
+            return 2;
+        }
+        else if (_type == "18dB Bessel Low")
+        {
+            return 2;
+        }
+        else if (_type == "24dB Bessel High")
+        {
+            return 2;
+        }
+        else if (_type == "24dB Bessel Low")
+        {
+            return 2;
+        }
+        else if (_type == "48dB Bessel High")
+        {
+            return 4;
+        }
+        else if (_type == "48dB Bessel Low")
+        {
+            return 4;
+        }
+
+        else if (_type == "24dB Linkwitz-Riley High")
+        {
+            return 2;
+        }
+        else if (_type == "24dB Linkwitz-Riley Low")
+        {
+            return 2;
+        }
+        else if (_type == "48dB Linkwitz-Riley High")
+        {
+            return 4;
+        }
+        else if (_type == "48dB Linkwitz-Riley Low")
+        {
+            return 4;
+        }
+
+        else if (_type == "18dB Butterworth Low")
+        {
+            return 2;
+        }
+        else if (_type == "18dB Butterworth High")
+        {
+            return 2;
+        }
+        else if (_type == "24dB Butterworth High")
         {
             return 2;
         }
@@ -106,14 +170,15 @@ public:
         {
             return 3;
         }
-        else if (_type == "248dB Butterworth High")
+        else if (_type == "48dB Butterworth High")
         {
-            return 2;
+            return 4;
         }
         else if (_type == "48dB Butterworth Low")
         {
-            return 2;
+            return 4;
         }
+
         else
         {
             return 1;
@@ -123,92 +188,8 @@ public:
     {
         ChangFilterParameter(type, _freq, _gain, _q);
     }
-    void ChangFilterParameter(String type, double freq, double gain, double q)
-    {
-        if ((type == _type)
-          &&(freq == _freq)
-          &&(gain == _gain)
-          &&(q == _q))
-        {
-            return;
-        }
-
-        _type = type;
-        _freq = freq;
-        _gain = gain;
-        _q = q;
-
-        if (type == "Parametric")
-        {
-            Peaking(freq, gain, q);
-            _type_id = 1;
-        }
-        else if (type == "Band Pass")
-        {
-            BandPass(freq, gain, q);
-            _type_id = 2;
-        }
-        else if (type == "High Shelf")
-        {
-            HighShelving(freq, gain, q);
-            _type_id = 3;
-        }
-        else if (type == "Low Shelf")
-        {
-            LowShelving(freq, gain, q);
-            _type_id = 4;
-        }
-        else if (type == "Notch")
-        {
-            Notch(freq, gain, q);
-            _type_id = 5;
-        }
-        else if (type == "12dB Butterworth High")
-        {
-            HighPassButterworth2(freq);
-            _type_id = 11;
-        }
-        else if (type == "24dB Butterworth High")
-        {
-            HighPassButterworth4(freq);
-            _type_id = 12;
-        }
-        /*else if (type == "High Butterworth 6nd")
-        {
-            HighPassButterworth2(freq);
-            _type_id = 13;
-        }*/
-        else if (type == "48dB Butterworth High")
-        {
-            HighPassButterworth4(freq);
-            _type_id = 14;
-        }
-        else if (type == "12dB Butterworth Low")
-        {
-            LowPassButterworth2(freq);
-            _type_id = 21;
-        }
-        else if (type == "24dB Butterworth Low")
-        {
-            LowPassButterworth4(freq);
-            _type_id = 22;
-        }
-        /*else if (type == "36dB Butterworth Low")
-        {
-            LowPassButterworth2(freq);
-            _type_id = 23;
-        }*/
-        else if (type == "48dB Butterworth Low")
-        {
-            LowPassButterworth4(freq);
-            _type_id = 24;
-        }
-        else if (type == "Pink")
-        {
-            Pink(freq, gain, q);
-            _type_id = 7;
-        }
-    }
+    void ChangFilterParameter(String type, double freq, double gain, double q);
+    
     void EqualizerOff()
     {
         a0 = 1;
@@ -331,7 +312,256 @@ public:
         second_filter.AddToMiddle(middles);*/
     }
 
-    void HighPassButterworth2(double freq)
+    void HighLinkwitz_12dB(double freq)
+    {
+		float wc = 2 * M_PI * freq;
+		float k = wc / tan(wc/2/SAMPLE_FREQ);
+
+        b2 = k*k/(wc*wc+k*k+2*k*wc);
+        b1 = (-2.0) * b2;
+        b0 = b2;
+        a2 = (wc*wc+k*k-2*k*wc)/(wc*wc+k*k+2*k*wc);
+        a1 = (2*wc*wc-2*k*k)/(wc*wc+k*k+2*k*wc);
+        a0 = 1;
+
+        PrepreMiddle();
+    }
+    void LowLinkwitz_12dB(double freq)
+    {
+		float wc = 2 * M_PI * freq;
+		float k = wc / tan(wc/2/SAMPLE_FREQ);
+
+        b2 = wc*wc/(wc*wc+k*k+2*k*wc);
+        b1 = 2 * b2;
+        b0 = b2;
+        a2 = (wc*wc+k*k-2*k*wc)/(wc*wc+k*k+2*k*wc);
+        a1 = (2*wc*wc-2*k*k)/(wc*wc+k*k+2*k*wc);
+        a0 = 1;
+
+        PrepreMiddle();
+    }
+    void HighLinkwitz_24dB(double freq)
+    {
+        EqualizerOff();
+
+        Coefficient second_filter;
+        second_filter.HighPassButterworth_12dB(freq);
+        second_filter.AddToMiddle(middles);
+        second_filter.AddToMiddle(middles);
+    }
+    void LowLinkwitz_24dB(double freq)
+    {
+        EqualizerOff();
+
+        Coefficient second_filter;
+        second_filter.LowPassButterworth_12dB(freq);
+        second_filter.AddToMiddle(middles);
+        second_filter.AddToMiddle(middles);
+    }
+    void HighLinkwitz_48dB(double freq)
+    {
+        EqualizerOff();
+
+        Coefficient second_filter;
+        second_filter.HighPassButterworth_24dB(freq);
+        second_filter.AddToMiddle(middles);
+        second_filter.AddToMiddle(middles);
+    }
+    void LowLinkwitz_48dB(double freq)
+    {
+        EqualizerOff();
+
+        Coefficient second_filter;
+        second_filter.LowPassButterworth_24dB(freq);
+        second_filter.AddToMiddle(middles);
+        second_filter.AddToMiddle(middles);
+    }
+
+    void HighBansen(double freq)
+    {
+        double wc = tan(M_PI * freq / SAMPLE_FREQ);
+
+		b2 = 0;
+		b1 = (-1)/(wc+1);
+		b0 = (-1)*b1;
+		a2 = 0;
+		a1 = (wc-1)/(wc+1);
+        a0 = 1;
+
+        PrepreMiddle();
+    }
+    void LowBansen(double freq)
+    {
+        double wc = tan(M_PI * freq / SAMPLE_FREQ);
+
+        b2 = 0;
+        b1 = wc/(wc+1);
+        b0 = b1;
+        a2 = 0;
+        a1 = (wc-1)/(wc+1);
+        a0 = 1;
+
+        PrepreMiddle();
+    }
+
+    void HighBessel_12dB(double freq)
+    {
+        double wc = tan(M_PI * freq / SAMPLE_FREQ)*1.36165412871613;
+
+        float pk = 3.0000000000;
+        float qk = 3.0000000000;
+        float f_temp = wc*wc + pk*wc + qk;
+
+        b2 = (3)/f_temp;
+        b1 = (-2)*b2;
+        b0 = b2;
+        a2 = (wc*wc-pk*wc+qk)/f_temp;
+        a1 = (2*wc*wc-2*qk)/f_temp;
+        a0 = 1;
+
+        PrepreMiddle();
+    }
+    void LowBessel_12dB(double freq)
+    {
+        double wc = tan(M_PI * freq / SAMPLE_FREQ) / 1.36165412871613;
+
+        float pk = 3.0000000000;
+        float qk = 3.0000000000;
+        float f_temp = 1 + pk*wc + qk*wc*wc;
+
+        b2 = (3*wc*wc)/f_temp;
+        b1 = 2 * b2;
+        b0 = b2;
+        a2 = (1-pk*wc+qk*wc*wc)/f_temp;
+        a1 = (2*qk*wc*wc-2)/f_temp;
+        a0 = 1;
+
+        PrepreMiddle();
+    }
+    void HighBessel_18dB(double freq)
+    {
+        Coefficient second_filter;
+        double wc = tan(M_PI * freq / SAMPLE_FREQ)*1.75567236868121;
+        {
+        float pk = 3.6778146454;
+        float qk = 6.4594326935;
+        float f_temp = wc*wc + pk*wc + qk;
+
+        b2 = (1)/f_temp;
+        b1 = (-2)*b2;
+        b0 = b2;
+        a2 = (wc*wc-pk*wc+qk)/f_temp;
+        a1 = (2*wc*wc-2*qk)/f_temp;
+        a0 = 1;
+        PrepreMiddle();
+        AddToMiddle(second_filter.middles);
+        }
+
+        b2 = 0;
+        b1 = (15)/(-2.3221853546-wc);
+        b0 = (-1)*b1;
+        a2 = 0;
+        a1 = (wc-2.3221853546)/(wc+2.3221853546);
+        a0 = 1;
+        PrepreMiddle();
+        second_filter.AddToMiddle(middles);
+    }
+    void LowBessel_18dB(double freq)
+    {
+        Coefficient second_filter;
+        double wc = tan(M_PI * freq / SAMPLE_FREQ) / 1.75567236868121;
+        {
+        float pk = 3.6778146454;
+        float qk = 6.4594326935;
+        float f_temp = 1 + pk*wc + qk*wc*wc;
+
+        b2 = (wc*wc)/f_temp;
+        b1 = 2 * b2;
+        b0 = b2;
+        a2 = (1-pk*wc+qk*wc*wc)/f_temp;
+        a1 = (2*qk*wc*wc-2)/f_temp;
+        a0 = 1;
+        PrepreMiddle();
+        AddToMiddle(second_filter.middles);
+        }
+
+        b2  = 0;
+        b1 = 15*wc/(1+wc*2.3221853546);
+        b0 = b1;
+        a2 = 0;
+        a1 = (-1+wc*2.3221853546)/(1+wc*2.3221853546);
+        a0 = 1;
+        PrepreMiddle();
+        second_filter.AddToMiddle(middles);
+    }
+    void HighBessel_24dB(double freq)
+    {
+        Coefficient second_filter;
+        double wc = tan(M_PI * freq / SAMPLE_FREQ)*2.11391767490422;
+        {
+        float pk = 4.2075787944;
+        float qk = 11.4878004771;
+        float f_temp = wc*wc + pk*wc + qk;
+
+        b2 = (1)/f_temp;
+        b1 = (-2)*b2;
+        b0 = b2;
+        a2 = (wc*wc-pk*wc+qk)/f_temp;
+        a1 = (2*wc*wc-2*qk)/f_temp;
+        a0 = 1;
+        PrepreMiddle();
+        AddToMiddle(second_filter.middles);
+        }
+
+        float pk = 5.7924212056;
+        float qk = 9.1401308900;
+        float f_temp = wc*wc + pk*wc + qk;
+
+        b2 = (105)/f_temp;
+        b1 = (-2)*b2;
+        b0 = b2;
+        a2 = (wc*wc-pk*wc+qk)/f_temp;
+        a1 = (2*wc*wc-2*qk)/f_temp;
+        a0 = 1;
+        PrepreMiddle();
+        second_filter.AddToMiddle(middles);
+    }
+
+    void LowBessel_24dB(double freq)
+    {
+        Coefficient second_filter;
+        double wc = tan(M_PI * freq / SAMPLE_FREQ) / 2.11391767490422;
+
+        {
+        float pk = 4.2075787944;
+        float qk = 11.4878004771;
+        float f_temp = 1 + pk*wc + qk*wc*wc;
+
+        b2 = (wc*wc)/f_temp;
+        b1 = 2 * b2;
+        b0 = b2;
+        a2 = (1-pk*wc+qk*wc*wc)/f_temp;
+        a1 = (2*qk*wc*wc-2)/f_temp;
+        a0 = 1;
+        PrepreMiddle();
+        AddToMiddle(second_filter.middles);
+        }
+
+        float pk = 5.7924212056;
+        float qk = 9.1401308900;
+        float f_temp = 1 + pk*wc + qk*wc*wc;
+
+        b2  = (105*wc*wc)/f_temp;
+        b1 = 2 * b2;
+        b0 = b2;
+        a2 = (1-pk*wc+qk*wc*wc)/f_temp;
+        a1 = (2*qk*wc*wc-2)/f_temp;
+        a0 = 1;
+        PrepreMiddle();
+        second_filter.AddToMiddle(middles);
+    }
+
+    void HighPassButterworth_12dB(double freq)
     {
         double wc = tan(M_PI * freq / SAMPLE_FREQ);
         double k = 2 * wc * sin(M_PI / 4);
@@ -345,8 +575,38 @@ public:
 
         PrepreMiddle();
     }
-    void HighPassButterworth4(double freq)
+    void HighPassButterworth_18dB(double freq)
     {
+        Coefficient second_filter;
+
+        double wc = tan(M_PI * freq / SAMPLE_FREQ);
+        double k;
+
+        k = 2 * wc * sin(M_PI / 6);
+        a0 = 1;
+        a1 = (2*wc*wc-2)/(1+k+wc*wc);
+        a2 = (1-k+wc*wc)/(1+k+wc*wc);
+        b0 = 1/(1+k+wc*wc);
+        b1 = (-2)*b0;
+        b2 = 1/(1+k+wc*wc);
+        PrepreMiddle();
+        AddToMiddle(second_filter.middles);
+
+        k = 2 * wc * sin(M_PI * 3 / 8);
+        a0 = 1;
+        a1 = (wc-1)/(wc+1);
+        a2 = 0;
+        b0 = 1/(wc+1);
+        b1 = (-1)/(wc+1);
+        b2 = 0;
+        PrepreMiddle();
+        second_filter.AddToMiddle(middles);
+    }
+
+    void HighPassButterworth_24dB(double freq)
+    {
+        Coefficient second_filter;
+        {
         double wc = tan(M_PI * freq / SAMPLE_FREQ);
         double k = 2 * wc * sin(M_PI / 8);
 
@@ -356,14 +616,70 @@ public:
         b0 = 1 / (1 + k + wc * wc);
         b1 = (-2) * b0;
         b2 = 1 / (1 + k + wc * wc);
-
         PrepreMiddle();
+        AddToMiddle(second_filter.middles);
+        }
 
-        Coefficient second_filter;
-        second_filter.HighPassButterworth4_second(freq);
+        double wc = tan(M_PI * freq / SAMPLE_FREQ);
+        double k = 2 * wc * sin(M_PI * 3 / 8);
+        a0 = 1;
+        a1 = (2 * wc * wc - 2) / (1 + k + wc * wc);
+        a2 = (1 - k + wc * wc) / (1 + k + wc * wc);
+        b0 = 1 / (1 + k + wc * wc);
+        b1 = (-2) * b0;
+        b2 = 1 / (1 + k + wc * wc);
+        PrepreMiddle();
         second_filter.AddToMiddle(middles);
     }
-    void LowPassButterworth2(double freq)
+
+    void HighPassButterworth_48dB(double freq)
+    {
+        Coefficient second_filter;
+
+        double wc = tan(M_PI * freq / SAMPLE_FREQ);
+        double k;
+
+        k = 2 * wc * sin(1 * M_PI / 16);
+        a0 = 1;
+        a1 = (2 * wc * wc - 2) / (1 + k + wc * wc);
+        a2 = (1 - k + wc * wc) / (1 + k + wc * wc);
+        b0 = 1 / (1 + k + wc * wc);
+        b1 = (-2) * b0;
+        b2 = 1 / (1 + k + wc * wc);
+        PrepreMiddle();
+        AddToMiddle(second_filter.middles);
+
+        k = 2 * wc * sin(3 * M_PI / 16);
+        a0 = 1;
+        a1 = (2 * wc * wc - 2) / (1 + k + wc * wc);
+        a2 = (1 - k + wc * wc) / (1 + k + wc * wc);
+        b0 = 1 / (1 + k + wc * wc);
+        b1 = (-2) * b0;
+        b2 = 1 / (1 + k + wc * wc);
+        PrepreMiddle();
+        AddToMiddle(second_filter.middles);
+
+        k = 2 * wc * sin(5 * M_PI / 16);
+        a0 = 1;
+        a1 = (2 * wc * wc - 2) / (1 + k + wc * wc);
+        a2 = (1 - k + wc * wc) / (1 + k + wc * wc);
+        b0 = 1 / (1 + k + wc * wc);
+        b1 = (-2) * b0;
+        b2 = 1 / (1 + k + wc * wc);
+        PrepreMiddle();
+        AddToMiddle(second_filter.middles);
+
+        k = 2 * wc * sin(7 * M_PI / 16);
+        a0 = 1;
+        a1 = (2 * wc * wc - 2) / (1 + k + wc * wc);
+        a2 = (1 - k + wc * wc) / (1 + k + wc * wc);
+        b0 = 1 / (1 + k + wc * wc);
+        b1 = (-2) * b0;
+        b2 = 1 / (1 + k + wc * wc);
+        PrepreMiddle();
+        second_filter.AddToMiddle(middles);
+    }
+    void LowPassButterworth_12dB(double freq)
     {
         double wc = tan(M_PI * freq / SAMPLE_FREQ);
         double k = 2 * wc * sin(M_PI / 4);
@@ -377,10 +693,39 @@ public:
 
         PrepreMiddle();
     }
-    void LowPassButterworth4(double freq)
+    void LowPassButterworth_18dB(double freq)
     {
+        Coefficient second_filter;
+
         double wc = tan(M_PI * freq / SAMPLE_FREQ);
-        double k = 2 * wc * sin(M_PI / 4);
+        double k;
+
+        k = 2 * wc * sin(M_PI / 6);
+        a0 = 1;
+        a1 = (2*wc*wc-2)/(1+k+wc*wc);
+        a2 = (1-k+wc*wc)/(1+k+wc*wc);
+        b0 = (wc*wc)/(1+k+wc*wc);
+        b1 = 2 * (wc*wc)/(1+k+wc*wc);
+        b2 = (wc*wc)/(1+k+wc*wc);
+        PrepreMiddle();
+        AddToMiddle(second_filter.middles);
+
+        k = 2 * wc * sin(M_PI * 3 / 4);
+        a0 = 1;
+        a1 = (wc-1)/(wc+1);
+        a2 = 0;
+        b0 = wc/(wc+1);
+        b1 = wc/(wc+1);
+        b2 = 0;
+        PrepreMiddle();
+        second_filter.AddToMiddle(middles);
+    }
+    void LowPassButterworth_24dB(double freq)
+    {
+        Coefficient second_filter;
+        {
+        double wc = tan(M_PI * freq / SAMPLE_FREQ);
+        double k = 2 * wc * sin(M_PI / 8);
 
         a0 = 1;
         a1 = (2 * wc * wc - 2) / (1 + k + wc * wc);
@@ -388,11 +733,67 @@ public:
         b0 = (wc * wc) / (1 + k + wc * wc);
         b1 = 2 * b0;
         b2 = (wc * wc) / (1 + k + wc * wc);
-
         PrepreMiddle();
-        
+        AddToMiddle(second_filter.middles);
+        }
+
+        double wc = tan(M_PI * freq / SAMPLE_FREQ);
+        double k = 2 * wc * sin(M_PI * 3 / 8);
+
+        a0 = 1;
+        a1 = (2 * wc * wc - 2) / (1 + k + wc * wc);
+        a2 = (1 - k + wc * wc) / (1 + k + wc * wc);
+        b0 = (wc * wc) / (1 + k + wc * wc);
+        b1 = 2 * b0;
+        b2 = (wc * wc) / (1 + k + wc * wc);
+        PrepreMiddle();
+        second_filter.AddToMiddle(middles);
+    }
+    void LowPassButterworth_48dB(double freq)
+    {
         Coefficient second_filter;
-        second_filter.LowPassButterworth4_second(freq);
+
+        double wc = tan(M_PI * freq / SAMPLE_FREQ);
+        double k;
+
+        k = 2 * wc * sin(1 * M_PI / 16);
+        a0 = 1;
+        a1 = (2 * wc * wc - 2) / (1 + k + wc * wc);
+        a2 = (1 - k + wc * wc) / (1 + k + wc * wc);
+        b0 = (wc * wc) / (1 + k + wc * wc);
+        b1 = 2 * b0;
+        b2 = (wc * wc) / (1 + k + wc * wc);
+        PrepreMiddle();
+        AddToMiddle(second_filter.middles);
+
+        k = 2 * wc * sin(3 * M_PI / 16);
+        a0 = 1;
+        a1 = (2 * wc * wc - 2) / (1 + k + wc * wc);
+        a2 = (1 - k + wc * wc) / (1 + k + wc * wc);
+        b0 = (wc * wc) / (1 + k + wc * wc);
+        b1 = 2 * b0;
+        b2 = (wc * wc) / (1 + k + wc * wc);
+        PrepreMiddle();
+        AddToMiddle(second_filter.middles);
+
+        k = 2 * wc * sin(5 * M_PI / 16);
+        a0 = 1;
+        a1 = (2 * wc * wc - 2) / (1 + k + wc * wc);
+        a2 = (1 - k + wc * wc) / (1 + k + wc * wc);
+        b0 = (wc * wc) / (1 + k + wc * wc);
+        b1 = 2 * b0;
+        b2 = (wc * wc) / (1 + k + wc * wc);
+        PrepreMiddle();
+        AddToMiddle(second_filter.middles);
+
+        k = 2 * wc * sin(7 * M_PI / 16);
+        a0 = 1;
+        a1 = (2 * wc * wc - 2) / (1 + k + wc * wc);
+        a2 = (1 - k + wc * wc) / (1 + k + wc * wc);
+        b0 = (wc * wc) / (1 + k + wc * wc);
+        b1 = 2 * b0;
+        b2 = (wc * wc) / (1 + k + wc * wc);
+        PrepreMiddle();
         second_filter.AddToMiddle(middles);
     }
 
@@ -452,35 +853,6 @@ private:
     double middles[1001];
     // 用二阶滤波器方式生成图像
     void PrepreMiddle();
-
-    void HighPassButterworth4_second(double freq)
-    {
-        double wc = tan(M_PI * freq / SAMPLE_FREQ);
-        double k = 2 * wc * sin(M_PI * 3 / 8);
-
-        a0 = 1;
-        a1 = (2 * wc * wc - 2) / (1 + k + wc * wc);
-        a2 = (1 - k + wc * wc) / (1 + k + wc * wc);
-        b0 = 1 / (1 + k + wc * wc);
-        b1 = (-2) * b0;
-        b2 = 1 / (1 + k + wc * wc);
-
-        PrepreMiddle();
-    }
-    void LowPassButterworth4_second(double freq)
-    {
-        double wc = tan(M_PI * freq / SAMPLE_FREQ);
-        double k = 2 * wc * sin(M_PI * 3 / 4);
-
-        a0 = 1;
-        a1 = (2 * wc * wc - 2) / (1 + k + wc * wc);
-        a2 = (1 - k + wc * wc) / (1 + k + wc * wc);
-        b0 = (wc * wc) / (1 + k + wc * wc);
-        b1 = 2 * b0;
-        b2 = (wc * wc) / (1 + k + wc * wc);
-
-        PrepreMiddle();
-    }
 
     String _type;
     int _type_id;
