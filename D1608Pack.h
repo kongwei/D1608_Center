@@ -83,6 +83,11 @@ typedef struct
     int value4;
     int value5;
 }D1608Cmd;
+typedef struct
+{
+	int opr;
+	int value1;
+}CIDebugCmd;
 
 void LoadDefaultConfig(ConfigMap * p_config_map);
 

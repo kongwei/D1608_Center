@@ -250,6 +250,7 @@ __published:	// IDE-managed Components
     TComboBox *cbType10;
     TEdit *edtQ10;
     TEdit *edtGain10;
+    TIdUDPServer *IdUDPCI;
     void __fastcall FormCreate(TObject *Sender);
     void __fastcall FormDestroy(TObject *Sender);
     void __fastcall btnRefreshClick(TObject *Sender);
@@ -303,6 +304,8 @@ __published:	// IDE-managed Components
           int &Width, int &Height);
     void __fastcall btnDspResetEQClick(TObject *Sender);
     void __fastcall MenuItem3Click(TObject *Sender);
+    void __fastcall IdUDPCIUDPRead(TObject *Sender, TStream *AData,
+          TIdSocketHandle *ABinding);
 
 private:
     // 已经选择设备
@@ -337,11 +340,14 @@ private:
     int eq_q[11];
 public:
     void SendCmd(D1608Cmd& cmd);
+    void SendCICmd(CIDebugCmd& cmd);
 //----------------------------------
 private:
     PanelAgent* panel_agent;
     PaintAgent* paint_agent;
     FilterSet filter_set;
+
+    int mireg0;
 public:		// User declarations
     __fastcall TForm1(TComponent* Owner);
     TProgressBar * pb_watch_list[24];

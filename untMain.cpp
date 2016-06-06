@@ -331,6 +331,8 @@ __fastcall TForm1::TForm1(TComponent* Owner)
     InitGdipus();
 
     pnlDspDetail->BringToFront();
+
+    mireg0 = 0;
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::FormCreate(TObject *Sender)
@@ -378,6 +380,11 @@ void TForm1::SendCmd(D1608Cmd& cmd)
     }
     
     udpControl->SendBuffer(dst_ip, 2305, &cmd, sizeof(cmd));
+}
+//---------------------------------------------------------------------------
+void TForm1::SendCICmd(CIDebugCmd& cmd)
+{
+    udpControl->SendBuffer(dst_ip, 1000, &cmd, sizeof(cmd));
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::btnRefreshClick(TObject *Sender)
@@ -1134,6 +1141,19 @@ void __fastcall TForm1::btnDspResetEQClick(TObject *Sender)
     filter_set.SetBypass(10, true);
     filter_set.GetFilter(10)->name = "L";
     filter_set.RepaintPaint(10);
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::IdUDPCIUDPRead(TObject *Sender, TStream *AData,
+      TIdSocketHandle *ABinding)
+{
+    CIDebugCmd cmd = {0};
+    AData->ReadBuffer(&cmd, std::min(sizeof(cmd), AData->Size));
+
+    if (cmd.opr == 2)
+    {
+        mireg0 = htonl(cmd.value1);
+        mireg0 = mireg0 >> 12; 
+    }
 }
 //---------------------------------------------------------------------------
 

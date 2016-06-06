@@ -23780,19 +23780,15 @@ object Form1: TForm1
             Color = clBtnFace
             DropDownCount = 20
             ItemHeight = 13
-            ItemIndex = 0
+            ItemIndex = 2
             TabOrder = 3
-            Text = 'Parametric'
+            Text = 'High Shelf'
             Items.Strings = (
               'Parametric'
               'Low Shelf'
               'High Shelf'
               'Band Pass'
-              'Notch'
-              'High Butterworth 2nd'
-              'High Butterworth 4nd'
-              'Low Butterworth 2nd'
-              'Low Butterworth 4nd')
+              'Notch')
           end
           object edtFreq9: TEdit
             Tag = 101
@@ -25172,8 +25168,8 @@ object Form1: TForm1
               'High Shelf'
               'Band Pass'
               'Notch'
-              'High Butterworth 2nd'
-              'High Butterworth 4nd')
+              '12dB Butterworth High'
+              '24dB Butterworth High')
           end
           object edtFreq2: TEdit
             Tag = 101
@@ -25534,8 +25530,8 @@ object Form1: TForm1
               'High Shelf'
               'Band Pass'
               'Notch'
-              'High Butterworth 2nd'
-              'High Butterworth 4nd')
+              '12dB Butterworth High'
+              '24dB Butterworth High')
           end
           object edtFreq6: TEdit
             Tag = 101
@@ -25921,7 +25917,9 @@ object Form1: TForm1
             Color = clBtnFace
             DropDownCount = 20
             ItemHeight = 13
+            ItemIndex = 2
             TabOrder = 2
+            Text = '12dB Butterworth'
             Items.Strings = (
               '6dB Bansen'
               '12dB Bessel'
@@ -25934,8 +25932,7 @@ object Form1: TForm1
               '24dB Linkwitz-Riley'
               '48dB Bessel'
               '48dB Butterworth'
-              '48dB Linkwitz-Riley'
-              '')
+              '48dB Linkwitz-Riley')
           end
           object edtQ10: TEdit
             Tag = 102
@@ -31307,5 +31304,17 @@ object Form1: TForm1
       OnDrawItem = M41DrawItem
       OnMeasureItem = M41MeasureItem
     end
+  end
+  object IdUDPCI: TIdUDPServer
+    Active = True
+    Bindings = <
+      item
+        IP = '192.168.0.10'
+        Port = 9998
+      end>
+    DefaultPort = 0
+    OnUDPRead = IdUDPCIUDPRead
+    Left = 576
+    Top = 40
   end
 end
