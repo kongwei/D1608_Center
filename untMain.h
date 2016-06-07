@@ -42,12 +42,12 @@ extern "C"{
 #define MAX_PACKAGE_SIZE 1024
 
 #pragma pack(1)
-    struct T_iap_data_pack
+    /*struct T_iap_data_pack
     {
         char flag[32];
         __int32 cmd;
         __int8 data[MAX_PACKAGE_SIZE];
-    };
+    };*/
     struct T_iap_start_pack
     {
         char op[9];
@@ -328,7 +328,7 @@ private:
 
     int mix_panel_state;
 
-    void MsgWatchHandle(const T_iap_data_pack &);
+    void MsgWatchHandle(const D1608Cmd& cmd);
 
     int low_freq;
     int low_gain;

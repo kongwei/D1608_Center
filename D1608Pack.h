@@ -67,6 +67,7 @@ typedef struct
 {
     InputConfigMap input_dsp[INPUT_DSP_NUM];
     OutputConfigMap output_dsp[OUTPUT_DSP_NUM];
+    int WatchLevel[INPUT_DSP_NUM + OUTPUT_DSP_NUM];
 }ConfigMap;
 
 extern ConfigMap config_map;
@@ -77,11 +78,7 @@ typedef struct
     int preset;
     int type;
     unsigned int id;
-    int value;
-    int value2;
-    int value3;
-    int value4;
-    int value5;
+    int value[32];
 }D1608Cmd;
 typedef struct
 {

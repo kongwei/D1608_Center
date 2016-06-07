@@ -1,6 +1,6 @@
 object Form1: TForm1
-  Left = 288
-  Top = 18
+  Left = -10
+  Top = 23
   Width = 1278
   Height = 734
   Caption = 'D1608'
@@ -12470,14 +12470,6 @@ object Form1: TForm1
         NumGlyphs = 4
         OnClick = ToggleDSP
       end
-      object cbWatch: TCheckBox
-        Left = 288
-        Top = 24
-        Width = 97
-        Height = 17
-        Caption = 'Watch'
-        TabOrder = 0
-      end
       object mix_panel: TPanel
         Tag = 17
         Left = 768
@@ -20121,9 +20113,11 @@ object Form1: TForm1
           Top = 19
           Width = 18
           Height = 74
-          Min = -48
-          Max = 24
+          Min = -72
+          Max = 0
           Orientation = pbVertical
+          Position = -72
+          Smooth = True
           Step = 12
           TabOrder = 0
         end
@@ -21198,8 +21192,8 @@ object Form1: TForm1
           Top = 19
           Width = 18
           Height = 74
-          Min = -48
-          Max = 24
+          Min = 0
+          Max = 65535
           Orientation = pbVertical
           Step = 12
           TabOrder = 0
@@ -23583,8 +23577,8 @@ object Form1: TForm1
           Ctl3D = False
           Direction = gdVertical
           Color = clNone
-          Max = 120
-          Min = -240
+          Max = 180
+          Min = -180
           Orientation = trVertical
           ParentCtl3D = False
           Slider.BorderColor = clNone
@@ -25963,6 +25957,14 @@ object Form1: TForm1
           end
         end
       end
+      object cbWatch: TCheckBox
+        Left = 72
+        Top = 680
+        Width = 97
+        Height = 17
+        Caption = 'Watch'
+        TabOrder = 0
+      end
     end
   end
   object udpSLP: TIdUDPServer
@@ -25993,7 +25995,6 @@ object Form1: TForm1
     Top = 40
   end
   object tmWatch: TTimer
-    Enabled = False
     OnTimer = tmWatchTimer
     Left = 416
     Top = 40

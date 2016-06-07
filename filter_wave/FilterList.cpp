@@ -99,7 +99,7 @@ void FilterSet::RepaintPaint(int band)
     }
 
     int dsp_id = Form1->pnlDspDetail->Tag;
-    char in_out = Form1->lblDSPInfo->Caption[1];
+    //char in_out = Form1->lblDSPInfo->Caption[1];
     if (band == 0)
         band = select_band;
 
@@ -117,19 +117,19 @@ void FilterSet::RepaintPaint(int band)
         {
             cmd.id = GerOffsetOfData(&config_map.output_dsp[dsp_id-101].filter[band-1]);
         }
-        cmd.value = GetFilter(band)->GetTypeId();   // type
+        cmd.value[0] = GetFilter(band)->GetTypeId();   // type
 
         tmp = GetFilterFreq(band)*10;
-        cmd.value2 = tmp;           // FREQ
+        cmd.value[1] = tmp;           // FREQ
 
         tmp = GetFilterGain(band)*10;
-        cmd.value3 = tmp;           // GAIN
+        cmd.value[2] = tmp;           // GAIN
 
         tmp = GetFilter(band)->GetQ()*100;       // Q
-        cmd.value4 = tmp;
+        cmd.value[3] = tmp;
 
         tmp = IsBypass(band) ? 1 : 0;   // Bypass
-        cmd.value5 = tmp;
+        cmd.value[4] = tmp;
 
         Form1->SendCmd(cmd);
     }
