@@ -315,6 +315,7 @@ __fastcall TForm1::TForm1(TComponent* Owner)
 
     pnlDspDetail->DoubleBuffered = true;
 
+    // TODO: 受到滤波器数量影响
     panel_agent->SetPanel(0, panelBand0, edtFreq0, edtQ0, edtGain0, cbType0, cbBypass0);
     panel_agent->SetPanel(1, panelBand1, edtFreq1, edtQ1, edtGain1, cbType1, cbBypass1);
     panel_agent->SetPanel(2, panelBand2, edtFreq2, edtQ2, edtGain2, cbType2, cbBypass2);
@@ -324,8 +325,8 @@ __fastcall TForm1::TForm1(TComponent* Owner)
     panel_agent->SetPanel(6, panelBand6, edtFreq6, edtQ6, edtGain6, cbType6, cbBypass6);
     panel_agent->SetPanel(7, panelBand7, edtFreq7, edtQ7, edtGain7, cbType7, cbBypass7);
     panel_agent->SetPanel(8, panelBand8, edtFreq8, edtQ8, edtGain8, cbType8, cbBypass8);
-    panel_agent->SetPanel(9, panelBand9, edtFreq9, edtQ9, edtGain9, cbType9, cbBypass9);
-    panel_agent->SetPanel(10, panelBand10, edtFreq10, edtQ10, edtGain10, cbType10, cbBypass10);
+    //panel_agent->SetPanel(10, panelBand9, edtFreq9, edtQ9, edtGain9, cbType9, cbBypass9);
+    panel_agent->SetPanel(9, panelBand10, edtFreq10, edtQ10, edtGain10, cbType10, cbBypass10);
 
     btnDspResetEQ->Click();
 
@@ -703,10 +704,11 @@ void TForm1::MsgWatchHandle(const D1608Cmd& cmd)
         else
         {
             double valuex = log10(value);
-            double base = log10(0x07FFF000);
-            pb_watch_list[i]->Position = (valuex - base) * 20;
+            double base = log10(0x00FFFF00);
+            pb_watch_list[i]->Position = (valuex - base) * 20 + 1;
         }
     }
+    Caption = IntToHex((int)ntohl(cmd.value[1]), 8);
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::tmWatchTimer(TObject *Sender)
@@ -1114,31 +1116,31 @@ void __fastcall TForm1::M41MeasureItem(TObject *Sender, TCanvas *ACanvas,
 //---------------------------------------------------------------------------
 void __fastcall TForm1::btnDspResetEQClick(TObject *Sender)
 {
-    filter_set.GetFilter(2)->ChangFilterParameter("Low Shelf", 50, 0, 4.09);
-    filter_set.GetFilter(3)->ChangFilterParameter("Parametric", 100, 0, 4.09);
-    filter_set.GetFilter(4)->ChangFilterParameter("Parametric", 200, 0, 4.09);
-    filter_set.GetFilter(5)->ChangFilterParameter("Parametric", 500, 0, 4.09);
-    filter_set.GetFilter(6)->ChangFilterParameter("Parametric", 1000, 0, 4.09);
-    filter_set.GetFilter(7)->ChangFilterParameter("Parametric", 2000, 0, 4.09);
-    filter_set.GetFilter(8)->ChangFilterParameter("Parametric", 5000, 0, 4.09);
-    filter_set.GetFilter(9)->ChangFilterParameter("High Shelf", 10000, 0, 4.09);
+    // TODO: 修改滤波器数量，会受到影响
+    int preset_freq_list[10] = {20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000};
+    filter_set.GetFilter(FIRST_FILTER+1)->ChangFilterParameter("Low Shelf", 50, 0, 4.09);
+    for (int i=FIRST_FILTER+2; i<=LAST_FILTER-2; i++)
+    {
+        filter_set.GetFilter(i)->ChangFilterParameter("Parametric", preset_freq_list[i], 0, 4.09);
+    }
+    filter_set.GetFilter(LAST_FILTER-1)->ChangFilterParameter("High Shelf", 10000, 0, 4.09);
 
-    for (int i=2;i<=9;i++)
+    for (int i=FIRST_FILTER+1;i<=LAST_FILTER-1;i++)
     {
         filter_set.GetFilter(i)->name = IntToStr(i-1);
         filter_set.SetBypass(i, false);
         filter_set.RepaintPaint(i);
     }
 
-    filter_set.GetFilter(1)->ChangFilterParameter("12dB Butterworth High", 20, 0, 4.09);
-    filter_set.SetBypass(1, true);
-    filter_set.GetFilter(1)->name = "H";
-    filter_set.RepaintPaint(1);
+    filter_set.GetFilter(FIRST_FILTER)->ChangFilterParameter("12dB Butterworth High", 20, 0, 4.09);
+    filter_set.SetBypass(FIRST_FILTER, true);
+    filter_set.GetFilter(FIRST_FILTER)->name = "H";
+    filter_set.RepaintPaint(FIRST_FILTER);
 
-    filter_set.GetFilter(10)->ChangFilterParameter("12dB Butterworth Low", 20000, 0, 4.09);
-    filter_set.SetBypass(10, true);
-    filter_set.GetFilter(10)->name = "L";
-    filter_set.RepaintPaint(10);
+    filter_set.GetFilter(LAST_FILTER)->ChangFilterParameter("12dB Butterworth Low", 20000, 0, 4.09);
+    filter_set.SetBypass(LAST_FILTER, true);
+    filter_set.GetFilter(LAST_FILTER)->name = "L";
+    filter_set.RepaintPaint(LAST_FILTER);
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::IdUDPCIUDPRead(TObject *Sender, TStream *AData,

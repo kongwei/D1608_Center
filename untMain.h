@@ -41,13 +41,10 @@ extern "C"{
 #define TCP_PORT 15288
 #define MAX_PACKAGE_SIZE 1024
 
+#define FIRST_FILTER 1
+#define LAST_FILTER 9
+
 #pragma pack(1)
-    /*struct T_iap_data_pack
-    {
-        char flag[32];
-        __int32 cmd;
-        __int8 data[MAX_PACKAGE_SIZE];
-    };*/
     struct T_iap_start_pack
     {
         char op[9];

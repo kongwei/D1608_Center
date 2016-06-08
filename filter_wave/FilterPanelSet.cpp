@@ -5,6 +5,7 @@
 
 #include "FilterPanelSet.h"
 #include "FilterList.h"
+#include "untMain.h"
 #include <algorithm>
 using std::min;
 using std::max;
@@ -36,6 +37,8 @@ void PanelAgent::SetPanel(int band, TPanel* panel, TEdit* edtFreq, TEdit* edtQ, 
     _edtGain[band] = edtGain;
     _cbType[band] = cbType;
     _cbBypass[band] = cbBypass;
+
+    panel->Tag = band;
 
     edtFreq->Tag = 101;
     edtQ->Tag = 102;
@@ -102,11 +105,11 @@ void __fastcall PanelAgent::cbTypeChange(TObject *Sender)
     TComboBox * type_ccombobox = (TComboBox*)Sender;
     String type = type_ccombobox->Text;
 
-    if (type_ccombobox->Parent->Tag == 1)
+    if (type_ccombobox->Parent->Tag == FIRST_FILTER)
     {
         type = type + " High";
     }
-    else if (type_ccombobox->Parent->Tag == 10)
+    else if (type_ccombobox->Parent->Tag == LAST_FILTER)
     {
         type = type + " Low";
     }
@@ -125,7 +128,7 @@ void __fastcall PanelAgent::cbTypeChange(TObject *Sender)
         GetGainText(band)->Enabled = true;
     }
 
-    for (int i=1;i<=10;i++)
+    for (int i=FIRST_FILTER;i<=LAST_FILTER;i++)
     {
         bool band_forbidden = _filter_set.IsBandForbidden(i);
         GetPanel(i)->Enabled = !band_forbidden;
@@ -133,23 +136,6 @@ void __fastcall PanelAgent::cbTypeChange(TObject *Sender)
         GetQText(i)->Enabled = !band_forbidden;
         GetGainText(i)->Enabled = !band_forbidden;
     }
-    /*int IIRCount = _filter_set.GetFilter(band)->UseIIRCount();
-    if (band == 1)
-    {
-        // band 2 ʧЧ
-        GetPanel(band+1)->Enabled = IIRCount<=1;
-        GetFreqText(band+1)->Enabled = IIRCount<=1;
-        GetQText(band+1)->Enabled = IIRCount<=1;
-        GetGainText(band+1)->Enabled = IIRCount<=1;
-    }
-    if (band == 10)
-    {
-        // band 9 ʧЧ
-        GetPanel(band-1)->Enabled = IIRCount<=1;
-        GetFreqText(band-1)->Enabled = IIRCount<=1;
-        GetQText(band-1)->Enabled = IIRCount<=1;
-        GetGainText(band-1)->Enabled = IIRCount<=1;
-    }*/
 
     _filter_set.RepaintPaint();
 }

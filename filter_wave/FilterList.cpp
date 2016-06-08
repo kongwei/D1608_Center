@@ -28,31 +28,27 @@ bool FilterSet::IsBandForbidden(int band)
     {
         return true;
     }
-    if (band == 2 && GetFilter(1)->UseIIRCount()>=2)
+
+    if (band == FIRST_FILTER)
     {
-        return true;
+        return false;
     }
-    if (band == 3 && GetFilter(1)->UseIIRCount()>=3)
-    {
-        return true;
-    }
-    if (band == 4 && GetFilter(1)->UseIIRCount()>=4)
+
+    if ((band-FIRST_FILTER+1) <= GetFilter(FIRST_FILTER)->UseIIRCount())
     {
         return true;
     }
 
-    if (band == 9 && GetFilter(10)->UseIIRCount()>=2)
+    if (band == LAST_FILTER)
+    {
+        return false;
+    }
+
+    if ((LAST_FILTER-band+1) <= GetFilter(LAST_FILTER)->UseIIRCount())
     {
         return true;
     }
-    if (band == 8 && GetFilter(10)->UseIIRCount()>=3)
-    {
-        return true;
-    }
-    if (band == 7 && GetFilter(10)->UseIIRCount()>=4)
-    {
-        return true;
-    }
+
     return false;
 }
 

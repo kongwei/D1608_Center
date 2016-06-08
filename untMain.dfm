@@ -23577,8 +23577,8 @@ object Form1: TForm1
           Ctl3D = False
           Direction = gdVertical
           Color = clNone
-          Max = 180
-          Min = -180
+          Max = 240
+          Min = -240
           Orientation = trVertical
           ParentCtl3D = False
           Slider.BorderColor = clNone
@@ -23755,6 +23755,7 @@ object Form1: TForm1
           Ctl3D = True
           ParentCtl3D = False
           TabOrder = 2
+          Visible = False
           object Label4: TLabel
             Left = 16
             Top = 5
@@ -31307,7 +31308,6 @@ object Form1: TForm1
     end
   end
   object IdUDPCI: TIdUDPServer
-    Active = True
     Bindings = <
       item
         IP = '192.168.0.10'
