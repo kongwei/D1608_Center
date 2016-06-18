@@ -42,6 +42,7 @@ void PanelAgent::SetPanel(int band, TPanel* panel, TEdit* edtFreq, TEdit* edtQ, 
 
     edtFreq->Tag = 101;
     edtQ->Tag = 102;
+    edtGain->Tag = 103;
 
     cbType->OnChange = cbTypeChange;
     cbBypass->OnClick = cbBypassClick;
@@ -191,11 +192,12 @@ void __fastcall PanelAgent::edtFreqKeyDown(TObject *Sender, WORD &Key,
         freq = min(freq, 20000.0);
 
         edtFreq->Text = freq;
+        edtFreq->SelectAll();
 
         _filter_set.GetFilter(band)->SetFreq(freq);
         _filter_set.RepaintPaint();
     }
-    else if (Key == VK_UP || Key == VK_DOWN)
+    else if (Key == VK_UP || Key == VK_DOWN || Key == VK_PRIOR || Key == VK_NEXT)
     {
         int band = ((TControl*)Sender)->Parent->Tag;
         TEdit * edtFreq = (TEdit*)Sender;
@@ -203,15 +205,16 @@ void __fastcall PanelAgent::edtFreqKeyDown(TObject *Sender, WORD &Key,
         current_freq *= 10;
         current_freq = Floor(current_freq+0.5);
         current_freq = current_freq / 10;
-        if (Key == VK_UP)
+        if (Key == VK_UP || Key == VK_PRIOR)
         {
             current_freq = NextLargeFreq(current_freq);
         }
-        else if (Key == VK_DOWN)
+        else if (Key == VK_DOWN || Key == VK_NEXT)
         {
             current_freq = NextSmallFreq(current_freq);
         }
         edtFreq->Text = current_freq;
+        edtFreq->SelectAll();
 
         _filter_set.GetFilter(band)->SetFreq(current_freq);
         _filter_set.RepaintPaint();
@@ -230,6 +233,7 @@ void __fastcall PanelAgent::edtGainKeyDown(TObject *Sender, WORD &Key,
         {
             TEdit * edtGain = (TEdit*)Sender;
             edtGain->Text = 0;
+            edtGain->SelectAll();
         }
         else
         {
@@ -239,10 +243,43 @@ void __fastcall PanelAgent::edtGainKeyDown(TObject *Sender, WORD &Key,
             gain = min(gain, 15.0);
 
             edtGain->Text = gain;
+            edtGain->SelectAll();
 
             _filter_set.GetFilter(band)->SetGain(gain);
             _filter_set.RepaintPaint();
         }
+    }
+    else if (Key == VK_UP || Key == VK_DOWN || Key == VK_PRIOR || Key == VK_NEXT)
+    {
+        int band = ((TControl*)Sender)->Parent->Tag;
+        TEdit * edtGain = (TEdit*)Sender;
+        double gain = edtGain->Text.ToDouble();
+        if (Key == VK_UP)
+        {
+            gain += 0.1;
+        }
+        else if (Key == VK_DOWN)
+        {
+            gain -= 0.1;
+        }
+        else if (Key == VK_PRIOR)
+        {
+            gain += 1;
+            gain = int(gain);
+        }
+        else if (Key == VK_NEXT)
+        {
+            gain -= 1;
+            gain = int(gain);
+        }
+        gain = max(gain, -30.0);
+        gain = min(gain, 15.0);
+
+        edtGain->Text = gain;
+        edtGain->SelectAll();
+
+        _filter_set.GetFilter(band)->SetGain(gain);
+        _filter_set.RepaintPaint();
     }
 }
 //---------------------------------------------------------------------------
@@ -258,11 +295,12 @@ void __fastcall PanelAgent::edtQKeyDown(TObject *Sender, WORD &Key,
              q = NextSmallQ(q);
                                
         edtQ->Text = q;
+        edtQ->SelectAll();
 
         _filter_set.GetFilter(band)->SetQ(q);
         _filter_set.RepaintPaint();
     }
-    else if (Key == VK_UP || Key == VK_DOWN)
+    else if (Key == VK_UP || Key == VK_DOWN || Key == VK_PRIOR || Key == VK_NEXT)
     {
         int band = ((TControl*)Sender)->Parent->Tag;
         TEdit * edtQ = (TEdit*)Sender;
@@ -270,15 +308,16 @@ void __fastcall PanelAgent::edtQKeyDown(TObject *Sender, WORD &Key,
         current_q *= 100;
         current_q = Floor(current_q+0.5);
         current_q = current_q / 100;
-        if (Key == VK_UP)
+        if (Key == VK_UP || Key == VK_PRIOR)
         {
             current_q = NextLargeQ(current_q);
         }
-        else if (Key == VK_DOWN)
+        else if (Key == VK_DOWN || Key == VK_NEXT)
         {
             current_q = NextSmallQ(current_q);
         }
         edtQ->Text = current_q;
+        edtQ->SelectAll();
 
         _filter_set.GetFilter(band)->SetQ(current_q);
         _filter_set.RepaintPaint();
@@ -323,6 +362,21 @@ void __fastcall PanelAgent::OnMouseWheel(TObject *Sender, TShiftState Shift,
             key = VK_DOWN;
         }
         edtQKeyDown(control, key, shift);
+        Handled = true;
+    }
+    if (control->Tag == 103)
+    {
+        TShiftState shift;
+        WORD key;
+        if (WheelDelta >0)
+        {
+            key = VK_UP;
+        }
+        else if (WheelDelta < 0)
+        {
+            key = VK_DOWN;
+        }
+        edtGainKeyDown(control, key, shift);
         Handled = true;
     }
 }

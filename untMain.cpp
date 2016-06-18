@@ -193,7 +193,7 @@ static void CreateOutputPanel(int panel_id, TForm1 * form)
     CopyInputPanelTrackbar(form->output_panel_trackbar, panel_id);
     CopyInputPanelLabel(form->output_panel_dsp_num, panel_id)->Caption = IntToStr(panel_id);
 }
-static void CopyWatchPanel(int panel_id, TForm1 * form, char label, int left)
+static void CopyWatchPanel(int panel_id, TForm1 * form, String label, int left)
 {
     TPanel * watch_panel = new TPanel(form->tsOperator);
     watch_panel->SetBounds(left, form->watch_panel->Top, form->watch_panel->Width, form->watch_panel->Height);
@@ -254,13 +254,13 @@ __fastcall TForm1::TForm1(TComponent* Owner)
     for (int i=2;i<=16;i++)
     {
         CreateInputPanel(i, this);
-        CopyWatchPanel(i, this, 'A'-1+i, (i-1) * PANEL_WIDTH);
+        CopyWatchPanel(i, this, (char)('A'-1+i), (i-1) * PANEL_WIDTH);
     }
 
     //------------------------------------
-    output_panel_bkground->Width = 8 * PANEL_WIDTH;
-    output_panel_bkground->Picture->Bitmap->Width = 8 * PANEL_WIDTH;
-    for (int i=1;i<8;i++)
+    output_panel_bkground->Width = OUTPUT_DSP_NUM * PANEL_WIDTH;
+    output_panel_bkground->Picture->Bitmap->Width = OUTPUT_DSP_NUM * PANEL_WIDTH;
+    for (int i=1;i<OUTPUT_DSP_NUM;i++)
     {
         TRect templet_image_rect = Image3->BoundsRect;
         TRect dest_rect = TRect(i*PANEL_WIDTH,
@@ -269,15 +269,15 @@ __fastcall TForm1::TForm1(TComponent* Owner)
                                 templet_image_rect.Bottom);
         output_panel_bkground->Canvas->CopyRect(dest_rect, output_panel_bkground->Canvas, templet_image_rect);
     }
-    for (int i=2;i<=8;i++)
+    for (int i=2;i<=OUTPUT_DSP_NUM;i++)
     {
         CreateOutputPanel(i, this);
     }
 
     //----------------------------------
-    for (int i=17;i<=17+7;i++)
+    for (int i=17;i<=17+15;i++)
     {
-        CopyWatchPanel(i, this, '1'+(i-17), mix_panel->Left + mix_panel->Width + (i-17) * PANEL_WIDTH);
+        CopyWatchPanel(i, this, String(1+(i-17)), mix_panel->Left + mix_panel->Width + (i-17) * PANEL_WIDTH);
     }
     input_level_edit[0] = input_panel_level_edit;
     SetWindowLong(input_panel_level_edit->Handle, GWL_STYLE, GetWindowLong(input_panel_level_edit->Handle, GWL_STYLE) | ES_RIGHT);
@@ -694,7 +694,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
 //---------------------------------------------------------------------------
 void TForm1::MsgWatchHandle(const D1608Cmd& cmd)
 {
-    for (int i=0;i<24;i++)
+    for (int i=0;i<32;i++)
     {
         int value = ntohl(cmd.value[i]);
         if (value == 0)
@@ -708,7 +708,7 @@ void TForm1::MsgWatchHandle(const D1608Cmd& cmd)
             pb_watch_list[i]->Position = (valuex - base) * 20 + 1;
         }
     }
-    Caption = IntToHex((int)ntohl(cmd.value[1]), 8);
+    Caption = IntToHex((int)ntohl(cmd.value[23]), 8);
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::tmWatchTimer(TObject *Sender)
@@ -826,6 +826,7 @@ void __fastcall TForm1::lvDeviceDblClick(TObject *Sender)
         cbAutoRefresh->Checked = false;
         btnSelect->Click();
         tsOperator->Show();
+        cbWatch->Checked = true;
     }
 }
 //---------------------------------------------------------------------------

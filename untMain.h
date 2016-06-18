@@ -248,6 +248,7 @@ __published:	// IDE-managed Components
     TEdit *edtQ10;
     TEdit *edtGain10;
     TIdUDPServer *IdUDPCI;
+    TMemo *mmCoeff;
     void __fastcall FormCreate(TObject *Sender);
     void __fastcall FormDestroy(TObject *Sender);
     void __fastcall btnRefreshClick(TObject *Sender);
@@ -347,7 +348,7 @@ private:
     int mireg0;
 public:		// User declarations
     __fastcall TForm1(TComponent* Owner);
-    TProgressBar * pb_watch_list[24];
+    TProgressBar * pb_watch_list[32];
     TEdit* input_level_edit[17];
     TEdit* output_level_edit[16];
 };

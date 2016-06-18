@@ -1,8 +1,8 @@
 object Form1: TForm1
-  Left = -10
-  Top = 23
+  Left = 92
+  Top = 29
   Width = 1278
-  Height = 734
+  Height = 751
   Caption = 'D1608'
   Color = clBtnFace
   Font.Charset = GB2312_CHARSET
@@ -20,7 +20,7 @@ object Form1: TForm1
     Left = 0
     Top = 0
     Width = 1262
-    Height = 696
+    Height = 713
     ActivePage = tsOperator
     Align = alClient
     TabIndex = 1
@@ -29,10 +29,10 @@ object Form1: TForm1
       Caption = #26597#35810#35774#22791
       DesignSize = (
         1254
-        668)
+        685)
       object Bevel1: TBevel
         Left = 8
-        Top = 522
+        Top = 539
         Width = 1126
         Height = 10
         Anchors = [akLeft, akRight, akBottom]
@@ -48,7 +48,7 @@ object Form1: TForm1
       end
       object mmLog: TMemo
         Left = 8
-        Top = 541
+        Top = 558
         Width = 1126
         Height = 126
         Anchors = [akLeft, akRight, akBottom]
@@ -69,7 +69,7 @@ object Form1: TForm1
         Left = 8
         Top = 0
         Width = 1126
-        Height = 518
+        Height = 535
         Anchors = [akLeft, akTop, akRight, akBottom]
         Columns = <
           item
@@ -21678,18 +21678,18 @@ object Form1: TForm1
       object pnlDspDetail: TPanel
         Left = 16
         Top = 176
-        Width = 777
+        Width = 961
         Height = 497
         Color = 13684944
         TabOrder = 2
         Visible = False
         DesignSize = (
-          777
+          961
           497)
         object lblDSPInfo: TLabel
           Left = 1
           Top = 1
-          Width = 775
+          Width = 959
           Height = 13
           Align = alTop
           Caption = 'lblDSPInfo'
@@ -21981,12 +21981,11 @@ object Form1: TForm1
         end
         object SpeedButtonNoFrame1: TSpeedButtonNoFrame
           Tag = 1
-          Left = 653
+          Left = 659
           Top = 226
           Width = 53
           Height = 19
           AllowAllUp = True
-          Anchors = [akTop, akRight]
           GroupIndex = 1
           Flat = True
           Glyph.Data = {
@@ -22440,16 +22439,15 @@ object Form1: TForm1
         object PaintBox1: TPaintBox
           Left = 8
           Top = 256
-          Width = 761
+          Width = 945
           Height = 233
           Anchors = [akLeft, akTop, akRight, akBottom]
         end
         object btnDspResetEQ: TSpeedButton
-          Left = 712
+          Left = 718
           Top = 226
           Width = 53
           Height = 19
-          Anchors = [akTop, akRight]
           Flat = True
           Glyph.Data = {
             BE0B0000424DBE0B000000000000360000002800000036000000120000000100
@@ -25956,6 +25954,17 @@ object Form1: TForm1
             Text = '0'
             Visible = False
           end
+        end
+        object mmCoeff: TMemo
+          Left = 776
+          Top = 16
+          Width = 177
+          Height = 225
+          Lines.Strings = (
+            'mmCoeff')
+          TabOrder = 14
+          WantReturns = False
+          WordWrap = False
         end
       end
       object cbWatch: TCheckBox

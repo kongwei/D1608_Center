@@ -4,13 +4,14 @@
 #pragma hdrstop
 
 #include "Coefficient.h"
-
+#include "untMain.h"
 //---------------------------------------------------------------------------
 
 #pragma package(smart_init)
+static int Float2FixPoint(float coeff);
 
 const double QTable[73] ={
-		0.31, 0.32, 0.34, 0.36, 0.39, 0.41, 0.43, 0.46, 0.49, 0.52, 0.55, 0.58, 0.61, 0.65, 0.69, 0.73,//[0,15]
+		0.27, 0.32, 0.34, 0.36, 0.39, 0.41, 0.43, 0.46, 0.49, 0.52, 0.55, 0.58, 0.61, 0.65, 0.69, 0.73,//[0,15]
 		0.77, 0.82, 0.87, 0.92, 0.97, 1.03, 1.09, 1.15, 1.22, 1.29, 1.37, 1.45, 1.54, 1.63, 1.73, 1.83,//[16,31]
 		1.94, 2.05, 2.17, 2.30, 2.44, 2.58, 2.73, 2.90, 3.07, 3.25, 3.44, 3.65, 3.86, 4.09, 4.33, 4.59,//[32,47]
 		4.86, 5.15, 5.46, 5.78, 6.12, 6.48, 6.87, 7.27, 7.71, 8.16, 8.65, 9.16, 9.70, 10.3, 10.9, 11.5,//[48,63]
@@ -295,4 +296,53 @@ void Coefficient::ChangFilterParameter(String type, double freq, double gain, do
         Pink(freq, gain, q);
         _type_id = 7;
     }
+
+    Form1->mmCoeff->Clear();
+    Form1->mmCoeff->Lines->Add(b0/a0/2);
+    Form1->mmCoeff->Lines->Add(b1/a0/2);
+    Form1->mmCoeff->Lines->Add(b2/a0/2);
+    Form1->mmCoeff->Lines->Add(a1/a0/2);
+    Form1->mmCoeff->Lines->Add(a2/a0/2);
+
+    short coeffs[10] = {0};
+    coeffs[0] = Float2FixPoint(b0/a0/2) & 0xFFFF;
+    coeffs[2] = Float2FixPoint(b1/a0/2) & 0xFFFF;
+    coeffs[4] = Float2FixPoint(b2/a0/2) & 0xFFFF;
+    coeffs[6] = Float2FixPoint(a1/a0/2) & 0xFFFF;
+    coeffs[8] = Float2FixPoint(a2/a0/2) & 0xFFFF;
+    coeffs[1] = Float2FixPoint(b0/a0/2) >> 16;
+    coeffs[3] = Float2FixPoint(b1/a0/2) >> 16;
+    coeffs[5] = Float2FixPoint(b2/a0/2) >> 16;
+    coeffs[7] = Float2FixPoint(a1/a0/2) >> 16;
+    coeffs[9] = Float2FixPoint(a2/a0/2) >> 16;
+
+    for (int i=0;i<10;i++)
+        Form1->mmCoeff->Lines->Add(IntToHex(coeffs[i]&0xFFFF, 4));
 }
+
+static int Float2FixPoint(float coeff)
+{
+	int result;
+    int temp;
+    float f_temp;
+
+    temp = (int)(coeff * 0x8000);
+    if ( (coeff<0) && (coeff>-1.0) )
+	{ 
+		temp = temp -1;
+	}
+    f_temp = (float)temp / (float)0x8000;
+    
+	result = ( temp>>8 ) & 0xff;
+    temp = temp & 0xff;
+	temp = temp << 8;
+	result = result + temp;
+    
+    f_temp = coeff - f_temp;
+    temp = (int)(f_temp * 0x8000000);
+    result = result + (((temp>>8) & 0xff)<<16);
+    result = result + ((temp & 0xff)<<24);
+
+	return result;
+}
+
