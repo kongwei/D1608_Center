@@ -1,8 +1,8 @@
 object Form1: TForm1
-  Left = 92
-  Top = 29
-  Width = 1278
-  Height = 751
+  Left = -8
+  Top = -8
+  Width = 1296
+  Height = 776
   Caption = 'D1608'
   Color = clBtnFace
   Font.Charset = GB2312_CHARSET
@@ -19,8 +19,8 @@ object Form1: TForm1
   object PageControl1: TPageControl
     Left = 0
     Top = 0
-    Width = 1262
-    Height = 713
+    Width = 1280
+    Height = 738
     ActivePage = tsOperator
     Align = alClient
     TabIndex = 1
@@ -28,18 +28,18 @@ object Form1: TForm1
     object tsSearch: TTabSheet
       Caption = #26597#35810#35774#22791
       DesignSize = (
-        1254
-        685)
+        1272
+        710)
       object Bevel1: TBevel
         Left = 8
-        Top = 539
-        Width = 1126
+        Top = 564
+        Width = 1144
         Height = 10
         Anchors = [akLeft, akRight, akBottom]
         Shape = bsBottomLine
       end
       object Label1: TLabel
-        Left = 1145
+        Left = 1163
         Top = 52
         Width = 53
         Height = 13
@@ -48,15 +48,15 @@ object Form1: TForm1
       end
       object mmLog: TMemo
         Left = 8
-        Top = 558
-        Width = 1126
+        Top = 583
+        Width = 1144
         Height = 126
         Anchors = [akLeft, akRight, akBottom]
         ReadOnly = True
         TabOrder = 0
       end
       object btnRefresh: TButton
-        Left = 1144
+        Left = 1162
         Top = 5
         Width = 106
         Height = 25
@@ -68,8 +68,8 @@ object Form1: TForm1
       object lvDevice: TListView
         Left = 8
         Top = 0
-        Width = 1126
-        Height = 535
+        Width = 1144
+        Height = 560
         Anchors = [akLeft, akTop, akRight, akBottom]
         Columns = <
           item
@@ -118,7 +118,7 @@ object Form1: TForm1
         Visible = False
       end
       object cbAutoRefresh: TCheckBox
-        Left = 1145
+        Left = 1163
         Top = 32
         Width = 97
         Height = 17
@@ -129,7 +129,7 @@ object Form1: TForm1
         TabOrder = 4
       end
       object spInterval: TCSpinEdit
-        Left = 1201
+        Left = 1219
         Top = 48
         Width = 49
         Height = 22
@@ -140,7 +140,7 @@ object Form1: TForm1
         Value = 1
       end
       object btnSelect: TButton
-        Left = 1144
+        Left = 1162
         Top = 77
         Width = 106
         Height = 25
@@ -25969,11 +25969,19 @@ object Form1: TForm1
       end
       object cbWatch: TCheckBox
         Left = 72
-        Top = 680
+        Top = 696
         Width = 97
         Height = 17
         Caption = 'Watch'
         TabOrder = 0
+      end
+      object divbase: TCheckBox
+        Left = 160
+        Top = 696
+        Width = 97
+        Height = 17
+        Caption = '/8'
+        TabOrder = 13
       end
     end
   end

@@ -249,6 +249,7 @@ __published:	// IDE-managed Components
     TEdit *edtGain10;
     TIdUDPServer *IdUDPCI;
     TMemo *mmCoeff;
+    TCheckBox *divbase;
     void __fastcall FormCreate(TObject *Sender);
     void __fastcall FormDestroy(TObject *Sender);
     void __fastcall btnRefreshClick(TObject *Sender);

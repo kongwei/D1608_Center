@@ -297,27 +297,53 @@ void Coefficient::ChangFilterParameter(String type, double freq, double gain, do
         _type_id = 7;
     }
 
+    float base = 0.5;
+    if (Form1->divbase->Checked)
+    {
+        base = 0.125;
+    }
+
     Form1->mmCoeff->Clear();
-    Form1->mmCoeff->Lines->Add(b0/a0/2);
-    Form1->mmCoeff->Lines->Add(b1/a0/2);
-    Form1->mmCoeff->Lines->Add(b2/a0/2);
-    Form1->mmCoeff->Lines->Add(a1/a0/2);
-    Form1->mmCoeff->Lines->Add(a2/a0/2);
+    a1 = -a1;
+    a2 = -a2;
+    Form1->mmCoeff->Lines->Add(String::FormatFloat("0.#########################", b0/a0*base));
+    Form1->mmCoeff->Lines->Add(String::FormatFloat("0.#########################", b1/a0*base));
+    Form1->mmCoeff->Lines->Add(String::FormatFloat("0.#########################", b2/a0*base));
+    Form1->mmCoeff->Lines->Add("");
+    Form1->mmCoeff->Lines->Add(String::FormatFloat("0.#########################", a1/a0*base));
+    Form1->mmCoeff->Lines->Add(String::FormatFloat("0.#########################", a2/a0*base));
+
 
     short coeffs[10] = {0};
-    coeffs[0] = Float2FixPoint(b0/a0/2) & 0xFFFF;
-    coeffs[2] = Float2FixPoint(b1/a0/2) & 0xFFFF;
-    coeffs[4] = Float2FixPoint(b2/a0/2) & 0xFFFF;
-    coeffs[6] = Float2FixPoint(a1/a0/2) & 0xFFFF;
-    coeffs[8] = Float2FixPoint(a2/a0/2) & 0xFFFF;
-    coeffs[1] = Float2FixPoint(b0/a0/2) >> 16;
-    coeffs[3] = Float2FixPoint(b1/a0/2) >> 16;
-    coeffs[5] = Float2FixPoint(b2/a0/2) >> 16;
-    coeffs[7] = Float2FixPoint(a1/a0/2) >> 16;
-    coeffs[9] = Float2FixPoint(a2/a0/2) >> 16;
+    coeffs[0] = Float2FixPoint(b0/a0*base) & 0xFFFF;
+    coeffs[2] = Float2FixPoint(b1/a0*base) & 0xFFFF;
+    coeffs[4] = Float2FixPoint(b2/a0*base) & 0xFFFF;
+    coeffs[6] = Float2FixPoint(a1/a0*base) & 0xFFFF;
+    coeffs[8] = Float2FixPoint(a2/a0*base) & 0xFFFF;
+    coeffs[1] = Float2FixPoint(b0/a0*base) >> 16;
+    coeffs[3] = Float2FixPoint(b1/a0*base) >> 16;
+    coeffs[5] = Float2FixPoint(b2/a0*base) >> 16;
+    coeffs[7] = Float2FixPoint(a1/a0*base) >> 16;
+    coeffs[9] = Float2FixPoint(a2/a0*base) >> 16;
 
-    for (int i=0;i<10;i++)
-        Form1->mmCoeff->Lines->Add(IntToHex(coeffs[i]&0xFFFF, 4));
+    double dsp2double[5];
+    for (int i=0;i<10;i+=2)
+    {
+        coeffs[i] = htons(coeffs[i]);
+        coeffs[i+1] = htons(coeffs[i+1]) * 16 & 0xFFF0;
+        Form1->mmCoeff->Lines->Add(IntToHex(coeffs[i]&0xFFFF, 4)+" "+IntToHex(coeffs[i+1]&0xFFFF, 4));
+        dsp2double[i/2] = coeffs[i]/32768.0 + ((unsigned short)coeffs[i+1]) / 32768.0  / 65536.0;
+        if (i==2)
+        {
+            Form1->mmCoeff->Lines->Add("");
+        }
+    }
+    Form1->mmCoeff->Lines->Add(String::FormatFloat("0.#########################", dsp2double[0]));
+    Form1->mmCoeff->Lines->Add(String::FormatFloat("0.#########################", dsp2double[1]));
+    Form1->mmCoeff->Lines->Add(String::FormatFloat("0.#########################", dsp2double[2]));
+    Form1->mmCoeff->Lines->Add("");
+    Form1->mmCoeff->Lines->Add(String::FormatFloat("0.#########################", dsp2double[3]));
+    Form1->mmCoeff->Lines->Add(String::FormatFloat("0.#########################", dsp2double[4]));
 }
 
 static int Float2FixPoint(float coeff)
