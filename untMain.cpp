@@ -11,8 +11,8 @@
 #pragma link "CSPIN"
 #pragma link "AdvTrackBar"
 #pragma link "SpeedButtonNoFrame"
-#pragma link "AdvTrackBar"
-#pragma link "SpeedButtonNoFrame"
+#pragma link "AdvGDIPicture"
+#pragma link "AdvGDIPicture"
 #pragma resource "*.dfm"
 #pragma comment(lib, "gdiplus.lib")
 
@@ -20,7 +20,7 @@
 
 TForm1 *Form1;
 ConfigMap config_map;
-
+TAdvGDIPPicture * x = new TAdvGDIPPicture();
 //---------------------------------------------------------------------------
 static int SetBit(int old_value, int bit, bool is_set)
 {
@@ -111,6 +111,7 @@ static TAdvTrackBar * CopyInputPanelTrackbar(TAdvTrackBar * src_trackbar, int ds
     trackbar->Parent = src_trackbar->Parent;
 
     trackbar->OnChange = src_trackbar->OnChange;
+    trackbar->OnKeyDown = src_trackbar->OnKeyDown;
 
     trackbar->Buttons->Size = src_trackbar->Buttons->Size;
     trackbar->Buttons->Spacing = src_trackbar->Buttons->Spacing;
@@ -148,6 +149,9 @@ static TEdit * CopyInputPanelEdit(TEdit * src_edit, int dsp_id)
     edit->Color = src_edit->Color;
     edit->Font = src_edit->Font;
     edit->Parent = src_edit->Parent;
+    edit->OnKeyDown = src_edit->OnKeyDown;
+    edit->OnExit = src_edit->OnExit;
+    edit->Tag = dsp_id;
     SetWindowLong(edit->Handle, GWL_STYLE, GetWindowLong(edit->Handle, GWL_STYLE) | ES_RIGHT);
     return edit;
 }
@@ -172,7 +176,7 @@ static void CreateInputPanel(int panel_id, TForm1 * form)
     CopyInputPanelButton(form->input_panel_noise_btn, panel_id);
     CopyInputPanelButton(form->input_panel_mute_btn, panel_id);
     form->input_level_edit[panel_id-1] = CopyInputPanelEdit(form->input_panel_level_edit, panel_id);
-    CopyInputPanelTrackbar(form->input_panel_trackbar, panel_id);
+    form->input_level_trackbar[panel_id-1] = CopyInputPanelTrackbar(form->input_panel_trackbar, panel_id);
     CopyInputPanelLabel(form->input_panel_dsp_num, panel_id)->Caption = String(char('A'-1+panel_id));
 }
 static void CreateOutputPanel(int panel_id, TForm1 * form)
@@ -190,7 +194,7 @@ static void CreateOutputPanel(int panel_id, TForm1 * form)
     CopyInputPanelButton(form->output_panel_invert_btn, panel_id);
     CopyInputPanelButton(form->output_panel_mute_btn, panel_id);
     form->output_level_edit[panel_id-1] = CopyInputPanelEdit(form->output_panel_level_edit, panel_id);
-    CopyInputPanelTrackbar(form->output_panel_trackbar, panel_id);
+    form->output_level_trackbar[panel_id-1] = CopyInputPanelTrackbar(form->output_panel_trackbar, panel_id);
     CopyInputPanelLabel(form->output_panel_dsp_num, panel_id)->Caption = IntToStr(panel_id);
 }
 static void CopyWatchPanel(int panel_id, TForm1 * form, String label, int left)
@@ -280,10 +284,12 @@ __fastcall TForm1::TForm1(TComponent* Owner)
         CopyWatchPanel(i, this, String(1+(i-17)), mix_panel->Left + mix_panel->Width + (i-17) * PANEL_WIDTH);
     }
     input_level_edit[0] = input_panel_level_edit;
+    input_level_trackbar[0] = input_panel_trackbar;
     SetWindowLong(input_panel_level_edit->Handle, GWL_STYLE, GetWindowLong(input_panel_level_edit->Handle, GWL_STYLE) | ES_RIGHT);
     input_panel_trackbar->OnChange(input_panel_trackbar);
 
     output_level_edit[0] = output_panel_level_edit;
+    output_level_trackbar[0] = output_panel_trackbar;
     SetWindowLong(output_panel_level_edit->Handle, GWL_STYLE, GetWindowLong(output_panel_level_edit->Handle, GWL_STYLE) | ES_RIGHT);
     output_panel_trackbar->OnChange(output_panel_trackbar);
 
@@ -378,7 +384,7 @@ void TForm1::SendCmd(D1608Cmd& cmd)
     unsigned __int8 * p = (unsigned __int8*)&cmd;
     for (int i=30;i<sizeof(cmd);i++)
     {
-        edtDebug->Text = edtDebug->Text + IntToHex(p[i], 2) + " ";
+        //edtDebug->Text = edtDebug->Text + IntToHex(p[i], 2) + " ";
     }
     
     udpControl->SendBuffer(dst_ip, 2305, &cmd, sizeof(cmd));
@@ -697,15 +703,21 @@ void TForm1::MsgWatchHandle(const D1608Cmd& cmd)
     for (int i=0;i<32;i++)
     {
         int value = ntohl(cmd.value[i]);
-        if (value == 0)
+        if (value <= 0)
         {
             pb_watch_list[i]->Position = pb_watch_list[i]->Min;
         }
         else
         {
-            double valuex = log10(value);
-            double base = log10(0x00FFFF00);
-            pb_watch_list[i]->Position = (valuex - base) * 20 + 1;
+            try{
+                double valuex = log10(value);
+                double base = log10(0x00FFFF00);
+                pb_watch_list[i]->Position = (valuex - base) * 20 + 1;
+            }
+            catch(...)
+            {
+                pb_watch_list[i]->Position = 0;
+            }
         }
     }
     Caption = IntToHex((int)ntohl(cmd.value[23]), 8);
@@ -845,11 +857,17 @@ void __fastcall TForm1::ToggleDSP(TObject *Sender)
 
         if (btn->Tag < 100)
         {
+            TrackBar27->BackGround = p_input_inner_level->BackGround;
+            TrackBar27->Max = p_input_inner_level->Max;
+            TrackBar27->Min = p_input_inner_level->Min;
             lblDSPInfo->Caption = "Input Channel " + IntToStr(btn->Tag) + " DSP Setup";
             pnlDspDetail->Left = 0;
         }
         else
         {
+            TrackBar27->BackGround = p_output_inner_level->BackGround;
+            TrackBar27->Max = p_output_inner_level->Max;
+            TrackBar27->Min = p_output_inner_level->Min;
             lblDSPInfo->Caption = "Output Channel " + IntToStr(btn->Tag-100) + " DSP Setup";
             pnlDspDetail->Left = Width - pnlDspDetail->Width;
         }
@@ -904,7 +922,20 @@ void __fastcall TForm1::MasterVolumeChange(TObject *Sender)
 {
     TAdvTrackBar* track = (TAdvTrackBar*)Sender;
     int value = track->Position;
-    master_panel_level_edit->Text = value;
+
+    if (master_panel_level_edit != NULL)
+    {
+        if (value == -720)
+        {
+            master_panel_level_edit->Text = " -- ";
+        }
+        else
+        {
+            String x;
+            master_panel_level_edit->Text = x.sprintf("%1.1f", value/10.0);
+        }
+    }
+
     D1608Cmd cmd = MasterVolume(value);
     SendCmd(cmd);
 }
@@ -1154,6 +1185,105 @@ void __fastcall TForm1::IdUDPCIUDPRead(TObject *Sender, TStream *AData,
     {
         mireg0 = htonl(cmd.value1);
         mireg0 = mireg0 >> 12; 
+    }
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::input_panel_level_editKeyDown(TObject *Sender,
+      WORD &Key, TShiftState Shift)
+{
+    if (Key == VK_RETURN)
+    {
+        TEdit * edt = (TEdit*)Sender;
+        int dsp_num = edt->Tag;
+        if (input_level_trackbar[dsp_num-1] != NULL)
+        {
+            try{
+                input_level_trackbar[dsp_num-1]->Position = edt->Text.ToDouble() * 10;
+            }catch(...){
+            }
+            InputVolumeChange(input_level_trackbar[dsp_num-1]);
+        }
+        edt->SelectAll();
+    }
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::output_panel_level_editKeyDown(TObject *Sender,
+      WORD &Key, TShiftState Shift)
+{
+    if (Key == VK_RETURN)
+    {
+        TEdit * edt = (TEdit*)Sender;
+        int dsp_num = edt->Tag;
+        if (output_level_trackbar[dsp_num-1] != NULL)
+        {
+            try{
+                output_level_trackbar[dsp_num-1]->Position = edt->Text.ToDouble() * 10;
+            }catch(...){
+            }
+            OutputVolumeChange(output_level_trackbar[dsp_num-1]);
+        }
+        edt->SelectAll();
+    }
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::input_panel_level_editExit(TObject *Sender)
+{
+    TEdit * edt = (TEdit*)Sender;
+    int dsp_num = edt->Tag;
+    if (input_level_trackbar[dsp_num-1] != NULL)
+    {
+        InputVolumeChange(input_level_trackbar[dsp_num-1]);
+    }
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::output_panel_level_editExit(TObject *Sender)
+{
+    TEdit * edt = (TEdit*)Sender;
+    int dsp_num = edt->Tag;
+    if (output_level_trackbar[dsp_num-1] != NULL)
+    {
+        OutputVolumeChange(output_level_trackbar[dsp_num-1]);
+    }
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::io_panel_trackbarKeyDown(TObject *Sender,
+      WORD &Key, TShiftState Shift)
+{
+    TAdvTrackBar* track = (TAdvTrackBar*)Sender;
+    int value = track->Position;
+
+    if (value > 0)
+    {
+        if (Key == VK_PRIOR)
+        {
+            value = (value/5)*5;
+        }
+        else if (Key == VK_NEXT)
+        {
+            value = ((value+4)/5)*5;
+        }
+    }
+    else if (value < 0)
+    {
+        if (Key == VK_PRIOR)
+        {
+            value = ((value-4)/5)*5;
+        }
+        else if (Key == VK_NEXT)
+        {
+            value = (value/5)*5;
+        }
+    }
+
+    if (Key == VK_PRIOR)
+    {
+        track->Position = value + 5;
+        Key = 0;
+    }
+    else if (Key == VK_NEXT)
+    {
+        track->Position = value - 5;
+        Key = 0;
     }
 }
 //---------------------------------------------------------------------------

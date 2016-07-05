@@ -18,24 +18,22 @@
 #include <IdTCPConnection.hpp>
 #include <IdUDPBase.hpp>
 #include <IdUDPServer.hpp>
-#include "CSPIN.h"
 #include <ActnList.hpp>
-#include "AdvTrackBar.hpp"
-#include "SpeedButtonNoFrame.h"
 #include <Graphics.hpp>
 #include <ImgList.hpp>
 #include <Menus.hpp>
-extern "C"{
-#include "D1608Pack.h"
-}
+#include <Graphics.hpp>
+#include <ImgList.hpp>
+#include <Menus.hpp>
+#include "SpeedButtonNoFrame.h"
 #include "WaveGraphic.h"
 #include "FilterPanelSet.h"
 #include "FilterList.h"
 #include "AdvTrackBar.hpp"
-#include <Graphics.hpp>
-#include <ImgList.hpp>
-#include "SpeedButtonNoFrame.h"
-#include <Menus.hpp>
+#include "CSPIN.h"
+extern "C"{
+#include "D1608Pack.h"
+}
 
 #define UDP_PORT 65518
 #define TCP_PORT 15288
@@ -158,7 +156,6 @@ __published:	// IDE-managed Components
     TLabel *Label3;
     TPaintBox *PaintBox1;
     TPanel *Panel8;
-    TAdvTrackBar *TrackBar27;
     TPanel *panelBand9;
     TLabel *Label4;
     TComboBox *cbType9;
@@ -250,6 +247,9 @@ __published:	// IDE-managed Components
     TIdUDPServer *IdUDPCI;
     TMemo *mmCoeff;
     TCheckBox *divbase;
+    TAdvTrackBar *TrackBar27;
+    TAdvTrackBar *p_output_inner_level;
+    TAdvTrackBar *p_input_inner_level;
     void __fastcall FormCreate(TObject *Sender);
     void __fastcall FormDestroy(TObject *Sender);
     void __fastcall btnRefreshClick(TObject *Sender);
@@ -305,6 +305,14 @@ __published:	// IDE-managed Components
     void __fastcall MenuItem3Click(TObject *Sender);
     void __fastcall IdUDPCIUDPRead(TObject *Sender, TStream *AData,
           TIdSocketHandle *ABinding);
+    void __fastcall input_panel_level_editKeyDown(TObject *Sender,
+          WORD &Key, TShiftState Shift);
+    void __fastcall output_panel_level_editKeyDown(TObject *Sender,
+          WORD &Key, TShiftState Shift);
+    void __fastcall input_panel_level_editExit(TObject *Sender);
+    void __fastcall output_panel_level_editExit(TObject *Sender);
+    void __fastcall io_panel_trackbarKeyDown(TObject *Sender, WORD &Key,
+          TShiftState Shift);
 
 private:
     // 已经选择设备
@@ -352,6 +360,8 @@ public:		// User declarations
     TProgressBar * pb_watch_list[32];
     TEdit* input_level_edit[17];
     TEdit* output_level_edit[16];
+    TAdvTrackBar* input_level_trackbar[17];
+    TAdvTrackBar* output_level_trackbar[16];
 };
 //---------------------------------------------------------------------------
 extern PACKAGE TForm1 *Form1;
