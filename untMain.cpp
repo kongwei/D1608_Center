@@ -210,14 +210,10 @@ static void CopyWatchPanel(int panel_id, TForm1 * form, String label, int left)
     bk_image->BoundsRect = form->watch_bkimage->BoundsRect;
     bk_image->Parent = watch_panel;
 
-    TProgressBar * pb_level = new TProgressBar(watch_panel);
+    TPaintBox * pb_level = new TPaintBox(watch_panel);
     pb_level->BoundsRect = form->pb_watch->BoundsRect;
-    pb_level->Max = form->pb_watch->Max;
-    pb_level->Min = form->pb_watch->Min;
-    pb_level->Position = form->pb_watch->Position;
-    pb_level->Orientation = form->pb_watch->Orientation;
+    pb_level->OnPaint = form->pb_watch->OnPaint;
     pb_level->Parent = watch_panel;
-    pb_level->Smooth = form->pb_watch->Smooth    ;
     form->pb_watch_list[panel_id-1] = pb_level;
 
     TLabel * label_watch = new TLabel(watch_panel);
@@ -379,14 +375,15 @@ void __fastcall TForm1::FormDestroy(TObject *Sender)
 //---------------------------------------------------------------------------
 void TForm1::SendCmd(D1608Cmd& cmd)
 {
-    edtDebug->Text = "";
     cmd.preset = cbPreset->ItemIndex + 1;
+#if 0
     unsigned __int8 * p = (unsigned __int8*)&cmd;
+    edtDebug->Text = "";
     for (int i=30;i<sizeof(cmd);i++)
     {
-        //edtDebug->Text = edtDebug->Text + IntToHex(p[i], 2) + " ";
+        edtDebug->Text = edtDebug->Text + IntToHex(p[i], 2) + " ";
     }
-    
+#endif
     udpControl->SendBuffer(dst_ip, 2305, &cmd, sizeof(cmd));
 }
 //---------------------------------------------------------------------------
@@ -700,23 +697,37 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
 //---------------------------------------------------------------------------
 void TForm1::MsgWatchHandle(const D1608Cmd& cmd)
 {
+        // ²âÊÔ
+        static int i = 0;
+        if (i==24)
+            i=-48;
+        else
+            i++;
+        pb_watch_list[0]->Tag = i;
+        pb_watch_list[0]->Invalidate();
+
+        return;
+        
     for (int i=0;i<32;i++)
     {
         int value = ntohl(cmd.value[i]);
         if (value <= 0)
         {
-            pb_watch_list[i]->Position = pb_watch_list[i]->Min;
+            pb_watch_list[i]->Tag = 0;
+            pb_watch_list[i]->Invalidate();
         }
         else
         {
             try{
                 double valuex = log10(value);
                 double base = log10(0x00FFFF00);
-                pb_watch_list[i]->Position = (valuex - base) * 20 + 1;
+                pb_watch_list[i]->Tag = (valuex - base) * 20 + 1;
+                pb_watch_list[i]->Invalidate();
             }
             catch(...)
             {
-                pb_watch_list[i]->Position = 0;
+                pb_watch_list[i]->Tag = 0;
+                pb_watch_list[i]->Invalidate();
             }
         }
     }
@@ -730,6 +741,8 @@ void __fastcall TForm1::tmWatchTimer(TObject *Sender)
         D1608Cmd cmd;
         cmd.id = GerOffsetOfData(&config_map.WatchLevel);
         SendCmd(cmd);
+
+        MsgWatchHandle(cmd);
     }
 }
 //---------------------------------------------------------------------------
@@ -1284,6 +1297,49 @@ void __fastcall TForm1::io_panel_trackbarKeyDown(TObject *Sender,
     {
         track->Position = value - 5;
         Key = 0;
+    }
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::WatchPaint(TObject *Sender)
+{
+    TPaintBox * pb_watch = (TPaintBox*)Sender;
+
+    int max_height = pb_watch->Height-2;
+    int level = pb_watch->Tag;
+
+    // bottom - top
+    // 72 - 0
+    // -48 ~ 24
+
+    TRect r;
+    r.left = 0;
+    r.right = pb_watch->Width;
+    r.top = 1;
+
+    r.bottom = pb_watch->Height-1;
+    pb_watch->Canvas->Brush->Color = (TColor)0x00795C46;
+    pb_watch->Canvas->FillRect(r);
+
+    r.left+=2;
+    r.right-=2;     
+
+    r.top = 24-level+1;
+    r.bottom = pb_watch->Height-1;
+    pb_watch->Canvas->Brush->Color = clLime;
+    pb_watch->Canvas->FillRect(r);
+
+    if (level > 0)
+    {
+        r.bottom = 24-0+1;
+        pb_watch->Canvas->Brush->Color = clYellow;
+        pb_watch->Canvas->FillRect(r);
+    }
+
+    if (level > 12)
+    {
+        r.bottom = 24-12+1;
+        pb_watch->Canvas->Brush->Color = clRed;
+        pb_watch->Canvas->FillRect(r);
     }
 }
 //---------------------------------------------------------------------------

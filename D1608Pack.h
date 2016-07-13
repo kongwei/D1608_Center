@@ -90,7 +90,7 @@ void LoadDefaultConfig(ConfigMap * p_config_map);
 
 //#define Offset(name) ((int)&(((ConfigMap *)NULL)->name))
 //#define Size(name) (sizeof(((ConfigMap *)NULL)->name))
-int GerOffsetOfData(void * p_data);
+unsigned int GerOffsetOfData(void * p_data);
 typedef int BOOL;
 
 #pragma pack(pop)

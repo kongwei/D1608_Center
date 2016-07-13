@@ -1,7 +1,7 @@
 object Form1: TForm1
-  Left = 156
+  Left = 183
   Top = 3
-  Width = 1296
+  Width = 1265
   Height = 776
   Caption = 'D1608'
   Color = clBtnFace
@@ -19,7 +19,7 @@ object Form1: TForm1
   object PageControl1: TPageControl
     Left = 0
     Top = 0
-    Width = 1280
+    Width = 1249
     Height = 738
     ActivePage = tsOperator
     Align = alClient
@@ -28,18 +28,18 @@ object Form1: TForm1
     object tsSearch: TTabSheet
       Caption = #26597#35810#35774#22791
       DesignSize = (
-        1272
+        1241
         710)
       object Bevel1: TBevel
         Left = 8
         Top = 564
-        Width = 1144
+        Width = 1117
         Height = 10
         Anchors = [akLeft, akRight, akBottom]
         Shape = bsBottomLine
       end
       object Label1: TLabel
-        Left = 1163
+        Left = 1136
         Top = 52
         Width = 53
         Height = 13
@@ -49,14 +49,14 @@ object Form1: TForm1
       object mmLog: TMemo
         Left = 8
         Top = 583
-        Width = 1144
+        Width = 1117
         Height = 126
         Anchors = [akLeft, akRight, akBottom]
         ReadOnly = True
         TabOrder = 0
       end
       object btnRefresh: TButton
-        Left = 1162
+        Left = 1135
         Top = 5
         Width = 106
         Height = 25
@@ -68,7 +68,7 @@ object Form1: TForm1
       object lvDevice: TListView
         Left = 8
         Top = 0
-        Width = 1144
+        Width = 1117
         Height = 560
         Anchors = [akLeft, akTop, akRight, akBottom]
         Columns = <
@@ -118,7 +118,7 @@ object Form1: TForm1
         Visible = False
       end
       object cbAutoRefresh: TCheckBox
-        Left = 1163
+        Left = 1136
         Top = 32
         Width = 97
         Height = 17
@@ -129,7 +129,7 @@ object Form1: TForm1
         TabOrder = 4
       end
       object spInterval: TCSpinEdit
-        Left = 1219
+        Left = 1192
         Top = 48
         Width = 49
         Height = 22
@@ -140,7 +140,7 @@ object Form1: TForm1
         Value = 1
       end
       object btnSelect: TButton
-        Left = 1162
+        Left = 1135
         Top = 77
         Width = 106
         Height = 25
@@ -19509,7 +19509,6 @@ object Form1: TForm1
         Top = 0
         Width = 1233
         Height = 21
-        ReadOnly = True
         TabOrder = 3
       end
       object cbPreset: TComboBox
@@ -20110,18 +20109,13 @@ object Form1: TForm1
           Transparent = True
           OnMouseDown = input_typeMouseDown
         end
-        object pb_watch: TProgressBar
+        object pb_watch: TPaintBox
+          Tag = 1
           Left = 20
-          Top = 19
+          Top = 18
           Width = 18
-          Height = 74
-          Min = -72
-          Max = 0
-          Orientation = pbVertical
-          Position = -72
-          Smooth = True
-          Step = 12
-          TabOrder = 0
+          Height = 75
+          OnPaint = WatchPaint
         end
       end
       object Panel1: TPanel
@@ -28389,6 +28383,7 @@ object Form1: TForm1
     Top = 40
   end
   object tmWatch: TTimer
+    Interval = 300
     OnTimer = tmWatchTimer
     Left = 416
     Top = 40

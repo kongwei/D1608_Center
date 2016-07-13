@@ -104,7 +104,6 @@ __published:	// IDE-managed Components
     TPanel *watch_panel;
     TImage *watch_bkimage;
     TLabel *label_watch;
-    TProgressBar *pb_watch;
     TImageList *ImageList1;
     TAdvTrackBar *AdvTrackBar1;
     TAdvTrackBar *AdvTrackBar2;
@@ -250,6 +249,7 @@ __published:	// IDE-managed Components
     TAdvTrackBar *TrackBar27;
     TAdvTrackBar *p_output_inner_level;
     TAdvTrackBar *p_input_inner_level;
+    TPaintBox *pb_watch;
     void __fastcall FormCreate(TObject *Sender);
     void __fastcall FormDestroy(TObject *Sender);
     void __fastcall btnRefreshClick(TObject *Sender);
@@ -313,6 +313,7 @@ __published:	// IDE-managed Components
     void __fastcall output_panel_level_editExit(TObject *Sender);
     void __fastcall io_panel_trackbarKeyDown(TObject *Sender, WORD &Key,
           TShiftState Shift);
+    void __fastcall WatchPaint(TObject *Sender);
 
 private:
     // 已经选择设备
@@ -357,7 +358,7 @@ private:
     int mireg0;
 public:		// User declarations
     __fastcall TForm1(TComponent* Owner);
-    TProgressBar * pb_watch_list[32];
+    TPaintBox * pb_watch_list[32];
     TEdit* input_level_edit[17];
     TEdit* output_level_edit[16];
     TAdvTrackBar* input_level_trackbar[17];
