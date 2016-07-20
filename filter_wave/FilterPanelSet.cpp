@@ -162,7 +162,7 @@ void __fastcall PanelAgent::edtSelectAllOnClick(TObject *Sender)
 void __fastcall PanelAgent::edtSelectAllOnExit(TObject *Sender)
 {
     TEdit * edtControl = (TEdit*)Sender;
-    WORD Key = VK_RETURN;
+    WORD Key = VK_ESCAPE;
     TShiftState Shift;
     edtControl->OnKeyDown(edtControl, Key, Shift);
 
@@ -196,6 +196,12 @@ void __fastcall PanelAgent::edtFreqKeyDown(TObject *Sender, WORD &Key,
 
         _filter_set.GetFilter(band)->SetFreq(freq);
         _filter_set.RepaintPaint();
+    }
+    else if (Key == VK_ESCAPE)
+    {
+        int band = ((TControl*)Sender)->Parent->Tag;
+        TEdit * edtFreq = (TEdit*)Sender;
+        edtFreq->Text = _filter_set.GetFilter(band)->GetFreq();
     }
     else if (Key == VK_UP || Key == VK_DOWN || Key == VK_PRIOR || Key == VK_NEXT)
     {
@@ -249,6 +255,12 @@ void __fastcall PanelAgent::edtGainKeyDown(TObject *Sender, WORD &Key,
             _filter_set.RepaintPaint();
         }
     }
+    else if (Key == VK_ESCAPE)
+    {
+        int band = ((TControl*)Sender)->Parent->Tag;
+        TEdit * edtGain = (TEdit*)Sender;
+        edtGain->Text = _filter_set.GetFilter(band)->GetGain();
+    }
     else if (Key == VK_UP || Key == VK_DOWN || Key == VK_PRIOR || Key == VK_NEXT)
     {
         int band = ((TControl*)Sender)->Parent->Tag;
@@ -299,6 +311,12 @@ void __fastcall PanelAgent::edtQKeyDown(TObject *Sender, WORD &Key,
 
         _filter_set.GetFilter(band)->SetQ(q);
         _filter_set.RepaintPaint();
+    }
+    else if (Key == VK_ESCAPE)
+    {
+        int band = ((TControl*)Sender)->Parent->Tag;
+        TEdit * edtQ = (TEdit*)Sender;
+        edtQ->Text = _filter_set.GetFilter(band)->GetQ();
     }
     else if (Key == VK_UP || Key == VK_DOWN || Key == VK_PRIOR || Key == VK_NEXT)
     {
