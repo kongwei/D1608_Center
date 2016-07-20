@@ -306,12 +306,11 @@ void Coefficient::ChangFilterParameter(String type, double freq, double gain, do
     Form1->mmCoeff->Clear();
     a1 = -a1;
     a2 = -a2;
-    Form1->mmCoeff->Lines->Add(String::FormatFloat("0.#########################", b0/a0*base));
-    Form1->mmCoeff->Lines->Add(String::FormatFloat("0.#########################", b1/a0*base));
-    Form1->mmCoeff->Lines->Add(String::FormatFloat("0.#########################", b2/a0*base));
-    Form1->mmCoeff->Lines->Add("");
-    Form1->mmCoeff->Lines->Add(String::FormatFloat("0.#########################", a1/a0*base));
-    Form1->mmCoeff->Lines->Add(String::FormatFloat("0.#########################", a2/a0*base));
+    Form1->mmCoeff->Lines->Add("L_0:  " + String::FormatFloat("0.#########################", b0/a0*base));
+    Form1->mmCoeff->Lines->Add("L_1:  " + String::FormatFloat("0.#########################", b1/a0*base));
+    Form1->mmCoeff->Lines->Add("L_2:  " + String::FormatFloat("0.#########################", b2/a0*base));
+    Form1->mmCoeff->Lines->Add("R_1:  " + String::FormatFloat("0.#########################", a1/a0*base));
+    Form1->mmCoeff->Lines->Add("R_2:  " + String::FormatFloat("0.#########################", a2/a0*base));
 
 
     short coeffs[10] = {0};
@@ -329,21 +328,28 @@ void Coefficient::ChangFilterParameter(String type, double freq, double gain, do
     double dsp2double[5];
     for (int i=0;i<10;i+=2)
     {
+        String left_right;
+        if (i < 5)
+        {
+            left_right = "L_"+IntToStr(i/2);
+        }
+        else
+        {
+            left_right = "R_"+IntToStr(i/2-2);
+        }
+
         coeffs[i] = htons(coeffs[i]);
         coeffs[i+1] = htons(coeffs[i+1]) * 16 & 0xFFF0;
-        Form1->mmCoeff->Lines->Add(IntToHex(coeffs[i]&0xFFFF, 4)+" "+IntToHex(coeffs[i+1]&0xFFFF, 4));
+        Form1->mmCoeff->Lines->Add(left_right + ":  " + IntToHex(coeffs[i]&0xFFFF, 4)+" "+IntToHex(coeffs[i+1]&0xFFFF, 4));
         dsp2double[i/2] = coeffs[i]/32768.0 + ((unsigned short)coeffs[i+1]) / 32768.0  / 65536.0;
-        if (i==2)
-        {
-            Form1->mmCoeff->Lines->Add("");
-        }
     }
+    Form1->mmCoeff->Lines->Add("----仿真软件参数----");
     Form1->mmCoeff->Lines->Add(String::FormatFloat("0.#########################", dsp2double[0]));
     Form1->mmCoeff->Lines->Add(String::FormatFloat("0.#########################", dsp2double[1]));
     Form1->mmCoeff->Lines->Add(String::FormatFloat("0.#########################", dsp2double[2]));
-    Form1->mmCoeff->Lines->Add("");
-    Form1->mmCoeff->Lines->Add(String::FormatFloat("0.#########################", dsp2double[3]));
-    Form1->mmCoeff->Lines->Add(String::FormatFloat("0.#########################", dsp2double[4]));
+    Form1->mmCoeff->Lines->Add(String::FormatFloat("0.#########################", 0.125));
+    Form1->mmCoeff->Lines->Add(String::FormatFloat("0.#########################", -dsp2double[3]));
+    Form1->mmCoeff->Lines->Add(String::FormatFloat("0.#########################", -dsp2double[4]));
 }
 
 static int Float2FixPoint(float coeff)
