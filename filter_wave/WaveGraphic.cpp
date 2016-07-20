@@ -116,6 +116,9 @@ PaintAgent::PaintAgent(TPaintBox* paint_box, FilterSet& filter_set)
 void __fastcall PaintAgent::OnMouseDown(TObject *Sender,
     TMouseButton Button, TShiftState Shift, int X, int Y)
 {
+    extern void SelectNullControl();
+    SelectNullControl();
+    
     for (int i=0;i<11;i++)
     {
         int band = GetSortElem(i);
