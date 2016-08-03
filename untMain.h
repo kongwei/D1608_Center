@@ -105,8 +105,8 @@ __published:	// IDE-managed Components
     TImage *watch_bkimage;
     TLabel *label_watch;
     TImageList *ImageList1;
-    TAdvTrackBar *AdvTrackBar1;
-    TAdvTrackBar *AdvTrackBar2;
+    TAdvTrackBar *mix_panel_trackbar;
+    TAdvTrackBar *master_panel_trackbar;
     TImage *Image1;
     TEdit *mix_panel_level_edit;
     TEdit *master_panel_level_edit;
@@ -121,7 +121,6 @@ __published:	// IDE-managed Components
     TMenuItem *M21;
     TMenuItem *M31;
     TMenuItem *M41;
-    TAdvTrackBar *input_panel_trackbar;
     TSpeedButtonNoFrame *input_panel_noise_btn;
     TSpeedButtonNoFrame *input_panel_mute_btn;
     TEdit *input_panel_level_edit;
@@ -250,6 +249,7 @@ __published:	// IDE-managed Components
     TAdvTrackBar *p_output_inner_level;
     TAdvTrackBar *p_input_inner_level;
     TPaintBox *pb_watch;
+    TAdvTrackBar *input_panel_trackbar;
     void __fastcall FormCreate(TObject *Sender);
     void __fastcall FormDestroy(TObject *Sender);
     void __fastcall btnRefreshClick(TObject *Sender);
@@ -288,9 +288,6 @@ __published:	// IDE-managed Components
     void __fastcall btnMixMuteClick(TObject *Sender);
     void __fastcall btnMasterMuteClick(TObject *Sender);
     void __fastcall btnPhantonClick(TObject *Sender);
-    void __fastcall ToogleLowShelf(TObject *Sender);
-    void __fastcall ToogleHighShelf(TObject *Sender);
-    void __fastcall ToogleEQ_DSP(TObject *Sender);
     void __fastcall TrackBar27Change(TObject *Sender);
     void __fastcall FormMouseWheel(TObject *Sender, TShiftState Shift,
           int WheelDelta, TPoint &MousePos, bool &Handled);
@@ -314,6 +311,17 @@ __published:	// IDE-managed Components
     void __fastcall io_panel_trackbarKeyDown(TObject *Sender, WORD &Key,
           TShiftState Shift);
     void __fastcall WatchPaint(TObject *Sender);
+    void __fastcall input_panel_level_editClick(TObject *Sender);
+    void __fastcall input_panel_dsp_numClick(TObject *Sender);
+    void __fastcall output_panel_dsp_numClick(TObject *Sender);
+    void __fastcall input_panel_trackbarEnter(TObject *Sender);
+    void __fastcall input_panel_trackbarExit(TObject *Sender);
+    void __fastcall master_panel_level_editExit(TObject *Sender);
+    void __fastcall master_panel_level_editKeyDown(TObject *Sender,
+          WORD &Key, TShiftState Shift);
+    void __fastcall FormClick(TObject *Sender);
+    void __fastcall FormMouseDown(TObject *Sender, TMouseButton Button,
+          TShiftState Shift, int X, int Y);
 
 private:
     // 已经选择设备

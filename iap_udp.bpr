@@ -31,13 +31,13 @@
     <USERDEFINES value="_DEBUG;STRICT"/>
     <SYSDEFINES value="NO_STRICT"/>
     <MAINSOURCE value="iap_udp.cpp"/>
-    <INCLUDEPATH value="ci\;..\..\new\CentCtrl;$(BCB)\Lib;&quot;..\..\vcl component pack v6.0.2.0&quot;;filter_wave;..\..\CSP_850_A\版本上传上位机（iap_version）\iap_version;&quot;C:\Program Files\Borland\CBuilder6\Projects&quot;;F:\神州II号\iap_version;$(BCB)\include;$(BCB)\include\vcl"/>
-    <LIBPATH value="ci\;..\..\new\CentCtrl;$(BCB)\Projects\Lib;&quot;..\..\vcl component pack v6.0.2.0&quot;;filter_wave;..\..\CSP_850_A\版本上传上位机（iap_version）\iap_version;&quot;C:\Program Files\Borland\CBuilder6\Projects&quot;;F:\神州II号\iap_version;$(BCB)\lib\obj;$(BCB)\lib"/>
+    <INCLUDEPATH value="ci\;ci;..\..\new\CentCtrl;$(BCB)\Lib;&quot;..\..\vcl component pack v6.0.2.0&quot;;filter_wave;..\..\CSP_850_A\版本上传上位机（iap_version）\iap_version;&quot;C:\Program Files\Borland\CBuilder6\Projects&quot;;F:\神州II号\iap_version;$(BCB)\include;$(BCB)\include\vcl"/>
+    <LIBPATH value="ci\;ci;..\..\new\CentCtrl;$(BCB)\Projects\Lib;&quot;..\..\vcl component pack v6.0.2.0&quot;;filter_wave;..\..\CSP_850_A\版本上传上位机（iap_version）\iap_version;&quot;C:\Program Files\Borland\CBuilder6\Projects&quot;;F:\神州II号\iap_version;$(BCB)\lib\obj;$(BCB)\lib"/>
     <WARNINGS value="-w-par"/>
     <OTHERFILES value=""/>
   </MACROS>
   <OPTIONS>
-    <IDLCFLAGS value="-Ici\. -I..\..\new\CentCtrl -I$(BCB)\Lib 
+    <IDLCFLAGS value="-Ici\. -Ici -I..\..\new\CentCtrl -I$(BCB)\Lib 
       -I&quot;..\..\vcl component pack v6.0.2.0&quot; -Ifilter_wave 
       -I..\..\CSP_850_A\版本上传上位机（iap_version）\iap_version 
       -I&quot;C:\Program Files\Borland\CBuilder6\Projects&quot; -IF:\神州II号\iap_version 
@@ -100,14 +100,16 @@ ProductVersion=1.0.0.0
 Comments=
 
 [HistoryLists\hlIncludePath]
-Count=2
-Item0=..\..\new\CentCtrl;$(BCB)\Lib;..\..\vcl component pack v6.0.2.0;filter_wave;..\..\CSP_850_A\版本上传上位机（iap_version）\iap_version;C:\Program Files\Borland\CBuilder6\Projects;F:\神州II号\iap_version;$(BCB)\include;$(BCB)\include\vcl
-Item1=filter_wave;..\..\CSP_850_A\版本上传上位机（iap_version）\iap_version;C:\Program Files\Borland\CBuilder6\Projects;F:\神州II号\iap_version;$(BCB)\include;$(BCB)\include\vcl
+Count=3
+Item0=ci\;..\..\new\CentCtrl;$(BCB)\Lib;..\..\vcl component pack v6.0.2.0;filter_wave;..\..\CSP_850_A\版本上传上位机（iap_version）\iap_version;C:\Program Files\Borland\CBuilder6\Projects;F:\神州II号\iap_version;$(BCB)\include;$(BCB)\include\vcl
+Item1=..\..\new\CentCtrl;$(BCB)\Lib;..\..\vcl component pack v6.0.2.0;filter_wave;..\..\CSP_850_A\版本上传上位机（iap_version）\iap_version;C:\Program Files\Borland\CBuilder6\Projects;F:\神州II号\iap_version;$(BCB)\include;$(BCB)\include\vcl
+Item2=filter_wave;..\..\CSP_850_A\版本上传上位机（iap_version）\iap_version;C:\Program Files\Borland\CBuilder6\Projects;F:\神州II号\iap_version;$(BCB)\include;$(BCB)\include\vcl
 
 [HistoryLists\hlLibraryPath]
-Count=2
-Item0=..\..\new\CentCtrl;$(BCB)\Projects\Lib;..\..\vcl component pack v6.0.2.0;filter_wave;..\..\CSP_850_A\版本上传上位机（iap_version）\iap_version;C:\Program Files\Borland\CBuilder6\Projects;F:\神州II号\iap_version;$(BCB)\lib\obj;$(BCB)\lib
-Item1=filter_wave;..\..\CSP_850_A\版本上传上位机（iap_version）\iap_version;C:\Program Files\Borland\CBuilder6\Projects;F:\神州II号\iap_version;$(BCB)\lib\obj;$(BCB)\lib
+Count=3
+Item0=ci\;..\..\new\CentCtrl;$(BCB)\Projects\Lib;..\..\vcl component pack v6.0.2.0;filter_wave;..\..\CSP_850_A\版本上传上位机（iap_version）\iap_version;C:\Program Files\Borland\CBuilder6\Projects;F:\神州II号\iap_version;$(BCB)\lib\obj;$(BCB)\lib
+Item1=..\..\new\CentCtrl;$(BCB)\Projects\Lib;..\..\vcl component pack v6.0.2.0;filter_wave;..\..\CSP_850_A\版本上传上位机（iap_version）\iap_version;C:\Program Files\Borland\CBuilder6\Projects;F:\神州II号\iap_version;$(BCB)\lib\obj;$(BCB)\lib
+Item2=filter_wave;..\..\CSP_850_A\版本上传上位机（iap_version）\iap_version;C:\Program Files\Borland\CBuilder6\Projects;F:\神州II号\iap_version;$(BCB)\lib\obj;$(BCB)\lib
 
 [HistoryLists\hlDebugSourcePath]
 Count=1
@@ -139,7 +141,7 @@ RemoteDebug=0
 
 [Compiler]
 ShowInfoMsgs=0
-LinkDebugVcl=0
+LinkDebugVcl=1
 LinkCGLIB=0
 
 [CORBA]

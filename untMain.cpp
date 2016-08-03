@@ -22,6 +22,11 @@ TForm1 *Form1;
 ConfigMap config_map;
 TAdvGDIPPicture * x = new TAdvGDIPPicture();
 //---------------------------------------------------------------------------
+void SelectNullControl()
+{
+    Form1->ActiveControl = NULL;
+}
+//---------------------------------------------------------------------------
 static int SetBit(int old_value, int bit, bool is_set)
 {
     int value;
@@ -80,7 +85,7 @@ int GetLocalIpList(TStrings * IpList)
 //---------------------------------------------------------------------------
 static TSpeedButton * CopyInputPanelButton(TSpeedButton * src_btn, int dsp_id, Graphics::TBitmap* bmp=NULL)
 {
-    TSpeedButton * dsp_btn = new TSpeedButtonNoFrame(src_btn->Parent);
+    TSpeedButton * dsp_btn = new TSpeedButtonNoFrame(src_btn->Owner);
     dsp_btn->Caption = src_btn->Caption;
     dsp_btn->BoundsRect = src_btn->BoundsRect;
     dsp_btn->Left = src_btn->Left + (dsp_id-1) * PANEL_WIDTH;
@@ -112,6 +117,8 @@ static TAdvTrackBar * CopyInputPanelTrackbar(TAdvTrackBar * src_trackbar, int ds
 
     trackbar->OnChange = src_trackbar->OnChange;
     trackbar->OnKeyDown = src_trackbar->OnKeyDown;
+    trackbar->OnEnter = src_trackbar->OnEnter;
+    trackbar->OnExit = src_trackbar->OnExit;
 
     trackbar->Buttons->Size = src_trackbar->Buttons->Size;
     trackbar->Buttons->Spacing = src_trackbar->Buttons->Spacing;
@@ -130,6 +137,8 @@ static TAdvTrackBar * CopyInputPanelTrackbar(TAdvTrackBar * src_trackbar, int ds
     trackbar->BackGroundStretched = src_trackbar->BackGroundStretched;
 
     trackbar->Thumb->Picture = src_trackbar->Thumb->Picture;
+    trackbar->Thumb->PictureHot = src_trackbar->Thumb->PictureHot;
+    trackbar->Thumb->PictureDown = src_trackbar->Thumb->PictureDown;
 
     trackbar->BoundsRect = src_trackbar->BoundsRect;
     trackbar->Left = src_trackbar->Left + (dsp_id-1) * PANEL_WIDTH;
@@ -149,6 +158,7 @@ static TEdit * CopyInputPanelEdit(TEdit * src_edit, int dsp_id)
     edit->Color = src_edit->Color;
     edit->Font = src_edit->Font;
     edit->Parent = src_edit->Parent;
+    edit->OnClick = src_edit->OnClick;
     edit->OnKeyDown = src_edit->OnKeyDown;
     edit->OnExit = src_edit->OnExit;
     edit->Tag = dsp_id;
@@ -163,6 +173,7 @@ static TStaticText * CopyInputPanelLabel(TStaticText * src_label, int dsp_id)
     label->Color = src_label->Color;
     label->Font = src_label->Font;
     label->Parent = src_label->Parent;
+    label->OnClick = src_label->OnClick;
     return label;
 }
 static void CreateInputPanel(int panel_id, TForm1 * form)
@@ -214,6 +225,7 @@ static void CopyWatchPanel(int panel_id, TForm1 * form, String label, int left)
     pb_level->BoundsRect = form->pb_watch->BoundsRect;
     pb_level->OnPaint = form->pb_watch->OnPaint;
     pb_level->Parent = watch_panel;
+    pb_level->Tag = form->pb_watch->Tag;
     form->pb_watch_list[panel_id-1] = pb_level;
 
     TLabel * label_watch = new TLabel(watch_panel);
@@ -254,7 +266,7 @@ __fastcall TForm1::TForm1(TComponent* Owner)
     for (int i=2;i<=16;i++)
     {
         CreateInputPanel(i, this);
-        CopyWatchPanel(i, this, (char)('A'-1+i), (i-1) * PANEL_WIDTH);
+        CopyWatchPanel(i, this, String((char)('A'-1+i))+" ("+IntToStr(i)+")", (i-1) * PANEL_WIDTH);
     }
 
     //------------------------------------
@@ -269,6 +281,17 @@ __fastcall TForm1::TForm1(TComponent* Owner)
                                 templet_image_rect.Bottom);
         output_panel_bkground->Canvas->CopyRect(dest_rect, output_panel_bkground->Canvas, templet_image_rect);
     }
+
+    mix_panel_trackbar->Thumb->Picture = input_panel_trackbar->Thumb->Picture;
+    mix_panel_trackbar->Thumb->PictureHot = input_panel_trackbar->Thumb->PictureHot;
+    mix_panel_trackbar->Thumb->PictureDown = input_panel_trackbar->Thumb->PictureDown;
+
+    master_panel_trackbar->Thumb->Picture = input_panel_trackbar->Thumb->Picture;
+    master_panel_trackbar->Thumb->PictureHot = input_panel_trackbar->Thumb->PictureHot;
+    master_panel_trackbar->Thumb->PictureDown = input_panel_trackbar->Thumb->PictureDown;
+
+    output_panel_trackbar->Thumb->PictureDown = input_panel_trackbar->Thumb->PictureDown;
+    output_panel_trackbar->Thumb->PictureHot = input_panel_trackbar->Thumb->PictureHot;
     for (int i=2;i<=OUTPUT_DSP_NUM;i++)
     {
         CreateOutputPanel(i, this);
@@ -290,6 +313,7 @@ __fastcall TForm1::TForm1(TComponent* Owner)
     output_panel_trackbar->OnChange(output_panel_trackbar);
 
     input_level_edit[16] = mix_panel_level_edit;
+    input_level_trackbar[16] = mix_panel_trackbar;
     SetWindowLong(mix_panel_level_edit->Handle, GWL_STYLE, GetWindowLong(mix_panel_level_edit->Handle, GWL_STYLE) | ES_RIGHT);
 
     SetWindowLong(master_panel_level_edit->Handle, GWL_STYLE, GetWindowLong(master_panel_level_edit->Handle, GWL_STYLE) | ES_RIGHT);
@@ -569,7 +593,7 @@ void __fastcall TForm1::InputVolumeChange(TObject *Sender)
     {
         if (value == -720)
         {
-            input_level_edit[dsp_num-1]->Text = " -- ";
+            input_level_edit[dsp_num-1]->Text = "Off";
         }
         else
         {
@@ -580,16 +604,29 @@ void __fastcall TForm1::InputVolumeChange(TObject *Sender)
 
     if (last_out_num_btn == NULL)
     {
-        D1608Cmd cmd;
-        cmd.id = GerOffsetOfData(&config_map.input_dsp[dsp_num-1].level_a);
-        cmd.value[0] = value;
-        SendCmd(cmd);
+        if (dsp_num < 17)
+        {
+            D1608Cmd cmd;
+            cmd.id = GerOffsetOfData(&config_map.input_dsp[dsp_num-1].level_a);
+            cmd.value[0] = value;
+            SendCmd(cmd);
+        }
+        else
+        {
+            D1608Cmd cmd;
+            cmd.id = GerOffsetOfData(&config_map.mix_dsp.level_a);
+            cmd.value[0] = value;
+            SendCmd(cmd);
+        }
     }
     else
     {
-        // TODO: MIX Level
+        int in_dsp_num = dsp_num;
         int out_dsp_num = last_out_num_btn->Tag;
-        D1608Cmd cmd = IOVolume(out_dsp_num, dsp_num, value);
+
+        D1608Cmd cmd;
+        cmd.id = GerOffsetOfData(&config_map.mix[in_dsp_num-1][out_dsp_num-1]);
+        cmd.value[0] = value;
         SendCmd(cmd);
     }
 }
@@ -638,27 +675,33 @@ void __fastcall TForm1::ToogleDefault(TObject *Sender)
     if (btn->Down)
     {
         last_default_btn = btn;
+#if 0
         int dsp_id = btn->Tag;
         D1608Cmd cmd = InputDefault(dsp_id, 0);
         SendCmd(cmd);
+#endif
     }
     else
     {
         // default 缺少取消所有 default
         last_default_btn = NULL;
+#if 0
         D1608Cmd cmd = InputDefault(0, 0);
         SendCmd(cmd);
+#endif
     }
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::ToogleAuto(TObject *Sender)
 {
+#if 0
     TSpeedButton* btn = (TSpeedButton*)Sender;
     int dsp_id = btn->Tag;
     static int input_auto = 0;
     input_auto = SetBit(input_auto, dsp_id, btn->Down);
     D1608Cmd cmd = InputAuto(input_auto);
     SendCmd(cmd);
+#endif
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::ToogleCOMP(TObject *Sender)
@@ -697,31 +740,20 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
 //---------------------------------------------------------------------------
 void TForm1::MsgWatchHandle(const D1608Cmd& cmd)
 {
-        // 测试
-        static int i = 0;
-        if (i==24)
-            i=-48;
-        else
-            i++;
-        pb_watch_list[0]->Tag = i;
-        pb_watch_list[0]->Invalidate();
-
-        return;
-        
     for (int i=0;i<32;i++)
     {
-        int value = ntohl(cmd.value[i]);
+        int value = cmd.value[i];
         if (value <= 0)
         {
-            pb_watch_list[i]->Tag = 0;
+            pb_watch_list[i]->Tag = -71;
             pb_watch_list[i]->Invalidate();
         }
         else
         {
             try{
                 double valuex = log10(value);
-                double base = log10(0x00FFFF00);
-                pb_watch_list[i]->Tag = (valuex - base) * 20 + 1;
+                double base = log10(0x00FFFFFF);
+                pb_watch_list[i]->Tag = (valuex - base) * 20 + 1 + 24;
                 pb_watch_list[i]->Invalidate();
             }
             catch(...)
@@ -731,7 +763,7 @@ void TForm1::MsgWatchHandle(const D1608Cmd& cmd)
             }
         }
     }
-    Caption = IntToHex((int)ntohl(cmd.value[23]), 8);
+    Caption = IntToHex(cmd.value[16], 8);
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::tmWatchTimer(TObject *Sender)
@@ -741,8 +773,6 @@ void __fastcall TForm1::tmWatchTimer(TObject *Sender)
         D1608Cmd cmd;
         cmd.id = GerOffsetOfData(&config_map.WatchLevel);
         SendCmd(cmd);
-
-        MsgWatchHandle(cmd);
     }
 }
 //---------------------------------------------------------------------------
@@ -828,7 +858,7 @@ void __fastcall TForm1::OutputVolumeChange(TObject *Sender)
     {
         if (value == -720)
         {
-            output_level_edit[dsp_num-1]->Text = " -- ";
+            output_level_edit[dsp_num-1]->Text = "Off";
         }
         else
         {
@@ -902,33 +932,40 @@ void __fastcall TForm1::btnMixInvertClick(TObject *Sender)
 {
     // mix_panel_state bit3
     TSpeedButton* btn = (TSpeedButton*)Sender;
-    mix_panel_state = SetBit(mix_panel_state, 3, btn->Down);
-    D1608Cmd cmd = Mix_MaxPrio_Invert_Mute(mix_panel_state);
-    udpControl->SendBuffer(dst_ip, 2305, &cmd, sizeof(cmd)-1);
+
+    D1608Cmd cmd;
+    cmd.id = GerOffsetOfData(&config_map.mix_dsp.invert_switch);
+    cmd.value[0] = btn->Down;
     SendCmd(cmd);
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::btnMAXONClick(TObject *Sender)
 {
+#if 0
     // mix_panel_state bit1
     mix_panel_state = SetBit(mix_panel_state, 1, btnMAXON->Down);
     D1608Cmd cmd = Mix_MaxPrio_Invert_Mute(mix_panel_state);
     SendCmd(cmd);
+#endif
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::btnLastOnClick(TObject *Sender)
 {
+#if 0
     TSpeedButton* btn = (TSpeedButton*)Sender;
     D1608Cmd cmd = InputDefault(0, btn->Down);
     SendCmd(cmd);
+#endif
 }
 //---------------------------------------------------------------------------
 
 void __fastcall TForm1::btnFShiftClick(TObject *Sender)
 {
+#if 0
     TSpeedButton* btn = (TSpeedButton*)Sender;
     D1608Cmd cmd = FShift(btn->Down);
     SendCmd(cmd);
+#endif
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::MasterVolumeChange(TObject *Sender)
@@ -940,7 +977,7 @@ void __fastcall TForm1::MasterVolumeChange(TObject *Sender)
     {
         if (value == -720)
         {
-            master_panel_level_edit->Text = " -- ";
+            master_panel_level_edit->Text = "Off";
         }
         else
         {
@@ -949,23 +986,29 @@ void __fastcall TForm1::MasterVolumeChange(TObject *Sender)
         }
     }
 
-    D1608Cmd cmd = MasterVolume(value);
+    D1608Cmd cmd;
+    cmd.id = GerOffsetOfData(&config_map.master.level_a);
+    cmd.value[0] = value;
     SendCmd(cmd);
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::btnMixMuteClick(TObject *Sender)
 {
-    // mix_panel_state bit4
     TSpeedButton* btn = (TSpeedButton*)Sender;
-    mix_panel_state = SetBit(mix_panel_state, 4, btn->Down);
-    D1608Cmd cmd = Mix_MaxPrio_Invert_Mute(mix_panel_state);
+
+    D1608Cmd cmd;
+    cmd.id = GerOffsetOfData(&config_map.mix_dsp.mute_switch);
+    cmd.value[0] = btn->Down;
     SendCmd(cmd);
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::btnMasterMuteClick(TObject *Sender)
 {
     TSpeedButton* btn = (TSpeedButton*)Sender;
-    D1608Cmd cmd = MasterMute(btn->Down);
+
+    D1608Cmd cmd;
+    cmd.id = GerOffsetOfData(&config_map.master.mute_switch);
+    cmd.value[0] = btn->Down;
     SendCmd(cmd);
 }
 //---------------------------------------------------------------------------
@@ -977,37 +1020,6 @@ void __fastcall TForm1::btnPhantonClick(TObject *Sender)
     D1608Cmd cmd;
     cmd.id = GerOffsetOfData(&config_map.input_dsp[dsp_id-1].phantom_switch);
     cmd.value[0] = btn->Down;
-    SendCmd(cmd);
-}
-//---------------------------------------------------------------------------
-void __fastcall TForm1::ToogleLowShelf(TObject *Sender)
-{
-    TCheckBox* btn = (TCheckBox*)Sender;
-    int dsp_id = btn->Parent->Parent->Tag;
-    static int low = 0;
-    low = SetBit(low, dsp_id, btn->Checked);
-    D1608Cmd cmd = LowShelf(low);
-    SendCmd(cmd);
-}
-//---------------------------------------------------------------------------
-void __fastcall TForm1::ToogleHighShelf(TObject *Sender)
-{
-    TCheckBox* btn = (TCheckBox*)Sender;
-    int dsp_id = btn->Parent->Tag;
-    static int high = 0;
-    high = SetBit(high, dsp_id, btn->Checked);
-    D1608Cmd cmd = HighShelf(high);
-    SendCmd(cmd);
-}
-//---------------------------------------------------------------------------
-void __fastcall TForm1::ToogleEQ_DSP(TObject *Sender)
-{
-    TSpeedButton* btn = (TSpeedButton*)Sender;
-    int dsp_id = btn->Parent->Tag;
-    int eq_id = btn->Tag;
-    static int eq_switch[5] = {0,0,0,0,0};
-    eq_switch[eq_id-1] = SetBit(eq_switch[eq_id-1], dsp_id, btn->Down);
-    D1608Cmd cmd = DspEQSwitch(eq_id, eq_switch[eq_id-1]);
     SendCmd(cmd);
 }
 //---------------------------------------------------------------------------
@@ -1038,8 +1050,26 @@ void __fastcall TForm1::TrackBar27Change(TObject *Sender)
 void __fastcall TForm1::FormMouseWheel(TObject *Sender, TShiftState Shift,
       int WheelDelta, TPoint &MousePos, bool &Handled)
 {
+    TEdit * edt = dynamic_cast<TEdit*>(ActiveControl);
+    if (edt)
+    {
+        TShiftState shift;
+        WORD key;
+        if (WheelDelta >0)
+        {
+            key = VK_UP;
+        }
+        else if (WheelDelta < 0)
+        {
+            key = VK_DOWN;
+        }
+        edt->OnKeyDown(edt, key, shift);
+        Handled = true;
+        return;
+    }
+
     paint_agent->OnMouseWheel(Sender, Shift, WheelDelta, MousePos, Handled);
-    if (!Handled)
+    if (!Handled && ActiveControl)
     {
         panel_agent->OnMouseWheel(ActiveControl, Shift, WheelDelta, MousePos, Handled);
     }
@@ -1204,39 +1234,88 @@ void __fastcall TForm1::IdUDPCIUDPRead(TObject *Sender, TStream *AData,
 void __fastcall TForm1::input_panel_level_editKeyDown(TObject *Sender,
       WORD &Key, TShiftState Shift)
 {
+    TEdit * edt = (TEdit*)Sender;
+    int dsp_num = edt->Tag;
+    if (input_level_trackbar[dsp_num-1] == NULL)
+        return;
+
     if (Key == VK_RETURN)
     {
-        TEdit * edt = (TEdit*)Sender;
-        int dsp_num = edt->Tag;
-        if (input_level_trackbar[dsp_num-1] != NULL)
-        {
-            try{
+        try{
+            if (edt->Text.UpperCase() == "OFF")
+                input_level_trackbar[dsp_num-1]->Position = input_level_trackbar[dsp_num-1]->Min;
+            else
                 input_level_trackbar[dsp_num-1]->Position = edt->Text.ToDouble() * 10;
-            }catch(...){
-            }
-            InputVolumeChange(input_level_trackbar[dsp_num-1]);
+        }catch(...){
         }
+
+        InputVolumeChange(input_level_trackbar[dsp_num-1]);
         edt->SelectAll();
+    }
+    else if (Key == VK_UP || Key == VK_DOWN || Key == VK_PRIOR || Key == VK_NEXT)
+    {
+        input_level_trackbar[dsp_num-1]->Perform(WM_KEYDOWN, Key, 1);
+        edt->SelectAll();
+        Key = 0;
     }
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::output_panel_level_editKeyDown(TObject *Sender,
       WORD &Key, TShiftState Shift)
 {
+    TEdit * edt = (TEdit*)Sender;
+    int dsp_num = edt->Tag;
+    if (output_level_trackbar[dsp_num-1] == NULL)
+        return;
+
     if (Key == VK_RETURN)
     {
-        TEdit * edt = (TEdit*)Sender;
-        int dsp_num = edt->Tag;
-        if (output_level_trackbar[dsp_num-1] != NULL)
-        {
-            try{
+        try{
+            if (edt->Text.UpperCase() == "OFF")
+                output_level_trackbar[dsp_num-1]->Position = output_level_trackbar[dsp_num-1]->Min;
+            else
                 output_level_trackbar[dsp_num-1]->Position = edt->Text.ToDouble() * 10;
-            }catch(...){
-            }
-            OutputVolumeChange(output_level_trackbar[dsp_num-1]);
+        }catch(...){
         }
+
+        OutputVolumeChange(output_level_trackbar[dsp_num-1]);
         edt->SelectAll();
     }
+    else if (Key == VK_UP || Key == VK_DOWN || Key == VK_PRIOR || Key == VK_NEXT)
+    {
+        output_level_trackbar[dsp_num-1]->Perform(WM_KEYDOWN, Key, 1);
+    }
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::master_panel_level_editKeyDown(TObject *Sender,
+      WORD &Key, TShiftState Shift)
+{
+    TEdit * edt = (TEdit*)Sender;
+
+    if (Key == VK_RETURN)
+    {
+        try{
+            if (edt->Text.UpperCase() == "OFF")
+                master_panel_trackbar->Position = master_panel_trackbar->Min;
+            else
+                master_panel_trackbar->Position = edt->Text.ToDouble() * 10;
+        }catch(...){
+        }
+
+        MasterVolumeChange(master_panel_trackbar);
+        edt->SelectAll();
+    }
+    else if (Key == VK_UP || Key == VK_DOWN || Key == VK_PRIOR || Key == VK_NEXT)
+    {
+        master_panel_trackbar->Perform(WM_KEYDOWN, Key, 1);
+    }
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::input_panel_level_editClick(TObject *Sender)
+{
+    TEdit * edt = (TEdit*)Sender;
+    edt->SelectAll();
+    edt->OnClick = NULL;
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::input_panel_level_editExit(TObject *Sender)
@@ -1246,6 +1325,7 @@ void __fastcall TForm1::input_panel_level_editExit(TObject *Sender)
     if (input_level_trackbar[dsp_num-1] != NULL)
     {
         InputVolumeChange(input_level_trackbar[dsp_num-1]);
+        edt->OnClick = input_panel_level_editClick; 
     }
 }
 //---------------------------------------------------------------------------
@@ -1256,7 +1336,16 @@ void __fastcall TForm1::output_panel_level_editExit(TObject *Sender)
     if (output_level_trackbar[dsp_num-1] != NULL)
     {
         OutputVolumeChange(output_level_trackbar[dsp_num-1]);
+        edt->OnClick = input_panel_level_editClick;
     }
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::master_panel_level_editExit(TObject *Sender)
+{
+    TEdit * edt = (TEdit*)Sender;
+
+    MasterVolumeChange(master_panel_trackbar);
+    edt->OnClick = input_panel_level_editClick;
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::io_panel_trackbarKeyDown(TObject *Sender,
@@ -1304,7 +1393,7 @@ void __fastcall TForm1::WatchPaint(TObject *Sender)
 {
     TPaintBox * pb_watch = (TPaintBox*)Sender;
 
-    int max_height = pb_watch->Height-2;
+    //int max_height = pb_watch->Height-2;
     int level = pb_watch->Tag;
 
     // bottom - top
@@ -1325,6 +1414,8 @@ void __fastcall TForm1::WatchPaint(TObject *Sender)
 
     r.top = 24-level+1;
     r.bottom = pb_watch->Height-1;
+    if (r.top > r.bottom)
+        r.top = r.bottom;
     pb_watch->Canvas->Brush->Color = clLime;
     pb_watch->Canvas->FillRect(r);
 
@@ -1341,6 +1432,43 @@ void __fastcall TForm1::WatchPaint(TObject *Sender)
         pb_watch->Canvas->Brush->Color = clRed;
         pb_watch->Canvas->FillRect(r);
     }
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::input_panel_dsp_numClick(TObject *Sender)
+{
+    TLabel * label = (TLabel*)Sender;
+    label->Caption = InputBox("修改名称", "", label->Caption);
+    // TODO: 存到下位机, 限制长度
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::output_panel_dsp_numClick(TObject *Sender)
+{
+    TLabel * label = (TLabel*)Sender;
+    label->Caption = InputBox("修改名称", "", label->Caption);
+    // TODO: 存到下位机, 限制长度
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::input_panel_trackbarEnter(TObject *Sender)
+{
+    TAdvTrackBar * trackbar = (TAdvTrackBar*)Sender;
+    trackbar->Thumb->Picture = trackbar->Thumb->PictureHot;
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::input_panel_trackbarExit(TObject *Sender)
+{
+    TAdvTrackBar * trackbar = (TAdvTrackBar*)Sender;
+    trackbar->Thumb->Picture = trackbar->Thumb->PictureDown;
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::FormClick(TObject *Sender)
+{
+    //
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::FormMouseDown(TObject *Sender, TMouseButton Button,
+      TShiftState Shift, int X, int Y)
+{
+    //
 }
 //---------------------------------------------------------------------------
 

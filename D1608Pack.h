@@ -7,16 +7,6 @@
 #define OUTPUT_DSP_NUM 16
 
 #pragma pack(push, 1)
-#if 0
-typedef struct
-{
-    char flag[12];
-    unsigned __int32 dsp_type;  // 0: system, 1: input, 2: output
-    unsigned __int32 dsp_id;
-    unsigned __int32 func_id;
-    unsigned __int32 value;
-}MatrixCmd;
-#endif
 typedef struct
 {
 	unsigned int TYPE;
@@ -62,12 +52,20 @@ typedef struct
     FilterConfigMap low_pass;
     FilterConfigMap filter[11];
 }OutputConfigMap;
+typedef struct
+{
+    unsigned char mute_switch;
+    int level_a;
+}MasterConfigMap;
 
 typedef struct
 {
     InputConfigMap input_dsp[INPUT_DSP_NUM];
     OutputConfigMap output_dsp[OUTPUT_DSP_NUM];
     int WatchLevel[INPUT_DSP_NUM + OUTPUT_DSP_NUM];
+	MasterConfigMap master;
+    InputConfigMap mix_dsp;
+	int mix[INPUT_DSP_NUM+1][OUTPUT_DSP_NUM];
 }ConfigMap;
 
 extern ConfigMap config_map;
@@ -94,6 +92,7 @@ unsigned int GerOffsetOfData(void * p_data);
 typedef int BOOL;
 
 #pragma pack(pop)
+#if 0
 D1608Cmd InputVolume(int dsp_num, int volume);
 D1608Cmd OutputVolume(int dsp_num, int volume);
 D1608Cmd MasterVolume(int volume);
@@ -107,22 +106,22 @@ D1608Cmd InputNoise(int mute_bits);
 D1608Cmd InputInvert(int mute_bits);
 D1608Cmd OutputInvert(int mute_bits);
 D1608Cmd MixInvert(BOOL is_invert);
-D1608Cmd InputDefault(int dsp_num, BOOL is_laston);
-D1608Cmd InputAuto(int mute_bits);
 D1608Cmd InputComp(int mute_bits);
 D1608Cmd InputEQ(int mute_bits);
 D1608Cmd OutputEQ(int mute_bits);
 D1608Cmd OutputLimit(int mute_bits);
-D1608Cmd FShift(BOOL is_shift);
-D1608Cmd Mix_MaxPrio_Invert_Mute(int mix_panel_data);
 D1608Cmd Phanton(int mute_bits);
 D1608Cmd LowShelf(int mute_bits);
 D1608Cmd HighShelf(int mute_bits);
 D1608Cmd DspEQSwitch(int eq_id, int mute_bits);
 D1608Cmd DspInputVolume(int dsp_num, int volume);
-
 D1608Cmd CoefParam(int dsp_num, int gain, int freq);
-
 D1608Cmd Watch(void);
+#endif
+//D1608Cmd InputDefault(int dsp_num, BOOL is_laston);
+//D1608Cmd InputAuto(int mute_bits);
+//D1608Cmd Mix_MaxPrio_Invert_Mute(int mix_panel_data);
+//D1608Cmd FShift(BOOL is_shift);
 
 #endif
+
