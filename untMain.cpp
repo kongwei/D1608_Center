@@ -923,7 +923,11 @@ void __fastcall TForm1::ToogleDO(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TForm1::ToogleOutputMix(TObject *Sender)
 {
-    pnlDspDetail->Hide();
+    if (last_dsp_btn != NULL)
+    {
+        last_out_num_btn = NULL;
+        last_dsp_btn->OnClick(last_dsp_btn);
+    }
 
     // 1 ~ 8
     if (last_out_num_btn)
@@ -1021,7 +1025,11 @@ void __fastcall TForm1::lvDeviceDblClick(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TForm1::ToggleDSP(TObject *Sender)
 {
-    pnlMix->Hide();
+    if (last_out_num_btn != NULL)
+    {
+        last_dsp_btn == NULL;
+        last_out_num_btn->OnClick(last_out_num_btn);
+    }
     
     // DSP button
     if (last_dsp_btn)
