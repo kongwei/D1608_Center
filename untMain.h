@@ -250,6 +250,12 @@ __published:	// IDE-managed Components
     TAdvTrackBar *p_input_inner_level;
     TPaintBox *pb_watch;
     TAdvTrackBar *input_panel_trackbar;
+    TPanel *pnlMix;
+    TImage *pnlmix_background;
+    TSpeedButtonNoFrame *pnlmix_mute;
+    TEdit *pnlmix_level_edit;
+    TAdvTrackBar *pnlmix_level_trackbar;
+    TStaticText *pnlmix_dsp_num;
     void __fastcall FormCreate(TObject *Sender);
     void __fastcall FormDestroy(TObject *Sender);
     void __fastcall btnRefreshClick(TObject *Sender);
@@ -322,6 +328,11 @@ __published:	// IDE-managed Components
     void __fastcall FormClick(TObject *Sender);
     void __fastcall FormMouseDown(TObject *Sender, TMouseButton Button,
           TShiftState Shift, int X, int Y);
+    void __fastcall pnlmix_level_trackbarChange(TObject *Sender);
+    void __fastcall pnlmix_level_editExit(TObject *Sender);
+    void __fastcall pnlmix_level_editKeyDown(TObject *Sender, WORD &Key,
+          TShiftState Shift);
+    void __fastcall pnlmix_muteClick(TObject *Sender);
 
 private:
     // 已经选择设备
@@ -371,6 +382,9 @@ public:		// User declarations
     TEdit* output_level_edit[16];
     TAdvTrackBar* input_level_trackbar[17];
     TAdvTrackBar* output_level_trackbar[16];
+
+    TEdit* mix_level_edit[17];
+    TAdvTrackBar* mix_level_trackbar[17];
 };
 //---------------------------------------------------------------------------
 extern PACKAGE TForm1 *Form1;

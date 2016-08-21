@@ -65,7 +65,9 @@ typedef struct
     int WatchLevel[INPUT_DSP_NUM + OUTPUT_DSP_NUM];
 	MasterConfigMap master;
     InputConfigMap mix_dsp;
+
 	int mix[INPUT_DSP_NUM+1][OUTPUT_DSP_NUM];
+	int mix_mute[INPUT_DSP_NUM+1][OUTPUT_DSP_NUM];
 }ConfigMap;
 
 extern ConfigMap config_map;

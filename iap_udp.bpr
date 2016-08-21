@@ -7,7 +7,7 @@
     <OBJFILES value="tmp\iap_udp.obj tmp\untMain.obj tmp\Coefficient.obj tmp\FilterList.obj 
       tmp\FilterPanelSet.obj tmp\SelectSort.obj tmp\WaveGraphic.obj 
       tmp\D1608Pack.obj tmp\ci_utiles.obj"/>
-    <RESFILES value="iap_udp.res"/>
+    <RESFILES value="iap_udp.res tmp\mixbutton.res"/>
     <IDLFILES value=""/>
     <IDLGENFILES value=""/>
     <DEFFILE value=""/>
@@ -31,13 +31,13 @@
     <USERDEFINES value="_DEBUG;STRICT"/>
     <SYSDEFINES value="NO_STRICT"/>
     <MAINSOURCE value="iap_udp.cpp"/>
-    <INCLUDEPATH value="ci\;ci;..\..\new\CentCtrl;$(BCB)\Lib;&quot;..\..\vcl component pack v6.0.2.0&quot;;filter_wave;..\..\CSP_850_A\版本上传上位机（iap_version）\iap_version;&quot;C:\Program Files\Borland\CBuilder6\Projects&quot;;F:\神州II号\iap_version;$(BCB)\include;$(BCB)\include\vcl"/>
-    <LIBPATH value="ci\;ci;..\..\new\CentCtrl;$(BCB)\Projects\Lib;&quot;..\..\vcl component pack v6.0.2.0&quot;;filter_wave;..\..\CSP_850_A\版本上传上位机（iap_version）\iap_version;&quot;C:\Program Files\Borland\CBuilder6\Projects&quot;;F:\神州II号\iap_version;$(BCB)\lib\obj;$(BCB)\lib"/>
+    <INCLUDEPATH value="..\..\别人的代码;ci\;ci;..\..\new\CentCtrl;$(BCB)\Lib;&quot;..\..\vcl component pack v6.0.2.0&quot;;filter_wave;..\..\CSP_850_A\版本上传上位机（iap_version）\iap_version;&quot;C:\Program Files\Borland\CBuilder6\Projects&quot;;F:\神州II号\iap_version;$(BCB)\include;$(BCB)\include\vcl"/>
+    <LIBPATH value="..\..\别人的代码;ci\;ci;..\..\new\CentCtrl;$(BCB)\Projects\Lib;&quot;..\..\vcl component pack v6.0.2.0&quot;;filter_wave;..\..\CSP_850_A\版本上传上位机（iap_version）\iap_version;&quot;C:\Program Files\Borland\CBuilder6\Projects&quot;;F:\神州II号\iap_version;$(BCB)\lib\obj;$(BCB)\lib"/>
     <WARNINGS value="-w-par"/>
     <OTHERFILES value=""/>
   </MACROS>
   <OPTIONS>
-    <IDLCFLAGS value="-Ici\. -Ici -I..\..\new\CentCtrl -I$(BCB)\Lib 
+    <IDLCFLAGS value="-I..\..\别人的代码 -Ici\. -Ici -I..\..\new\CentCtrl -I$(BCB)\Lib 
       -I&quot;..\..\vcl component pack v6.0.2.0&quot; -Ifilter_wave 
       -I..\..\CSP_850_A\版本上传上位机（iap_version）\iap_version 
       -I&quot;C:\Program Files\Borland\CBuilder6\Projects&quot; -IF:\神州II号\iap_version 
@@ -67,6 +67,7 @@
       <FILE FILENAME="filter_wave\WaveGraphic.cpp" FORMNAME="" UNITNAME="WaveGraphic.cpp" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
       <FILE FILENAME="D1608Pack.c" FORMNAME="" UNITNAME="D1608Pack" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
       <FILE FILENAME="ci\ci_utiles.cpp" FORMNAME="" UNITNAME="ci_utiles" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="mixbutton.rc" FORMNAME="" UNITNAME="mixbutton.rc" CONTAINERID="RCCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
   </FILELIST>
   <BUILDTOOLS>
   </BUILDTOOLS>

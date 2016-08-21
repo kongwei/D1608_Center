@@ -83,6 +83,15 @@ int GetLocalIpList(TStrings * IpList)
     }
 }
 //---------------------------------------------------------------------------
+static Gdipicture::TGDIPPicture* MixPicture[16] = {NULL};
+static void LoadMixBmp()
+{
+    for (int i=0;i<16;i++)
+    {
+        MixPicture[i] = new Gdipicture::TGDIPPicture();
+        MixPicture[i]->LoadFromResourceName(NULL, "mix"+IntToStr(i+1));
+    }
+}
 static TSpeedButton * CopyInputPanelButton(TSpeedButton * src_btn, int dsp_id, Graphics::TBitmap* bmp=NULL)
 {
     TSpeedButton * dsp_btn = new TSpeedButtonNoFrame(src_btn->Owner);
@@ -246,6 +255,96 @@ static void CopyWatchPanel(int panel_id, TForm1 * form, String label, int left)
     input_type->Parent = watch_panel;
     input_type->Tag = panel_id;
 }
+static TSpeedButton * CopyPnlMixButton(TSpeedButton * src_btn, int dsp_id, Graphics::TBitmap* bmp=NULL)
+{
+    TSpeedButton * dsp_btn = new TSpeedButtonNoFrame(src_btn->Owner);
+    dsp_btn->Caption = src_btn->Caption;
+    dsp_btn->BoundsRect = src_btn->BoundsRect;
+    dsp_btn->Left = src_btn->Left + (dsp_id-1) * PANEL_WIDTH;
+    dsp_btn->AllowAllUp = src_btn->AllowAllUp;
+    dsp_btn->GroupIndex = src_btn->GroupIndex;
+    dsp_btn->Flat = src_btn->Flat;
+    if (bmp == NULL)
+    {
+        dsp_btn->Glyph = src_btn->Glyph;
+    }
+    else
+    {
+        dsp_btn->Glyph = bmp;
+    }
+    dsp_btn->NumGlyphs = src_btn->NumGlyphs;
+    dsp_btn->Layout = src_btn->Layout;
+    dsp_btn->OnClick = src_btn->OnClick;
+    dsp_btn->Parent = src_btn->Parent;
+
+    dsp_btn->Tag = dsp_id;
+    dsp_btn->GroupIndex = (int)dsp_btn; // 所有按钮互不影响
+
+    return dsp_btn;
+}
+static TAdvTrackBar * CopyPnlMixTrackbar(TAdvTrackBar * src_trackbar, int dsp_id)
+{
+    TAdvTrackBar * trackbar = new TAdvTrackBar(src_trackbar->Parent);
+    trackbar->Parent = src_trackbar->Parent;
+
+    trackbar->OnChange = src_trackbar->OnChange;
+    trackbar->OnKeyDown = src_trackbar->OnKeyDown;
+    trackbar->OnEnter = src_trackbar->OnEnter;
+    trackbar->OnExit = src_trackbar->OnExit;
+
+    trackbar->Buttons->Size = src_trackbar->Buttons->Size;
+    trackbar->Buttons->Spacing = src_trackbar->Buttons->Spacing;
+    trackbar->Direction  = src_trackbar->Direction ;
+    trackbar->Max        = src_trackbar->Max       ;
+    trackbar->Min        = src_trackbar->Min       ;
+    trackbar->Orientation = src_trackbar->Orientation;
+
+    trackbar->Slider->Visible = src_trackbar->Slider->Visible;
+    trackbar->Slider->Offset = src_trackbar->Slider->Offset;
+    trackbar->Slider->Size = src_trackbar->Slider->Size;
+
+    trackbar->TickMark->Style = src_trackbar->TickMark->Style;
+
+    trackbar->BackGround = src_trackbar->BackGround;
+    trackbar->BackGroundStretched = src_trackbar->BackGroundStretched;
+
+    trackbar->Thumb->Picture = src_trackbar->Thumb->Picture;
+    trackbar->Thumb->PictureHot = src_trackbar->Thumb->PictureHot;
+    trackbar->Thumb->PictureDown = src_trackbar->Thumb->PictureDown;
+
+    trackbar->BoundsRect = src_trackbar->BoundsRect;
+    trackbar->Left = src_trackbar->Left + (dsp_id-1) * PANEL_WIDTH;
+
+    trackbar->Tag = dsp_id;
+
+    trackbar->OnChange(trackbar);
+
+    return trackbar;
+}
+static TEdit * CopyPnlMixEdit(TEdit * src_edit, int dsp_id)
+{
+    TEdit * edit = new TEdit(src_edit->Parent);
+    edit->BoundsRect = src_edit->BoundsRect;
+    edit->Left = src_edit->Left + (dsp_id-1) * PANEL_WIDTH;
+    edit->BorderStyle = src_edit->BorderStyle;
+    edit->Color = src_edit->Color;
+    edit->Font = src_edit->Font;
+    edit->Parent = src_edit->Parent;
+    edit->OnClick = src_edit->OnClick;
+    edit->OnKeyDown = src_edit->OnKeyDown;
+    edit->OnExit = src_edit->OnExit;
+    edit->Tag = dsp_id;
+    SetWindowLong(edit->Handle, GWL_STYLE, GetWindowLong(edit->Handle, GWL_STYLE) | ES_RIGHT);
+    return edit;
+}
+static void CreatePnlMix(int panel_id, TForm1 * form)
+{
+    CopyInputPanelButton(form->pnlmix_mute, panel_id);
+    form->mix_level_edit[panel_id-1] = CopyInputPanelEdit(form->pnlmix_level_edit, panel_id);
+    form->mix_level_trackbar[panel_id-1] = CopyInputPanelTrackbar(form->pnlmix_level_trackbar, panel_id);
+    CopyInputPanelLabel(form->pnlmix_dsp_num, panel_id)->Caption = String(char('A'-1+panel_id));
+}
+
 __fastcall TForm1::TForm1(TComponent* Owner)
     : TForm(Owner)
 {
@@ -296,6 +395,33 @@ __fastcall TForm1::TForm1(TComponent* Owner)
     {
         CreateOutputPanel(i, this);
     }
+
+    //----------------------------------
+    // 生成pnlmix背景
+    pnlmix_background->Picture->Bitmap->Width = 17 * PANEL_WIDTH;
+    for (int i=1;i<17;i++)
+    {
+        TRect templet_image_rect = pnlmix_background->BoundsRect;
+        templet_image_rect.Right = PANEL_WIDTH;
+        
+        TRect dest_rect = TRect(i*PANEL_WIDTH,
+                                templet_image_rect.Top,
+                                (i+1)*PANEL_WIDTH,
+                                templet_image_rect.Bottom);
+        pnlmix_background->Canvas->CopyRect(dest_rect, pnlmix_background->Canvas, templet_image_rect);
+    }
+
+    LoadMixBmp();
+
+    // 生成PnlMix
+    for (int i=2;i<=17;i++)
+    {
+        CreatePnlMix(i, this);
+    }
+    mix_level_edit[0] = pnlmix_level_edit;
+    mix_level_trackbar[0] = pnlmix_level_trackbar;
+    SetWindowLong(pnlmix_level_edit->Handle, GWL_STYLE, GetWindowLong(pnlmix_level_edit->Handle, GWL_STYLE) | ES_RIGHT);
+    pnlmix_level_trackbar->OnChange(pnlmix_level_trackbar);
 
     //----------------------------------
     for (int i=17;i<=17+15;i++)
@@ -602,30 +728,17 @@ void __fastcall TForm1::InputVolumeChange(TObject *Sender)
         }
     }
 
-    if (last_out_num_btn == NULL)
+    if (dsp_num < 17)
     {
-        if (dsp_num < 17)
-        {
-            D1608Cmd cmd;
-            cmd.id = GerOffsetOfData(&config_map.input_dsp[dsp_num-1].level_a);
-            cmd.value[0] = value;
-            SendCmd(cmd);
-        }
-        else
-        {
-            D1608Cmd cmd;
-            cmd.id = GerOffsetOfData(&config_map.mix_dsp.level_a);
-            cmd.value[0] = value;
-            SendCmd(cmd);
-        }
+        D1608Cmd cmd;
+        cmd.id = GerOffsetOfData(&config_map.input_dsp[dsp_num-1].level_a);
+        cmd.value[0] = value;
+        SendCmd(cmd);
     }
     else
     {
-        int in_dsp_num = dsp_num;
-        int out_dsp_num = last_out_num_btn->Tag;
-
         D1608Cmd cmd;
-        cmd.id = GerOffsetOfData(&config_map.mix[in_dsp_num-1][out_dsp_num-1]);
+        cmd.id = GerOffsetOfData(&config_map.mix_dsp.level_a);
         cmd.value[0] = value;
         SendCmd(cmd);
     }
@@ -810,6 +923,8 @@ void __fastcall TForm1::ToogleDO(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TForm1::ToogleOutputMix(TObject *Sender)
 {
+    pnlDspDetail->Hide();
+
     // 1 ~ 8
     if (last_out_num_btn)
     {
@@ -820,10 +935,29 @@ void __fastcall TForm1::ToogleOutputMix(TObject *Sender)
     if (btn->Down)
     {
         last_out_num_btn = btn;
+        // 切换按钮颜色
+
+        for (int i=0;i<17;i++)
+        {
+            TAdvTrackBar* trackbar = mix_level_trackbar[i];
+            if (trackbar != NULL)
+            {
+                trackbar->Thumb->Picture = MixPicture[btn->Tag - 1];
+                trackbar->Thumb->PictureDown = MixPicture[btn->Tag - 1];
+                trackbar->Thumb->PictureHot = MixPicture[btn->Tag - 1];
+            }
+        }
+
+        pnlMix->Left = Width - 30 - pnlMix->Width;
+
+        pnlMix->Top = 312;
+        pnlMix->Show();
+        pnlMix->Tag = btn->Tag;
     }
     else
     {
         last_out_num_btn = NULL;
+        pnlMix->Hide();
     }
 }
 //---------------------------------------------------------------------------
@@ -887,6 +1021,8 @@ void __fastcall TForm1::lvDeviceDblClick(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TForm1::ToggleDSP(TObject *Sender)
 {
+    pnlMix->Hide();
+    
     // DSP button
     if (last_dsp_btn)
     {
@@ -1469,6 +1605,94 @@ void __fastcall TForm1::FormMouseDown(TObject *Sender, TMouseButton Button,
       TShiftState Shift, int X, int Y)
 {
     //
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::pnlmix_level_trackbarChange(TObject *Sender)
+{
+    TAdvTrackBar* track = (TAdvTrackBar*)Sender;
+    int value = track->Position;
+    int dsp_num = track->Tag;
+
+    if (mix_level_edit[dsp_num-1] != NULL)
+    {
+        if (value == -720)
+        {
+            mix_level_edit[dsp_num-1]->Text = "Off";
+        }
+        else
+        {
+            String x;
+            mix_level_edit[dsp_num-1]->Text = x.sprintf("%1.1f", value/10.0);
+        }
+    }
+
+    if (last_out_num_btn != NULL)
+    {
+        int in_dsp_num = dsp_num;
+        int out_dsp_num = last_out_num_btn->Tag;
+
+        D1608Cmd cmd;
+        cmd.id = GerOffsetOfData(&config_map.mix[in_dsp_num-1][out_dsp_num-1]);
+        cmd.value[0] = value;
+        SendCmd(cmd);
+    }
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::pnlmix_level_editExit(TObject *Sender)
+{
+    TEdit * edt = (TEdit*)Sender;
+    int dsp_num = edt->Tag;
+    if (mix_level_trackbar[dsp_num-1] != NULL)
+    {
+        pnlmix_level_trackbarChange(mix_level_trackbar[dsp_num-1]);
+        edt->OnClick = input_panel_level_editClick; 
+    }
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::pnlmix_level_editKeyDown(TObject *Sender,
+      WORD &Key, TShiftState Shift)
+{
+    TEdit * edt = (TEdit*)Sender;
+    int dsp_num = edt->Tag;
+    if (mix_level_trackbar[dsp_num-1] == NULL)
+        return;
+
+    if (Key == VK_RETURN)
+    {
+        try{
+            if (edt->Text.UpperCase() == "OFF")
+                mix_level_trackbar[dsp_num-1]->Position = mix_level_trackbar[dsp_num-1]->Min;
+            else
+                mix_level_trackbar[dsp_num-1]->Position = edt->Text.ToDouble() * 10;
+        }catch(...){
+        }
+
+        pnlmix_level_trackbarChange(mix_level_trackbar[dsp_num-1]);
+        edt->SelectAll();
+    }
+    else if (Key == VK_UP || Key == VK_DOWN || Key == VK_PRIOR || Key == VK_NEXT)
+    {
+        mix_level_trackbar[dsp_num-1]->Perform(WM_KEYDOWN, Key, 1);
+        edt->SelectAll();
+        Key = 0;
+    }
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::pnlmix_muteClick(TObject *Sender)
+{
+    TSpeedButton* btn = (TSpeedButton*)Sender;
+    int dsp_num = btn->Tag;
+
+    if (last_out_num_btn != NULL && mix_level_trackbar[dsp_num] != NULL)
+    {
+        int in_dsp_num = dsp_num;
+        int out_dsp_num = last_out_num_btn->Tag;
+
+        D1608Cmd cmd;
+        cmd.id = GerOffsetOfData(&config_map.mix_mute[in_dsp_num-1][out_dsp_num-1]);
+        cmd.value[0] = btn->Down;
+        SendCmd(cmd);
+    }
 }
 //---------------------------------------------------------------------------
 
