@@ -126,6 +126,7 @@ void __fastcall PanelAgent::cbTypeChange(TObject *Sender)
     }
     else
     {
+        GetGainText(band)->Text = _filter_set.GetFilter(band)->GetGain();
         GetGainText(band)->Enabled = true;
     }
 
@@ -139,6 +140,7 @@ void __fastcall PanelAgent::cbTypeChange(TObject *Sender)
     }
 
     _filter_set.RepaintPaint();
+//    edtGain->Text = _filter_set.GetFilter(band)->GetGain();
 }
 
 void __fastcall PanelAgent::cbBypassClick(TObject *Sender)
@@ -245,14 +247,12 @@ void __fastcall PanelAgent::edtGainKeyDown(TObject *Sender, WORD &Key,
         {
             TEdit * edtGain = (TEdit*)Sender;
             double gain = Str2Double(edtGain->Text, _filter_set.GetFilter(band)->GetGain());
-            gain = max(gain, -30.0);
-            gain = min(gain, 15.0);
-
-            edtGain->Text = gain;
-            edtGain->SelectAll();
 
             _filter_set.GetFilter(band)->SetGain(gain);
             _filter_set.RepaintPaint();
+
+            edtGain->Text = _filter_set.GetFilter(band)->GetGain();
+            edtGain->SelectAll();
         }
     }
     else if (Key == VK_ESCAPE)
@@ -284,14 +284,12 @@ void __fastcall PanelAgent::edtGainKeyDown(TObject *Sender, WORD &Key,
             gain -= 1;
             gain = int(gain);
         }
-        gain = max(gain, -30.0);
-        gain = min(gain, 15.0);
-
-        edtGain->Text = gain;
-        edtGain->SelectAll();
 
         _filter_set.GetFilter(band)->SetGain(gain);
         _filter_set.RepaintPaint();
+
+        edtGain->Text = _filter_set.GetFilter(band)->GetGain();
+        edtGain->SelectAll();
     }
 }
 //---------------------------------------------------------------------------

@@ -169,9 +169,6 @@ void __fastcall PaintAgent::OnMouseMove(TObject *Sender, TShiftState Shift,
             freq = min(freq, 20000.0);
         }
 
-        gain = max(gain, -30.0);
-        gain = min(gain, 15.0);
-
         _filter_set.GetFilter(_filter_set.GetActiveBand())->SetFreqGain(freq, gain);
         _filter_set.RepaintPaint(_filter_set.GetActiveBand());
 

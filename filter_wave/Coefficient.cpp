@@ -4,6 +4,7 @@
 #pragma hdrstop
 
 #include "Coefficient.h"
+#include <algorithm>
 #include "untMain.h"
 //---------------------------------------------------------------------------
 
@@ -138,10 +139,8 @@ void Coefficient::ChangFilterParameter(String type, double freq, double gain, do
         return;
     }
 
-    _type = type;
-    _freq = freq;
-    _gain = gain;
-    _q = q;
+    gain = std::max(gain, -30.0);
+    gain = std::min(gain, 15.0);
 
     if (type == "Parametric")
     {
@@ -155,11 +154,15 @@ void Coefficient::ChangFilterParameter(String type, double freq, double gain, do
     }
     else if (type == "High Shelf")
     {
+        gain = std::min(gain, 12.0);
+
         HighShelving(freq, gain, q);
         _type_id = 3;
     }
     else if (type == "Low Shelf")
     {
+        gain = std::min(gain, 12.0);
+
         LowShelving(freq, gain, q);
         _type_id = 4;
     }
@@ -296,6 +299,12 @@ void Coefficient::ChangFilterParameter(String type, double freq, double gain, do
         Pink(freq, gain, q);
         _type_id = 7;
     }
+
+
+    _type = type;
+    _freq = freq;
+    _gain = gain;
+    _q = q;
 
     float base = 0.5;
     if (Form1->divbase->Checked)

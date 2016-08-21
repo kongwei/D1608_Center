@@ -832,6 +832,19 @@ public:
         }
     }
 
+    double GetMaxGain()
+    {
+        // High Shelf 和 Low Shelf最高Gain不超过12
+        if (_type_id == 3 || _type_id == 4)
+        {
+            return 12;
+        }
+        else
+        {
+            return 15;
+        }
+    }
+
 private:
     double a0, a1, a2;
     double b0, b1, b2;
