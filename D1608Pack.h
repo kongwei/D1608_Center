@@ -9,11 +9,11 @@
 #pragma pack(push, 1)
 typedef struct
 {
-	unsigned int TYPE;
-    int GAIN;
+	unsigned short TYPE;
+    signed short GAIN;
     unsigned int FREQ;
-    unsigned int Q;
-	int bypass;
+    unsigned short Q;
+	short bypass;
 }FilterConfigMap;
 
 typedef struct
@@ -30,9 +30,7 @@ typedef struct
     int level_b;
     int gain;
     unsigned int delay;
-    FilterConfigMap filter_pad1;
-    FilterConfigMap filter_pad2;
-    FilterConfigMap filter[11];
+    FilterConfigMap filter[9];
 }InputConfigMap;
 typedef struct
 {
@@ -48,9 +46,7 @@ typedef struct
     int level_b;
     int gain;
     unsigned int pad5;
-    FilterConfigMap high_pass;
-    FilterConfigMap low_pass;
-    FilterConfigMap filter[11];
+    FilterConfigMap filter[9];
 }OutputConfigMap;
 typedef struct
 {
@@ -66,8 +62,8 @@ typedef struct
 	MasterConfigMap master;
     InputConfigMap mix_dsp;
 
-	int mix[INPUT_DSP_NUM+1][OUTPUT_DSP_NUM];
-	int mix_mute[INPUT_DSP_NUM+1][OUTPUT_DSP_NUM];
+	short mix[INPUT_DSP_NUM+1][OUTPUT_DSP_NUM];
+	unsigned char mix_mute[INPUT_DSP_NUM+1][OUTPUT_DSP_NUM];
 }ConfigMap;
 
 extern ConfigMap config_map;

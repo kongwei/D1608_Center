@@ -12,7 +12,6 @@
 #pragma link "AdvTrackBar"
 #pragma link "SpeedButtonNoFrame"
 #pragma link "AdvGDIPicture"
-#pragma link "AdvGDIPicture"
 #pragma resource "*.dfm"
 #pragma comment(lib, "gdiplus.lib")
 
@@ -491,6 +490,13 @@ __fastcall TForm1::TForm1(TComponent* Owner)
 //---------------------------------------------------------------------------
 void __fastcall TForm1::FormCreate(TObject *Sender)
 {
+    // 输出结构体大小
+    memo_debug->Lines->Add("InputConfigMap:" + IntToStr(sizeof(InputConfigMap)));
+    memo_debug->Lines->Add("OutputConfigMap:" + IntToStr(sizeof(OutputConfigMap)));
+    memo_debug->Lines->Add("MasterConfigMap:" + IntToStr(sizeof(MasterConfigMap)));
+    memo_debug->Lines->Add("ConfigMap:" + IntToStr(sizeof(ConfigMap)));
+    memo_debug->Lines->Add("mix_mute:" + IntToStr(sizeof(config_map.mix_mute)));
+
     // 根据数量初始化控制器
     // Panel->Tag
     // Panel->Left

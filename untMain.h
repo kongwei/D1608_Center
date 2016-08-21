@@ -256,6 +256,8 @@ __published:	// IDE-managed Components
     TEdit *pnlmix_level_edit;
     TAdvTrackBar *pnlmix_level_trackbar;
     TStaticText *pnlmix_dsp_num;
+    TTabSheet *TabSheet1;
+    TMemo *memo_debug;
     void __fastcall FormCreate(TObject *Sender);
     void __fastcall FormDestroy(TObject *Sender);
     void __fastcall btnRefreshClick(TObject *Sender);
