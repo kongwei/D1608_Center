@@ -101,7 +101,7 @@ void FilterSet::RepaintPaint(int band)
 
     if (band > 0)
     {
-        // TODO: 下发系数
+        // TODO: 下发系数 需要优化
         D1608Cmd cmd;
         double tmp;
 

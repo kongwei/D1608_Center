@@ -1262,7 +1262,6 @@ void __fastcall TForm1::ToggleDSP(TObject *Sender)
         pnlDspDetail->Top = 192;
         pnlDspDetail->Show();
 
-        // TODO: 加载面板参数和不同类型
         panel_agent->LoadPreset();
         PaintBox1->Refresh();
     }
