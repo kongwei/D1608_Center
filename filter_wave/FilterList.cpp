@@ -105,15 +105,7 @@ void FilterSet::RepaintPaint(int band)
         D1608Cmd cmd;
         double tmp;
 
-        if (dsp_id < 100)
-        {
-            cmd.id = GerOffsetOfData(&config_map.input_dsp[dsp_id-1].filter[band-1]);
-        }
-        else
-        {
-            cmd.id = GerOffsetOfData(&config_map.output_dsp[dsp_id-101].filter[band-1]);
-        }
-        cmd.value[0] = GetFilter(band)->GetTypeId();   // type
+        cmd.value[0] = GetFilter(band)->GetTypeId();   // TYPE
 
         tmp = GetFilterFreq(band)*10;
         cmd.value[1] = tmp;           // FREQ
@@ -126,6 +118,25 @@ void FilterSet::RepaintPaint(int band)
 
         tmp = IsBypass(band) ? 1 : 0;   // Bypass
         cmd.value[4] = tmp;
+
+        if (dsp_id < 100)
+        {
+            cmd.id = GerOffsetOfData(&config_map.input_dsp[dsp_id-1].filter[band-1]);
+            config_map.input_dsp[dsp_id-1].filter[band-1].TYPE = cmd.value[0];
+            config_map.input_dsp[dsp_id-1].filter[band-1].FREQ = cmd.value[1];
+            config_map.input_dsp[dsp_id-1].filter[band-1].GAIN = cmd.value[2];
+            config_map.input_dsp[dsp_id-1].filter[band-1].Q = cmd.value[3];
+            config_map.input_dsp[dsp_id-1].filter[band-1].bypass = cmd.value[4];
+        }
+        else
+        {
+            cmd.id = GerOffsetOfData(&config_map.output_dsp[dsp_id-101].filter[band-1]);
+            config_map.output_dsp[dsp_id-101].filter[band-1].TYPE = cmd.value[0];
+            config_map.output_dsp[dsp_id-101].filter[band-1].FREQ = cmd.value[1];
+            config_map.output_dsp[dsp_id-101].filter[band-1].GAIN = cmd.value[2];
+            config_map.output_dsp[dsp_id-101].filter[band-1].Q = cmd.value[3];
+            config_map.output_dsp[dsp_id-101].filter[band-1].bypass = cmd.value[4];
+        }
 
         Form1->SendCmd(cmd);
     }

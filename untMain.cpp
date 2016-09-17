@@ -20,6 +20,10 @@
 TForm1 *Form1;
 ConfigMap config_map;
 TAdvGDIPPicture * x = new TAdvGDIPPicture();
+
+static bool on_loading = false;
+
+String save_file_name = "";
 //---------------------------------------------------------------------------
 void SelectNullControl()
 {
@@ -98,7 +102,6 @@ static TSpeedButton * CopyInputPanelButton(TSpeedButton * src_btn, int dsp_id, G
     dsp_btn->BoundsRect = src_btn->BoundsRect;
     dsp_btn->Left = src_btn->Left + (dsp_id-1) * PANEL_WIDTH;
     dsp_btn->AllowAllUp = src_btn->AllowAllUp;
-    dsp_btn->GroupIndex = src_btn->GroupIndex;
     dsp_btn->Flat = src_btn->Flat;
     if (bmp == NULL)
     {
@@ -187,13 +190,13 @@ static TStaticText * CopyInputPanelLabel(TStaticText * src_label, int dsp_id)
 static void CreateInputPanel(int panel_id, TForm1 * form)
 {
     CopyInputPanelButton(form->input_panel_dsp_btn, panel_id)->Caption = "DSP " + String(char('A'-1+panel_id));
-    CopyInputPanelButton(form->input_panel_eq_btn, panel_id);
-    CopyInputPanelButton(form->input_panel_comp_btn, panel_id);
-    CopyInputPanelButton(form->input_panel_auto_btn, panel_id);
-    CopyInputPanelButton(form->input_panel_default_btn, panel_id);
-    CopyInputPanelButton(form->input_panel_invert_btn, panel_id);
-    CopyInputPanelButton(form->input_panel_noise_btn, panel_id);
-    CopyInputPanelButton(form->input_panel_mute_btn, panel_id);
+    form->input_eq_btn[panel_id-1] = CopyInputPanelButton(form->input_panel_eq_btn, panel_id);
+    form->input_comp_btn[panel_id-1] = CopyInputPanelButton(form->input_panel_comp_btn, panel_id);
+    form->input_auto_btn[panel_id-1] = CopyInputPanelButton(form->input_panel_auto_btn, panel_id);
+    form->input_default_btn[panel_id-1] = CopyInputPanelButton(form->input_panel_default_btn, panel_id);
+    form->input_invert_btn[panel_id-1] = CopyInputPanelButton(form->input_panel_invert_btn, panel_id);
+    form->input_noise_btn[panel_id-1] = CopyInputPanelButton(form->input_panel_noise_btn, panel_id);
+    form->input_mute_btn[panel_id-1] = CopyInputPanelButton(form->input_panel_mute_btn, panel_id);
     form->input_level_edit[panel_id-1] = CopyInputPanelEdit(form->input_panel_level_edit, panel_id);
     form->input_level_trackbar[panel_id-1] = CopyInputPanelTrackbar(form->input_panel_trackbar, panel_id);
     CopyInputPanelLabel(form->input_panel_dsp_num, panel_id)->Caption = String(char('A'-1+panel_id));
@@ -203,15 +206,15 @@ static void CreateOutputPanel(int panel_id, TForm1 * form)
     TSpeedButton * btn_output_dsp = CopyInputPanelButton(form->output_panel_dsp_btn, panel_id);
         btn_output_dsp->Caption = "DSP" + IntToStr(panel_id);
         btn_output_dsp->Tag = 100 + panel_id;
-    CopyInputPanelButton(form->output_panel_eq_btn, panel_id);
-    CopyInputPanelButton(form->output_panel_limit_btn, panel_id);
+    form->output_eq_btn[panel_id-1] = CopyInputPanelButton(form->output_panel_eq_btn, panel_id);
+    form->output_comp_btn[panel_id-1] = CopyInputPanelButton(form->output_panel_comp_btn, panel_id);
+    form->output_invert_btn[panel_id-1] = CopyInputPanelButton(form->output_panel_invert_btn, panel_id);
+    form->output_mute_btn[panel_id-1] = CopyInputPanelButton(form->output_panel_mute_btn, panel_id);
 
     Graphics::TBitmap * bmp = new Graphics::TBitmap();
     form->ImageList1->GetBitmap(panel_id-1, bmp);
     CopyInputPanelButton(form->output_panel_number_btn, panel_id, bmp);
 
-    CopyInputPanelButton(form->output_panel_invert_btn, panel_id);
-    CopyInputPanelButton(form->output_panel_mute_btn, panel_id);
     form->output_level_edit[panel_id-1] = CopyInputPanelEdit(form->output_panel_level_edit, panel_id);
     form->output_level_trackbar[panel_id-1] = CopyInputPanelTrackbar(form->output_panel_trackbar, panel_id);
     CopyInputPanelLabel(form->output_panel_dsp_num, panel_id)->Caption = IntToStr(panel_id);
@@ -338,7 +341,7 @@ static TEdit * CopyPnlMixEdit(TEdit * src_edit, int dsp_id)
 }
 static void CreatePnlMix(int panel_id, TForm1 * form)
 {
-    CopyInputPanelButton(form->pnlmix_mute, panel_id);
+    form->mix_mute_btn[panel_id-1] = CopyInputPanelButton(form->pnlmix_mute, panel_id);
     form->mix_level_edit[panel_id-1] = CopyInputPanelEdit(form->pnlmix_level_edit, panel_id);
     form->mix_level_trackbar[panel_id-1] = CopyInputPanelTrackbar(form->pnlmix_level_trackbar, panel_id);
     CopyInputPanelLabel(form->pnlmix_dsp_num, panel_id)->Caption = String(char('A'-1+panel_id));
@@ -361,6 +364,13 @@ __fastcall TForm1::TForm1(TComponent* Owner)
         input_panel_bkground->Canvas->CopyRect(dest_rect, input_panel_bkground->Canvas, templet_image_rect);
     }
     // 生成InputPanel
+    input_eq_btn[0] = input_panel_eq_btn;
+    input_comp_btn[0] = input_panel_comp_btn;
+    input_auto_btn[0] = input_panel_auto_btn;
+    input_default_btn[0] = input_panel_default_btn;
+    input_invert_btn[0] = input_panel_invert_btn;
+    input_noise_btn[0] = input_panel_noise_btn;
+    input_mute_btn[0] = input_panel_mute_btn;
     for (int i=2;i<=16;i++)
     {
         CreateInputPanel(i, this);
@@ -390,6 +400,11 @@ __fastcall TForm1::TForm1(TComponent* Owner)
 
     output_panel_trackbar->Thumb->PictureDown = input_panel_trackbar->Thumb->PictureDown;
     output_panel_trackbar->Thumb->PictureHot = input_panel_trackbar->Thumb->PictureHot;
+
+    output_eq_btn[0] = output_panel_eq_btn;
+    output_comp_btn[0] = output_panel_comp_btn;
+    output_invert_btn[0] = output_panel_invert_btn;
+    output_mute_btn[0] = output_panel_mute_btn;
     for (int i=2;i<=OUTPUT_DSP_NUM;i++)
     {
         CreateOutputPanel(i, this);
@@ -413,6 +428,7 @@ __fastcall TForm1::TForm1(TComponent* Owner)
     LoadMixBmp();
 
     // 生成PnlMix
+    mix_mute_btn[0] = pnlmix_mute;
     for (int i=2;i<=17;i++)
     {
         CreatePnlMix(i, this);
@@ -480,6 +496,7 @@ __fastcall TForm1::TForm1(TComponent* Owner)
     panel_agent->SetPanel(9, panelBand10, edtFreq10, edtQ10, edtGain10, cbType10, cbBypass10);
 
     btnDspResetEQ->Click();
+    InitConfigMap();
 
     InitGdipus();
 
@@ -518,6 +535,8 @@ void __fastcall TForm1::FormCreate(TObject *Sender)
 
     //tsSearch->Show();
     this->Repaint();
+
+    pnlMix->BringToFront();
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::FormDestroy(TObject *Sender)
@@ -540,7 +559,13 @@ void TForm1::SendCmd(D1608Cmd& cmd)
         edtDebug->Text = edtDebug->Text + IntToHex(p[i], 2) + " ";
     }
 #endif
-    udpControl->SendBuffer(dst_ip, 2305, &cmd, sizeof(cmd));
+    if (on_loading)
+    {
+    }
+    else
+    {
+        udpControl->SendBuffer(dst_ip, 2305, &cmd, sizeof(cmd));
+    }
 }
 //---------------------------------------------------------------------------
 void TForm1::SendCICmd(CIDebugCmd& cmd)
@@ -740,13 +765,15 @@ void __fastcall TForm1::InputVolumeChange(TObject *Sender)
         cmd.id = GerOffsetOfData(&config_map.input_dsp[dsp_num-1].level_a);
         cmd.value[0] = value;
         SendCmd(cmd);
+
+        config_map.input_dsp[dsp_num-1].level_a = value;
     }
     else
     {
-        D1608Cmd cmd;
-        cmd.id = GerOffsetOfData(&config_map.mix_dsp.level_a);
-        cmd.value[0] = value;
-        SendCmd(cmd);
+        //D1608Cmd cmd;
+        //cmd.id = GerOffsetOfData(&config_map.mix_dsp.level_a);
+        //cmd.value[0] = value;
+        //SendCmd(cmd);
     }
 }
 //---------------------------------------------------------------------------
@@ -759,6 +786,8 @@ void __fastcall TForm1::ToogleMute(TObject *Sender)
     cmd.id = GerOffsetOfData(&config_map.input_dsp[dsp_id-1].mute_switch);
     cmd.value[0] = btn->Down;
     SendCmd(cmd);
+
+    config_map.input_dsp[dsp_id-1].mute_switch = btn->Down;
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::ToogleNoise(TObject *Sender)
@@ -770,6 +799,8 @@ void __fastcall TForm1::ToogleNoise(TObject *Sender)
     cmd.id = GerOffsetOfData(&config_map.input_dsp[dsp_id-1].noise_switch);
     cmd.value[0] = btn->Down;
     SendCmd(cmd);
+
+    config_map.input_dsp[dsp_id-1].noise_switch = btn->Down;
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::ToogleInvert(TObject *Sender)
@@ -781,6 +812,8 @@ void __fastcall TForm1::ToogleInvert(TObject *Sender)
     cmd.id = GerOffsetOfData(&config_map.input_dsp[dsp_id-1].invert_switch);
     cmd.value[0] = btn->Down;
     SendCmd(cmd);
+
+    config_map.input_dsp[dsp_id-1].invert_switch = btn->Down;
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::ToogleDefault(TObject *Sender)
@@ -842,18 +875,155 @@ void __fastcall TForm1::ToogleEQ(TObject *Sender)
     cmd.id = GerOffsetOfData(&config_map.input_dsp[dsp_id-1].eq_switch);
     cmd.value[0] = btn->Down;
     SendCmd(cmd);
+
+    config_map.input_dsp[dsp_id-1].eq_switch = btn->Down;
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
       TIdSocketHandle *ABinding)
 {
-    D1608Cmd cmd = {0};
-    AData->ReadBuffer(&cmd, std::min(sizeof(cmd), AData->Size));
-
-    if (cmd.id == GerOffsetOfData(&config_map.WatchLevel))
+    typedef struct
     {
-        // 音量输出
-        MsgWatchHandle(cmd);
+        char flag[30];
+        int preset;
+        int type;
+        unsigned int id;
+        char data[1024];
+    }D1608PresetCmd;
+
+    if (ABinding->PeerPort == 2305)
+    {
+        D1608Cmd cmd = {0};
+        AData->ReadBuffer(&cmd, std::min(sizeof(cmd), AData->Size));
+
+        if (cmd.id == GerOffsetOfData(&config_map.WatchLevel))
+        {
+            // 音量输出
+            MsgWatchHandle(cmd);
+        }
+    }
+    else if (ABinding->PeerPort == 904)
+    {
+        D1608PresetCmd cmd;
+        cmd.preset = cbPresetId->ItemIndex;
+        cmd.type = 0;
+
+        on_loading = true;
+        udpControl->SendBuffer(dst_ip, 905, &cmd, sizeof(cmd));
+    }
+    else if (ABinding->PeerPort == 905)
+    {
+        D1608PresetCmd cmd;
+        AData->ReadBuffer(&cmd, std::min(sizeof(cmd), AData->Size));
+
+        switch(cmd.type)
+        {
+        case 0:
+            memcpy(&config_map.input_dsp[0], cmd.data, sizeof(config_map.input_dsp[0])*4);
+            break;
+        case 1:
+            memcpy(&config_map.input_dsp[4], cmd.data, sizeof(config_map.input_dsp[0])*4);
+            break;
+        case 2:
+            memcpy(&config_map.input_dsp[8], cmd.data, sizeof(config_map.input_dsp[0])*4);
+            break;
+        case 3:
+            memcpy(&config_map.input_dsp[12],cmd.data,  sizeof(config_map.input_dsp[0])*4);
+            break;
+        case 4:
+            memcpy(&config_map.output_dsp[0],cmd.data,  sizeof(config_map.output_dsp[0])*4);
+            break;
+        case 5:
+            memcpy(&config_map.output_dsp[4],cmd.data,  sizeof(config_map.output_dsp[0])*4);
+            break;
+        case 6:
+            memcpy(&config_map.output_dsp[8],cmd.data,  sizeof(config_map.output_dsp[0])*4);
+            break;
+        case 7:
+            memcpy(&config_map.output_dsp[12], cmd.data, sizeof(config_map.output_dsp[0])*4);
+            break;
+        case 8:
+            memcpy(&config_map.master, cmd.data,
+                    sizeof(config_map.master)+sizeof(config_map.mix)+sizeof(config_map.mix_mute));
+
+            // 修改界面
+            for (int i=0;i<16;i++)
+            {
+                input_eq_btn[i]->Down = config_map.input_dsp[i].eq_switch;
+                input_comp_btn[i]->Down = config_map.input_dsp[i].comp_switch;
+                input_auto_btn[i]->Down = config_map.input_dsp[i].auto_switch;
+                //input_default_btn[i]->Down = config_map.input_dsp[i].;
+                input_invert_btn[i]->Down = config_map.input_dsp[i].invert_switch;
+                input_noise_btn[i]->Down = config_map.input_dsp[i].noise_switch;
+                input_mute_btn[i]->Down = config_map.input_dsp[i].mute_switch;
+                input_level_trackbar[i]->Position = config_map.input_dsp[i].level_a;
+            }
+
+            for (int i=0;i<16;i++)
+            {
+                output_eq_btn[i]->Down = config_map.output_dsp[i].eq_switch;
+                output_comp_btn[i]->Down = config_map.output_dsp[i].comp_switch;
+                output_invert_btn[i]->Down = config_map.output_dsp[i].invert_switch;
+                output_mute_btn[i]->Down = config_map.output_dsp[i].mute_switch;
+                output_level_trackbar[i]->Position = config_map.output_dsp[i].level_a;
+            }
+
+            // 子窗体的数据在加载时更新
+
+            on_loading = false;
+            break;
+        }
+
+        if (cmd.type != 8)
+        {
+            // next
+            cmd.type++;
+            udpControl->SendBuffer(dst_ip, 905, &cmd, sizeof(cmd));
+        }
+    }
+    else if (ABinding->PeerPort == 907)
+    {
+        D1608PresetCmd cmd;
+        AData->ReadBuffer(&cmd, std::min(sizeof(cmd), AData->Size));
+
+        cmd.type++;
+
+        switch(cmd.type)
+        {
+        case 0:
+            memcpy(cmd.data, &config_map.input_dsp[0], sizeof(config_map.input_dsp[0])*4);
+            break;
+        case 1:
+            memcpy(cmd.data, &config_map.input_dsp[4], sizeof(config_map.input_dsp[0])*4);
+            break;
+        case 2:
+            memcpy(cmd.data, &config_map.input_dsp[8], sizeof(config_map.input_dsp[0])*4);
+            break;
+        case 3:
+            memcpy(cmd.data, &config_map.input_dsp[12], sizeof(config_map.input_dsp[0])*4);
+            break;
+        case 4:
+            memcpy(cmd.data, &config_map.output_dsp[0], sizeof(config_map.output_dsp[0])*4);
+            break;
+        case 5:
+            memcpy(cmd.data, &config_map.output_dsp[4], sizeof(config_map.output_dsp[0])*4);
+            break;
+        case 6:
+            memcpy(cmd.data, &config_map.output_dsp[8], sizeof(config_map.output_dsp[0])*4);
+            break;
+        case 7:
+            memcpy(cmd.data, &config_map.output_dsp[12], sizeof(config_map.output_dsp[0])*4);
+            break;
+        case 8:
+            memcpy(cmd.data, &config_map.master,
+                    sizeof(config_map.master)+sizeof(config_map.mix)+sizeof(config_map.mix_mute));
+        default:
+            break;
+        }
+        if (cmd.type <= 8)
+        {
+            udpControl->SendBuffer(dst_ip, 907, &cmd, sizeof(cmd));
+        }
     }
 }
 //---------------------------------------------------------------------------
@@ -904,6 +1074,8 @@ void __fastcall TForm1::ToogleOutputMute(TObject *Sender)
     cmd.id = GerOffsetOfData(&config_map.output_dsp[dsp_id-1].mute_switch);
     cmd.value[0] = btn->Down;
     SendCmd(cmd);
+
+    config_map.output_dsp[dsp_id-1].mute_switch = btn->Down;
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::ToogleOutputInvert(TObject *Sender)
@@ -915,6 +1087,8 @@ void __fastcall TForm1::ToogleOutputInvert(TObject *Sender)
     cmd.id = GerOffsetOfData(&config_map.output_dsp[dsp_id-1].invert_switch);
     cmd.value[0] = btn->Down;
     SendCmd(cmd);
+
+    config_map.output_dsp[dsp_id-1].invert_switch = btn->Down;
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::SpeedButton119Click(TObject *Sender)
@@ -963,6 +1137,15 @@ void __fastcall TForm1::ToogleOutputMix(TObject *Sender)
         pnlMix->Top = 312;
         pnlMix->Show();
         pnlMix->Tag = btn->Tag;
+
+        // 数据
+        int out_dsp_num = last_out_num_btn->Tag;
+
+        for (int i=0;i<16;i++)
+        {
+            mix_mute_btn[i]->Down = config_map.mix_mute[i][out_dsp_num-1];
+            mix_level_trackbar[i]->Position = config_map.mix[i][out_dsp_num-1];
+        }
     }
     else
     {
@@ -990,6 +1173,8 @@ void __fastcall TForm1::ToogleOutputEQ(TObject *Sender)
     cmd.id = GerOffsetOfData(&config_map.output_dsp[dsp_id-1].eq_switch);
     cmd.value[0] = btn->Down;
     SendCmd(cmd);
+
+    config_map.output_dsp[dsp_id-1].eq_switch = btn->Down;
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::OutputVolumeChange(TObject *Sender)
@@ -1015,6 +1200,8 @@ void __fastcall TForm1::OutputVolumeChange(TObject *Sender)
     cmd.id = GerOffsetOfData(&config_map.output_dsp[dsp_num-1].level_a);
     cmd.value[0] = value;
     SendCmd(cmd);
+
+    config_map.output_dsp[dsp_num-1].level_a = value;
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::lvDeviceDblClick(TObject *Sender)
@@ -1044,6 +1231,7 @@ void __fastcall TForm1::ToggleDSP(TObject *Sender)
     }
 
     TSpeedButton* btn = (TSpeedButton*)Sender;
+    pnlDspDetail->Tag = btn->Tag;
     if (btn->Down)
     {
         last_dsp_btn = btn;
@@ -1055,6 +1243,9 @@ void __fastcall TForm1::ToggleDSP(TObject *Sender)
             TrackBar27->Min = p_input_inner_level->Min;
             lblDSPInfo->Caption = "Input Channel " + IntToStr(btn->Tag) + " DSP Setup";
             pnlDspDetail->Left = 0;
+
+            int dsp_num = btn->Tag;
+            TrackBar27->Position = config_map.input_dsp[dsp_num-1].level_b;
         }
         else
         {
@@ -1063,13 +1254,17 @@ void __fastcall TForm1::ToggleDSP(TObject *Sender)
             TrackBar27->Min = p_output_inner_level->Min;
             lblDSPInfo->Caption = "Output Channel " + IntToStr(btn->Tag-100) + " DSP Setup";
             pnlDspDetail->Left = Width - pnlDspDetail->Width;
+
+            int dsp_num = btn->Tag-100;
+            TrackBar27->Position = config_map.output_dsp[dsp_num-1].level_b;
         }
 
         pnlDspDetail->Top = 192;
         pnlDspDetail->Show();
-        pnlDspDetail->Tag = btn->Tag;
 
         // TODO: 加载面板参数和不同类型
+        panel_agent->LoadPreset();
+        PaintBox1->Refresh();
     }
     else
     {
@@ -1080,6 +1275,7 @@ void __fastcall TForm1::ToggleDSP(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TForm1::btnMixInvertClick(TObject *Sender)
 {
+#if 0
     // mix_panel_state bit3
     TSpeedButton* btn = (TSpeedButton*)Sender;
 
@@ -1087,6 +1283,7 @@ void __fastcall TForm1::btnMixInvertClick(TObject *Sender)
     cmd.id = GerOffsetOfData(&config_map.mix_dsp.invert_switch);
     cmd.value[0] = btn->Down;
     SendCmd(cmd);
+#endif
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::btnMAXONClick(TObject *Sender)
@@ -1140,16 +1337,20 @@ void __fastcall TForm1::MasterVolumeChange(TObject *Sender)
     cmd.id = GerOffsetOfData(&config_map.master.level_a);
     cmd.value[0] = value;
     SendCmd(cmd);
+
+    config_map.master.level_a = value;
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::btnMixMuteClick(TObject *Sender)
 {
+#if 0
     TSpeedButton* btn = (TSpeedButton*)Sender;
 
     D1608Cmd cmd;
     cmd.id = GerOffsetOfData(&config_map.mix_dsp.mute_switch);
     cmd.value[0] = btn->Down;
     SendCmd(cmd);
+#endif
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::btnMasterMuteClick(TObject *Sender)
@@ -1160,6 +1361,8 @@ void __fastcall TForm1::btnMasterMuteClick(TObject *Sender)
     cmd.id = GerOffsetOfData(&config_map.master.mute_switch);
     cmd.value[0] = btn->Down;
     SendCmd(cmd);
+
+    config_map.master.mute_switch = btn->Down;
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::btnPhantonClick(TObject *Sender)
@@ -1171,6 +1374,8 @@ void __fastcall TForm1::btnPhantonClick(TObject *Sender)
     cmd.id = GerOffsetOfData(&config_map.input_dsp[dsp_id-1].phantom_switch);
     cmd.value[0] = btn->Down;
     SendCmd(cmd);
+
+    config_map.input_dsp[dsp_id-1].phantom_switch = btn->Down;
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::TrackBar27Change(TObject *Sender)
@@ -1186,6 +1391,8 @@ void __fastcall TForm1::TrackBar27Change(TObject *Sender)
         cmd.id = GerOffsetOfData(&config_map.input_dsp[dsp_num-1].level_b);
         cmd.value[0] = value;
         SendCmd(cmd);
+
+        config_map.input_dsp[dsp_num-1].level_b = value;
     }
     else
     {
@@ -1194,6 +1401,8 @@ void __fastcall TForm1::TrackBar27Change(TObject *Sender)
         cmd.id = GerOffsetOfData(&config_map.output_dsp[dsp_num-101].level_b);
         cmd.value[0] = value;
         SendCmd(cmd);
+
+        config_map.output_dsp[dsp_num-101].level_b = value;
     }
 }
 //---------------------------------------------------------------------------
@@ -1280,6 +1489,8 @@ void __fastcall TForm1::M41Click(TObject *Sender)
         cmd.value[0] = 7;
     }
     SendCmd(cmd);
+
+    config_map.input_dsp[dsp_num-1].gain = cmd.value[0];
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::MenuItem3Click(TObject *Sender)
@@ -1308,6 +1519,8 @@ void __fastcall TForm1::MenuItem3Click(TObject *Sender)
         cmd.value[0] = 0;
     }
     SendCmd(cmd);
+
+    config_map.output_dsp[dsp_num-1].gain = cmd.value[0];
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::M41DrawItem(TObject *Sender, TCanvas *ACanvas,
@@ -1366,19 +1579,6 @@ void __fastcall TForm1::btnDspResetEQClick(TObject *Sender)
     filter_set.SetBypass(LAST_FILTER, true);
     filter_set.GetFilter(LAST_FILTER)->name = "L";
     filter_set.RepaintPaint(LAST_FILTER);
-}
-//---------------------------------------------------------------------------
-void __fastcall TForm1::IdUDPCIUDPRead(TObject *Sender, TStream *AData,
-      TIdSocketHandle *ABinding)
-{
-    CIDebugCmd cmd = {0};
-    AData->ReadBuffer(&cmd, std::min(sizeof(cmd), AData->Size));
-
-    if (cmd.opr == 2)
-    {
-        mireg0 = htonl(cmd.value1);
-        mireg0 = mireg0 >> 12; 
-    }
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::input_panel_level_editKeyDown(TObject *Sender,
@@ -1649,6 +1849,8 @@ void __fastcall TForm1::pnlmix_level_trackbarChange(TObject *Sender)
         cmd.id = GerOffsetOfData(&config_map.mix[in_dsp_num-1][out_dsp_num-1]);
         cmd.value[0] = value;
         SendCmd(cmd);
+
+        config_map.mix[in_dsp_num-1][out_dsp_num-1] = value;
     }
 }
 //---------------------------------------------------------------------------
@@ -1706,7 +1908,125 @@ void __fastcall TForm1::pnlmix_muteClick(TObject *Sender)
         cmd.id = GerOffsetOfData(&config_map.mix_mute[in_dsp_num-1][out_dsp_num-1]);
         cmd.value[0] = btn->Down;
         SendCmd(cmd);
+
+        config_map.mix_mute[in_dsp_num-1][out_dsp_num-1] = btn->Down;
     }
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::cbPresetIdChange(TObject *Sender)
+{
+    D1608Cmd cmd;
+    cmd.preset = cbPresetId->ItemIndex;
+    cmd.type = 0;
+
+    udpControl->SendBuffer(dst_ip, 904, &cmd, sizeof(cmd));
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::btnSaveToFileClick(TObject *Sender)
+{
+    // 保存到文件
+    if (save_file_name == "")
+    {
+        // save as
+        save_file_name = ExtractFilePath(Application->ExeName) + "preset1.1608";
+    }
+
+    // save config_map to file
+    TFileStream * file = new TFileStream(save_file_name, fmOpenWrite);
+    if (!file)
+    {
+        ShowMessage("打开文件失败");
+        return;
+    }
+
+    file->WriteBuffer(&config_map, sizeof(config_map));
+
+    delete file;
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::btnLoadFromFileClick(TObject *Sender)
+{
+    // 保存到文件
+    if (save_file_name == "")
+    {
+        // Load from file
+        save_file_name = ExtractFilePath(Application->ExeName) + "preset1.1608";
+    }
+
+    // save config_map to file
+    TFileStream * file = new TFileStream(save_file_name, fmOpenRead);
+    if (!file)
+    {
+        ShowMessage("打开文件失败");
+        return;
+    }
+
+    file->ReadBuffer(&config_map, sizeof(config_map));
+
+    delete file;
+
+            // 修改界面
+            for (int i=0;i<16;i++)
+            {
+                input_eq_btn[i]->Down = config_map.input_dsp[i].eq_switch;
+                input_comp_btn[i]->Down = config_map.input_dsp[i].comp_switch;
+                input_auto_btn[i]->Down = config_map.input_dsp[i].auto_switch;
+                //input_default_btn[i]->Down = config_map.input_dsp[i].;
+                input_invert_btn[i]->Down = config_map.input_dsp[i].invert_switch;
+                input_noise_btn[i]->Down = config_map.input_dsp[i].noise_switch;
+                input_mute_btn[i]->Down = config_map.input_dsp[i].mute_switch;
+                input_level_trackbar[i]->Position = config_map.input_dsp[i].level_a;
+            }
+
+            for (int i=0;i<16;i++)
+            {
+                output_eq_btn[i]->Down = config_map.output_dsp[i].eq_switch;
+                output_comp_btn[i]->Down = config_map.output_dsp[i].comp_switch;
+                output_invert_btn[i]->Down = config_map.output_dsp[i].invert_switch;
+                output_mute_btn[i]->Down = config_map.output_dsp[i].mute_switch;
+                output_level_trackbar[i]->Position = config_map.output_dsp[i].level_a;
+            }
+
+typedef struct
+{
+	char flag[30];
+	int preset;
+	int type;
+	unsigned int id;
+	char data[1024];
+}D1608PresetCmd;
+
+    D1608PresetCmd cmd;
+    cmd.preset = cbPresetId->ItemIndex;
+    cmd.type = 0;
+    memcpy(cmd.data, &config_map.input_dsp[0], sizeof(config_map.input_dsp[0])*4);
+
+    udpControl->SendBuffer(dst_ip, 907, &cmd, sizeof(cmd));
+
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::btnRecallClick(TObject *Sender)
+{
+typedef struct
+{
+	char flag[30];
+	int preset;
+	int type;
+	unsigned int id;
+	char data[1024];
+}D1608PresetCmd;
+
+    D1608PresetCmd cmd;
+    cmd.preset = cbPresetId->ItemIndex;
+    cmd.type = 0;
+
+    on_loading = true;
+    udpControl->SendBuffer(dst_ip, 905, &cmd, sizeof(cmd));
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::btnStoreClick(TObject *Sender)
+{
+    udpControl->SendBuffer(dst_ip, 906, "", 1);
 }
 //---------------------------------------------------------------------------
 

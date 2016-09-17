@@ -13,7 +13,18 @@ class PanelAgent : public TObject
 {
 public:
     PanelAgent(class FilterSet& filter_set)
-    :_filter_set(filter_set){}
+    :_filter_set(filter_set)
+    {
+        for (int i=0;i<11;i++)
+        {
+            _panel[i] = NULL;
+            _edtFreq[i] = NULL;
+            _edtQ[i] = NULL;
+            _edtGain[i] = NULL;
+            _cbType[i] = NULL;
+            _cbBypass[i] = NULL;
+        }
+    }
 
     void SetPanel(int band, TPanel* panel, TEdit* edtFreq, TEdit* edtQ, TEdit* edtGain, TComboBox* cbType, TCheckBox* cbBypass);
     TPanel* GetPanel(int band);
@@ -29,6 +40,8 @@ public:
 
     void SetPanelUnselect(int band);
     void SetPanelSelect(int band);
+
+    void LoadPreset();
 private:
     TPanel* _panel[11];
     TEdit* _edtFreq[11];
@@ -54,6 +67,8 @@ private:
           TShiftState Shift);
 
     FilterSet& _filter_set;
+
+    void SaveToConfigMap(int band);
 };
 
 #endif

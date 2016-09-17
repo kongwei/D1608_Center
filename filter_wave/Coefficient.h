@@ -68,6 +68,11 @@ public:
     {
         ChangFilterParameter(_type, _freq, _gain, q);
     }
+    void SetTypeId(int type_id)
+    {
+        String type_name = GetTypeName(type_id);
+        SetType(type_name);
+    }
     bool IsGainEnabled()
     {
         if ((_type == "Band Pass")
@@ -872,6 +877,10 @@ private:
     double _freq;
     double _gain;
     double _q;
+
+    static String GetTypeName(int type_id);
 };
+
+void InitConfigMap();
 //---------------------------------------------------------------------------
 #endif

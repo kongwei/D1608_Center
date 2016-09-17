@@ -99,6 +99,35 @@ void PanelAgent::SetPanelSelect(int band)
     _panel[band]->BevelInner = bvRaised;
     _panel[band]->BevelOuter = bvLowered;
 }
+void PanelAgent::LoadPreset()
+{
+    for (int band=1;band<11;band++)
+    {
+        if (_panel[band] != NULL)
+        {
+            // Ð´ÈëFilterSet
+            int dsp_id = Form1->pnlDspDetail->Tag;
+            if (dsp_id < 100)
+            {
+                 _filter_set.GetFilter(band)->SetTypeId(config_map.input_dsp[dsp_id-1].filter[band-1].TYPE);
+                 _filter_set.GetFilter(band)->SetFreq(config_map.input_dsp[dsp_id-1].filter[band-1].FREQ / 10.0);
+                 _filter_set.GetFilter(band)->SetGain(config_map.input_dsp[dsp_id-1].filter[band-1].GAIN / 10.0);
+                 _filter_set.GetFilter(band)->SetQ(config_map.input_dsp[dsp_id-1].filter[band-1].Q / 100.0);
+                 _filter_set.SetBypass(band, config_map.input_dsp[dsp_id-1].filter[band-1].bypass);
+            }
+            else
+            {
+                 _filter_set.GetFilter(band)->SetTypeId(config_map.output_dsp[dsp_id-101].filter[band-1].TYPE);
+                 _filter_set.GetFilter(band)->SetFreq(config_map.output_dsp[dsp_id-101].filter[band-1].FREQ / 10.0);
+                 _filter_set.GetFilter(band)->SetGain(config_map.output_dsp[dsp_id-101].filter[band-1].GAIN / 10.0);
+                 _filter_set.GetFilter(band)->SetQ(config_map.output_dsp[dsp_id-101].filter[band-1].Q / 100.0);
+                 _filter_set.SetBypass(band, config_map.output_dsp[dsp_id-101].filter[band-1].bypass);
+            }
+
+            UpdateFreqQGain(band);
+        }
+    }
+}
 
 void __fastcall PanelAgent::cbTypeChange(TObject *Sender)
 {
@@ -139,6 +168,7 @@ void __fastcall PanelAgent::cbTypeChange(TObject *Sender)
         GetGainText(i)->Enabled = !band_forbidden;
     }
 
+    SaveToConfigMap(band);
     _filter_set.RepaintPaint();
 //    edtGain->Text = _filter_set.GetFilter(band)->GetGain();
 }
@@ -149,6 +179,7 @@ void __fastcall PanelAgent::cbBypassClick(TObject *Sender)
     TCheckBox * bypass_checkbox = (TCheckBox*)Sender;
     _filter_set.SetBypass(band, bypass_checkbox->Checked);
 
+    SaveToConfigMap(band);
     _filter_set.RepaintPaint(band);
 }
 
@@ -197,6 +228,7 @@ void __fastcall PanelAgent::edtFreqKeyDown(TObject *Sender, WORD &Key,
         edtFreq->SelectAll();
 
         _filter_set.GetFilter(band)->SetFreq(freq);
+        SaveToConfigMap(band);
         _filter_set.RepaintPaint();
     }
     else if (Key == VK_ESCAPE)
@@ -225,6 +257,7 @@ void __fastcall PanelAgent::edtFreqKeyDown(TObject *Sender, WORD &Key,
         edtFreq->SelectAll();
 
         _filter_set.GetFilter(band)->SetFreq(current_freq);
+        SaveToConfigMap(band);
         _filter_set.RepaintPaint();
     }
 }
@@ -249,6 +282,7 @@ void __fastcall PanelAgent::edtGainKeyDown(TObject *Sender, WORD &Key,
             double gain = Str2Double(edtGain->Text, _filter_set.GetFilter(band)->GetGain());
 
             _filter_set.GetFilter(band)->SetGain(gain);
+            SaveToConfigMap(band);
             _filter_set.RepaintPaint();
 
             edtGain->Text = _filter_set.GetFilter(band)->GetGain();
@@ -286,6 +320,7 @@ void __fastcall PanelAgent::edtGainKeyDown(TObject *Sender, WORD &Key,
         }
 
         _filter_set.GetFilter(band)->SetGain(gain);
+        SaveToConfigMap(band);
         _filter_set.RepaintPaint();
 
         edtGain->Text = _filter_set.GetFilter(band)->GetGain();
@@ -308,6 +343,7 @@ void __fastcall PanelAgent::edtQKeyDown(TObject *Sender, WORD &Key,
         edtQ->SelectAll();
 
         _filter_set.GetFilter(band)->SetQ(q);
+        SaveToConfigMap(band);
         _filter_set.RepaintPaint();
     }
     else if (Key == VK_ESCAPE)
@@ -336,6 +372,7 @@ void __fastcall PanelAgent::edtQKeyDown(TObject *Sender, WORD &Key,
         edtQ->SelectAll();
 
         _filter_set.GetFilter(band)->SetQ(current_q);
+        SaveToConfigMap(band);
         _filter_set.RepaintPaint();
     }
 }
@@ -410,6 +447,25 @@ void PanelAgent::UpdateFreqQGain(int band)
             _cbType[band]->ItemIndex = i;
             break;
         }
+    }
+}
+
+void PanelAgent::SaveToConfigMap(int band)
+{
+    int dsp_id = Form1->pnlDspDetail->Tag;
+    if (dsp_id < 100)
+    {
+        config_map.input_dsp[dsp_id-1].filter[band-1].TYPE = _filter_set.GetFilter(band)->GetTypeId() * 10;
+        config_map.input_dsp[dsp_id-1].filter[band-1].GAIN = _filter_set.GetFilter(band)->GetGain()*10;
+        config_map.input_dsp[dsp_id-1].filter[band-1].Q = _filter_set.GetFilter(band)->GetQ()*100;
+        config_map.input_dsp[dsp_id-1].filter[band-1].bypass = _filter_set.IsBypass(band) ? 1 : 0;
+    }
+    else
+    {
+        config_map.output_dsp[dsp_id-101].filter[band-1].TYPE = _filter_set.GetFilter(band)->GetTypeId() * 10;
+        config_map.output_dsp[dsp_id-101].filter[band-1].GAIN = _filter_set.GetFilter(band)->GetGain()*10;
+        config_map.output_dsp[dsp_id-101].filter[band-1].Q = _filter_set.GetFilter(band)->GetQ()*100;
+        config_map.output_dsp[dsp_id-101].filter[band-1].bypass = _filter_set.IsBypass(band) ? 1 : 0;
     }
 }
 

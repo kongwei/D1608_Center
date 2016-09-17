@@ -142,6 +142,9 @@ void Coefficient::ChangFilterParameter(String type, double freq, double gain, do
     gain = std::max(gain, -30.0);
     gain = std::min(gain, 15.0);
 
+    if (q == 0)
+        q = 4;
+
     if (type == "Parametric")
     {
         Peaking(freq, gain, q);
@@ -299,6 +302,9 @@ void Coefficient::ChangFilterParameter(String type, double freq, double gain, do
         Pink(freq, gain, q);
         _type_id = 7;
     }
+    else
+    {
+    }
 
 
     _type = type;
@@ -385,5 +391,124 @@ static int Float2FixPoint(float coeff)
     result = result + ((temp & 0xff)<<24);
 
 	return result;
+}
+
+String Coefficient::GetTypeName(int type_id)
+{
+    switch(type_id)
+    {
+    case 1:
+        return "Parametric";
+    case 2:
+        return "Band Pass";
+    case 3:
+        return "High Shelf";
+    case 4:
+        return "Low Shelf";
+    case 5:
+        return "Notch";
+    case 1202:
+        return "12dB Bessel High";
+    case 1212:
+        return "12dB Bessel Low";
+    case 1802:
+        return "18dB Bessel High";
+    case 1812:
+        return "18dB Bessel Low";
+    case 2402:
+        return "24dB Bessel High";
+    case 2412:
+        return "24dB Bessel Low";
+    case 1203:
+        return "12dB Linkwitz-Riley High";
+    case 1213:
+        return "12dB Linkwitz-Riley Low";
+    case 2403:
+        return "24dB Linkwitz-Riley High";
+    case 2413:
+        return "24dB Linkwitz-Riley Low";
+    case 4803:
+        return "48dB Linkwitz-Riley High";
+    case 4813:
+        return "48dB Linkwitz-Riley Low";
+    case 604:
+        return "6dB Bansen High";
+    case 614:
+        return "6dB Bansen Low";
+    case 1201:
+        return "12dB Butterworth High";
+    case 1801:
+        return "18dB Butterworth High";
+    case 2401:
+        return "24dB Butterworth High";
+    case 4801:
+        return "48dB Butterworth High";
+    case 1211:
+        return "12dB Butterworth Low";
+    case 1811:
+        return "18dB Butterworth Low";
+    case 2411:
+        return "24dB Butterworth Low";
+    case 4811:
+        return "48dB Butterworth Low";
+    case 7:
+        return "Pink";
+    }
+
+    return "Parametric";
+}
+
+void InitConfigMap()
+{
+	int i, j;
+	int preset_freq[] = {20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000};
+
+	memset(&config_map, 0,sizeof(config_map));
+
+	for (i=0;i<INPUT_DSP_NUM;i++)
+	{
+		for (j=0;j<=8;j++)
+		{
+			config_map.input_dsp[i].filter[j].GAIN = 0;
+			config_map.input_dsp[i].filter[j].bypass = 0;
+			config_map.input_dsp[i].filter[j].FREQ = preset_freq[j] * 10;
+			config_map.input_dsp[i].filter[j].Q = 409;
+		}
+
+		config_map.input_dsp[i].filter[0].TYPE = 1201;	// HP
+			config_map.input_dsp[i].filter[0].bypass = 1;
+		config_map.input_dsp[i].filter[1].TYPE = 4;	// Low Shelf
+		config_map.input_dsp[i].filter[2].TYPE = 1;	// PEQ
+		config_map.input_dsp[i].filter[3].TYPE = 1;	// PEQ
+		config_map.input_dsp[i].filter[4].TYPE = 1;	// PEQ
+		config_map.input_dsp[i].filter[5].TYPE = 1;	// PEQ
+		config_map.input_dsp[i].filter[6].TYPE = 1;	// PEQ
+		config_map.input_dsp[i].filter[7].TYPE = 3;	// High Shelf
+		config_map.input_dsp[i].filter[8].TYPE = 1211;	// LP
+			config_map.input_dsp[i].filter[8].bypass = 1;
+	}
+
+	for (i=0;i<OUTPUT_DSP_NUM;i++)
+	{
+		for (j=0;j<=8;j++)
+		{
+			config_map.output_dsp[i].filter[j].GAIN = 0;
+			config_map.output_dsp[i].filter[j].bypass = 0;
+			config_map.output_dsp[i].filter[j].FREQ = preset_freq[j] * 10;
+			config_map.output_dsp[i].filter[j].Q = 409;
+		}
+
+		config_map.output_dsp[i].filter[0].TYPE = 1201;	// HP
+			config_map.output_dsp[i].filter[0].bypass = 1;
+		config_map.output_dsp[i].filter[1].TYPE = 4;	// Low Shelf
+		config_map.output_dsp[i].filter[2].TYPE = 1;	// PEQ
+		config_map.output_dsp[i].filter[3].TYPE = 1;	// PEQ
+		config_map.output_dsp[i].filter[4].TYPE = 1;	// PEQ
+		config_map.output_dsp[i].filter[5].TYPE = 1;	// PEQ
+		config_map.output_dsp[i].filter[6].TYPE = 1;	// PEQ
+		config_map.output_dsp[i].filter[7].TYPE = 3;	// High Shelf
+		config_map.output_dsp[i].filter[8].TYPE = 1211;	// LP
+			config_map.output_dsp[i].filter[8].bypass = 1;
+	}
 }
 

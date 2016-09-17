@@ -26,9 +26,9 @@ typedef struct
     unsigned char mute_switch;
     unsigned char phantom_switch;
     unsigned char pad1;
-    int level_a;
-    int level_b;
-    int gain;
+    short level_a;
+    short level_b;
+    unsigned char gain;
     unsigned int delay;
     FilterConfigMap filter[9];
 }InputConfigMap;
@@ -42,9 +42,9 @@ typedef struct
     unsigned char pad2;
     unsigned char pad3;
     unsigned char pad4;
-    int level_a;
-    int level_b;
-    int gain;
+    short level_a;
+    short level_b;
+    unsigned char gain;
     unsigned int pad5;
     FilterConfigMap filter[9];
 }OutputConfigMap;
@@ -56,14 +56,15 @@ typedef struct
 
 typedef struct
 {
+    //InputConfigMap mix_dsp;
+	MasterConfigMap master;
+	short mix[INPUT_DSP_NUM+1][OUTPUT_DSP_NUM];
+	unsigned char mix_mute[INPUT_DSP_NUM+1][OUTPUT_DSP_NUM];
+
     InputConfigMap input_dsp[INPUT_DSP_NUM];
     OutputConfigMap output_dsp[OUTPUT_DSP_NUM];
     int WatchLevel[INPUT_DSP_NUM + OUTPUT_DSP_NUM];
-	MasterConfigMap master;
-    InputConfigMap mix_dsp;
-
-	short mix[INPUT_DSP_NUM+1][OUTPUT_DSP_NUM];
-	unsigned char mix_mute[INPUT_DSP_NUM+1][OUTPUT_DSP_NUM];
+	int preset_id;
 }ConfigMap;
 
 extern ConfigMap config_map;

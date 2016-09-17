@@ -97,14 +97,13 @@ __published:	// IDE-managed Components
     TPanel *pnlDspDetail;
     TLabel *lblDSPInfo;
     TEdit *edtDebug;
-    TIdUDPServer *IdUDPServer1;
     TTimer *Timer1;
     TComboBox *cbPreset;
     TLabel *Label31;
     TPanel *watch_panel;
     TImage *watch_bkimage;
     TLabel *label_watch;
-    TImageList *ImageList1;
+    TImageList *ImageList1bak;
     TAdvTrackBar *mix_panel_trackbar;
     TAdvTrackBar *master_panel_trackbar;
     TImage *Image1;
@@ -139,7 +138,7 @@ __published:	// IDE-managed Components
     TSpeedButtonNoFrame *output_panel_invert_btn;
     TSpeedButtonNoFrame *SpeedButton119;
     TSpeedButtonNoFrame *output_panel_number_btn;
-    TSpeedButtonNoFrame *output_panel_limit_btn;
+    TSpeedButtonNoFrame *output_panel_comp_btn;
     TSpeedButtonNoFrame *output_panel_eq_btn;
     TSpeedButtonNoFrame *output_panel_dsp_btn;
     TEdit *output_panel_level_edit;
@@ -242,7 +241,6 @@ __published:	// IDE-managed Components
     TComboBox *cbType10;
     TEdit *edtQ10;
     TEdit *edtGain10;
-    TIdUDPServer *IdUDPCI;
     TMemo *mmCoeff;
     TCheckBox *divbase;
     TAdvTrackBar *TrackBar27;
@@ -258,6 +256,13 @@ __published:	// IDE-managed Components
     TStaticText *pnlmix_dsp_num;
     TTabSheet *TabSheet1;
     TMemo *memo_debug;
+    TImageList *ImageList1;
+    TComboBox *cbPresetId;
+    TButton *btnLoadPreset;
+    TButton *btnSaveToFile;
+    TButton *btnLoadFromFile;
+    TButton *btnRecall;
+    TButton *btnStore;
     void __fastcall FormCreate(TObject *Sender);
     void __fastcall FormDestroy(TObject *Sender);
     void __fastcall btnRefreshClick(TObject *Sender);
@@ -308,8 +313,6 @@ __published:	// IDE-managed Components
           int &Width, int &Height);
     void __fastcall btnDspResetEQClick(TObject *Sender);
     void __fastcall MenuItem3Click(TObject *Sender);
-    void __fastcall IdUDPCIUDPRead(TObject *Sender, TStream *AData,
-          TIdSocketHandle *ABinding);
     void __fastcall input_panel_level_editKeyDown(TObject *Sender,
           WORD &Key, TShiftState Shift);
     void __fastcall output_panel_level_editKeyDown(TObject *Sender,
@@ -335,6 +338,11 @@ __published:	// IDE-managed Components
     void __fastcall pnlmix_level_editKeyDown(TObject *Sender, WORD &Key,
           TShiftState Shift);
     void __fastcall pnlmix_muteClick(TObject *Sender);
+    void __fastcall cbPresetIdChange(TObject *Sender);
+    void __fastcall btnSaveToFileClick(TObject *Sender);
+    void __fastcall btnLoadFromFileClick(TObject *Sender);
+    void __fastcall btnRecallClick(TObject *Sender);
+    void __fastcall btnStoreClick(TObject *Sender);
 
 private:
     // 已经选择设备
@@ -380,11 +388,25 @@ private:
 public:		// User declarations
     __fastcall TForm1(TComponent* Owner);
     TPaintBox * pb_watch_list[32];
+
+    TSpeedButton* input_eq_btn[17];
+    TSpeedButton* input_comp_btn[17];
+    TSpeedButton* input_auto_btn[17];
+    TSpeedButton* input_default_btn[17];
+    TSpeedButton* input_invert_btn[17];
+    TSpeedButton* input_noise_btn[17];
+    TSpeedButton* input_mute_btn[17];
     TEdit* input_level_edit[17];
-    TEdit* output_level_edit[16];
     TAdvTrackBar* input_level_trackbar[17];
+
+    TSpeedButton* output_eq_btn[16];
+    TSpeedButton* output_comp_btn[16];
+    TSpeedButton* output_invert_btn[17];
+    TSpeedButton* output_mute_btn[17];
+    TEdit* output_level_edit[16];
     TAdvTrackBar* output_level_trackbar[16];
 
+    TSpeedButton* mix_mute_btn[17];
     TEdit* mix_level_edit[17];
     TAdvTrackBar* mix_level_trackbar[17];
 };
