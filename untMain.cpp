@@ -18,12 +18,12 @@
 #define PANEL_WIDTH 48
 
 TForm1 *Form1;
+ConfigMap all_config_map[8];
 ConfigMap config_map;
 TAdvGDIPPicture * x = new TAdvGDIPPicture();
 
 static bool on_loading = false;
 
-String save_file_name = "";
 //---------------------------------------------------------------------------
 void SelectNullControl()
 {
@@ -350,6 +350,8 @@ static void CreatePnlMix(int panel_id, TForm1 * form)
 __fastcall TForm1::TForm1(TComponent* Owner)
     : TForm(Owner)
 {
+    on_loading = true;
+
     pb_watch_list[0] = pb_watch;
 
     // 生成input背景
@@ -496,13 +498,23 @@ __fastcall TForm1::TForm1(TComponent* Owner)
     panel_agent->SetPanel(9, panelBand10, edtFreq10, edtQ10, edtGain10, cbType10, cbBypass10);
 
     btnDspResetEQ->Click();
+
+    SetPresetId(0);
     InitConfigMap();
+    for (int i=0;i<8;i++)
+    {
+        all_config_map[i] = config_map;
+    }
+
+    file_dirty = false;
 
     InitGdipus();
 
     pnlDspDetail->BringToFront();
 
     mireg0 = 0;
+
+    on_loading = false;
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::FormCreate(TObject *Sender)
@@ -559,12 +571,20 @@ void TForm1::SendCmd(D1608Cmd& cmd)
         edtDebug->Text = edtDebug->Text + IntToHex(p[i], 2) + " ";
     }
 #endif
-    if (on_loading)
+    if (on_loading || !udpControl->Active)
     {
     }
     else
     {
         udpControl->SendBuffer(dst_ip, 2305, &cmd, sizeof(cmd));
+    }
+
+    if (!on_loading)
+    {
+        if (cmd.id != GerOffsetOfData(&config_map.WatchLevel))
+        {
+            SetFileDirty(true);
+        }
     }
 }
 //---------------------------------------------------------------------------
@@ -682,6 +702,31 @@ void __fastcall TForm1::btnSelectClick(TObject *Sender)
         return;
     }
 
+    // 断开文件
+    if (file_dirty)
+    {
+        int ret = Application->MessageBox("是否保存当前preset修改", "关闭确认", MB_YESNOCANCEL);
+        if (ret == ID_CANCEL)
+        {
+            return;
+        }
+        else if (ret == ID_YES)
+        {
+            // SAVE
+            SaveAllPreset->Click();
+            if (file_dirty)
+            {
+                return;
+            }
+        }
+        else
+        {
+            // 放弃
+            preset_lib_filename = "";
+            file_dirty = false;
+        }
+    }
+
     String broadcast_ip = selected->SubItems->Strings[1];
     // 初始化socket
     udpControl->Active = false;
@@ -691,13 +736,16 @@ void __fastcall TForm1::btnSelectClick(TObject *Sender)
     udpControl->Bindings->Items[0]->Port = 0;
     udpControl->Active = true;
 
-    if (dst_ip == "")
-    {
-        return;
-    }
-    else
-    {
-    }
+    UpdateCaption();
+
+    D1608PresetCmd cmd;
+    cmd.preset = 0x80;
+    cmd.type = 0;
+
+    udpControl->SendBuffer(dst_ip, 905, &cmd, sizeof(cmd));
+
+    tsOperator->Show();
+    cbWatch->Checked = true;
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::tmSLPTimer(TObject *Sender)
@@ -882,15 +930,6 @@ void __fastcall TForm1::ToogleEQ(TObject *Sender)
 void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
       TIdSocketHandle *ABinding)
 {
-    typedef struct
-    {
-        char flag[30];
-        int preset;
-        int type;
-        unsigned int id;
-        char data[1024];
-    }D1608PresetCmd;
-
     if (ABinding->PeerPort == 2305)
     {
         D1608Cmd cmd = {0};
@@ -904,12 +943,17 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
     }
     else if (ABinding->PeerPort == 904)
     {
+    /*
         D1608PresetCmd cmd;
         cmd.preset = cbPresetId->ItemIndex;
         cmd.type = 0;
 
-        on_loading = true;
-        udpControl->SendBuffer(dst_ip, 905, &cmd, sizeof(cmd));
+        // 如果没有打开文件，则需要从下位机同步
+        if (preset_lib_filename == "")
+        {
+            udpControl->SendBuffer(dst_ip, 905, &cmd, sizeof(cmd));
+        }
+    */
     }
     else if (ABinding->PeerPort == 905)
     {
@@ -945,40 +989,37 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
         case 8:
             memcpy(&config_map.master, cmd.data,
                     sizeof(config_map.master)+sizeof(config_map.mix)+sizeof(config_map.mix_mute));
-
-            // 修改界面
-            for (int i=0;i<16;i++)
-            {
-                input_eq_btn[i]->Down = config_map.input_dsp[i].eq_switch;
-                input_comp_btn[i]->Down = config_map.input_dsp[i].comp_switch;
-                input_auto_btn[i]->Down = config_map.input_dsp[i].auto_switch;
-                //input_default_btn[i]->Down = config_map.input_dsp[i].;
-                input_invert_btn[i]->Down = config_map.input_dsp[i].invert_switch;
-                input_noise_btn[i]->Down = config_map.input_dsp[i].noise_switch;
-                input_mute_btn[i]->Down = config_map.input_dsp[i].mute_switch;
-                input_level_trackbar[i]->Position = config_map.input_dsp[i].level_a;
-            }
-
-            for (int i=0;i<16;i++)
-            {
-                output_eq_btn[i]->Down = config_map.output_dsp[i].eq_switch;
-                output_comp_btn[i]->Down = config_map.output_dsp[i].comp_switch;
-                output_invert_btn[i]->Down = config_map.output_dsp[i].invert_switch;
-                output_mute_btn[i]->Down = config_map.output_dsp[i].mute_switch;
-                output_level_trackbar[i]->Position = config_map.output_dsp[i].level_a;
-            }
-
-            // 子窗体的数据在加载时更新
-
-            on_loading = false;
             break;
         }
 
-        if (cmd.type != 8)
+        bool download_all_preset = cmd.preset & 0x80;
+        int preset_id = cmd.preset & 0x7F;
+
+        if (download_all_preset && (preset_id<8) && cmd.type == 8)
+        {
+            cmd.preset++;
+            cmd.type = 0;
+
+            // 切换 config_map
+            all_config_map[preset_id] = config_map;
+        }
+        else
+        {
+            cmd.type++;
+        }
+
+
+        if (cmd.type < 8)
         {
             // next
-            cmd.type++;
             udpControl->SendBuffer(dst_ip, 905, &cmd, sizeof(cmd));
+        }
+        else
+        {
+            on_loading = true;
+            SetPresetId(preset_id);
+
+            ApplyConfigToUI();  // 子窗体的数据在加载时更新
         }
     }
     else if (ABinding->PeerPort == 907)
@@ -986,7 +1027,21 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
         D1608PresetCmd cmd;
         AData->ReadBuffer(&cmd, std::min(sizeof(cmd), AData->Size));
 
-        cmd.type++;
+        bool download_all_preset = cmd.preset & 0x80;
+        int preset_id = cmd.preset & 0x7F;
+
+        if (download_all_preset && (preset_id<8) && cmd.type == 8)
+        {
+            cmd.preset++;
+            cmd.type = 0;
+
+            // 切换 config_map
+            config_map = all_config_map[preset_id];
+        }
+        else
+        {
+            cmd.type++;
+        }
 
         switch(cmd.type)
         {
@@ -1052,7 +1107,6 @@ void TForm1::MsgWatchHandle(const D1608Cmd& cmd)
             }
         }
     }
-    Caption = IntToHex(cmd.value[16], 8);
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::tmWatchTimer(TObject *Sender)
@@ -1211,8 +1265,6 @@ void __fastcall TForm1::lvDeviceDblClick(TObject *Sender)
     {
         cbAutoRefresh->Checked = false;
         btnSelect->Click();
-        tsOperator->Show();
-        cbWatch->Checked = true;
     }
 }
 //---------------------------------------------------------------------------
@@ -1553,7 +1605,7 @@ void __fastcall TForm1::M41MeasureItem(TObject *Sender, TCanvas *ACanvas,
 //---------------------------------------------------------------------------
 void __fastcall TForm1::btnDspResetEQClick(TObject *Sender)
 {
-    // TODO: 修改滤波器数量，会受到影响
+    // XDO: 修改滤波器数量，会受到影响
     int preset_freq_list[10] = {20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000};
     filter_set.GetFilter(FIRST_FILTER+1)->ChangFilterParameter("Low Shelf", 50, 0, 4.09);
     for (int i=FIRST_FILTER+2; i<=LAST_FILTER-2; i++)
@@ -1912,120 +1964,279 @@ void __fastcall TForm1::pnlmix_muteClick(TObject *Sender)
     }
 }
 //---------------------------------------------------------------------------
-void __fastcall TForm1::cbPresetIdChange(TObject *Sender)
-{
-    D1608Cmd cmd;
-    cmd.preset = cbPresetId->ItemIndex;
-    cmd.type = 0;
-
-    udpControl->SendBuffer(dst_ip, 904, &cmd, sizeof(cmd));
-}
-//---------------------------------------------------------------------------
-void __fastcall TForm1::btnSaveToFileClick(TObject *Sender)
+void __fastcall TForm1::btnSavePresetToFileClick(TObject *Sender)
 {
     // 保存到文件
-    if (save_file_name == "")
+    SaveDialog1->Filter = "preset|*.preset";
+    if (SaveDialog1->Execute())
     {
-        // save as
-        save_file_name = ExtractFilePath(Application->ExeName) + "preset1.1608";
+        // save config_map to file
+        TFileStream * file = new TFileStream(SaveDialog1->FileName, fmCreate);
+        if (!file)
+        {
+            ShowMessage("打开文件失败");
+            return;
+        }
+
+        file->WriteBuffer(&config_map, sizeof(config_map));
+
+        delete file;
     }
-
-    // save config_map to file
-    TFileStream * file = new TFileStream(save_file_name, fmOpenWrite);
-    if (!file)
-    {
-        ShowMessage("打开文件失败");
-        return;
-    }
-
-    file->WriteBuffer(&config_map, sizeof(config_map));
-
-    delete file;
 }
 //---------------------------------------------------------------------------
-void __fastcall TForm1::btnLoadFromFileClick(TObject *Sender)
+void __fastcall TForm1::btnLoadPresetFromFileClick(TObject *Sender)
 {
-    // 保存到文件
-    if (save_file_name == "")
+    OpenDialog1->Filter = "preset|*.preset";
+    if (OpenDialog1->Execute())
     {
-        // Load from file
-        save_file_name = ExtractFilePath(Application->ExeName) + "preset1.1608";
+        // save config_map to file
+        TFileStream * file = new TFileStream(OpenDialog1->FileName, fmOpenRead);
+        if (!file)
+        {
+            ShowMessage("打开文件失败");
+            return;
+        }
+
+        file->ReadBuffer(&config_map, sizeof(config_map));
+
+        delete file;
+
+        ApplyConfigToUI();
+
+        // Download To Device
+        D1608PresetCmd cmd;
+        cmd.preset = cur_preset_id;
+        cmd.type = 0;
+        memcpy(cmd.data, &config_map.input_dsp[0], sizeof(config_map.input_dsp[0])*4);
+
+        udpControl->SendBuffer(dst_ip, 907, &cmd, sizeof(cmd));
     }
-
-    // save config_map to file
-    TFileStream * file = new TFileStream(save_file_name, fmOpenRead);
-    if (!file)
-    {
-        ShowMessage("打开文件失败");
-        return;
-    }
-
-    file->ReadBuffer(&config_map, sizeof(config_map));
-
-    delete file;
-
-            // 修改界面
-            for (int i=0;i<16;i++)
-            {
-                input_eq_btn[i]->Down = config_map.input_dsp[i].eq_switch;
-                input_comp_btn[i]->Down = config_map.input_dsp[i].comp_switch;
-                input_auto_btn[i]->Down = config_map.input_dsp[i].auto_switch;
-                //input_default_btn[i]->Down = config_map.input_dsp[i].;
-                input_invert_btn[i]->Down = config_map.input_dsp[i].invert_switch;
-                input_noise_btn[i]->Down = config_map.input_dsp[i].noise_switch;
-                input_mute_btn[i]->Down = config_map.input_dsp[i].mute_switch;
-                input_level_trackbar[i]->Position = config_map.input_dsp[i].level_a;
-            }
-
-            for (int i=0;i<16;i++)
-            {
-                output_eq_btn[i]->Down = config_map.output_dsp[i].eq_switch;
-                output_comp_btn[i]->Down = config_map.output_dsp[i].comp_switch;
-                output_invert_btn[i]->Down = config_map.output_dsp[i].invert_switch;
-                output_mute_btn[i]->Down = config_map.output_dsp[i].mute_switch;
-                output_level_trackbar[i]->Position = config_map.output_dsp[i].level_a;
-            }
-
-typedef struct
-{
-	char flag[30];
-	int preset;
-	int type;
-	unsigned int id;
-	char data[1024];
-}D1608PresetCmd;
-
-    D1608PresetCmd cmd;
-    cmd.preset = cbPresetId->ItemIndex;
-    cmd.type = 0;
-    memcpy(cmd.data, &config_map.input_dsp[0], sizeof(config_map.input_dsp[0])*4);
-
-    udpControl->SendBuffer(dst_ip, 907, &cmd, sizeof(cmd));
-
-}
-//---------------------------------------------------------------------------
-void __fastcall TForm1::btnRecallClick(TObject *Sender)
-{
-typedef struct
-{
-	char flag[30];
-	int preset;
-	int type;
-	unsigned int id;
-	char data[1024];
-}D1608PresetCmd;
-
-    D1608PresetCmd cmd;
-    cmd.preset = cbPresetId->ItemIndex;
-    cmd.type = 0;
-
-    on_loading = true;
-    udpControl->SendBuffer(dst_ip, 905, &cmd, sizeof(cmd));
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::btnStoreClick(TObject *Sender)
 {
     udpControl->SendBuffer(dst_ip, 906, "", 1);
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::SaveAllPresetAsClick(TObject *Sender)
+{
+    SaveDialog1->Filter = "presetlib|*.presetlib";
+    if (SaveDialog1->Execute())
+    {
+        preset_lib_filename = SaveDialog1->FileName;
+        SaveAllPreset->Click();
+    }
+    else
+    {
+        return;
+    }
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::SaveAllPresetClick(TObject *Sender)
+{
+    if (preset_lib_filename == "")
+    {
+        SaveAllPresetAs->Click();
+    }
+
+    if (preset_lib_filename != "")
+    {
+        // save config_map to file
+        TFileStream * file = new TFileStream(preset_lib_filename, fmCreate);
+        if (!file)
+        {
+            ShowMessage("打开文件失败");
+            return;
+        }
+
+        all_config_map[cur_preset_id] = config_map;
+        SetPresetLibFilename(SaveDialog1->FileName);
+        SetFileDirty(false);
+
+        file->WriteBuffer(&all_config_map, sizeof(all_config_map));
+
+        delete file;
+    }
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::LoadAllPresetClick(TObject *Sender)
+{
+    OpenDialog1->Filter = "presetlib|*.presetlib";
+    if (OpenDialog1->Execute())
+    {
+        if (udpControl->Active)
+        {
+            // 选项： 同步到下位机 / 断开下位机
+            int syn_select = Application->MessageBox("请选择数据同步方式", "加载选项", MB_YESNOCANCEL);
+            if (syn_select == IDYES)
+            {
+                // 同步
+            }
+            else if (syn_select == IDNO)
+            {
+                udpControl->Active = false;
+            }
+            else
+            {
+                // 取消
+                return;
+            }
+        }
+
+        // save config_map to file
+        TFileStream * file = new TFileStream(OpenDialog1->FileName, fmOpenRead);
+        if (!file)
+        {
+            ShowMessage("打开文件失败");
+            return;
+        }
+
+        SetPresetLibFilename(OpenDialog1->FileName);
+        SetFileDirty(false);
+
+        file->ReadBuffer(&all_config_map, sizeof(all_config_map));
+
+        delete file;
+
+        config_map = all_config_map[0];
+        SetPresetId(0);
+
+        ApplyConfigToUI();
+
+        if (udpControl->Active)
+        {
+            // Download To Device
+            D1608PresetCmd cmd;
+            cmd.preset = 0x80;
+            cmd.type = 0;
+            memcpy(cmd.data, &config_map.input_dsp[0], sizeof(config_map.input_dsp[0])*4);
+
+            udpControl->SendBuffer(dst_ip, 907, &cmd, sizeof(cmd));
+        }
+    }
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::ApplyConfigToUI()
+{
+    on_loading = true;
+
+    // 修改界面
+    for (int i=0;i<16;i++)
+    {
+        input_eq_btn[i]->Down = config_map.input_dsp[i].eq_switch;
+        input_comp_btn[i]->Down = config_map.input_dsp[i].comp_switch;
+        input_auto_btn[i]->Down = config_map.input_dsp[i].auto_switch;
+        //input_default_btn[i]->Down = config_map.input_dsp[i].;
+        input_invert_btn[i]->Down = config_map.input_dsp[i].invert_switch;
+        input_noise_btn[i]->Down = config_map.input_dsp[i].noise_switch;
+        input_mute_btn[i]->Down = config_map.input_dsp[i].mute_switch;
+        input_level_trackbar[i]->Position = config_map.input_dsp[i].level_a;
+    }
+
+    for (int i=0;i<16;i++)
+    {
+        output_eq_btn[i]->Down = config_map.output_dsp[i].eq_switch;
+        output_comp_btn[i]->Down = config_map.output_dsp[i].comp_switch;
+        output_invert_btn[i]->Down = config_map.output_dsp[i].invert_switch;
+        output_mute_btn[i]->Down = config_map.output_dsp[i].mute_switch;
+        output_level_trackbar[i]->Position = config_map.output_dsp[i].level_a;
+    }
+
+    on_loading = false;
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::SetPresetLibFilename(String filename)
+{
+    preset_lib_filename = filename;
+    UpdateCaption();
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::SetFileDirty(bool dirty_flag)
+{
+    file_dirty = dirty_flag;
+    UpdateCaption();
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::UpdateCaption()
+{
+    Caption = "D1608 ";
+    Caption = Caption + preset_lib_filename;
+    if (file_dirty)
+    {
+        Caption = Caption + "*";
+    }
+
+    if (udpControl->Active)
+    {
+        Caption = Caption + " - " + dst_ip;
+    }
+}
+//---------------------------------------------------------------------------
+
+
+void __fastcall TForm1::FormCloseQuery(TObject *Sender, bool &CanClose)
+{
+    if (file_dirty)
+    {
+        int ret = Application->MessageBox("是否保存当前preset修改", "关闭确认", MB_YESNOCANCEL);
+        if (ret == ID_CANCEL)
+        {
+            CanClose = false;
+            return;
+        }
+        else if (ret == ID_YES)
+        {
+            // SAVE
+            SaveAllPreset->Click();
+            if (file_dirty)
+            {
+                CanClose = false;
+                return;
+            }
+        }
+        else
+        {
+            return;
+        }
+    }
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::StoreClick(TObject *Sender)
+{
+    if (udpControl->Active)
+    {
+        udpControl->SendBuffer(dst_ip, 906, "\xFF", 1);
+    }
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::StoreAsClick(TObject *Sender)
+{
+    if (udpControl->Active)
+    {
+        TMenuItem * menu = (TMenuItem*)Sender;
+        char preset_id[2] = "\xff";
+        preset_id[0] = menu->Tag;
+        udpControl->SendBuffer(dst_ip, 906, preset_id, 1);
+    }
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::RecallClick(TObject *Sender)
+{
+    TMenuItem * menu = (TMenuItem*)Sender;
+    all_config_map[cur_preset_id] = config_map;
+    SetPresetId(menu->Tag);
+    config_map = all_config_map[cur_preset_id];
+
+    ApplyConfigToUI();
+
+    if (udpControl->Active)
+    {
+        D1608Cmd cmd;
+        cmd.preset = menu->Tag;
+        cmd.type = 0;
+
+        udpControl->SendBuffer(dst_ip, 904, &cmd, sizeof(cmd));
+    }
 }
 //---------------------------------------------------------------------------
 

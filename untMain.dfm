@@ -2,7 +2,7 @@ object Form1: TForm1
   Left = 47
   Top = 0
   Width = 1265
-  Height = 754
+  Height = 755
   Caption = 'D1608'
   Color = clBtnFace
   Font.Charset = GB2312_CHARSET
@@ -12,6 +12,7 @@ object Form1: TForm1
   Font.Style = []
   OldCreateOrder = False
   OnClick = FormClick
+  OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnMouseDown = FormMouseDown
@@ -22,19 +23,19 @@ object Form1: TForm1
     Left = 0
     Top = 0
     Width = 1249
-    Height = 716
-    ActivePage = tsOperator
+    Height = 717
+    ActivePage = tsSearch
     Align = alClient
-    TabIndex = 1
+    TabIndex = 0
     TabOrder = 0
     object tsSearch: TTabSheet
       Caption = #26597#35810#35774#22791
       DesignSize = (
         1241
-        688)
+        689)
       object Bevel1: TBevel
         Left = 8
-        Top = 542
+        Top = 543
         Width = 1117
         Height = 10
         Anchors = [akLeft, akRight, akBottom]
@@ -50,7 +51,7 @@ object Form1: TForm1
       end
       object mmLog: TMemo
         Left = 8
-        Top = 561
+        Top = 562
         Width = 1117
         Height = 126
         Anchors = [akLeft, akRight, akBottom]
@@ -71,7 +72,7 @@ object Form1: TForm1
         Left = 8
         Top = 0
         Width = 1117
-        Height = 538
+        Height = 539
         Anchors = [akLeft, akTop, akRight, akBottom]
         Columns = <
           item
@@ -155,6 +156,7 @@ object Form1: TForm1
     object tsOperator: TTabSheet
       Caption = #25805#20316
       ImageIndex = 1
+      PopupMenu = PopupMenu3
       object Image3: TImage
         Left = 0
         Top = 0
@@ -19523,7 +19525,6 @@ object Form1: TForm1
           Height = 25
           Caption = 'Recall'
           TabOrder = 6
-          OnClick = btnRecallClick
         end
         object btnStore: TButton
           Left = 13
@@ -21225,26 +21226,29 @@ object Form1: TForm1
           Step = 12
           TabOrder = 0
         end
-        object cbPresetId: TComboBox
-          Left = 51
-          Top = 72
-          Width = 41
-          Height = 21
-          Style = csDropDownList
-          ItemHeight = 13
-          ItemIndex = 0
+        object edtPreset: TEdit
+          Tag = 1
+          Left = 53
+          Top = 47
+          Width = 38
+          Height = 13
+          AutoSelect = False
+          AutoSize = False
+          BevelEdges = []
+          BevelInner = bvNone
+          BevelOuter = bvNone
+          BiDiMode = bdLeftToRight
+          BorderStyle = bsNone
+          Color = 4864300
+          Font.Charset = GB2312_CHARSET
+          Font.Color = clAqua
+          Font.Height = -12
+          Font.Name = #23435#20307
+          Font.Style = [fsBold]
+          ParentBiDiMode = False
+          ParentFont = False
+          ReadOnly = True
           TabOrder = 1
-          Text = '1'
-          OnChange = cbPresetIdChange
-          Items.Strings = (
-            '1'
-            '2'
-            '3'
-            '4'
-            '5'
-            '6'
-            '7'
-            '8')
         end
       end
       object input_panel_trackbar: TAdvTrackBar
@@ -21942,7 +21946,7 @@ object Form1: TForm1
       end
       object pnlDspDetail: TPanel
         Left = 104
-        Top = 248
+        Top = 312
         Width = 961
         Height = 497
         Color = 13684944
@@ -30709,32 +30713,6 @@ object Form1: TForm1
           'memo_debug')
         TabOrder = 0
       end
-      object btnLoadPreset: TButton
-        Left = 216
-        Top = 416
-        Width = 75
-        Height = 25
-        Caption = 'Load'
-        TabOrder = 1
-      end
-      object btnSaveToFile: TButton
-        Left = 216
-        Top = 480
-        Width = 75
-        Height = 25
-        Caption = 'SaveToFile'
-        TabOrder = 2
-        OnClick = btnSaveToFileClick
-      end
-      object btnLoadFromFile: TButton
-        Left = 216
-        Top = 544
-        Width = 75
-        Height = 25
-        Caption = 'LoadFromFile'
-        TabOrder = 3
-        OnClick = btnLoadFromFileClick
-      end
     end
   end
   object udpSLP: TIdUDPServer
@@ -30753,7 +30731,6 @@ object Form1: TForm1
     Top = 40
   end
   object udpControl: TIdUDPServer
-    Active = True
     Bindings = <
       item
         IP = '127.0.0.1'
@@ -30769,12 +30746,6 @@ object Form1: TForm1
     OnTimer = tmWatchTimer
     Left = 416
     Top = 40
-  end
-  object Timer1: TTimer
-    Enabled = False
-    Interval = 500
-    Left = 448
-    Top = 96
   end
   object ImageList1bak: TImageList
     Height = 20
@@ -44744,5 +44715,144 @@ object Form1: TForm1
       FFFFFFFFFFFFFFFFFFFFFFF000000000000000000000FFFFFFFFFFFFFFFFFFFF
       F000000000000000000000FFFFFFFFFFFFFFFFFFFFF000000000000000000000
       00000000000000000000000000000000000000000000}
+  end
+  object OpenDialog1: TOpenDialog
+    DefaultExt = '*.preset'
+    Filter = 'preset|*.preset'
+    Left = 568
+    Top = 40
+  end
+  object SaveDialog1: TSaveDialog
+    DefaultExt = '*.preset'
+    Filter = 'preset|*.preset'
+    Left = 600
+    Top = 40
+  end
+  object PopupMenu3: TPopupMenu
+    AutoHotkeys = maManual
+    AutoLineReduction = maManual
+    BiDiMode = bdLeftToRight
+    OwnerDraw = True
+    ParentBiDiMode = False
+    TrackButton = tbLeftButton
+    Left = 184
+    Top = 112
+    object SavePreset: TMenuItem
+      Caption = 'Save Preset As...'
+      OnClick = btnSavePresetToFileClick
+    end
+    object LoadPreset: TMenuItem
+      Caption = 'Load Preset...'
+      OnClick = btnLoadPresetFromFileClick
+    end
+    object N1: TMenuItem
+      Caption = '-'
+    end
+    object SaveAllPreset: TMenuItem
+      Caption = 'Save All Preset'
+      OnClick = SaveAllPresetClick
+    end
+    object LoadAllPreset: TMenuItem
+      Caption = 'Load All Preset'
+      OnClick = LoadAllPresetClick
+    end
+    object SaveAllPresetAs: TMenuItem
+      Caption = 'Save All Preset As...'
+      OnClick = SaveAllPresetAsClick
+    end
+    object N2: TMenuItem
+      Caption = '-'
+    end
+    object Store: TMenuItem
+      Caption = 'Store'
+      OnClick = StoreClick
+    end
+    object StoreAs: TMenuItem
+      Caption = 'Store As'
+      OnClick = StoreAsClick
+      object N11: TMenuItem
+        Caption = '1'
+        OnClick = StoreAsClick
+      end
+      object N21: TMenuItem
+        Tag = 1
+        Caption = '2'
+        OnClick = StoreAsClick
+      end
+      object N31: TMenuItem
+        Tag = 2
+        Caption = '3'
+        OnClick = StoreAsClick
+      end
+      object N41: TMenuItem
+        Tag = 3
+        Caption = '4'
+        OnClick = StoreAsClick
+      end
+      object N51: TMenuItem
+        Tag = 4
+        Caption = '5'
+        OnClick = StoreAsClick
+      end
+      object N61: TMenuItem
+        Tag = 5
+        Caption = '6'
+        OnClick = StoreAsClick
+      end
+      object N71: TMenuItem
+        Tag = 6
+        Caption = '7'
+        OnClick = StoreAsClick
+      end
+      object N81: TMenuItem
+        Tag = 7
+        Caption = '8'
+        OnClick = StoreAsClick
+      end
+    end
+    object Recall1: TMenuItem
+      Caption = 'Recall'
+      object N12: TMenuItem
+        Caption = '1'
+        OnClick = RecallClick
+      end
+      object N22: TMenuItem
+        Tag = 1
+        Caption = '2'
+        OnClick = RecallClick
+      end
+      object N32: TMenuItem
+        Tag = 2
+        Caption = '3'
+        OnClick = RecallClick
+      end
+      object N42: TMenuItem
+        Tag = 3
+        Caption = '4'
+        OnClick = RecallClick
+      end
+      object N52: TMenuItem
+        Tag = 4
+        Caption = '5'
+        OnClick = RecallClick
+      end
+      object N62: TMenuItem
+        Tag = 5
+        Caption = '6'
+        OnClick = RecallClick
+      end
+      object N72: TMenuItem
+        Tag = 6
+        Caption = '7'
+        OnClick = RecallClick
+      end
+      object N82: TMenuItem
+        Tag = 7
+        Caption = '8'
+        OnClick = RecallClick
+      end
+      object TMenuItem
+      end
+    end
   end
 end

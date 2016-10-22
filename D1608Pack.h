@@ -79,6 +79,14 @@ typedef struct
 }D1608Cmd;
 typedef struct
 {
+	char flag[30];
+	int preset; // 低位表示preset, 0x80位表示是否全部下载
+	int type;
+	unsigned int id;
+	char data[1024];
+}D1608PresetCmd;
+typedef struct
+{
 	int opr;
 	int value1;
 }CIDebugCmd;

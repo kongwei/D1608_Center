@@ -97,7 +97,6 @@ __published:	// IDE-managed Components
     TPanel *pnlDspDetail;
     TLabel *lblDSPInfo;
     TEdit *edtDebug;
-    TTimer *Timer1;
     TComboBox *cbPreset;
     TLabel *Label31;
     TPanel *watch_panel;
@@ -257,12 +256,38 @@ __published:	// IDE-managed Components
     TTabSheet *TabSheet1;
     TMemo *memo_debug;
     TImageList *ImageList1;
-    TComboBox *cbPresetId;
-    TButton *btnLoadPreset;
-    TButton *btnSaveToFile;
-    TButton *btnLoadFromFile;
     TButton *btnRecall;
     TButton *btnStore;
+    TOpenDialog *OpenDialog1;
+    TSaveDialog *SaveDialog1;
+    TPopupMenu *PopupMenu3;
+    TMenuItem *SavePreset;
+    TMenuItem *LoadPreset;
+    TMenuItem *N1;
+    TMenuItem *SaveAllPreset;
+    TMenuItem *LoadAllPreset;
+    TMenuItem *SaveAllPresetAs;
+    TMenuItem *N2;
+    TMenuItem *Store;
+    TMenuItem *StoreAs;
+    TMenuItem *N11;
+    TMenuItem *N21;
+    TMenuItem *N31;
+    TMenuItem *N41;
+    TMenuItem *N51;
+    TMenuItem *N61;
+    TMenuItem *N71;
+    TMenuItem *N81;
+    TMenuItem *Recall1;
+    TMenuItem *N12;
+    TMenuItem *N22;
+    TMenuItem *N32;
+    TMenuItem *N42;
+    TMenuItem *N52;
+    TMenuItem *N62;
+    TMenuItem *N72;
+    TMenuItem *N82;
+    TEdit *edtPreset;
     void __fastcall FormCreate(TObject *Sender);
     void __fastcall FormDestroy(TObject *Sender);
     void __fastcall btnRefreshClick(TObject *Sender);
@@ -338,11 +363,16 @@ __published:	// IDE-managed Components
     void __fastcall pnlmix_level_editKeyDown(TObject *Sender, WORD &Key,
           TShiftState Shift);
     void __fastcall pnlmix_muteClick(TObject *Sender);
-    void __fastcall cbPresetIdChange(TObject *Sender);
-    void __fastcall btnSaveToFileClick(TObject *Sender);
-    void __fastcall btnLoadFromFileClick(TObject *Sender);
-    void __fastcall btnRecallClick(TObject *Sender);
+    void __fastcall btnSavePresetToFileClick(TObject *Sender);
+    void __fastcall btnLoadPresetFromFileClick(TObject *Sender);
     void __fastcall btnStoreClick(TObject *Sender);
+    void __fastcall SaveAllPresetClick(TObject *Sender);
+    void __fastcall LoadAllPresetClick(TObject *Sender);
+    void __fastcall FormCloseQuery(TObject *Sender, bool &CanClose);
+    void __fastcall SaveAllPresetAsClick(TObject *Sender);
+    void __fastcall StoreClick(TObject *Sender);
+    void __fastcall StoreAsClick(TObject *Sender);
+    void __fastcall RecallClick(TObject *Sender);
 
 private:
     // 已经选择设备
@@ -384,7 +414,23 @@ private:
     PaintAgent* paint_agent;
     FilterSet filter_set;
 
+    int cur_preset_id;
+    void __fastcall SetPresetId(int id)
+    {
+        cur_preset_id = id;
+        edtPreset->Text = IntToStr(cur_preset_id+1);
+    }
     int mireg0;
+
+    void __fastcall ApplyConfigToUI();
+
+    String preset_lib_filename;
+    void __fastcall SetPresetLibFilename(String filename);
+    bool file_dirty;
+    void __fastcall SetFileDirty(bool dirty_flag);
+
+    void __fastcall UpdateCaption();
+
 public:		// User declarations
     __fastcall TForm1(TComponent* Owner);
     TPaintBox * pb_watch_list[32];
