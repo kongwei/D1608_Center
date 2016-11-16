@@ -56,6 +56,7 @@ typedef struct
 
 typedef struct
 {
+    int noop;
     //InputConfigMap mix_dsp;
 	MasterConfigMap master;
 	short mix[INPUT_DSP_NUM+1][OUTPUT_DSP_NUM];
@@ -64,18 +65,88 @@ typedef struct
     InputConfigMap input_dsp[INPUT_DSP_NUM];
     OutputConfigMap output_dsp[OUTPUT_DSP_NUM];
     int WatchLevel[INPUT_DSP_NUM + OUTPUT_DSP_NUM];
-	int preset_id;
+	//int preset_id;
 }ConfigMap;
 
 extern ConfigMap config_map;
 
-typedef struct
+// /////////////////////////////////////////////
+// // ConfigMap_BIT
+// typedef struct
+// {
+//     unsigned char eq_switch;
+//     unsigned char comp_switch;
+//     unsigned char auto_switch;
+//     unsigned char invert_switch;
+//     unsigned char noise_switch;
+//     unsigned char mute_switch;
+//     unsigned char phantom_switch;
+//     unsigned char level_a;
+//     unsigned char level_b;
+//     unsigned char gain;
+//     unsigned int delay;
+//     unsigned char filter[9];
+// }InputConfigMap_BIT;
+// typedef struct
+// {
+//     unsigned char eq_switch;
+//     unsigned char comp_switch;
+//     unsigned char invert_switch;
+//     unsigned char mute_switch;
+//     unsigned char pad1;
+//     unsigned char pad2;
+//     unsigned char pad3;
+//     unsigned char pad4;
+//     unsigned char level_a;
+//     unsigned char  level_b;
+//     unsigned char gain;
+//     unsigned char filter[9];
+// }OutputConfigMap_BIT;
+// typedef struct
+// {
+//     unsigned char mute_switch;
+//     unsigned char level_a;
+// }MasterConfigMap_BIT;
+
+// typedef struct
+// {
+// 	MasterConfigMap_BIT master;
+// 	unsigned char mix[INPUT_DSP_NUM+1][OUTPUT_DSP_NUM];
+// 	unsigned char mix_mute[INPUT_DSP_NUM+1][OUTPUT_DSP_NUM];
+
+//     InputConfigMap_BIT input_dsp[INPUT_DSP_NUM];
+//     OutputConfigMap_BIT output_dsp[OUTPUT_DSP_NUM];
+//     unsigned char WatchLevel[INPUT_DSP_NUM + OUTPUT_DSP_NUM];
+// }ConfigMap_BIT;
+
+// extern ConfigMap_BIT config_map_bit;
+/////////////////////////////////////////////
+typedef struct __D1608Cmd
 {
     char flag[30];
     int preset;
     int type;
     unsigned int id;
-    int value[32];
+	unsigned int length;
+    union
+	{
+		unsigned char data_8;
+		unsigned short data_16;
+		unsigned int data_32;
+		FilterConfigMap data_filter;
+		int value[32];
+	}data;
+#ifdef __cplusplus
+    __D1608Cmd()
+    {
+        preset = 0;
+        type = 0;
+        id = 0;
+        for (int i=0;i<32;i++)
+    		data.value[i] = 0;
+	    length = 0;
+    }
+#endif
 }D1608Cmd;
 typedef struct
 {

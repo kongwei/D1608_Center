@@ -1,5 +1,5 @@
 object Form1: TForm1
-  Left = 47
+  Left = 15
   Top = 0
   Width = 1265
   Height = 755
@@ -21,21 +21,21 @@ object Form1: TForm1
   TextHeight = 13
   object PageControl1: TPageControl
     Left = 0
-    Top = 0
+    Top = 25
     Width = 1249
-    Height = 717
-    ActivePage = tsSearch
+    Height = 692
+    ActivePage = tsOperator
     Align = alClient
-    TabIndex = 0
+    TabIndex = 1
     TabOrder = 0
     object tsSearch: TTabSheet
       Caption = #26597#35810#35774#22791
       DesignSize = (
         1241
-        689)
+        664)
       object Bevel1: TBevel
         Left = 8
-        Top = 543
+        Top = 518
         Width = 1117
         Height = 10
         Anchors = [akLeft, akRight, akBottom]
@@ -51,7 +51,7 @@ object Form1: TForm1
       end
       object mmLog: TMemo
         Left = 8
-        Top = 562
+        Top = 537
         Width = 1117
         Height = 126
         Anchors = [akLeft, akRight, akBottom]
@@ -72,7 +72,7 @@ object Form1: TForm1
         Left = 8
         Top = 0
         Width = 1117
-        Height = 539
+        Height = 514
         Anchors = [akLeft, akTop, akRight, akBottom]
         Columns = <
           item
@@ -12482,7 +12482,7 @@ object Form1: TForm1
         Height = 531
         BevelOuter = bvNone
         Color = 7953478
-        TabOrder = 1
+        TabOrder = 0
         object Image1: TImage
           Left = 0
           Top = 0
@@ -19541,7 +19541,7 @@ object Form1: TForm1
         Top = 0
         Width = 1233
         Height = 21
-        TabOrder = 3
+        TabOrder = 2
       end
       object cbPreset: TComboBox
         Left = 776
@@ -19551,7 +19551,7 @@ object Form1: TForm1
         Style = csDropDownList
         ItemHeight = 13
         ItemIndex = 0
-        TabOrder = 4
+        TabOrder = 3
         Text = '1'
         Items.Strings = (
           '1'
@@ -19572,7 +19572,7 @@ object Form1: TForm1
         Color = 7953478
         Ctl3D = False
         ParentCtl3D = False
-        TabOrder = 5
+        TabOrder = 4
         object watch_bkimage: TImage
           Left = 0
           Top = 0
@@ -20159,7 +20159,7 @@ object Form1: TForm1
         Color = 7953478
         Ctl3D = False
         ParentCtl3D = False
-        TabOrder = 6
+        TabOrder = 5
         object Image2: TImage
           Left = 0
           Top = 0
@@ -21303,7 +21303,7 @@ object Form1: TForm1
         Slider.Size = 55
         Slider.Visible = False
         Slider.Offset = 14
-        TabOrder = 7
+        TabOrder = 6
         Thumb.BorderColor = 10317632
         Thumb.BorderColorHot = 10079963
         Thumb.BorderColorDown = 4548219
@@ -21675,7 +21675,7 @@ object Form1: TForm1
         Font.Style = [fsBold]
         ParentBiDiMode = False
         ParentFont = False
-        TabOrder = 8
+        TabOrder = 7
         Text = '-10.0'
         OnClick = input_panel_level_editClick
         OnExit = input_panel_level_editExit
@@ -21695,7 +21695,7 @@ object Form1: TForm1
         Font.Style = [fsBold]
         ParentColor = False
         ParentFont = False
-        TabOrder = 9
+        TabOrder = 8
         OnClick = input_panel_dsp_numClick
       end
       object output_panel_trackbar: TAdvTrackBar
@@ -21749,7 +21749,7 @@ object Form1: TForm1
         Slider.Size = 55
         Slider.Visible = False
         Slider.Offset = 14
-        TabOrder = 10
+        TabOrder = 9
         Thumb.BorderColor = 10317632
         Thumb.BorderColorHot = 10079963
         Thumb.BorderColorDown = 4548219
@@ -21921,7 +21921,7 @@ object Form1: TForm1
         Font.Style = [fsBold]
         ParentBiDiMode = False
         ParentFont = False
-        TabOrder = 11
+        TabOrder = 10
         Text = '10'
         OnClick = input_panel_level_editClick
         OnExit = output_panel_level_editExit
@@ -21941,7 +21941,7 @@ object Form1: TForm1
         Font.Style = [fsBold]
         ParentColor = False
         ParentFont = False
-        TabOrder = 12
+        TabOrder = 11
         OnClick = output_panel_dsp_numClick
       end
       object pnlDspDetail: TPanel
@@ -21950,7 +21950,7 @@ object Form1: TForm1
         Width = 961
         Height = 497
         Color = 13684944
-        TabOrder = 2
+        TabOrder = 1
         Visible = False
         DesignSize = (
           961
@@ -28590,29 +28590,13 @@ object Form1: TForm1
           Visible = False
         end
       end
-      object cbWatch: TCheckBox
-        Left = 72
-        Top = 696
-        Width = 97
-        Height = 17
-        Caption = 'Watch'
-        TabOrder = 0
-      end
-      object divbase: TCheckBox
-        Left = 160
-        Top = 696
-        Width = 97
-        Height = 17
-        Caption = '/8'
-        TabOrder = 13
-      end
       object pnlMix: TPanel
         Left = 952
         Top = 360
         Width = 831
         Height = 289
         Color = clActiveCaption
-        TabOrder = 14
+        TabOrder = 12
         Visible = False
         object pnlmix_background: TImage
           Left = 1
@@ -30713,6 +30697,58 @@ object Form1: TForm1
           'memo_debug')
         TabOrder = 0
       end
+    end
+  end
+  object ToolBar1: TToolBar
+    Left = 0
+    Top = 0
+    Width = 1249
+    Height = 25
+    ButtonHeight = 21
+    ButtonWidth = 56
+    Caption = 'ToolBar1'
+    Flat = True
+    ShowCaptions = True
+    TabOrder = 1
+    object ToolButton1: TToolButton
+      Left = 0
+      Top = 0
+      Caption = 'Open'
+      ImageIndex = 0
+      OnClick = ToolButton1Click
+    end
+    object ToolButton2: TToolButton
+      Left = 56
+      Top = 0
+      Caption = 'Close'
+      ImageIndex = 1
+      OnClick = ToolButton2Click
+    end
+    object ToolButton5: TToolButton
+      Left = 112
+      Top = 0
+      Width = 8
+      Caption = 'ToolButton5'
+      ImageIndex = 4
+      Style = tbsSeparator
+    end
+    object cbWatch: TToolButton
+      Left = 120
+      Top = 0
+      AllowAllUp = True
+      Caption = 'cbWatch'
+      Grouped = True
+      ImageIndex = 2
+      Style = tbsCheck
+    end
+    object divbase: TToolButton
+      Left = 176
+      Top = 0
+      AllowAllUp = True
+      Caption = 'divbase'
+      Grouped = True
+      ImageIndex = 3
+      Style = tbsCheck
     end
   end
   object udpSLP: TIdUDPServer

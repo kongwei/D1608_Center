@@ -5,8 +5,7 @@
     <VERSION value="BCB.06.00"/>
     <PROJECT value="iap_udp.exe"/>
     <OBJFILES value="tmp\iap_udp.obj tmp\untMain.obj tmp\Coefficient.obj tmp\FilterList.obj 
-      tmp\FilterPanelSet.obj tmp\SelectSort.obj tmp\WaveGraphic.obj 
-      tmp\D1608Pack.obj tmp\ci_utiles.obj"/>
+      tmp\FilterPanelSet.obj tmp\SelectSort.obj tmp\WaveGraphic.obj"/>
     <RESFILES value="iap_udp.res tmp\mixbutton.res"/>
     <IDLFILES value=""/>
     <IDLGENFILES value=""/>
@@ -21,7 +20,7 @@
       dsnapcrba.bpi dsnapcon.bpi vclie.bpi xmlrtl.bpi inet.bpi inetdbbde.bpi 
       inetdbxpress.bpi nmfast.bpi webdsnap.bpi bcbie.bpi soaprtl.bpi dclocx.bpi 
       dbexpress.bpi dbxcds.bpi indy.bpi bcb2kaxserver.bpi tmstrackbar.bpi"/>
-    <PATHCPP value=".;filter_wave;filter_wave;filter_wave;filter_wave;filter_wave;ci"/>
+    <PATHCPP value=".;filter_wave;filter_wave;filter_wave;filter_wave;filter_wave"/>
     <PATHPAS value=".;"/>
     <PATHRC value=".;"/>
     <PATHASM value=".;"/>
@@ -65,8 +64,6 @@
       <FILE FILENAME="filter_wave\FilterPanelSet.cpp" FORMNAME="" UNITNAME="FilterPanelSet.cpp" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
       <FILE FILENAME="filter_wave\SelectSort.cpp" FORMNAME="" UNITNAME="SelectSort.cpp" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
       <FILE FILENAME="filter_wave\WaveGraphic.cpp" FORMNAME="" UNITNAME="WaveGraphic.cpp" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
-      <FILE FILENAME="D1608Pack.c" FORMNAME="" UNITNAME="D1608Pack" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
-      <FILE FILENAME="ci\ci_utiles.cpp" FORMNAME="" UNITNAME="ci_utiles" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
       <FILE FILENAME="mixbutton.rc" FORMNAME="" UNITNAME="mixbutton.rc" CONTAINERID="RCCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
   </FILELIST>
   <BUILDTOOLS>

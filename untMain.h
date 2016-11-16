@@ -31,6 +31,7 @@
 #include "FilterList.h"
 #include "AdvTrackBar.hpp"
 #include "CSPIN.h"
+#include <ToolWin.hpp>
 extern "C"{
 #include "D1608Pack.h"
 }
@@ -84,7 +85,6 @@ __published:	// IDE-managed Components
     TIdUDPServer *udpSLP;
     TTimer *tmSLP;
     TIdUDPServer *udpControl;
-    TCheckBox *cbWatch;
     TTimer *tmWatch;
     TPanel *mix_panel;
     TSpeedButtonNoFrame *btnFShift;
@@ -241,7 +241,6 @@ __published:	// IDE-managed Components
     TEdit *edtQ10;
     TEdit *edtGain10;
     TMemo *mmCoeff;
-    TCheckBox *divbase;
     TAdvTrackBar *TrackBar27;
     TAdvTrackBar *p_output_inner_level;
     TAdvTrackBar *p_input_inner_level;
@@ -288,6 +287,12 @@ __published:	// IDE-managed Components
     TMenuItem *N72;
     TMenuItem *N82;
     TEdit *edtPreset;
+    TToolBar *ToolBar1;
+    TToolButton *ToolButton1;
+    TToolButton *ToolButton2;
+    TToolButton *cbWatch;
+    TToolButton *divbase;
+    TToolButton *ToolButton5;
     void __fastcall FormCreate(TObject *Sender);
     void __fastcall FormDestroy(TObject *Sender);
     void __fastcall btnRefreshClick(TObject *Sender);
@@ -373,6 +378,8 @@ __published:	// IDE-managed Components
     void __fastcall StoreClick(TObject *Sender);
     void __fastcall StoreAsClick(TObject *Sender);
     void __fastcall RecallClick(TObject *Sender);
+    void __fastcall ToolButton1Click(TObject *Sender);
+    void __fastcall ToolButton2Click(TObject *Sender);
 
 private:
     // 已经选择设备

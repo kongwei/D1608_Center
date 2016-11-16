@@ -105,37 +105,31 @@ void FilterSet::RepaintPaint(int band)
         D1608Cmd cmd;
         double tmp;
 
-        cmd.value[0] = GetFilter(band)->GetTypeId();   // TYPE
+        cmd.data.data_filter.TYPE = GetFilter(band)->GetTypeId();
 
         tmp = GetFilterFreq(band)*10;
-        cmd.value[1] = tmp;           // FREQ
+        cmd.data.data_filter.FREQ = tmp;
 
         tmp = GetFilterGain(band)*10;
-        cmd.value[2] = tmp;           // GAIN
+        cmd.data.data_filter.GAIN = tmp;
 
-        tmp = GetFilter(band)->GetQ()*100;       // Q
-        cmd.value[3] = tmp;
+        tmp = GetFilter(band)->GetQ()*100; 
+        cmd.data.data_filter.Q = tmp;
 
-        tmp = IsBypass(band) ? 1 : 0;   // Bypass
-        cmd.value[4] = tmp;
+        tmp = IsBypass(band) ? 1 : 0;  
+        cmd.data.data_filter.bypass = tmp;
+
+        cmd.length = sizeof(cmd.data.data_filter);
 
         if (dsp_id < 100)
         {
             cmd.id = GerOffsetOfData(&config_map.input_dsp[dsp_id-1].filter[band-1]);
-            config_map.input_dsp[dsp_id-1].filter[band-1].TYPE = cmd.value[0];
-            config_map.input_dsp[dsp_id-1].filter[band-1].FREQ = cmd.value[1];
-            config_map.input_dsp[dsp_id-1].filter[band-1].GAIN = cmd.value[2];
-            config_map.input_dsp[dsp_id-1].filter[band-1].Q = cmd.value[3];
-            config_map.input_dsp[dsp_id-1].filter[band-1].bypass = cmd.value[4];
+            config_map.input_dsp[dsp_id-1].filter[band-1] = cmd.data.data_filter;
         }
         else
         {
             cmd.id = GerOffsetOfData(&config_map.output_dsp[dsp_id-101].filter[band-1]);
-            config_map.output_dsp[dsp_id-101].filter[band-1].TYPE = cmd.value[0];
-            config_map.output_dsp[dsp_id-101].filter[band-1].FREQ = cmd.value[1];
-            config_map.output_dsp[dsp_id-101].filter[band-1].GAIN = cmd.value[2];
-            config_map.output_dsp[dsp_id-101].filter[band-1].Q = cmd.value[3];
-            config_map.output_dsp[dsp_id-101].filter[band-1].bypass = cmd.value[4];
+            config_map.output_dsp[dsp_id-101].filter[band-1] = cmd.data.data_filter;
         }
 
         Form1->SendCmd(cmd);

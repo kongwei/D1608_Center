@@ -24,6 +24,14 @@ TAdvGDIPPicture * x = new TAdvGDIPPicture();
 
 static bool on_loading = false;
 
+//static char head[] = "\x53\x65\x74\x50\x61\x72\x61\x00\x00\x00\x4D\x41\x54\x31\x36\x31\x30\x43\x6F\x6E\x66\x69\x67\x44\x61\x74\x61\x00\x00\x00";
+
+unsigned int GerOffsetOfData(void * p_data)
+{
+    static char * p_config_map = (char*)&config_map;
+    return (char*)p_data - p_config_map;
+}
+
 //---------------------------------------------------------------------------
 void SelectNullControl()
 {
@@ -84,6 +92,18 @@ int GetLocalIpList(TStrings * IpList)
         //WSACleanup();
         return result;
     }
+}
+static String CmdLog(D1608Cmd cmd)
+{
+    String result;
+    result = result + IntToStr(cmd.id) + "¡£";
+    result = result + IntToStr(cmd.data.value[0]) + ",";
+    result = result + IntToStr(cmd.data.value[1]) + ",";
+    result = result + IntToStr(cmd.data.value[2]) + ",";
+    result = result + IntToStr(cmd.data.value[3]) + ",";
+    result = result + IntToStr(cmd.data.value[4]);
+
+    return result;
 }
 //---------------------------------------------------------------------------
 static Gdipicture::TGDIPPicture* MixPicture[16] = {NULL};
@@ -563,19 +583,22 @@ void __fastcall TForm1::FormDestroy(TObject *Sender)
 void TForm1::SendCmd(D1608Cmd& cmd)
 {
     cmd.preset = cbPreset->ItemIndex + 1;
-#if 0
+#if 1
     unsigned __int8 * p = (unsigned __int8*)&cmd;
     edtDebug->Text = "";
-    for (int i=30;i<sizeof(cmd);i++)
+    String cmd_text = "";
+    for (unsigned int i=30;i<30+16+cmd.length;i++)
     {
-        edtDebug->Text = edtDebug->Text + IntToHex(p[i], 2) + " ";
+        cmd_text = cmd_text + IntToHex(p[i], 2) + " ";
     }
+    edtDebug->Text = cmd_text;
 #endif
     if (on_loading || !udpControl->Active)
     {
     }
     else
     {
+        //memo_debug->Lines->Add("Send£º" + CmdLog(cmd));
         udpControl->SendBuffer(dst_ip, 2305, &cmd, sizeof(cmd));
     }
 
@@ -745,7 +768,7 @@ void __fastcall TForm1::btnSelectClick(TObject *Sender)
     udpControl->SendBuffer(dst_ip, 905, &cmd, sizeof(cmd));
 
     tsOperator->Show();
-    cbWatch->Checked = true;
+    cbWatch->Down = true;
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::tmSLPTimer(TObject *Sender)
@@ -811,7 +834,8 @@ void __fastcall TForm1::InputVolumeChange(TObject *Sender)
     {
         D1608Cmd cmd;
         cmd.id = GerOffsetOfData(&config_map.input_dsp[dsp_num-1].level_a);
-        cmd.value[0] = value;
+        cmd.data.data_16 = value;
+        cmd.length = 2;
         SendCmd(cmd);
 
         config_map.input_dsp[dsp_num-1].level_a = value;
@@ -820,7 +844,7 @@ void __fastcall TForm1::InputVolumeChange(TObject *Sender)
     {
         //D1608Cmd cmd;
         //cmd.id = GerOffsetOfData(&config_map.mix_dsp.level_a);
-        //cmd.value[0] = value;
+        //cmd.data.data_8 = value;
         //SendCmd(cmd);
     }
 }
@@ -832,7 +856,8 @@ void __fastcall TForm1::ToogleMute(TObject *Sender)
 
     D1608Cmd cmd;
     cmd.id = GerOffsetOfData(&config_map.input_dsp[dsp_id-1].mute_switch);
-    cmd.value[0] = btn->Down;
+    cmd.data.data_8 = btn->Down;
+    cmd.length = 1;
     SendCmd(cmd);
 
     config_map.input_dsp[dsp_id-1].mute_switch = btn->Down;
@@ -845,7 +870,8 @@ void __fastcall TForm1::ToogleNoise(TObject *Sender)
 
     D1608Cmd cmd;
     cmd.id = GerOffsetOfData(&config_map.input_dsp[dsp_id-1].noise_switch);
-    cmd.value[0] = btn->Down;
+    cmd.data.data_8 = btn->Down;
+    cmd.length = 1;
     SendCmd(cmd);
 
     config_map.input_dsp[dsp_id-1].noise_switch = btn->Down;
@@ -858,7 +884,8 @@ void __fastcall TForm1::ToogleInvert(TObject *Sender)
 
     D1608Cmd cmd;
     cmd.id = GerOffsetOfData(&config_map.input_dsp[dsp_id-1].invert_switch);
-    cmd.value[0] = btn->Down;
+    cmd.data.data_8 = btn->Down;
+    cmd.length = 1;
     SendCmd(cmd);
 
     config_map.input_dsp[dsp_id-1].invert_switch = btn->Down;
@@ -878,6 +905,7 @@ void __fastcall TForm1::ToogleDefault(TObject *Sender)
 #if 0
         int dsp_id = btn->Tag;
         D1608Cmd cmd = InputDefault(dsp_id, 0);
+        cmd.length = 1;
         SendCmd(cmd);
 #endif
     }
@@ -887,6 +915,7 @@ void __fastcall TForm1::ToogleDefault(TObject *Sender)
         last_default_btn = NULL;
 #if 0
         D1608Cmd cmd = InputDefault(0, 0);
+        cmd.length = 1;
         SendCmd(cmd);
 #endif
     }
@@ -900,6 +929,7 @@ void __fastcall TForm1::ToogleAuto(TObject *Sender)
     static int input_auto = 0;
     input_auto = SetBit(input_auto, dsp_id, btn->Down);
     D1608Cmd cmd = InputAuto(input_auto);
+    cmd.length = 1;
     SendCmd(cmd);
 #endif
 }
@@ -911,6 +941,7 @@ void __fastcall TForm1::ToogleCOMP(TObject *Sender)
     static int input_comp = 0;
     input_comp = SetBit(input_comp, dsp_id, btn->Down);
     D1608Cmd cmd = InputComp(input_comp);
+    cmd.length = 1;
     SendCmd(cmd);*/
 }
 //---------------------------------------------------------------------------
@@ -921,7 +952,8 @@ void __fastcall TForm1::ToogleEQ(TObject *Sender)
 
     D1608Cmd cmd;
     cmd.id = GerOffsetOfData(&config_map.input_dsp[dsp_id-1].eq_switch);
-    cmd.value[0] = btn->Down;
+    cmd.data.data_8 = btn->Down;
+    cmd.length = 1;
     SendCmd(cmd);
 
     config_map.input_dsp[dsp_id-1].eq_switch = btn->Down;
@@ -932,13 +964,22 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
 {
     if (ABinding->PeerPort == 2305)
     {
-        D1608Cmd cmd = {0};
+        D1608Cmd cmd;
         AData->ReadBuffer(&cmd, std::min(sizeof(cmd), AData->Size));
 
         if (cmd.id == GerOffsetOfData(&config_map.WatchLevel))
         {
             // ÒôÁ¿Êä³ö
             MsgWatchHandle(cmd);
+        }
+    }
+    else if (ABinding->PeerPort == 2306)
+    {
+        D1608Cmd cmd;
+        AData->ReadBuffer(&cmd, std::min(sizeof(cmd), AData->Size));
+        if (cmd.id != GerOffsetOfData(&config_map.WatchLevel))
+        {
+            memo_debug->Lines->Add("Reply£º" + CmdLog(cmd));
         }
     }
     else if (ABinding->PeerPort == 904)
@@ -1086,7 +1127,7 @@ void TForm1::MsgWatchHandle(const D1608Cmd& cmd)
 {
     for (int i=0;i<32;i++)
     {
-        int value = cmd.value[i];
+        int value = cmd.data.value[i];
         if (value <= 0)
         {
             pb_watch_list[i]->Tag = -71;
@@ -1111,11 +1152,20 @@ void TForm1::MsgWatchHandle(const D1608Cmd& cmd)
 //---------------------------------------------------------------------------
 void __fastcall TForm1::tmWatchTimer(TObject *Sender)
 {
-    if (cbWatch->Checked)
+    if (cbWatch->Down)
     {
         D1608Cmd cmd;
         cmd.id = GerOffsetOfData(&config_map.WatchLevel);
         SendCmd(cmd);
+    }
+    else
+    {
+        D1608Cmd cmd;
+        cmd.id = GerOffsetOfData(&config_map.noop);
+        if (udpControl->Active)
+        {
+            udpControl->SendBuffer(dst_ip, 2305, &cmd, sizeof(cmd));
+        }
     }
 }
 //---------------------------------------------------------------------------
@@ -1126,7 +1176,8 @@ void __fastcall TForm1::ToogleOutputMute(TObject *Sender)
 
     D1608Cmd cmd;
     cmd.id = GerOffsetOfData(&config_map.output_dsp[dsp_id-1].mute_switch);
-    cmd.value[0] = btn->Down;
+    cmd.data.data_8 = btn->Down;
+    cmd.length = 1;
     SendCmd(cmd);
 
     config_map.output_dsp[dsp_id-1].mute_switch = btn->Down;
@@ -1139,7 +1190,8 @@ void __fastcall TForm1::ToogleOutputInvert(TObject *Sender)
 
     D1608Cmd cmd;
     cmd.id = GerOffsetOfData(&config_map.output_dsp[dsp_id-1].invert_switch);
-    cmd.value[0] = btn->Down;
+    cmd.data.data_8 = btn->Down;
+    cmd.length = 1;
     SendCmd(cmd);
 
     config_map.output_dsp[dsp_id-1].invert_switch = btn->Down;
@@ -1215,6 +1267,7 @@ void __fastcall TForm1::ToogleLimit(TObject *Sender)
     static int output_limit = 0;
     output_limit = SetBit(output_limit, dsp_id, btn->Down);
     D1608Cmd cmd = OutputLimit(output_limit);
+    cmd.length = 1;
     SendCmd(cmd);*/
 }
 //---------------------------------------------------------------------------
@@ -1225,7 +1278,8 @@ void __fastcall TForm1::ToogleOutputEQ(TObject *Sender)
 
     D1608Cmd cmd;
     cmd.id = GerOffsetOfData(&config_map.output_dsp[dsp_id-1].eq_switch);
-    cmd.value[0] = btn->Down;
+    cmd.data.data_8 = btn->Down;
+    cmd.length = 1;
     SendCmd(cmd);
 
     config_map.output_dsp[dsp_id-1].eq_switch = btn->Down;
@@ -1252,7 +1306,8 @@ void __fastcall TForm1::OutputVolumeChange(TObject *Sender)
 
     D1608Cmd cmd;
     cmd.id = GerOffsetOfData(&config_map.output_dsp[dsp_num-1].level_a);
-    cmd.value[0] = value;
+    cmd.data.data_16 = value;
+    cmd.length = 2;
     SendCmd(cmd);
 
     config_map.output_dsp[dsp_num-1].level_a = value;
@@ -1332,7 +1387,8 @@ void __fastcall TForm1::btnMixInvertClick(TObject *Sender)
 
     D1608Cmd cmd;
     cmd.id = GerOffsetOfData(&config_map.mix_dsp.invert_switch);
-    cmd.value[0] = btn->Down;
+    cmd.data.data_8 = btn->Down;
+    cmd.length = 1;
     SendCmd(cmd);
 #endif
 }
@@ -1343,6 +1399,7 @@ void __fastcall TForm1::btnMAXONClick(TObject *Sender)
     // mix_panel_state bit1
     mix_panel_state = SetBit(mix_panel_state, 1, btnMAXON->Down);
     D1608Cmd cmd = Mix_MaxPrio_Invert_Mute(mix_panel_state);
+    cmd.length = 1;
     SendCmd(cmd);
 #endif
 }
@@ -1352,6 +1409,7 @@ void __fastcall TForm1::btnLastOnClick(TObject *Sender)
 #if 0
     TSpeedButton* btn = (TSpeedButton*)Sender;
     D1608Cmd cmd = InputDefault(0, btn->Down);
+    cmd.length = 1;
     SendCmd(cmd);
 #endif
 }
@@ -1362,6 +1420,7 @@ void __fastcall TForm1::btnFShiftClick(TObject *Sender)
 #if 0
     TSpeedButton* btn = (TSpeedButton*)Sender;
     D1608Cmd cmd = FShift(btn->Down);
+    cmd.length = 1;
     SendCmd(cmd);
 #endif
 }
@@ -1386,7 +1445,8 @@ void __fastcall TForm1::MasterVolumeChange(TObject *Sender)
 
     D1608Cmd cmd;
     cmd.id = GerOffsetOfData(&config_map.master.level_a);
-    cmd.value[0] = value;
+    cmd.data.data_16 = value;
+    cmd.length = 2;
     SendCmd(cmd);
 
     config_map.master.level_a = value;
@@ -1399,7 +1459,8 @@ void __fastcall TForm1::btnMixMuteClick(TObject *Sender)
 
     D1608Cmd cmd;
     cmd.id = GerOffsetOfData(&config_map.mix_dsp.mute_switch);
-    cmd.value[0] = btn->Down;
+    cmd.data.data_8 = btn->Down;
+    cmd.length = 1;
     SendCmd(cmd);
 #endif
 }
@@ -1410,7 +1471,8 @@ void __fastcall TForm1::btnMasterMuteClick(TObject *Sender)
 
     D1608Cmd cmd;
     cmd.id = GerOffsetOfData(&config_map.master.mute_switch);
-    cmd.value[0] = btn->Down;
+    cmd.data.data_8 = btn->Down;
+    cmd.length = 1;
     SendCmd(cmd);
 
     config_map.master.mute_switch = btn->Down;
@@ -1423,7 +1485,8 @@ void __fastcall TForm1::btnPhantonClick(TObject *Sender)
 
     D1608Cmd cmd;
     cmd.id = GerOffsetOfData(&config_map.input_dsp[dsp_id-1].phantom_switch);
-    cmd.value[0] = btn->Down;
+    cmd.data.data_8 = btn->Down;
+    cmd.length = 1;
     SendCmd(cmd);
 
     config_map.input_dsp[dsp_id-1].phantom_switch = btn->Down;
@@ -1440,7 +1503,8 @@ void __fastcall TForm1::TrackBar27Change(TObject *Sender)
         // input channel
         D1608Cmd cmd;
         cmd.id = GerOffsetOfData(&config_map.input_dsp[dsp_num-1].level_b);
-        cmd.value[0] = value;
+        cmd.data.data_16 = value;
+        cmd.length = 2;
         SendCmd(cmd);
 
         config_map.input_dsp[dsp_num-1].level_b = value;
@@ -1450,7 +1514,8 @@ void __fastcall TForm1::TrackBar27Change(TObject *Sender)
         // output channel
         D1608Cmd cmd;
         cmd.id = GerOffsetOfData(&config_map.output_dsp[dsp_num-101].level_b);
-        cmd.value[0] = value;
+        cmd.data.data_16 = value;
+        cmd.length = 2;
         SendCmd(cmd);
 
         config_map.output_dsp[dsp_num-101].level_b = value;
@@ -1515,33 +1580,34 @@ void __fastcall TForm1::M41Click(TObject *Sender)
 
     D1608Cmd cmd;
     cmd.id = GerOffsetOfData(&config_map.input_dsp[dsp_num-1].gain);
+    cmd.length = 1;
     if (popup_label->Caption == "MIC")
     {
-        cmd.value[0] = 0;
+        cmd.data.data_8 = 0;
     }
     else if (popup_label->Caption == "MIC(0)")
     {
-        cmd.value[0] = 1;
+        cmd.data.data_8 = 1;
     }
     else if (popup_label->Caption == "400mv")
     {
-        cmd.value[0] = 5;
+        cmd.data.data_8 = 5;
     }
     else if (popup_label->Caption == "10dBv")
     {
-        cmd.value[0] = 6;
+        cmd.data.data_8 = 6;
     }
     else if (popup_label->Caption == "22dBu")
     {
-        cmd.value[0] = 3;
+        cmd.data.data_8 = 3;
     }
     else if (popup_label->Caption == "24dBu")
     {
-        cmd.value[0] = 7;
+        cmd.data.data_8 = 7;
     }
     SendCmd(cmd);
 
-    config_map.input_dsp[dsp_num-1].gain = cmd.value[0];
+    config_map.input_dsp[dsp_num-1].gain = cmd.data.data_8;
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::MenuItem3Click(TObject *Sender)
@@ -1553,25 +1619,26 @@ void __fastcall TForm1::MenuItem3Click(TObject *Sender)
 
     D1608Cmd cmd;
     cmd.id = GerOffsetOfData(&config_map.output_dsp[dsp_num-1].gain);
+    cmd.length = 1;
     if (popup_label->Caption == "200mv")
     {
-        cmd.value[0] = 7;
+        cmd.data.data_8 = 7;
     }
     else if (popup_label->Caption == "10dBv")
     {
-        cmd.value[0] = 3;
+        cmd.data.data_8 = 3;
     }
     else if (popup_label->Caption == "22dBu")
     {
-        cmd.value[0] = 1;
+        cmd.data.data_8 = 1;
     }
     else if (popup_label->Caption == "24dBu")
     {
-        cmd.value[0] = 0;
+        cmd.data.data_8 = 0;
     }
     SendCmd(cmd);
 
-    config_map.output_dsp[dsp_num-1].gain = cmd.value[0];
+    config_map.output_dsp[dsp_num-1].gain = cmd.data.data_8;
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::M41DrawItem(TObject *Sender, TCanvas *ACanvas,
@@ -1898,7 +1965,8 @@ void __fastcall TForm1::pnlmix_level_trackbarChange(TObject *Sender)
 
         D1608Cmd cmd;
         cmd.id = GerOffsetOfData(&config_map.mix[in_dsp_num-1][out_dsp_num-1]);
-        cmd.value[0] = value;
+        cmd.data.data_16 = value;
+        cmd.length = 2;
         SendCmd(cmd);
 
         config_map.mix[in_dsp_num-1][out_dsp_num-1] = value;
@@ -1957,7 +2025,8 @@ void __fastcall TForm1::pnlmix_muteClick(TObject *Sender)
 
         D1608Cmd cmd;
         cmd.id = GerOffsetOfData(&config_map.mix_mute[in_dsp_num-1][out_dsp_num-1]);
-        cmd.value[0] = btn->Down;
+        cmd.data.data_8 = btn->Down;
+        cmd.length = 1;
         SendCmd(cmd);
 
         config_map.mix_mute[in_dsp_num-1][out_dsp_num-1] = btn->Down;
@@ -2237,6 +2306,16 @@ void __fastcall TForm1::RecallClick(TObject *Sender)
 
         udpControl->SendBuffer(dst_ip, 904, &cmd, sizeof(cmd));
     }
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::ToolButton1Click(TObject *Sender)
+{
+    //
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::ToolButton2Click(TObject *Sender)
+{
+    //
 }
 //---------------------------------------------------------------------------
 
