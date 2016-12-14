@@ -32,8 +32,10 @@
 #include "AdvTrackBar.hpp"
 #include "CSPIN.h"
 #include <ToolWin.hpp>
+#include <Grids.hpp>
+#include <ValEdit.hpp>
 extern "C"{
-#include "D1608Pack.h"
+#include "../enc28j60_iap_app/inc/D1608Pack.h"
 }
 
 #define UDP_PORT 65518
@@ -293,6 +295,13 @@ __published:	// IDE-managed Components
     TToolButton *cbWatch;
     TToolButton *divbase;
     TToolButton *ToolButton5;
+    TEdit *edtIp;
+    TButton *btnSetIp;
+    TValueListEditor *ValueListEditor1;
+    TValueListEditor *ValueListEditor2;
+    TLabel *Label17;
+    TLabel *Label18;
+    TLabel *lblDiff;
     void __fastcall FormCreate(TObject *Sender);
     void __fastcall FormDestroy(TObject *Sender);
     void __fastcall btnRefreshClick(TObject *Sender);
@@ -380,6 +389,7 @@ __published:	// IDE-managed Components
     void __fastcall RecallClick(TObject *Sender);
     void __fastcall ToolButton1Click(TObject *Sender);
     void __fastcall ToolButton2Click(TObject *Sender);
+    void __fastcall btnSetIpClick(TObject *Sender);
 
 private:
     // 已经选择设备
@@ -425,7 +435,7 @@ private:
     void __fastcall SetPresetId(int id)
     {
         cur_preset_id = id;
-        edtPreset->Text = IntToStr(cur_preset_id+1);
+        edtPreset->Text = IntToStr(cur_preset_id);
     }
     int mireg0;
 
@@ -442,6 +452,7 @@ public:		// User declarations
     __fastcall TForm1(TComponent* Owner);
     TPaintBox * pb_watch_list[32];
 
+    TLabel* input_type_lbl[17];
     TSpeedButton* input_eq_btn[17];
     TSpeedButton* input_comp_btn[17];
     TSpeedButton* input_auto_btn[17];
@@ -452,6 +463,7 @@ public:		// User declarations
     TEdit* input_level_edit[17];
     TAdvTrackBar* input_level_trackbar[17];
 
+    TLabel* output_type_lbl[17];
     TSpeedButton* output_eq_btn[16];
     TSpeedButton* output_comp_btn[16];
     TSpeedButton* output_invert_btn[17];

@@ -1,6 +1,6 @@
 object Form1: TForm1
-  Left = 15
-  Top = 0
+  Left = 38
+  Top = 55
   Width = 1265
   Height = 755
   Caption = 'D1608'
@@ -21946,7 +21946,7 @@ object Form1: TForm1
       end
       object pnlDspDetail: TPanel
         Left = 104
-        Top = 312
+        Top = 112
         Width = 961
         Height = 497
         Color = 13684944
@@ -30688,14 +30688,96 @@ object Form1: TForm1
     object TabSheet1: TTabSheet
       Caption = 'TabSheet1'
       ImageIndex = 2
+      object Label17: TLabel
+        Left = 624
+        Top = 72
+        Width = 39
+        Height = 13
+        Caption = #26816#27979#20540
+      end
+      object Label18: TLabel
+        Left = 848
+        Top = 72
+        Width = 39
+        Height = 13
+        Caption = #35745#31639#20540
+      end
+      object lblDiff: TLabel
+        Left = 616
+        Top = 344
+        Width = 49
+        Height = 13
+        Caption = 'lblDiff'
+      end
       object memo_debug: TMemo
-        Left = 48
-        Top = 112
-        Width = 753
-        Height = 265
+        Left = 16
+        Top = 16
+        Width = 577
+        Height = 289
         Lines.Strings = (
           'memo_debug')
         TabOrder = 0
+      end
+      object edtIp: TEdit
+        Left = 16
+        Top = 344
+        Width = 169
+        Height = 21
+        TabOrder = 1
+        Text = '10.3.1.128'
+      end
+      object btnSetIp: TButton
+        Left = 192
+        Top = 344
+        Width = 75
+        Height = 25
+        Caption = #35774#32622#38745#24577'IP'
+        TabOrder = 2
+        OnClick = btnSetIpClick
+      end
+      object ValueListEditor1: TValueListEditor
+        Left = 624
+        Top = 88
+        Width = 193
+        Height = 217
+        Strings.Strings = (
+          'base='
+          '12va='
+          '5vd='
+          '8vd='
+          '16va='
+          '48va='
+          '5va='
+          '-12va='
+          '8va='
+          '-16va='
+          '')
+        TabOrder = 3
+        ColWidths = (
+          100
+          70)
+      end
+      object ValueListEditor2: TValueListEditor
+        Left = 848
+        Top = 88
+        Width = 193
+        Height = 217
+        Strings.Strings = (
+          'base='
+          '12va='
+          '5vd='
+          '8vd='
+          '16va='
+          '48va='
+          '5va='
+          '-12va='
+          '8va='
+          '-16va='
+          '')
+        TabOrder = 4
+        ColWidths = (
+          100
+          70)
       end
     end
   end
@@ -30778,7 +30860,6 @@ object Form1: TForm1
     Top = 40
   end
   object tmWatch: TTimer
-    Interval = 300
     OnTimer = tmWatchTimer
     Left = 416
     Top = 40
@@ -44805,43 +44886,43 @@ object Form1: TForm1
     end
     object StoreAs: TMenuItem
       Caption = 'Store As'
-      OnClick = StoreAsClick
       object N11: TMenuItem
+        Tag = 1
         Caption = '1'
         OnClick = StoreAsClick
       end
       object N21: TMenuItem
-        Tag = 1
+        Tag = 2
         Caption = '2'
         OnClick = StoreAsClick
       end
       object N31: TMenuItem
-        Tag = 2
+        Tag = 3
         Caption = '3'
         OnClick = StoreAsClick
       end
       object N41: TMenuItem
-        Tag = 3
+        Tag = 4
         Caption = '4'
         OnClick = StoreAsClick
       end
       object N51: TMenuItem
-        Tag = 4
+        Tag = 5
         Caption = '5'
         OnClick = StoreAsClick
       end
       object N61: TMenuItem
-        Tag = 5
+        Tag = 6
         Caption = '6'
         OnClick = StoreAsClick
       end
       object N71: TMenuItem
-        Tag = 6
+        Tag = 7
         Caption = '7'
         OnClick = StoreAsClick
       end
       object N81: TMenuItem
-        Tag = 7
+        Tag = 8
         Caption = '8'
         OnClick = StoreAsClick
       end
@@ -44849,41 +44930,42 @@ object Form1: TForm1
     object Recall1: TMenuItem
       Caption = 'Recall'
       object N12: TMenuItem
+        Tag = 1
         Caption = '1'
         OnClick = RecallClick
       end
       object N22: TMenuItem
-        Tag = 1
+        Tag = 2
         Caption = '2'
         OnClick = RecallClick
       end
       object N32: TMenuItem
-        Tag = 2
+        Tag = 3
         Caption = '3'
         OnClick = RecallClick
       end
       object N42: TMenuItem
-        Tag = 3
+        Tag = 4
         Caption = '4'
         OnClick = RecallClick
       end
       object N52: TMenuItem
-        Tag = 4
+        Tag = 5
         Caption = '5'
         OnClick = RecallClick
       end
       object N62: TMenuItem
-        Tag = 5
+        Tag = 6
         Caption = '6'
         OnClick = RecallClick
       end
       object N72: TMenuItem
-        Tag = 6
+        Tag = 7
         Caption = '7'
         OnClick = RecallClick
       end
       object N82: TMenuItem
-        Tag = 7
+        Tag = 8
         Caption = '8'
         OnClick = RecallClick
       end

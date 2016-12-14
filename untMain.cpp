@@ -97,11 +97,11 @@ static String CmdLog(D1608Cmd cmd)
 {
     String result;
     result = result + IntToStr(cmd.id) + "。";
-    result = result + IntToStr(cmd.data.value[0]) + ",";
-    result = result + IntToStr(cmd.data.value[1]) + ",";
-    result = result + IntToStr(cmd.data.value[2]) + ",";
-    result = result + IntToStr(cmd.data.value[3]) + ",";
-    result = result + IntToStr(cmd.data.value[4]);
+    result = result + IntToStr(cmd.data.data_32_array[0]) + ",";
+    result = result + IntToStr(cmd.data.data_32_array[1]) + ",";
+    result = result + IntToStr(cmd.data.data_32_array[2]) + ",";
+    result = result + IntToStr(cmd.data.data_32_array[3]) + ",";
+    result = result + IntToStr(cmd.data.data_32_array[4]);
 
     return result;
 }
@@ -276,6 +276,14 @@ static void CopyWatchPanel(int panel_id, TForm1 * form, String label, int left)
     input_type->Alignment = form->input_type->Alignment;
     input_type->Parent = watch_panel;
     input_type->Tag = panel_id;
+    if (panel_id<=16)
+    {
+        form->input_type_lbl[panel_id-1] = input_type;
+    }
+    else
+    {
+        form->output_type_lbl[panel_id-17] = input_type;
+    }
 }
 static TSpeedButton * CopyPnlMixButton(TSpeedButton * src_btn, int dsp_id, Graphics::TBitmap* bmp=NULL)
 {
@@ -386,6 +394,7 @@ __fastcall TForm1::TForm1(TComponent* Owner)
         input_panel_bkground->Canvas->CopyRect(dest_rect, input_panel_bkground->Canvas, templet_image_rect);
     }
     // 生成InputPanel
+    input_type_lbl[0] = input_type;
     input_eq_btn[0] = input_panel_eq_btn;
     input_comp_btn[0] = input_panel_comp_btn;
     input_auto_btn[0] = input_panel_auto_btn;
@@ -519,7 +528,7 @@ __fastcall TForm1::TForm1(TComponent* Owner)
 
     btnDspResetEQ->Click();
 
-    SetPresetId(0);
+    SetPresetId(1);
     InitConfigMap();
     for (int i=0;i<8;i++)
     {
@@ -598,13 +607,12 @@ void TForm1::SendCmd(D1608Cmd& cmd)
     }
     else
     {
-        //memo_debug->Lines->Add("Send：" + CmdLog(cmd));
         udpControl->SendBuffer(dst_ip, 2305, &cmd, sizeof(cmd));
     }
 
     if (!on_loading)
     {
-        if (cmd.id != GerOffsetOfData(&config_map.WatchLevel))
+        if (cmd.id != GerOffsetOfData(&config_map.op_code.WatchLevel))
         {
             SetFileDirty(true);
         }
@@ -762,7 +770,7 @@ void __fastcall TForm1::btnSelectClick(TObject *Sender)
     UpdateCaption();
 
     D1608PresetCmd cmd;
-    cmd.preset = 0x80;
+    //cmd.preset = 0x81;
     cmd.type = 0;
 
     udpControl->SendBuffer(dst_ip, 905, &cmd, sizeof(cmd));
@@ -959,6 +967,27 @@ void __fastcall TForm1::ToogleEQ(TObject *Sender)
     config_map.input_dsp[dsp_id-1].eq_switch = btn->Down;
 }
 //---------------------------------------------------------------------------
+struct ADC_Data
+{
+    unsigned __int16 base;
+    unsigned __int16 _12va;
+    unsigned __int16 _5vd ;
+    unsigned __int16 _8vd ;
+    unsigned __int16 _16va;
+    unsigned __int16 _48va;
+    unsigned __int16 _5va;
+    unsigned __int16 _x12va;
+    unsigned __int16 _8va ;
+    unsigned __int16 _x16va;
+};
+int CalcVot(unsigned __int16 true_data1, float ra, float rb)
+{
+    return true_data1 * (ra+rb) / ra / 10;
+}
+int CalcVot(unsigned __int16 true_data1, unsigned __int16 true_data2, float ra, float rb, float rc, float rd)
+{
+    return ((true_data2 * (rc+rd) / rc) - (true_data1 * (rd/rc) * (ra+rb) / ra))  / 10;
+}
 void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
       TIdSocketHandle *ABinding)
 {
@@ -967,34 +996,100 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
         D1608Cmd cmd;
         AData->ReadBuffer(&cmd, std::min(sizeof(cmd), AData->Size));
 
-        if (cmd.id == GerOffsetOfData(&config_map.WatchLevel))
+        //memo_debug->Lines->Add("Reply：" + CmdLog(cmd));
+
+        if (cmd.id == GerOffsetOfData(&config_map.op_code.WatchLevel))
         {
             // 音量输出
             MsgWatchHandle(cmd);
         }
-    }
-    else if (ABinding->PeerPort == 2306)
-    {
-        D1608Cmd cmd;
-        AData->ReadBuffer(&cmd, std::min(sizeof(cmd), AData->Size));
-        if (cmd.id != GerOffsetOfData(&config_map.WatchLevel))
+        else if (cmd.id == GerOffsetOfData(&config_map.op_code.switch_preset))
+        {
+            //D1608PresetCmd cmd;
+            //cmd.preset = cbPresetId->ItemIndex;
+            //cmd.type = 0;
+
+            // 如果没有打开文件，则需要从下位机同步
+            //if (preset_lib_filename == "")
+            {
+                udpControl->SendBuffer(dst_ip, 905, " ", 1);
+            }
+        }
+        else if (cmd.id == GerOffsetOfData(&config_map.op_code.adc))
+        {
+            __int16 data[10];
+
+            // 计算检测到的电压 3.3v ~ 4096
+            for (int i=1; i<10; i++)
+            {
+                data[i] = cmd.data.data_16_array[i] * 2500 / cmd.data.data_16_array[0];
+            }
+            data[0] = 2500;
+
+            for (int i=0; i<10; i++)
+            {
+                ValueListEditor1->Cells[1][i+1] = cmd.data.data_16_array[i];
+            }
+
+            ADC_Data * true_data = (ADC_Data *)data;
+
+            ADC_Data calc_data;
+
+            // 正电压检测：
+            //      ra = 4
+            //      rb = 5v 3 / 8v 10 / 12v 15 / 16v 20 / 48v 75
+            // 负电压检测
+            //      ra rb 同正电压
+            //      -5v  rc=4  rd=15
+            //      -12v rc=10 rd=15
+            //      -16v rc=15 rd=20
+            calc_data.base   = 2500;
+            calc_data._12va  = CalcVot(true_data->_12va, 4.75, 14.7);
+            calc_data._5vd   = CalcVot(true_data-> _5vd, 4.75,  3.32);
+            calc_data._8vd   = CalcVot(true_data-> _8vd, 4.75, 10);
+            calc_data._16va  = CalcVot(true_data->_16va, 4.75, 20);
+            calc_data._48va  = CalcVot(true_data->_48va, 4.75, 75);
+            calc_data._5va   = CalcVot(true_data-> _5va, 4.75,  3);
+            calc_data._x12va = CalcVot(true_data->_12va, true_data->_x12va, 4.75, 14.7, 10, 14.7);
+            calc_data._8va   = CalcVot(true_data-> _8va, 4.75, 10);
+            calc_data._x16va = CalcVot(true_data->_16va, true_data->_x16va, 4.75, 20, 14.7, 20);
+
+            __int16 * xcalc_data = (__int16 *)&calc_data;
+            for (int i=0; i<10; i++)
+            {
+                double vot = xcalc_data[i] / 100.0f;
+                ValueListEditor2->Cells[1][i+1] = FloatToStr(vot);
+            }
+
+            lblDiff->Caption = calc_data._8vd-calc_data._8va;
+        }
+        else
         {
             memo_debug->Lines->Add("Reply：" + CmdLog(cmd));
-        }
-    }
-    else if (ABinding->PeerPort == 904)
-    {
-    /*
-        D1608PresetCmd cmd;
-        cmd.preset = cbPresetId->ItemIndex;
-        cmd.type = 0;
 
-        // 如果没有打开文件，则需要从下位机同步
-        if (preset_lib_filename == "")
-        {
-            udpControl->SendBuffer(dst_ip, 905, &cmd, sizeof(cmd));
+            if (cmd.id == GerOffsetOfData(&config_map.master.level_a))
+            {
+                master_panel_trackbar->OnChange = NULL;
+                master_panel_trackbar->Position = cmd.data.data_32;
+                master_panel_trackbar->OnChange = MasterVolumeChange;
+
+                int value = cmd.data.data_32;
+                if (master_panel_level_edit != NULL)
+                {
+                    if (value == -720)
+                    {
+                        master_panel_level_edit->Text = "Off";
+                    }
+                    else
+                    {
+                        String x;
+                        master_panel_level_edit->Text = x.sprintf("%1.1f", value/10.0);
+                    }
+                }
+
+                config_map.master.level_a = value;
+            }
         }
-    */
     }
     else if (ABinding->PeerPort == 905)
     {
@@ -1127,7 +1222,7 @@ void TForm1::MsgWatchHandle(const D1608Cmd& cmd)
 {
     for (int i=0;i<32;i++)
     {
-        int value = cmd.data.value[i];
+        int value = cmd.data.data_32_array[i];
         if (value <= 0)
         {
             pb_watch_list[i]->Tag = -71;
@@ -1155,18 +1250,26 @@ void __fastcall TForm1::tmWatchTimer(TObject *Sender)
     if (cbWatch->Down)
     {
         D1608Cmd cmd;
-        cmd.id = GerOffsetOfData(&config_map.WatchLevel);
+        cmd.id = GerOffsetOfData(&config_map.op_code.WatchLevel);
         SendCmd(cmd);
+
+        if (udpControl->Active)
+        {
+            cmd.id = GerOffsetOfData(&config_map.op_code.adc);
+            udpControl->SendBuffer(dst_ip, 2305, &cmd, sizeof(cmd));
+        }
     }
-    else
+
+    // keep alive
     {
         D1608Cmd cmd;
-        cmd.id = GerOffsetOfData(&config_map.noop);
+        cmd.id = GerOffsetOfData(&config_map.op_code.noop);
         if (udpControl->Active)
         {
             udpControl->SendBuffer(dst_ip, 2305, &cmd, sizeof(cmd));
         }
     }
+
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::ToogleOutputMute(TObject *Sender)
@@ -1445,8 +1548,8 @@ void __fastcall TForm1::MasterVolumeChange(TObject *Sender)
 
     D1608Cmd cmd;
     cmd.id = GerOffsetOfData(&config_map.master.level_a);
-    cmd.data.data_16 = value;
-    cmd.length = 2;
+    cmd.data.data_32 = value;
+    cmd.length = 4;
     SendCmd(cmd);
 
     config_map.master.level_a = value;
@@ -2168,7 +2271,7 @@ void __fastcall TForm1::LoadAllPresetClick(TObject *Sender)
         delete file;
 
         config_map = all_config_map[0];
-        SetPresetId(0);
+        SetPresetId(1);
 
         ApplyConfigToUI();
 
@@ -2185,6 +2288,42 @@ void __fastcall TForm1::LoadAllPresetClick(TObject *Sender)
     }
 }
 //---------------------------------------------------------------------------
+static String InputGain2String(int gain)
+{
+    switch (gain)
+    {
+    case 0:
+        return "MIC";
+    case 1:
+        return "MIC(0)";
+    case 5:
+        return "400mv";
+    case 6:
+        return "10dBv";
+    case 3:
+        return "22dBu";
+    case 7:
+        return "24dBu";
+    }
+
+    return "ERROR";
+}
+static String OutputGain2String(int gain)
+{
+    switch (gain)
+    {
+    case 7:
+        return "200mv";
+    case 3:
+        return "10dBv";
+    case 1:
+        return "22dBu";
+    case 0:
+        return "24dBu";
+    }
+
+    return "ERROR";
+}
 void __fastcall TForm1::ApplyConfigToUI()
 {
     on_loading = true;
@@ -2192,6 +2331,8 @@ void __fastcall TForm1::ApplyConfigToUI()
     // 修改界面
     for (int i=0;i<16;i++)
     {
+        input_type_lbl[i]->Caption = InputGain2String(config_map.input_dsp[i].gain);
+
         input_eq_btn[i]->Down = config_map.input_dsp[i].eq_switch;
         input_comp_btn[i]->Down = config_map.input_dsp[i].comp_switch;
         input_auto_btn[i]->Down = config_map.input_dsp[i].auto_switch;
@@ -2204,6 +2345,8 @@ void __fastcall TForm1::ApplyConfigToUI()
 
     for (int i=0;i<16;i++)
     {
+        output_type_lbl[i]->Caption = OutputGain2String(config_map.output_dsp[i].gain);
+
         output_eq_btn[i]->Down = config_map.output_dsp[i].eq_switch;
         output_comp_btn[i]->Down = config_map.output_dsp[i].comp_switch;
         output_invert_btn[i]->Down = config_map.output_dsp[i].invert_switch;
@@ -2301,10 +2444,10 @@ void __fastcall TForm1::RecallClick(TObject *Sender)
     if (udpControl->Active)
     {
         D1608Cmd cmd;
-        cmd.preset = menu->Tag;
-        cmd.type = 0;
+        cmd.id = GerOffsetOfData(&config_map.op_code.switch_preset);
+        cmd.data.data_32 = menu->Tag;
 
-        udpControl->SendBuffer(dst_ip, 904, &cmd, sizeof(cmd));
+        udpControl->SendBuffer(dst_ip, 2305, &cmd, sizeof(cmd));
     }
 }
 //---------------------------------------------------------------------------
@@ -2316,6 +2459,12 @@ void __fastcall TForm1::ToolButton1Click(TObject *Sender)
 void __fastcall TForm1::ToolButton2Click(TObject *Sender)
 {
     //
+}
+//---------------------------------------------------------------------------
+
+void __fastcall TForm1::btnSetIpClick(TObject *Sender)
+{
+    edtIp->Text;    
 }
 //---------------------------------------------------------------------------
 
