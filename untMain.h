@@ -34,6 +34,7 @@
 #include <ToolWin.hpp>
 #include <Grids.hpp>
 #include <ValEdit.hpp>
+#include <CheckLst.hpp>
 extern "C"{
 #include "../enc28j60_iap_app/inc/D1608Pack.h"
 }
@@ -99,7 +100,6 @@ __published:	// IDE-managed Components
     TPanel *pnlDspDetail;
     TLabel *lblDSPInfo;
     TEdit *edtDebug;
-    TComboBox *cbPreset;
     TLabel *Label31;
     TPanel *watch_panel;
     TImage *watch_bkimage;
@@ -258,7 +258,6 @@ __published:	// IDE-managed Components
     TMemo *memo_debug;
     TImageList *ImageList1;
     TButton *btnRecall;
-    TButton *btnStore;
     TOpenDialog *OpenDialog1;
     TSaveDialog *SaveDialog1;
     TPopupMenu *PopupMenu3;
@@ -302,6 +301,15 @@ __published:	// IDE-managed Components
     TLabel *Label17;
     TLabel *Label18;
     TLabel *lblDiff;
+    TToolButton *tbGlobalDspName;
+    TListView *lvLog;
+    TButton *btnGetLog;
+    TButton *btnGetDebug;
+    TListView *lvDebug;
+    TEdit *edtPresetName;
+    TSpeedButton *btnModifyPresetName;
+    TToolButton *btnDeviceName;
+    TCheckListBox *clbAvaliablePreset;
     void __fastcall FormCreate(TObject *Sender);
     void __fastcall FormDestroy(TObject *Sender);
     void __fastcall btnRefreshClick(TObject *Sender);
@@ -379,7 +387,6 @@ __published:	// IDE-managed Components
     void __fastcall pnlmix_muteClick(TObject *Sender);
     void __fastcall btnSavePresetToFileClick(TObject *Sender);
     void __fastcall btnLoadPresetFromFileClick(TObject *Sender);
-    void __fastcall btnStoreClick(TObject *Sender);
     void __fastcall SaveAllPresetClick(TObject *Sender);
     void __fastcall LoadAllPresetClick(TObject *Sender);
     void __fastcall FormCloseQuery(TObject *Sender, bool &CanClose);
@@ -390,6 +397,12 @@ __published:	// IDE-managed Components
     void __fastcall ToolButton1Click(TObject *Sender);
     void __fastcall ToolButton2Click(TObject *Sender);
     void __fastcall btnSetIpClick(TObject *Sender);
+    void __fastcall tbGlobalDspNameClick(TObject *Sender);
+    void __fastcall btnGetLogClick(TObject *Sender);
+    void __fastcall btnGetDebugClick(TObject *Sender);
+    void __fastcall btnModifyPresetNameClick(TObject *Sender);
+    void __fastcall btnDeviceNameClick(TObject *Sender);
+    void __fastcall clbAvaliablePresetClickCheck(TObject *Sender);
 
 private:
     // 已经选择设备
@@ -462,14 +475,16 @@ public:		// User declarations
     TSpeedButton* input_mute_btn[17];
     TEdit* input_level_edit[17];
     TAdvTrackBar* input_level_trackbar[17];
+    TStaticText* input_dsp_name[17];
 
-    TLabel* output_type_lbl[17];
+    TLabel* output_type_lbl[16];
     TSpeedButton* output_eq_btn[16];
     TSpeedButton* output_comp_btn[16];
-    TSpeedButton* output_invert_btn[17];
-    TSpeedButton* output_mute_btn[17];
+    TSpeedButton* output_invert_btn[16];
+    TSpeedButton* output_mute_btn[16];
     TEdit* output_level_edit[16];
     TAdvTrackBar* output_level_trackbar[16];
+    TStaticText* output_dsp_name[17];
 
     TSpeedButton* mix_mute_btn[17];
     TEdit* mix_level_edit[17];

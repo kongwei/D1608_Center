@@ -1,6 +1,6 @@
 object Form1: TForm1
-  Left = 38
-  Top = 55
+  Left = 114
+  Top = 0
   Width = 1265
   Height = 755
   Caption = 'D1608'
@@ -24,9 +24,9 @@ object Form1: TForm1
     Top = 25
     Width = 1249
     Height = 692
-    ActivePage = tsOperator
+    ActivePage = TabSheet1
     Align = alClient
-    TabIndex = 1
+    TabIndex = 2
     TabOrder = 0
     object tsSearch: TTabSheet
       Caption = #26597#35810#35774#22791
@@ -12474,6 +12474,14 @@ object Form1: TForm1
         NumGlyphs = 4
         OnClick = ToggleDSP
       end
+      object btnModifyPresetName: TSpeedButton
+        Left = 1056
+        Top = 0
+        Width = 18
+        Height = 17
+        Flat = True
+        OnClick = btnModifyPresetNameClick
+      end
       object mix_panel: TPanel
         Tag = 17
         Left = 768
@@ -19526,42 +19534,13 @@ object Form1: TForm1
           Caption = 'Recall'
           TabOrder = 6
         end
-        object btnStore: TButton
-          Left = 13
-          Top = 88
-          Width = 75
-          Height = 25
-          Caption = 'Store'
-          TabOrder = 7
-          OnClick = btnStoreClick
-        end
       end
       object edtDebug: TEdit
-        Left = 16
+        Left = 8
         Top = 0
-        Width = 1233
+        Width = 433
         Height = 21
         TabOrder = 2
-      end
-      object cbPreset: TComboBox
-        Left = 776
-        Top = 64
-        Width = 81
-        Height = 21
-        Style = csDropDownList
-        ItemHeight = 13
-        ItemIndex = 0
-        TabOrder = 3
-        Text = '1'
-        Items.Strings = (
-          '1'
-          '2'
-          '3'
-          '4'
-          '5'
-          '6'
-          '7'
-          '8')
       end
       object watch_panel: TPanel
         Left = 0
@@ -19572,7 +19551,7 @@ object Form1: TForm1
         Color = 7953478
         Ctl3D = False
         ParentCtl3D = False
-        TabOrder = 4
+        TabOrder = 3
         object watch_bkimage: TImage
           Left = 0
           Top = 0
@@ -20159,7 +20138,7 @@ object Form1: TForm1
         Color = 7953478
         Ctl3D = False
         ParentCtl3D = False
-        TabOrder = 5
+        TabOrder = 4
         object Image2: TImage
           Left = 0
           Top = 0
@@ -21229,9 +21208,9 @@ object Form1: TForm1
         object edtPreset: TEdit
           Tag = 1
           Left = 53
-          Top = 47
+          Top = 48
           Width = 38
-          Height = 13
+          Height = 17
           AutoSelect = False
           AutoSize = False
           BevelEdges = []
@@ -21303,7 +21282,7 @@ object Form1: TForm1
         Slider.Size = 55
         Slider.Visible = False
         Slider.Offset = 14
-        TabOrder = 6
+        TabOrder = 5
         Thumb.BorderColor = 10317632
         Thumb.BorderColorHot = 10079963
         Thumb.BorderColorDown = 4548219
@@ -21675,7 +21654,7 @@ object Form1: TForm1
         Font.Style = [fsBold]
         ParentBiDiMode = False
         ParentFont = False
-        TabOrder = 7
+        TabOrder = 6
         Text = '-10.0'
         OnClick = input_panel_level_editClick
         OnExit = input_panel_level_editExit
@@ -21695,7 +21674,7 @@ object Form1: TForm1
         Font.Style = [fsBold]
         ParentColor = False
         ParentFont = False
-        TabOrder = 8
+        TabOrder = 7
         OnClick = input_panel_dsp_numClick
       end
       object output_panel_trackbar: TAdvTrackBar
@@ -21749,7 +21728,7 @@ object Form1: TForm1
         Slider.Size = 55
         Slider.Visible = False
         Slider.Offset = 14
-        TabOrder = 9
+        TabOrder = 8
         Thumb.BorderColor = 10317632
         Thumb.BorderColorHot = 10079963
         Thumb.BorderColorDown = 4548219
@@ -21921,7 +21900,7 @@ object Form1: TForm1
         Font.Style = [fsBold]
         ParentBiDiMode = False
         ParentFont = False
-        TabOrder = 10
+        TabOrder = 9
         Text = '10'
         OnClick = input_panel_level_editClick
         OnExit = output_panel_level_editExit
@@ -21941,12 +21920,12 @@ object Form1: TForm1
         Font.Style = [fsBold]
         ParentColor = False
         ParentFont = False
-        TabOrder = 11
+        TabOrder = 10
         OnClick = output_panel_dsp_numClick
       end
       object pnlDspDetail: TPanel
         Left = 104
-        Top = 112
+        Top = 296
         Width = 961
         Height = 497
         Color = 13684944
@@ -28596,7 +28575,7 @@ object Form1: TForm1
         Width = 831
         Height = 289
         Color = clActiveCaption
-        TabOrder = 12
+        TabOrder = 11
         Visible = False
         object pnlmix_background: TImage
           Left = 1
@@ -30684,51 +30663,75 @@ object Form1: TForm1
           OnClick = input_panel_dsp_numClick
         end
       end
+      object edtPresetName: TEdit
+        Tag = 1
+        Left = 461
+        Top = 0
+        Width = 588
+        Height = 17
+        AutoSelect = False
+        AutoSize = False
+        BevelEdges = []
+        BevelInner = bvNone
+        BevelOuter = bvNone
+        BiDiMode = bdLeftToRight
+        BorderStyle = bsNone
+        Color = 4864300
+        Font.Charset = GB2312_CHARSET
+        Font.Color = clAqua
+        Font.Height = -12
+        Font.Name = #23435#20307
+        Font.Style = [fsBold]
+        ParentBiDiMode = False
+        ParentFont = False
+        ReadOnly = True
+        TabOrder = 12
+      end
     end
     object TabSheet1: TTabSheet
       Caption = 'TabSheet1'
       ImageIndex = 2
       object Label17: TLabel
-        Left = 624
-        Top = 72
+        Left = 760
+        Top = 8
         Width = 39
         Height = 13
         Caption = #26816#27979#20540
       end
       object Label18: TLabel
-        Left = 848
-        Top = 72
+        Left = 960
+        Top = 8
         Width = 39
         Height = 13
         Caption = #35745#31639#20540
       end
       object lblDiff: TLabel
-        Left = 616
-        Top = 344
+        Left = 760
+        Top = 248
         Width = 49
         Height = 13
         Caption = 'lblDiff'
       end
       object memo_debug: TMemo
-        Left = 16
-        Top = 16
-        Width = 577
-        Height = 289
+        Left = 0
+        Top = 520
+        Width = 985
+        Height = 137
         Lines.Strings = (
           'memo_debug')
         TabOrder = 0
       end
       object edtIp: TEdit
-        Left = 16
-        Top = 344
+        Left = 8
+        Top = 288
         Width = 169
         Height = 21
         TabOrder = 1
         Text = '10.3.1.128'
       end
       object btnSetIp: TButton
-        Left = 192
-        Top = 344
+        Left = 184
+        Top = 288
         Width = 75
         Height = 25
         Caption = #35774#32622#38745#24577'IP'
@@ -30736,8 +30739,8 @@ object Form1: TForm1
         OnClick = btnSetIpClick
       end
       object ValueListEditor1: TValueListEditor
-        Left = 624
-        Top = 88
+        Left = 760
+        Top = 24
         Width = 193
         Height = 217
         Strings.Strings = (
@@ -30758,8 +30761,8 @@ object Form1: TForm1
           70)
       end
       object ValueListEditor2: TValueListEditor
-        Left = 848
-        Top = 88
+        Left = 960
+        Top = 24
         Width = 193
         Height = 217
         Strings.Strings = (
@@ -30779,6 +30782,84 @@ object Form1: TForm1
           100
           70)
       end
+      object lvLog: TListView
+        Left = 8
+        Top = 32
+        Width = 329
+        Height = 233
+        Columns = <
+          item
+            Width = 100
+          end
+          item
+            Width = 100
+          end
+          item
+            Width = 100
+          end>
+        GridLines = True
+        ReadOnly = True
+        RowSelect = True
+        TabOrder = 5
+        ViewStyle = vsReport
+      end
+      object btnGetLog: TButton
+        Left = 264
+        Top = 0
+        Width = 75
+        Height = 25
+        Caption = #33719#21462#26085#24535
+        TabOrder = 6
+        OnClick = btnGetLogClick
+      end
+      object btnGetDebug: TButton
+        Left = 576
+        Top = 0
+        Width = 99
+        Height = 25
+        Caption = #33719#21462#35843#35797#20449#24687
+        TabOrder = 7
+        OnClick = btnGetDebugClick
+      end
+      object lvDebug: TListView
+        Left = 352
+        Top = 32
+        Width = 321
+        Height = 233
+        Columns = <
+          item
+            Width = 100
+          end
+          item
+            Width = 100
+          end
+          item
+            Width = 100
+          end>
+        GridLines = True
+        ReadOnly = True
+        RowSelect = True
+        TabOrder = 8
+        ViewStyle = vsReport
+      end
+      object clbAvaliablePreset: TCheckListBox
+        Left = 8
+        Top = 328
+        Width = 121
+        Height = 113
+        OnClickCheck = clbAvaliablePresetClickCheck
+        ItemHeight = 13
+        Items.Strings = (
+          'PRESET1'
+          'PRESET2'
+          'PRESET3'
+          'PRESET4'
+          'PRESET5'
+          'PRESET6'
+          'PRESET7'
+          'PRESET8')
+        TabOrder = 9
+      end
     end
   end
   object ToolBar1: TToolBar
@@ -30787,7 +30868,7 @@ object Form1: TForm1
     Width = 1249
     Height = 25
     ButtonHeight = 21
-    ButtonWidth = 56
+    ButtonWidth = 77
     Caption = 'ToolBar1'
     Flat = True
     ShowCaptions = True
@@ -30800,14 +30881,14 @@ object Form1: TForm1
       OnClick = ToolButton1Click
     end
     object ToolButton2: TToolButton
-      Left = 56
+      Left = 77
       Top = 0
       Caption = 'Close'
       ImageIndex = 1
       OnClick = ToolButton2Click
     end
     object ToolButton5: TToolButton
-      Left = 112
+      Left = 154
       Top = 0
       Width = 8
       Caption = 'ToolButton5'
@@ -30815,7 +30896,7 @@ object Form1: TForm1
       Style = tbsSeparator
     end
     object cbWatch: TToolButton
-      Left = 120
+      Left = 162
       Top = 0
       AllowAllUp = True
       Caption = 'cbWatch'
@@ -30824,13 +30905,29 @@ object Form1: TForm1
       Style = tbsCheck
     end
     object divbase: TToolButton
-      Left = 176
+      Left = 239
       Top = 0
       AllowAllUp = True
       Caption = 'divbase'
       Grouped = True
       ImageIndex = 3
       Style = tbsCheck
+    end
+    object tbGlobalDspName: TToolButton
+      Left = 316
+      Top = 0
+      AllowAllUp = True
+      Caption = 'dspname'
+      ImageIndex = 4
+      Style = tbsCheck
+      OnClick = tbGlobalDspNameClick
+    end
+    object btnDeviceName: TToolButton
+      Left = 393
+      Top = 0
+      Caption = 'DeviceName'
+      ImageIndex = 5
+      OnClick = btnDeviceNameClick
     end
   end
   object udpSLP: TIdUDPServer
@@ -30839,14 +30936,14 @@ object Form1: TForm1
     Bindings = <>
     DefaultPort = 0
     OnUDPRead = udpSLPUDPRead
-    Left = 448
-    Top = 40
+    Left = 384
+    Top = 8
   end
   object tmSLP: TTimer
     Interval = 500
     OnTimer = tmSLPTimer
-    Left = 480
-    Top = 40
+    Left = 416
+    Top = 8
   end
   object udpControl: TIdUDPServer
     Bindings = <
@@ -30856,13 +30953,13 @@ object Form1: TForm1
       end>
     DefaultPort = 0
     OnUDPRead = udpControlUDPRead
-    Left = 512
-    Top = 40
+    Left = 448
+    Top = 8
   end
   object tmWatch: TTimer
     OnTimer = tmWatchTimer
-    Left = 416
-    Top = 40
+    Left = 352
+    Top = 8
   end
   object ImageList1bak: TImageList
     Height = 20
@@ -44836,14 +44933,14 @@ object Form1: TForm1
   object OpenDialog1: TOpenDialog
     DefaultExt = '*.preset'
     Filter = 'preset|*.preset'
-    Left = 568
-    Top = 40
+    Left = 480
+    Top = 8
   end
   object SaveDialog1: TSaveDialog
     DefaultExt = '*.preset'
     Filter = 'preset|*.preset'
-    Left = 600
-    Top = 40
+    Left = 512
+    Top = 8
   end
   object PopupMenu3: TPopupMenu
     AutoHotkeys = maManual
