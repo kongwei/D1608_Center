@@ -310,6 +310,7 @@ __published:	// IDE-managed Components
     TSpeedButton *btnModifyPresetName;
     TToolButton *btnDeviceName;
     TCheckListBox *clbAvaliablePreset;
+    TLabel *Label19;
     void __fastcall FormCreate(TObject *Sender);
     void __fastcall FormDestroy(TObject *Sender);
     void __fastcall btnRefreshClick(TObject *Sender);

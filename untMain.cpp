@@ -1176,6 +1176,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
         {
             // global_config
             memcpy(&global_config, preset_cmd.data, sizeof(global_config));
+            UpdateCaption();
         }
         else
         {
@@ -2439,7 +2440,7 @@ void __fastcall TForm1::ApplyConfigToUI()
     edtPresetName->Text = global_config.preset_name[cur_preset_id];
 
     for (int i=0;i<8;i++)
-        clbAvaliablePreset->Checked[i] = global_config.avaliable_preset;
+        clbAvaliablePreset->Checked[i] = global_config.avaliable_preset[i];
 
     // ÐÞ¸Ä½çÃæ
     for (int i=0;i<16;i++)

@@ -24,9 +24,9 @@ object Form1: TForm1
     Top = 25
     Width = 1249
     Height = 692
-    ActivePage = TabSheet1
+    ActivePage = tsOperator
     Align = alClient
-    TabIndex = 2
+    TabIndex = 1
     TabOrder = 0
     object tsSearch: TTabSheet
       Caption = #26597#35810#35774#22791
@@ -30711,6 +30711,13 @@ object Form1: TForm1
         Width = 49
         Height = 13
         Caption = 'lblDiff'
+      end
+      object Label19: TLabel
+        Left = 192
+        Top = 328
+        Width = 91
+        Height = 13
+        Caption = #36816#34892#26102#38271#38480#21046#65306
       end
       object memo_debug: TMemo
         Left = 0
