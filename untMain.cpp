@@ -551,6 +551,9 @@ __fastcall TForm1::TForm1(TComponent* Owner)
     mireg0 = 0;
 
     on_loading = false;
+
+    // 私有变量初始化
+    keep_live_count = 0;
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::FormCreate(TObject *Sender)
@@ -618,16 +621,11 @@ void TForm1::SendCmd(D1608Cmd& cmd)
 
     if (!on_loading)
     {
-        if (cmd.id != GerOffsetOfData(&config_map.op_code.WatchLevel))
+        if (cmd.id < GerOffsetOfData(&config_map.op_code))
         {
             SetFileDirty(true);
         }
     }
-}
-//---------------------------------------------------------------------------
-void TForm1::SendCICmd(CIDebugCmd& cmd)
-{
-    udpControl->SendBuffer(dst_ip, 1000, &cmd, sizeof(cmd));
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::btnRefreshClick(TObject *Sender)
@@ -786,6 +784,8 @@ void __fastcall TForm1::btnSelectClick(TObject *Sender)
 
     tsOperator->Show();
     cbWatch->Down = true;
+
+    keep_live_count = 0;
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::tmSLPTimer(TObject *Sender)
@@ -1073,6 +1073,11 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
 
             lblDiff->Caption = calc_data._8vd-calc_data._8va;
         }
+        else if (cmd.id == GerOffsetOfData(&config_map.op_code.noop))
+        {
+            keep_live_count = 0;
+            tsOperator->Caption = "操作(连接)";
+        }
         else
         {
             memo_debug->Lines->Add("Reply：" + CmdLog(cmd));
@@ -1339,23 +1344,39 @@ void __fastcall TForm1::tmWatchTimer(TObject *Sender)
         cmd.id = GerOffsetOfData(&config_map.op_code.WatchLevel);
         SendCmd(cmd);
 
-        if (udpControl->Active)
+        cmd.id = GerOffsetOfData(&config_map.op_code.adc);
+        SendCmd(cmd);
+    }
+    else
+    {
+        for (int i=0;i<32;i++)
         {
-            cmd.id = GerOffsetOfData(&config_map.op_code.adc);
-            udpControl->SendBuffer(dst_ip, 2305, &cmd, sizeof(cmd));
+            pb_watch_list[i]->Tag = -49;
+            pb_watch_list[i]->Invalidate();
         }
     }
 
     // keep alive
+    if ((keep_live_count < 10) && udpControl->Active)
     {
+        keep_live_count++;
+    
         D1608Cmd cmd;
         cmd.id = GerOffsetOfData(&config_map.op_code.noop);
-        if (udpControl->Active)
+        SendCmd(cmd);
+    }
+    else
+    {
+        // TODO: 断链
+        udpControl->Active = false;
+        tsOperator->Caption = "操作(断开)";
+        // Level Meter归零
+        for (int i=0;i<32;i++)
         {
-            udpControl->SendBuffer(dst_ip, 2305, &cmd, sizeof(cmd));
+            pb_watch_list[i]->Tag = -49;
+            pb_watch_list[i]->Invalidate();
         }
     }
-
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::ToogleOutputMute(TObject *Sender)
@@ -2580,14 +2601,10 @@ void __fastcall TForm1::RecallClick(TObject *Sender)
 
     ApplyConfigToUI();
 
-    if (udpControl->Active)
-    {
-        D1608Cmd cmd;
-        cmd.id = GerOffsetOfData(&config_map.op_code.switch_preset);
-        cmd.data.data_32 = menu->Tag;
-
-        udpControl->SendBuffer(dst_ip, 2305, &cmd, sizeof(cmd));
-    }
+    D1608Cmd cmd;
+    cmd.id = GerOffsetOfData(&config_map.op_code.switch_preset);
+    cmd.data.data_32 = menu->Tag;
+    SendCmd(cmd);
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::ToolButton1Click(TObject *Sender)
@@ -2687,6 +2704,165 @@ void __fastcall TForm1::clbAvaliablePresetClickCheck(TObject *Sender)
         cmd.data.data_string[i] = clbAvaliablePreset->Checked[i];
     }
     cmd.length = 8;
+    SendCmd(cmd);
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::btnSetLockClick(TObject *Sender)
+{
+    D1608Cmd cmd;
+    cmd.type = 1;
+
+    cmd.id = offsetof(GlobalConfig, running_timer_limit);
+    cmd.data.data_32 = edtRunningTimer->Enabled ? running_timer : 0;
+    cmd.length = 4;
+    SendCmd(cmd);
+
+    cmd.id = offsetof(GlobalConfig, reboot_count_limit);
+    cmd.data.data_32 = edtRebootCount->Enabled ? roboot_count : 0;
+    cmd.length = 4;
+    SendCmd(cmd);
+
+    cmd.id = offsetof(GlobalConfig, password);
+    strncpy(cmd.data.data_string, edtPassword->Text.c_str(), 16);
+    cmd.length = 20;
+    SendCmd(cmd);
+
+    cmd.id = offsetof(GlobalConfig, password_of_key);
+    strncpy(cmd.data.data_string, edtKeyPassword->Text.c_str(), 16);
+    cmd.length = 20;
+    SendCmd(cmd);
+
+    cmd.id = offsetof(GlobalConfig, locked_string);
+    if (edtLockedString->Enabled)
+    {
+        strncpy(cmd.data.data_string, edtLockedString->Text.c_str(), 16);
+    }
+    cmd.length = 20;
+    SendCmd(cmd);
+}
+//---------------------------------------------------------------------------
+
+void __fastcall TForm1::btnUnlockClick(TObject *Sender)
+{
+    D1608Cmd cmd;
+    cmd.type = 1;
+    cmd.id = offsetof(GlobalConfig, unlock_string);
+    strncpy(cmd.data.data_string, edtUnlockPassword->Text.c_str(), 16);
+    cmd.length = 20;
+    SendCmd(cmd);
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::edtKeyPasswordKeyDown(TObject *Sender, WORD &Key,
+      TShiftState Shift)
+{
+    if ((Key == VK_BACK) || (Key == VK_LEFT) || (Key == VK_RIGHT) || (Key == VK_DELETE))
+    {
+    }
+    else
+    {
+        Key = 0;
+    }
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::edtPasswordKeyPress(TObject *Sender, char &Key)
+{
+    if (islower(Key))
+    {
+        Key = toupper(Key);
+    }
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::cbRunningTimerClick(TObject *Sender)
+{
+    edtRunningTimer->Enabled = cbRunningTimer->Checked;
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::cbRebootCountClick(TObject *Sender)
+{
+    edtRebootCount->Enabled = cbRebootCount->Checked;
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::cbLockedStringClick(TObject *Sender)
+{
+    edtLockedString->Enabled = cbLockedString->Checked;
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::edtRunningTimerExit(TObject *Sender)
+{
+    TEdit * edt = (TEdit*)Sender;
+    try
+    {
+        float rt = edt->Text.ToDouble();
+        running_timer = rt * 3600;
+        edt->Text = FormatFloat("0.00", running_timer/3600.0);
+    }
+    catch(...)
+    {
+        edt->Text = FormatFloat("0.00", running_timer/3600.0);
+    }
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::edtRebootCountExit(TObject *Sender)
+{
+    TEdit * edt = (TEdit*)Sender;
+    try
+    {
+        int rt = edt->Text.ToInt();
+        roboot_count = rt;
+    }
+    catch(...)
+    {
+        edt->Text = roboot_count;
+    }
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::edtRebootCountKeyDown(TObject *Sender, WORD &Key,
+      TShiftState Shift)
+{
+    if (Key == VK_RETURN)
+    {
+        TEdit * edt = (TEdit*)Sender;
+        edt->OnExit(Sender);
+        edt->SelectAll();
+    }    
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::btnKeyPasswordUpClick(TObject *Sender)
+{
+    edtKeyPassword->Perform(WM_CHAR, 'U', 0);
+    //->Text = edtKeyPassword->Text + "U";
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::btnKeyPasswordDownClick(TObject *Sender)
+{
+    edtKeyPassword->Perform(WM_CHAR, 'D', 0);
+    //edtKeyPassword->Text = edtKeyPassword->Text + "D";
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::edtKeyPasswordKeyPress(TObject *Sender, char &Key)
+{
+    if (Key != 'D' && Key != 'U' && Key != '\b')
+    {
+        Key = 0;
+    }
+}
+//-------------------------------------------------------------------------
+void __fastcall TForm1::btnUnlockExtClick(TObject *Sender)
+{
+    // 后台解锁    
+    D1608Cmd cmd;
+    cmd.type = 1;
+    cmd.id = offsetof(GlobalConfig, running_timer_limit);
+    cmd.length = 68;
+    SendCmd(cmd);
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::btnLeaveTheFactoryClick(TObject *Sender)
+{
+    // 出厂    
+    D1608Cmd cmd;
+    cmd.type = 1;
+    cmd.id = offsetof(GlobalConfig, adjust_running_time);
     SendCmd(cmd);
 }
 //---------------------------------------------------------------------------

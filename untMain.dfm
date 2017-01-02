@@ -1,8 +1,8 @@
 object Form1: TForm1
-  Left = 114
+  Left = 15
   Top = 0
   Width = 1265
-  Height = 755
+  Height = 754
   Caption = 'D1608'
   Color = clBtnFace
   Font.Charset = GB2312_CHARSET
@@ -23,19 +23,19 @@ object Form1: TForm1
     Left = 0
     Top = 25
     Width = 1249
-    Height = 692
-    ActivePage = tsOperator
+    Height = 691
+    ActivePage = TabSheet1
     Align = alClient
-    TabIndex = 1
+    TabIndex = 2
     TabOrder = 0
     object tsSearch: TTabSheet
       Caption = #26597#35810#35774#22791
       DesignSize = (
         1241
-        664)
+        663)
       object Bevel1: TBevel
         Left = 8
-        Top = 518
+        Top = 517
         Width = 1117
         Height = 10
         Anchors = [akLeft, akRight, akBottom]
@@ -51,7 +51,7 @@ object Form1: TForm1
       end
       object mmLog: TMemo
         Left = 8
-        Top = 537
+        Top = 536
         Width = 1117
         Height = 126
         Anchors = [akLeft, akRight, akBottom]
@@ -72,7 +72,7 @@ object Form1: TForm1
         Left = 8
         Top = 0
         Width = 1117
-        Height = 514
+        Height = 513
         Anchors = [akLeft, akTop, akRight, akBottom]
         Columns = <
           item
@@ -12479,7 +12479,6 @@ object Form1: TForm1
         Top = 0
         Width = 18
         Height = 17
-        Flat = True
         OnClick = btnModifyPresetNameClick
       end
       object mix_panel: TPanel
@@ -30691,6 +30690,12 @@ object Form1: TForm1
     object TabSheet1: TTabSheet
       Caption = 'TabSheet1'
       ImageIndex = 2
+      object Bevel2: TBevel
+        Left = 160
+        Top = 320
+        Width = 425
+        Height = 193
+      end
       object Label17: TLabel
         Left = 760
         Top = 8
@@ -30712,12 +30717,48 @@ object Form1: TForm1
         Height = 13
         Caption = 'lblDiff'
       end
-      object Label19: TLabel
-        Left = 192
-        Top = 328
+      object Label22: TLabel
+        Left = 186
+        Top = 424
+        Width = 131
+        Height = 13
+        Caption = #35774#22791#25353#38190#23494#30721'('#22823#20889')'#65306
+      end
+      object Label24: TLabel
+        Left = 600
+        Top = 456
         Width = 91
         Height = 13
-        Caption = #36816#34892#26102#38271#38480#21046#65306
+        Caption = #36755#20837#35299#38145#23494#30721#65306
+      end
+      object Label19: TLabel
+        Left = 186
+        Top = 456
+        Width = 91
+        Height = 13
+        Caption = #35774#32622#35299#38145#23494#30721#65306
+      end
+      object btnKeyPasswordUp: TSpeedButton
+        Left = 512
+        Top = 413
+        Width = 57
+        Height = 16
+        Caption = 'UP'
+        OnClick = btnKeyPasswordUpClick
+      end
+      object btnKeyPasswordDown: TSpeedButton
+        Left = 512
+        Top = 429
+        Width = 57
+        Height = 16
+        Caption = 'DOWN'
+        OnClick = btnKeyPasswordDownClick
+      end
+      object Bevel3: TBevel
+        Left = 592
+        Top = 320
+        Width = 289
+        Height = 193
       end
       object memo_debug: TMemo
         Left = 0
@@ -30866,6 +30907,123 @@ object Form1: TForm1
           'PRESET7'
           'PRESET8')
         TabOrder = 9
+      end
+      object btnSetLock: TButton
+        Left = 424
+        Top = 480
+        Width = 75
+        Height = 25
+        Caption = #35774#32622
+        TabOrder = 10
+        OnClick = btnSetLockClick
+      end
+      object edtPassword: TEdit
+        Left = 328
+        Top = 452
+        Width = 169
+        Height = 21
+        TabOrder = 11
+        OnKeyPress = edtPasswordKeyPress
+      end
+      object edtKeyPassword: TEdit
+        Left = 328
+        Top = 420
+        Width = 169
+        Height = 21
+        TabOrder = 12
+        OnKeyDown = edtKeyPasswordKeyDown
+        OnKeyPress = edtKeyPasswordKeyPress
+      end
+      object edtLockedString: TEdit
+        Left = 328
+        Top = 388
+        Width = 169
+        Height = 21
+        Enabled = False
+        TabOrder = 13
+      end
+      object edtUnlockPassword: TEdit
+        Left = 696
+        Top = 452
+        Width = 169
+        Height = 21
+        TabOrder = 14
+      end
+      object btnUnlock: TButton
+        Left = 792
+        Top = 480
+        Width = 75
+        Height = 25
+        Caption = #35299#38145
+        TabOrder = 15
+        OnClick = btnUnlockClick
+      end
+      object cbRunningTimer: TCheckBox
+        Left = 168
+        Top = 328
+        Width = 153
+        Height = 17
+        Caption = #36816#34892#26102#38271#38480#21046'('#23567#26102')'#65306
+        TabOrder = 16
+        OnClick = cbRunningTimerClick
+      end
+      object cbRebootCount: TCheckBox
+        Left = 168
+        Top = 360
+        Width = 153
+        Height = 17
+        Caption = #38480#21046#21551#21160#27425#25968#65306
+        TabOrder = 17
+        OnClick = cbRebootCountClick
+      end
+      object cbLockedString: TCheckBox
+        Left = 168
+        Top = 392
+        Width = 153
+        Height = 17
+        Caption = #33258#23450#20041#38145#23450#20449#24687#65306
+        TabOrder = 18
+        OnClick = cbLockedStringClick
+      end
+      object edtRunningTimer: TEdit
+        Left = 328
+        Top = 324
+        Width = 169
+        Height = 21
+        Enabled = False
+        TabOrder = 19
+        Text = '0'
+        OnExit = edtRunningTimerExit
+        OnKeyDown = edtRebootCountKeyDown
+      end
+      object edtRebootCount: TEdit
+        Left = 328
+        Top = 356
+        Width = 169
+        Height = 21
+        Enabled = False
+        TabOrder = 20
+        Text = '0'
+        OnExit = edtRebootCountExit
+        OnKeyDown = edtRebootCountKeyDown
+      end
+      object btnUnlockExt: TButton
+        Left = 368
+        Top = 288
+        Width = 75
+        Height = 25
+        Caption = #21518#21488#35299#38145
+        TabOrder = 21
+        OnClick = btnUnlockExtClick
+      end
+      object btnLeaveTheFactory: TButton
+        Left = 456
+        Top = 288
+        Width = 75
+        Height = 25
+        Caption = #20986#21378
+        TabOrder = 22
+        OnClick = btnLeaveTheFactoryClick
       end
     end
   end

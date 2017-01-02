@@ -310,7 +310,26 @@ __published:	// IDE-managed Components
     TSpeedButton *btnModifyPresetName;
     TToolButton *btnDeviceName;
     TCheckListBox *clbAvaliablePreset;
+    TButton *btnSetLock;
+    TLabel *Label22;
+    TEdit *edtPassword;
+    TEdit *edtKeyPassword;
+    TEdit *edtLockedString;
+    TLabel *Label24;
+    TEdit *edtUnlockPassword;
+    TButton *btnUnlock;
+    TCheckBox *cbRunningTimer;
+    TCheckBox *cbRebootCount;
+    TCheckBox *cbLockedString;
     TLabel *Label19;
+    TEdit *edtRunningTimer;
+    TEdit *edtRebootCount;
+    TSpeedButton *btnKeyPasswordUp;
+    TSpeedButton *btnKeyPasswordDown;
+    TBevel *Bevel2;
+    TBevel *Bevel3;
+    TButton *btnUnlockExt;
+    TButton *btnLeaveTheFactory;
     void __fastcall FormCreate(TObject *Sender);
     void __fastcall FormDestroy(TObject *Sender);
     void __fastcall btnRefreshClick(TObject *Sender);
@@ -404,6 +423,23 @@ __published:	// IDE-managed Components
     void __fastcall btnModifyPresetNameClick(TObject *Sender);
     void __fastcall btnDeviceNameClick(TObject *Sender);
     void __fastcall clbAvaliablePresetClickCheck(TObject *Sender);
+    void __fastcall btnSetLockClick(TObject *Sender);
+    void __fastcall btnUnlockClick(TObject *Sender);
+    void __fastcall cbRunningTimerClick(TObject *Sender);
+    void __fastcall cbRebootCountClick(TObject *Sender);
+    void __fastcall cbLockedStringClick(TObject *Sender);
+    void __fastcall edtRunningTimerExit(TObject *Sender);
+    void __fastcall edtRebootCountExit(TObject *Sender);
+    void __fastcall edtRebootCountKeyDown(TObject *Sender, WORD &Key,
+          TShiftState Shift);
+    void __fastcall edtPasswordKeyPress(TObject *Sender, char &Key);
+    void __fastcall edtKeyPasswordKeyDown(TObject *Sender, WORD &Key,
+          TShiftState Shift);
+    void __fastcall btnKeyPasswordUpClick(TObject *Sender);
+    void __fastcall btnKeyPasswordDownClick(TObject *Sender);
+    void __fastcall edtKeyPasswordKeyPress(TObject *Sender, char &Key);
+    void __fastcall btnUnlockExtClick(TObject *Sender);
+    void __fastcall btnLeaveTheFactoryClick(TObject *Sender);
 
 private:
     // 已经选择设备
@@ -438,7 +474,6 @@ private:
     int eq_q[11];
 public:
     void SendCmd(D1608Cmd& cmd);
-    void SendCICmd(CIDebugCmd& cmd);
 //----------------------------------
 private:
     PanelAgent* panel_agent;
@@ -490,6 +525,12 @@ public:		// User declarations
     TSpeedButton* mix_mute_btn[17];
     TEdit* mix_level_edit[17];
     TAdvTrackBar* mix_level_trackbar[17];
+
+private:
+    long running_timer;
+    int roboot_count;
+
+    int keep_live_count;
 };
 //---------------------------------------------------------------------------
 extern PACKAGE TForm1 *Form1;
