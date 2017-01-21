@@ -39,14 +39,33 @@ bool FilterSet::IsBandForbidden(int band)
         return true;
     }
 
-    if (band == LAST_FILTER)
+    if (band == LP_FILTER)
     {
         return false;
     }
 
-    if ((LAST_FILTER-band+1) <= GetFilter(LAST_FILTER)->UseIIRCount())
+    switch (GetFilter(LP_FILTER)->UseIIRCount())
     {
-        return true;
+    case 1:
+        break;
+    case 2:
+        if (band >= LP_FILTER-1)
+        {
+            return true;
+        }
+        break;
+    case 3:
+        if (band >= LAST_FILTER-2)
+        {
+            return true;
+        }
+        break;
+    case 4:
+        if (band >= LAST_FILTER-3)
+        {
+            return true;
+        }
+        break;
     }
 
     return false;
@@ -121,15 +140,18 @@ void FilterSet::RepaintPaint(int band)
 
         cmd.length = sizeof(cmd.data.data_filter);
 
-        if (dsp_id < 100)
+        if (dsp_id == 0)
         {
-            cmd.id = GerOffsetOfData(&config_map.input_dsp[dsp_id-1].filter[band-1]);
+        }
+        else if (dsp_id < 100)
+        {
             config_map.input_dsp[dsp_id-1].filter[band-1] = cmd.data.data_filter;
+            cmd.id = GetOffsetOfData(&config_map.input_dsp[dsp_id-1].filter[band-1]);
         }
         else
         {
-            cmd.id = GerOffsetOfData(&config_map.output_dsp[dsp_id-101].filter[band-1]);
             config_map.output_dsp[dsp_id-101].filter[band-1] = cmd.data.data_filter;
+            cmd.id = GetOffsetOfData(&config_map.output_dsp[dsp_id-101].filter[band-1]);
         }
 
         Form1->SendCmd(cmd);

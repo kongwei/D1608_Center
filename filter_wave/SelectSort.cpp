@@ -9,7 +9,7 @@
 
 #pragma package(smart_init)
 
-static int select_sort[11] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+static int select_sort[12] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
 
 int GetSortElem(int i)
 {
@@ -26,7 +26,7 @@ void Push2First(int band)
     int tmp = select_sort[0];
     select_sort[0] = band;
         
-    for (int i=1;i<11;i++)
+    for (int i=1;i<12;i++)
     {
         if (select_sort[i] != band)
         {

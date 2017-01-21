@@ -44,7 +44,9 @@ extern "C"{
 #define MAX_PACKAGE_SIZE 1024
 
 #define FIRST_FILTER 1
-#define LAST_FILTER 9
+#define LAST_FILTER 8
+#define HP_FILTER 1
+#define LP_FILTER 11
 
 #pragma pack(1)
     struct T_iap_start_pack
@@ -330,6 +332,7 @@ __published:	// IDE-managed Components
     TBevel *Bevel3;
     TButton *btnUnlockExt;
     TButton *btnLeaveTheFactory;
+    TButton *btnDownloadPreset;
     void __fastcall FormCreate(TObject *Sender);
     void __fastcall FormDestroy(TObject *Sender);
     void __fastcall btnRefreshClick(TObject *Sender);
@@ -440,6 +443,7 @@ __published:	// IDE-managed Components
     void __fastcall edtKeyPasswordKeyPress(TObject *Sender, char &Key);
     void __fastcall btnUnlockExtClick(TObject *Sender);
     void __fastcall btnLeaveTheFactoryClick(TObject *Sender);
+    void __fastcall btnDownloadPresetClick(TObject *Sender);
 
 private:
     // 已经选择设备

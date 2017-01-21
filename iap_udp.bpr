@@ -97,19 +97,51 @@ ProductName=
 ProductVersion=1.0.0.0
 Comments=
 
+[Excluded Packages]
+C:\Windows\system32\vclie60.bpl=Internet Explorer Components Runtime Package
+C:\Windows\system32\inet60.bpl=Borland Internet/World Wide Web components
+C:\Windows\system32\inetdb60.bpl=Borland Internet/World Wide Web database components
+C:\Windows\system32\dbrtl60.bpl=Borland Core Database Components
+C:\Windows\system32\vcldb60.bpl=Borland Database Components
+C:\Windows\system32\bdertl60.bpl=Borland BDE Database Components
+C:\Windows\system32\vcldbx60.bpl=Borland Compatibility Database Components
+C:\Windows\system32\adortl60.bpl=Borland ADO Database Components
+C:\Windows\system32\bdecds60.bpl=Borland Local BDE ClientDataSet Components
+C:\Windows\system32\cds60.bpl=Borland Custom Local ClientDataSet Component
+C:\Windows\system32\dsnap60.bpl=Borland DataSnap Components
+C:\Windows\system32\dbexpress60.bpl=Borland dbExpress Database Components
+C:\Windows\system32\dbxcds60.bpl=Borland Local DBX ClientDataSet Components
+C:\Windows\system32\teeui60.bpl=TeeChart UI Components
+C:\Windows\system32\teedb60.bpl=TeeChart Database Components
+C:\Windows\system32\tee60.bpl=TeeChart Components
+C:\Windows\system32\dss60.bpl=Borland Decision Cube Components
+C:\Windows\system32\ibxpress60.bpl=InterBase Data Access Components
+C:\Windows\system32\dsnapcrba60.bpl=Borland DataSnap CORBA Connection Components
+C:\Windows\system32\dsnapcon60.bpl=Borland DataSnap Connection Components
+C:\Windows\system32\xmlrtl60.bpl=Borland XML components
+C:\Windows\system32\inetdbbde60.bpl=(untitled)
+C:\Windows\system32\inetdbxpress60.bpl=(untitled)
+C:\Windows\system32\nmfast60.bpl=NetMasters Fastnet Tools Runtime Package
+C:\Windows\system32\soaprtl60.bpl=Borland SOAP Runtime Package
+C:\Windows\system32\teeqr60.bpl=TeeChart for QuickReport Components
+C:\Windows\system32\qrpt60.bpl=QuickReport Runtime Package
+C:\Windows\system32\webdsnap60.bpl=Borland InternetExpress Components
+
 [HistoryLists\hlIncludePath]
-Count=4
-Item0=..\..\别人的代码;ci\;ci;..\..\new\CentCtrl;$(BCB)\Lib;..\..\vcl component pack v6.0.2.0;filter_wave;..\..\CSP_850_A\版本上传上位机（iap_version）\iap_version;C:\Program Files\Borland\CBuilder6\Projects;F:\神州II号\iap_version;$(BCB)\include;$(BCB)\include\vcl
-Item1=ci\;..\..\new\CentCtrl;$(BCB)\Lib;..\..\vcl component pack v6.0.2.0;filter_wave;..\..\CSP_850_A\版本上传上位机（iap_version）\iap_version;C:\Program Files\Borland\CBuilder6\Projects;F:\神州II号\iap_version;$(BCB)\include;$(BCB)\include\vcl
-Item2=..\..\new\CentCtrl;$(BCB)\Lib;..\..\vcl component pack v6.0.2.0;filter_wave;..\..\CSP_850_A\版本上传上位机（iap_version）\iap_version;C:\Program Files\Borland\CBuilder6\Projects;F:\神州II号\iap_version;$(BCB)\include;$(BCB)\include\vcl
-Item3=filter_wave;..\..\CSP_850_A\版本上传上位机（iap_version）\iap_version;C:\Program Files\Borland\CBuilder6\Projects;F:\神州II号\iap_version;$(BCB)\include;$(BCB)\include\vcl
+Count=5
+Item0=..\..\别人的代码;ci;..\..\new\CentCtrl;$(BCB)\Lib;..\..\vcl component pack v6.0.2.0;filter_wave;..\..\CSP_850_A\版本上传上位机（iap_version）\iap_version;C:\Program Files\Borland\CBuilder6\Projects;F:\神州II号\iap_version;$(BCB)\include;$(BCB)\include\vcl
+Item1=..\..\别人的代码;ci\;ci;..\..\new\CentCtrl;$(BCB)\Lib;..\..\vcl component pack v6.0.2.0;filter_wave;..\..\CSP_850_A\版本上传上位机（iap_version）\iap_version;C:\Program Files\Borland\CBuilder6\Projects;F:\神州II号\iap_version;$(BCB)\include;$(BCB)\include\vcl
+Item2=ci\;..\..\new\CentCtrl;$(BCB)\Lib;..\..\vcl component pack v6.0.2.0;filter_wave;..\..\CSP_850_A\版本上传上位机（iap_version）\iap_version;C:\Program Files\Borland\CBuilder6\Projects;F:\神州II号\iap_version;$(BCB)\include;$(BCB)\include\vcl
+Item3=..\..\new\CentCtrl;$(BCB)\Lib;..\..\vcl component pack v6.0.2.0;filter_wave;..\..\CSP_850_A\版本上传上位机（iap_version）\iap_version;C:\Program Files\Borland\CBuilder6\Projects;F:\神州II号\iap_version;$(BCB)\include;$(BCB)\include\vcl
+Item4=filter_wave;..\..\CSP_850_A\版本上传上位机（iap_version）\iap_version;C:\Program Files\Borland\CBuilder6\Projects;F:\神州II号\iap_version;$(BCB)\include;$(BCB)\include\vcl
 
 [HistoryLists\hlLibraryPath]
-Count=4
-Item0=..\..\别人的代码;ci\;ci;..\..\new\CentCtrl;$(BCB)\Projects\Lib;..\..\vcl component pack v6.0.2.0;filter_wave;..\..\CSP_850_A\版本上传上位机（iap_version）\iap_version;C:\Program Files\Borland\CBuilder6\Projects;F:\神州II号\iap_version;$(BCB)\lib\obj;$(BCB)\lib
-Item1=ci\;..\..\new\CentCtrl;$(BCB)\Projects\Lib;..\..\vcl component pack v6.0.2.0;filter_wave;..\..\CSP_850_A\版本上传上位机（iap_version）\iap_version;C:\Program Files\Borland\CBuilder6\Projects;F:\神州II号\iap_version;$(BCB)\lib\obj;$(BCB)\lib
-Item2=..\..\new\CentCtrl;$(BCB)\Projects\Lib;..\..\vcl component pack v6.0.2.0;filter_wave;..\..\CSP_850_A\版本上传上位机（iap_version）\iap_version;C:\Program Files\Borland\CBuilder6\Projects;F:\神州II号\iap_version;$(BCB)\lib\obj;$(BCB)\lib
-Item3=filter_wave;..\..\CSP_850_A\版本上传上位机（iap_version）\iap_version;C:\Program Files\Borland\CBuilder6\Projects;F:\神州II号\iap_version;$(BCB)\lib\obj;$(BCB)\lib
+Count=5
+Item0=..\..\别人的代码;ci;..\..\new\CentCtrl;$(BCB)\Projects\Lib;..\..\vcl component pack v6.0.2.0;filter_wave;..\..\CSP_850_A\版本上传上位机（iap_version）\iap_version;C:\Program Files\Borland\CBuilder6\Projects;F:\神州II号\iap_version;$(BCB)\lib\obj;$(BCB)\lib
+Item1=..\..\别人的代码;ci\;ci;..\..\new\CentCtrl;$(BCB)\Projects\Lib;..\..\vcl component pack v6.0.2.0;filter_wave;..\..\CSP_850_A\版本上传上位机（iap_version）\iap_version;C:\Program Files\Borland\CBuilder6\Projects;F:\神州II号\iap_version;$(BCB)\lib\obj;$(BCB)\lib
+Item2=ci\;..\..\new\CentCtrl;$(BCB)\Projects\Lib;..\..\vcl component pack v6.0.2.0;filter_wave;..\..\CSP_850_A\版本上传上位机（iap_version）\iap_version;C:\Program Files\Borland\CBuilder6\Projects;F:\神州II号\iap_version;$(BCB)\lib\obj;$(BCB)\lib
+Item3=..\..\new\CentCtrl;$(BCB)\Projects\Lib;..\..\vcl component pack v6.0.2.0;filter_wave;..\..\CSP_850_A\版本上传上位机（iap_version）\iap_version;C:\Program Files\Borland\CBuilder6\Projects;F:\神州II号\iap_version;$(BCB)\lib\obj;$(BCB)\lib
+Item4=filter_wave;..\..\CSP_850_A\版本上传上位机（iap_version）\iap_version;C:\Program Files\Borland\CBuilder6\Projects;F:\神州II号\iap_version;$(BCB)\lib\obj;$(BCB)\lib
 
 [HistoryLists\hlDebugSourcePath]
 Count=1
@@ -141,17 +173,6 @@ RemoteDebug=0
 
 [Compiler]
 ShowInfoMsgs=0
-LinkDebugVcl=1
-LinkCGLIB=0
-
-[CORBA]
-AddServerUnit=1
-AddClientUnit=1
-PrecompiledHeaders=1
-
-[Language]
-ActiveLang=
-ProjectLang=
-RootDir=
+LinkDebugVcl=0
   </IDEOPTIONS>
 </PROJECT>

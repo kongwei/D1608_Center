@@ -43,12 +43,13 @@ public:
 
     void LoadPreset();
 private:
-    TPanel* _panel[11];
-    TEdit* _edtFreq[11];
-    TEdit* _edtQ[11];
-    TEdit* _edtGain[11];
-    TComboBox* _cbType[11];
-    TCheckBox* _cbBypass[11];
+    // TODO: 浪费了第一个元素
+    TPanel* _panel[12];
+    TEdit* _edtFreq[12];
+    TEdit* _edtQ[12];
+    TEdit* _edtGain[12];
+    TComboBox* _cbType[12];
+    TCheckBox* _cbBypass[12];
 
 
     void __fastcall cbTypeChange(TObject *Sender);

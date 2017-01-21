@@ -107,7 +107,10 @@ void PanelAgent::LoadPreset()
         {
             // Ð´ÈëFilterSet
             int dsp_id = Form1->pnlDspDetail->Tag;
-            if (dsp_id < 100)
+            if (dsp_id == 0)
+            {
+            }
+            else if (dsp_id < 100)
             {
                  _filter_set.GetFilter(band)->SetTypeId(config_map.input_dsp[dsp_id-1].filter[band-1].TYPE);
                  _filter_set.GetFilter(band)->SetFreq(config_map.input_dsp[dsp_id-1].filter[band-1].FREQ / 10.0);
@@ -135,11 +138,11 @@ void __fastcall PanelAgent::cbTypeChange(TObject *Sender)
     TComboBox * type_ccombobox = (TComboBox*)Sender;
     String type = type_ccombobox->Text;
 
-    if (type_ccombobox->Parent->Tag == FIRST_FILTER)
+    if (type_ccombobox->Parent->Tag == HP_FILTER)
     {
         type = type + " High";
     }
-    else if (type_ccombobox->Parent->Tag == LAST_FILTER)
+    else if (type_ccombobox->Parent->Tag == LP_FILTER)
     {
         type = type + " Low";
     }
@@ -159,7 +162,15 @@ void __fastcall PanelAgent::cbTypeChange(TObject *Sender)
         GetGainText(band)->Enabled = true;
     }
 
-    for (int i=FIRST_FILTER;i<=LAST_FILTER;i++)
+    for (int i=FIRST_FILTER;i<=LAST_FILTER-2;i++)
+    {
+        bool band_forbidden = _filter_set.IsBandForbidden(i);
+        GetPanel(i)->Enabled = !band_forbidden;
+        GetFreqText(i)->Enabled = !band_forbidden;
+        GetQText(i)->Enabled = !band_forbidden;
+        GetGainText(i)->Enabled = !band_forbidden;
+    }
+    for (int i=LP_FILTER-1;i<=LP_FILTER;i++)
     {
         bool band_forbidden = _filter_set.IsBandForbidden(i);
         GetPanel(i)->Enabled = !band_forbidden;
@@ -453,7 +464,10 @@ void PanelAgent::UpdateFreqQGain(int band)
 void PanelAgent::SaveToConfigMap(int band)
 {
     int dsp_id = Form1->pnlDspDetail->Tag;
-    if (dsp_id < 100)
+    if (dsp_id == 0)
+    {
+    }
+    else if (dsp_id < 100)
     {
         config_map.input_dsp[dsp_id-1].filter[band-1].TYPE = _filter_set.GetFilter(band)->GetTypeId() * 10;
         config_map.input_dsp[dsp_id-1].filter[band-1].GAIN = _filter_set.GetFilter(band)->GetGain()*10;

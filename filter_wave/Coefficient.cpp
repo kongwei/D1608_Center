@@ -460,55 +460,59 @@ String Coefficient::GetTypeName(int type_id)
 
 void InitConfigMap()
 {
-	int i, j;
-	int preset_freq[] = {20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000};
+	int preset_freq[11] = {20, 50, 100, 200, 500, 1000, 2000, 5000, 7500, 10000, 20000};
 
 	memset(&config_map, 0,sizeof(config_map));
 
-	for (i=0;i<INPUT_DSP_NUM;i++)
+	for (int i=0;i<INPUT_DSP_NUM;i++)
 	{
-		for (j=0;j<=8;j++)
+		for (int j=HP_FILTER;j<=LP_FILTER;j++)
 		{
-			config_map.input_dsp[i].filter[j].GAIN = 0;
-			config_map.input_dsp[i].filter[j].bypass = 0;
-			config_map.input_dsp[i].filter[j].FREQ = preset_freq[j] * 10;
-			config_map.input_dsp[i].filter[j].Q = 409;
+			config_map.input_dsp[i].filter[j-1].GAIN = 0;
+			config_map.input_dsp[i].filter[j-1].bypass = 0;
+			config_map.input_dsp[i].filter[j-1].FREQ = preset_freq[j-1] * 10;
+			config_map.input_dsp[i].filter[j-1].Q = 409;
 		}
 
-		config_map.input_dsp[i].filter[0].TYPE = 1201;	// HP
-			config_map.input_dsp[i].filter[0].bypass = 1;
-		config_map.input_dsp[i].filter[1].TYPE = 4;	// Low Shelf
-		config_map.input_dsp[i].filter[2].TYPE = 1;	// PEQ
-		config_map.input_dsp[i].filter[3].TYPE = 1;	// PEQ
-		config_map.input_dsp[i].filter[4].TYPE = 1;	// PEQ
-		config_map.input_dsp[i].filter[5].TYPE = 1;	// PEQ
-		config_map.input_dsp[i].filter[6].TYPE = 1;	// PEQ
-		config_map.input_dsp[i].filter[7].TYPE = 3;	// High Shelf
-		config_map.input_dsp[i].filter[8].TYPE = 1211;	// LP
-			config_map.input_dsp[i].filter[8].bypass = 1;
+		config_map.input_dsp[i].filter[HP_FILTER-1].TYPE = 1201;	// HP
+			config_map.input_dsp[i].filter[HP_FILTER-1].bypass = 1;
+		config_map.input_dsp[i].filter[HP_FILTER].TYPE = 4;	// Low Shelf
+		for (int j=FIRST_FILTER+2;j<=LAST_FILTER-2;j++)
+        {
+            config_map.input_dsp[i].filter[j-1].TYPE = 1;	// PEQ
+        }
+		config_map.input_dsp[i].filter[LP_FILTER-2].TYPE = 3;	// High Shelf
+		config_map.input_dsp[i].filter[LP_FILTER-1].TYPE = 1211;	// LP
+			config_map.input_dsp[i].filter[LP_FILTER-1].bypass = 1;
 	}
 
-	for (i=0;i<OUTPUT_DSP_NUM;i++)
+	for (int i=0;i<OUTPUT_DSP_NUM;i++)
 	{
-		for (j=0;j<=8;j++)
+		for (int j=HP_FILTER;j<=LP_FILTER;j++)
 		{
-			config_map.output_dsp[i].filter[j].GAIN = 0;
-			config_map.output_dsp[i].filter[j].bypass = 0;
-			config_map.output_dsp[i].filter[j].FREQ = preset_freq[j] * 10;
-			config_map.output_dsp[i].filter[j].Q = 409;
+			config_map.output_dsp[i].filter[j-1].GAIN = 0;
+			config_map.output_dsp[i].filter[j-1].bypass = 0;
+			config_map.output_dsp[i].filter[j-1].FREQ = preset_freq[j-1] * 10;
+			config_map.output_dsp[i].filter[j-1].Q = 409;
 		}
 
-		config_map.output_dsp[i].filter[0].TYPE = 1201;	// HP
-			config_map.output_dsp[i].filter[0].bypass = 1;
-		config_map.output_dsp[i].filter[1].TYPE = 4;	// Low Shelf
-		config_map.output_dsp[i].filter[2].TYPE = 1;	// PEQ
-		config_map.output_dsp[i].filter[3].TYPE = 1;	// PEQ
-		config_map.output_dsp[i].filter[4].TYPE = 1;	// PEQ
-		config_map.output_dsp[i].filter[5].TYPE = 1;	// PEQ
-		config_map.output_dsp[i].filter[6].TYPE = 1;	// PEQ
-		config_map.output_dsp[i].filter[7].TYPE = 3;	// High Shelf
-		config_map.output_dsp[i].filter[8].TYPE = 1211;	// LP
-			config_map.output_dsp[i].filter[8].bypass = 1;
+		config_map.output_dsp[i].filter[HP_FILTER-1].TYPE = 1201;	// HP
+			config_map.output_dsp[i].filter[HP_FILTER-1].bypass = 1;
+		config_map.output_dsp[i].filter[HP_FILTER].TYPE = 4;	// Low Shelf
+		for (int j=FIRST_FILTER+2;j<=LAST_FILTER-2;j++)
+        {
+            config_map.output_dsp[i].filter[j-1].TYPE = 1;	// PEQ
+        }
+		config_map.output_dsp[i].filter[LP_FILTER-2].TYPE = 3;	// High Shelf
+		config_map.output_dsp[i].filter[LP_FILTER-1].TYPE = 1211;	// LP
+			config_map.output_dsp[i].filter[LP_FILTER-1].bypass = 1;
 	}
+
+    // mix_mute
+    memset(&config_map.mix_mute, 1, sizeof(config_map.mix_mute));
+    for (int i=0;i<16;i++)
+    {
+        config_map.mix_mute[i][i] = 0;
+    }
 }
 

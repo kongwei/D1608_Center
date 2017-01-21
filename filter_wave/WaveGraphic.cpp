@@ -119,7 +119,7 @@ void __fastcall PaintAgent::OnMouseDown(TObject *Sender,
     extern void SelectNullControl();
     SelectNullControl();
     
-    for (int i=0;i<11;i++)
+    for (int i=0;i<12;i++)
     {
         int band = GetSortElem(i);
         if (_filter_set.IsBandForbidden(band))
@@ -275,7 +275,7 @@ void __fastcall PaintAgent::OnPaint(TObject * Sender)
 
     // »æÖÆËùÓÐfilterÍ¼Ïñ
     Coefficient::InitPointData(point);
-    for (int i=1;i<11;i++)
+    for (int i=1;i<12;i++)
     {
         if (!_filter_set.IsBypass(i) && !_filter_set.IsBandForbidden(i))
         {
@@ -355,7 +355,7 @@ void DrawFillWave(double point[1001], Gdiplus::Graphics &gdiplus_g)
 //---------------------------------------------------------------------------
 void DrawThumb(PaintAgent* paint_agent, Gdiplus::Graphics &gdiplus_g)
 {
-    for (int i=10;i>=0;i--)
+    for (int i=11;i>=0;i--)
     {
         int band = GetSortElem(i);
         if (paint_agent->_filter_set.IsBandForbidden(band))

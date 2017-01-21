@@ -28,8 +28,9 @@ public:
     void Register(PaintAgent* paint_agent, PanelAgent* panel_agent);
     void RepaintPaint(int band=0);
 private:
-    bool bypass[11];
-    Coefficient filter[11];
+    // TODO: 第一个元素没有使用到
+    bool bypass[12];
+    Coefficient filter[12];
     int select_band;
     PaintAgent* paint_agent_ref;
     PanelAgent* panel_agent_ref;

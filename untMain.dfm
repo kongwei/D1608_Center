@@ -24,9 +24,9 @@ object Form1: TForm1
     Top = 25
     Width = 1249
     Height = 691
-    ActivePage = TabSheet1
+    ActivePage = tsOperator
     Align = alClient
-    TabIndex = 2
+    TabIndex = 1
     TabOrder = 0
     object tsSearch: TTabSheet
       Caption = #26597#35810#35774#22791
@@ -22816,7 +22816,6 @@ object Form1: TForm1
           Ctl3D = True
           ParentCtl3D = False
           TabOrder = 1
-          Visible = False
           object Label4: TLabel
             Left = 16
             Top = 5
@@ -24641,6 +24640,7 @@ object Form1: TForm1
           Ctl3D = True
           ParentCtl3D = False
           TabOrder = 9
+          Visible = False
           object Label10: TLabel
             Left = 16
             Top = 5
@@ -24730,6 +24730,7 @@ object Form1: TForm1
           Ctl3D = True
           ParentCtl3D = False
           TabOrder = 10
+          Visible = False
           object Label15: TLabel
             Left = 16
             Top = 5
@@ -31024,6 +31025,15 @@ object Form1: TForm1
         Caption = #20986#21378
         TabOrder = 22
         OnClick = btnLeaveTheFactoryClick
+      end
+      object btnDownloadPreset: TButton
+        Left = 992
+        Top = 336
+        Width = 139
+        Height = 25
+        Caption = #19979#36733'preset'
+        TabOrder = 23
+        OnClick = btnDownloadPresetClick
       end
     end
   end
