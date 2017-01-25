@@ -1,6 +1,6 @@
 object Form1: TForm1
-  Left = 15
-  Top = 0
+  Left = -21
+  Top = 58
   Width = 1265
   Height = 754
   Caption = 'D1608'
@@ -24,9 +24,9 @@ object Form1: TForm1
     Top = 25
     Width = 1249
     Height = 691
-    ActivePage = tsOperator
+    ActivePage = TabSheet1
     Align = alClient
-    TabIndex = 1
+    TabIndex = 2
     TabOrder = 0
     object tsSearch: TTabSheet
       Caption = #26597#35810#35774#22791
@@ -30689,7 +30689,7 @@ object Form1: TForm1
       end
     end
     object TabSheet1: TTabSheet
-      Caption = 'TabSheet1'
+      Caption = #26434#39033
       ImageIndex = 2
       object Bevel2: TBevel
         Left = 160
@@ -30713,7 +30713,7 @@ object Form1: TForm1
       end
       object lblDiff: TLabel
         Left = 760
-        Top = 248
+        Top = 376
         Width = 49
         Height = 13
         Caption = 'lblDiff'
@@ -30757,9 +30757,9 @@ object Form1: TForm1
       end
       object Bevel3: TBevel
         Left = 592
-        Top = 320
+        Top = 416
         Width = 289
-        Height = 193
+        Height = 97
       end
       object memo_debug: TMemo
         Left = 0
@@ -30791,45 +30791,57 @@ object Form1: TForm1
         Left = 760
         Top = 24
         Width = 193
-        Height = 217
+        Height = 345
         Strings.Strings = (
-          'base='
-          '12va='
-          '5vd='
-          '8vd='
-          '16va='
-          '48va='
-          '5va='
-          '-12va='
-          '8va='
-          '-16va='
+          '2.5v=      '
+          'base=       '
+          '5vd=       '
+          '8vdc=      '
+          '8vac=      '
+          '8va=       '
+          '-16vac=    '
+          '-16va=     '
+          '46vc=      '
+          '48va=      '
+          '46va=      '
+          '5va=       '
+          '-12va=     '
+          '12va=      '
+          '16va=      '
+          '16vac=     '
           '')
         TabOrder = 3
         ColWidths = (
           100
-          70)
+          87)
       end
       object ValueListEditor2: TValueListEditor
         Left = 960
         Top = 24
         Width = 193
-        Height = 217
+        Height = 345
         Strings.Strings = (
-          'base='
-          '12va='
-          '5vd='
-          '8vd='
-          '16va='
-          '48va='
-          '5va='
-          '-12va='
-          '8va='
-          '-16va='
+          '2.5v=      '
+          'base=       '
+          '5vd=       '
+          '8vdc=      '
+          '8vac=      '
+          '8va=       '
+          '-16vac=    '
+          '-16va=     '
+          '46vc=      '
+          '48va=      '
+          '46va=      '
+          '5va=       '
+          '-12va=     '
+          '12va=      '
+          '16va=      '
+          '16vac=     '
           '')
         TabOrder = 4
         ColWidths = (
           100
-          70)
+          87)
       end
       object lvLog: TListView
         Left = 8
@@ -31028,12 +31040,158 @@ object Form1: TForm1
       end
       object btnDownloadPreset: TButton
         Left = 992
-        Top = 336
+        Top = 408
         Width = 139
         Height = 25
         Caption = #19979#36733'preset'
         TabOrder = 23
         OnClick = btnDownloadPresetClick
+      end
+    end
+    object TabSheet2: TTabSheet
+      Caption = 'COMP'
+      ImageIndex = 3
+      object Label20: TLabel
+        Left = 480
+        Top = 48
+        Width = 35
+        Height = 13
+        Caption = 'Ratio'
+      end
+      object Label21: TLabel
+        Left = 480
+        Top = 104
+        Width = 63
+        Height = 13
+        Caption = 'Threshold'
+      end
+      object Label23: TLabel
+        Left = 480
+        Top = 160
+        Width = 49
+        Height = 13
+        Caption = 'Release'
+      end
+      object Label25: TLabel
+        Left = 480
+        Top = 208
+        Width = 42
+        Height = 13
+        Caption = 'Attack'
+      end
+      object Label26: TLabel
+        Left = 816
+        Top = 56
+        Width = 49
+        Height = 13
+        Caption = 'Label26'
+      end
+      object Label27: TLabel
+        Left = 816
+        Top = 112
+        Width = 49
+        Height = 13
+        Caption = 'Label26'
+      end
+      object Label32: TLabel
+        Left = 816
+        Top = 168
+        Width = 49
+        Height = 13
+        Caption = 'Label26'
+      end
+      object Label33: TLabel
+        Left = 816
+        Top = 216
+        Width = 49
+        Height = 13
+        Caption = 'Label26'
+      end
+      object Panel2: TPanel
+        Left = 32
+        Top = 32
+        Width = 409
+        Height = 329
+        BevelInner = bvLowered
+        TabOrder = 0
+      end
+      object tbRatio: TTrackBar
+        Left = 552
+        Top = 48
+        Width = 217
+        Height = 45
+        Min = 1
+        Orientation = trHorizontal
+        Frequency = 1
+        Position = 1
+        SelEnd = 0
+        SelStart = 0
+        TabOrder = 1
+        TickMarks = tmBottomRight
+        TickStyle = tsAuto
+        OnChange = tbRatioChange
+      end
+      object tbThreshold: TTrackBar
+        Left = 552
+        Top = 104
+        Width = 217
+        Height = 45
+        Max = 0
+        Min = -60
+        Orientation = trHorizontal
+        Frequency = 1
+        Position = -60
+        SelEnd = 0
+        SelStart = 0
+        TabOrder = 2
+        TickMarks = tmBottomRight
+        TickStyle = tsAuto
+        OnChange = tbThresholdChange
+      end
+      object tbRelease: TTrackBar
+        Left = 552
+        Top = 160
+        Width = 217
+        Height = 45
+        LineSize = 10
+        Max = 200
+        Min = 10
+        Orientation = trHorizontal
+        PageSize = 10
+        Frequency = 10
+        Position = 10
+        SelEnd = 0
+        SelStart = 0
+        TabOrder = 3
+        TickMarks = tmBottomRight
+        TickStyle = tsAuto
+        OnChange = tbReleaseChange
+      end
+      object tbAttack: TTrackBar
+        Left = 552
+        Top = 208
+        Width = 217
+        Height = 45
+        Max = 32
+        Min = 1
+        Orientation = trHorizontal
+        Frequency = 1
+        Position = 1
+        SelEnd = 0
+        SelStart = 0
+        TabOrder = 4
+        TickMarks = tmBottomRight
+        TickStyle = tsAuto
+        OnChange = tbAttackChange
+      end
+      object btnSetComp: TButton
+        Left = 472
+        Top = 288
+        Width = 121
+        Height = 25
+        Caption = #35774#32622'COMP'#21442#25968
+        TabOrder = 5
+        OnClick = btnSetCompClick
       end
     end
   end

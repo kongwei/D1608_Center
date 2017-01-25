@@ -976,24 +976,11 @@ void __fastcall TForm1::ToogleEQ(TObject *Sender)
     config_map.input_dsp[dsp_id-1].eq_switch = btn->Down;
 }
 //---------------------------------------------------------------------------
-struct ADC_Data
-{
-    unsigned __int16 base;
-    unsigned __int16 _12va;
-    unsigned __int16 _5vd ;
-    unsigned __int16 _8vd ;
-    unsigned __int16 _16va;
-    unsigned __int16 _48va;
-    unsigned __int16 _5va;
-    unsigned __int16 _x12va;
-    unsigned __int16 _8va ;
-    unsigned __int16 _x16va;
-};
-int CalcVot(unsigned __int16 true_data1, float ra, float rb)
+int CalcVot1(unsigned __int16 true_data1, float ra, float rb)
 {
     return true_data1 * (ra+rb) / ra / 10;
 }
-int CalcVot(unsigned __int16 true_data1, unsigned __int16 true_data2, float ra, float rb, float rc, float rd)
+int CalcVot2(unsigned __int16 true_data1, unsigned __int16 true_data2, float ra, float rb, float rc, float rd)
 {
     return ((true_data2 * (rc+rd) / rc) - (true_data1 * (rd/rc) * (ra+rb) / ra))  / 10;
 }
@@ -1027,16 +1014,15 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
         }
         else if (cmd.id == GetOffsetOfData(&config_map.op_code.adc))
         {
-            __int16 data[10];
+            __int16 data[16];
 
             // 计算检测到的电压 3.3v ~ 4096
-            for (int i=1; i<10; i++)
+            for (int i=0; i<16; i++)
             {
-                data[i] = cmd.data.data_16_array[i] * 2500 / cmd.data.data_16_array[0];
+                data[i] = cmd.data.data_16_array[i] * 2500 / cmd.data.data_16_array[1];
             }
-            data[0] = 2500;
 
-            for (int i=0; i<10; i++)
+            for (int i=0; i<16; i++)
             {
                 ValueListEditor1->Cells[1][i+1] = cmd.data.data_16_array[i];
             }
@@ -1053,25 +1039,31 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             //      -5v  rc=4  rd=15
             //      -12v rc=10 rd=15
             //      -16v rc=15 rd=20
-            calc_data.base   = 2500;
-            calc_data._12va  = CalcVot(true_data->_12va, 4.75, 14.7);
-            calc_data._5vd   = CalcVot(true_data-> _5vd, 4.75,  3.32);
-            calc_data._8vd   = CalcVot(true_data-> _8vd, 4.75, 10);
-            calc_data._16va  = CalcVot(true_data->_16va, 4.75, 20);
-            calc_data._48va  = CalcVot(true_data->_48va, 4.75, 75);
-            calc_data._5va   = CalcVot(true_data-> _5va, 4.75,  3);
-            calc_data._x12va = CalcVot(true_data->_12va, true_data->_x12va, 4.75, 14.7, 10, 14.7);
-            calc_data._8va   = CalcVot(true_data-> _8va, 4.75, 10);
-            calc_data._x16va = CalcVot(true_data->_16va, true_data->_x16va, 4.75, 20, 14.7, 20);
+            calc_data._2_5v  = true_data->_2_5v / 10;
+            calc_data.base   = 2500 / 10;
+            calc_data._5vd   = CalcVot1(true_data->_5vd, 6.81,  6.81);                             
+            calc_data._8vdc  = CalcVot1(true_data->_8vdc, 4.75, 10);                                
+            calc_data._8vac  = CalcVot1(true_data->_8vac, 4.75, 10);                                
+            calc_data._8va   = CalcVot1(true_data->_8va, 4.75, 10);                                
+            calc_data._x16vac= CalcVot2(true_data->_16vac, true_data->_x16vac, 3.32, 20, 14.7, 20);   
+            calc_data._x16va = CalcVot2(true_data->_16va, true_data->_x16va, 3.32, 20, 14.7, 20);   
+            calc_data._46vc  = CalcVot1(true_data->_46vc, 4.75, 75); 
+            calc_data._48va  = CalcVot1(true_data->_48va, 4.75, 75);                                
+            calc_data._46va  = CalcVot1(true_data->_46va, 4.75, 75);                                
+            calc_data._5va   = CalcVot1(true_data-> _5va, 6.81, 6.81);                                
+            calc_data._x12va = CalcVot2(true_data->_12va, true_data->_x12va, 4.75, 14.7, 10, 14.7); 
+            calc_data._12va  = CalcVot1(true_data->_12va, 4.75, 14.7);                              
+            calc_data._16va  = CalcVot1(true_data->_16va, 3.32, 20);                                
+            calc_data._16vac = CalcVot1(true_data->_16vac, 3.32, 20);                                
 
             __int16 * xcalc_data = (__int16 *)&calc_data;
-            for (int i=0; i<10; i++)
+            for (int i=0; i<16; i++)
             {
                 double vot = xcalc_data[i] / 100.0f;
                 ValueListEditor2->Cells[1][i+1] = FloatToStr(vot);
             }
 
-            lblDiff->Caption = calc_data._8vd-calc_data._8va;
+            lblDiff->Caption = calc_data._8vdc-calc_data._8va;
         }
         else if (cmd.id == GetOffsetOfData(&config_map.op_code.noop))
         {
@@ -2872,6 +2864,41 @@ void __fastcall TForm1::btnLeaveTheFactoryClick(TObject *Sender)
 void __fastcall TForm1::btnDownloadPresetClick(TObject *Sender)
 {
     // 下载某个preset在flash里的值
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::tbRatioChange(TObject *Sender)
+{
+    Label26->Caption = tbRatio->Position/10.0;
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::tbThresholdChange(TObject *Sender)
+{
+    Label27->Caption = tbThreshold->Position;
+    Label27->Caption = Label27->Caption + " dB";    
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::tbReleaseChange(TObject *Sender)
+{
+    Label32->Caption = tbRelease->Position;
+    Label32->Caption = Label32->Caption + " ms";
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::tbAttackChange(TObject *Sender)
+{
+    Label33->Caption = tbAttack->Position;    
+    Label33->Caption = Label33->Caption + " ms";
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::btnSetCompClick(TObject *Sender)
+{
+    D1608Cmd cmd;
+    cmd.id = GetOffsetOfData(&config_map.op_code.comp);
+    cmd.data.data_32_array[0] = tbRatio->Position;
+    cmd.data.data_32_array[1] = tbThreshold->Position;
+    cmd.data.data_32_array[2] = tbAttack->Position;
+    cmd.data.data_32_array[3] = tbRelease->Position;
+    cmd.length = 16;
+    SendCmd(cmd);
 }
 //---------------------------------------------------------------------------
 

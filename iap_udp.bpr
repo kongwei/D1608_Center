@@ -19,7 +19,9 @@
       teedb.bpi tee.bpi dss.bpi teeqr.bpi visualclx.bpi visualdbclx.bpi 
       dsnapcrba.bpi dsnapcon.bpi vclie.bpi xmlrtl.bpi inet.bpi inetdbbde.bpi 
       inetdbxpress.bpi nmfast.bpi webdsnap.bpi bcbie.bpi soaprtl.bpi dclocx.bpi 
-      dbexpress.bpi dbxcds.bpi indy.bpi bcb2kaxserver.bpi tmstrackbar.bpi"/>
+      dbexpress.bpi dbxcds.bpi indy.bpi bcb2kaxserver.bpi tmstrackbar.bpi 
+      proide.bpi corbaide.bpi inetdb.bpi bcbsmp.bpi websnap.bpi direct.bpi 
+      IDETools.bpi stride.bpi XML3.bpi"/>
     <PATHCPP value=".;filter_wave;filter_wave;filter_wave;filter_wave;filter_wave"/>
     <PATHPAS value=".;"/>
     <PATHRC value=".;"/>
@@ -98,34 +100,8 @@ ProductVersion=1.0.0.0
 Comments=
 
 [Excluded Packages]
-C:\Windows\system32\vclie60.bpl=Internet Explorer Components Runtime Package
-C:\Windows\system32\inet60.bpl=Borland Internet/World Wide Web components
-C:\Windows\system32\inetdb60.bpl=Borland Internet/World Wide Web database components
-C:\Windows\system32\dbrtl60.bpl=Borland Core Database Components
-C:\Windows\system32\vcldb60.bpl=Borland Database Components
-C:\Windows\system32\bdertl60.bpl=Borland BDE Database Components
-C:\Windows\system32\vcldbx60.bpl=Borland Compatibility Database Components
-C:\Windows\system32\adortl60.bpl=Borland ADO Database Components
-C:\Windows\system32\bdecds60.bpl=Borland Local BDE ClientDataSet Components
-C:\Windows\system32\cds60.bpl=Borland Custom Local ClientDataSet Component
-C:\Windows\system32\dsnap60.bpl=Borland DataSnap Components
-C:\Windows\system32\dbexpress60.bpl=Borland dbExpress Database Components
-C:\Windows\system32\dbxcds60.bpl=Borland Local DBX ClientDataSet Components
-C:\Windows\system32\teeui60.bpl=TeeChart UI Components
-C:\Windows\system32\teedb60.bpl=TeeChart Database Components
-C:\Windows\system32\tee60.bpl=TeeChart Components
-C:\Windows\system32\dss60.bpl=Borland Decision Cube Components
-C:\Windows\system32\ibxpress60.bpl=InterBase Data Access Components
-C:\Windows\system32\dsnapcrba60.bpl=Borland DataSnap CORBA Connection Components
-C:\Windows\system32\dsnapcon60.bpl=Borland DataSnap Connection Components
-C:\Windows\system32\xmlrtl60.bpl=Borland XML components
-C:\Windows\system32\inetdbbde60.bpl=(untitled)
-C:\Windows\system32\inetdbxpress60.bpl=(untitled)
-C:\Windows\system32\nmfast60.bpl=NetMasters Fastnet Tools Runtime Package
-C:\Windows\system32\soaprtl60.bpl=Borland SOAP Runtime Package
-C:\Windows\system32\teeqr60.bpl=TeeChart for QuickReport Components
-C:\Windows\system32\qrpt60.bpl=QuickReport Runtime Package
-C:\Windows\system32\webdsnap60.bpl=Borland InternetExpress Components
+C:\Program Files\Borland\CBuilder6\Bin\bcbsmp60.bpl=Borland C++ Sample Components
+C:\Program Files\Borland\CBuilder6\Bin\indy60.bpl=Internet Direct (Indy) for D6
 
 [HistoryLists\hlIncludePath]
 Count=5

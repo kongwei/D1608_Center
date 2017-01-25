@@ -333,6 +333,21 @@ __published:	// IDE-managed Components
     TButton *btnUnlockExt;
     TButton *btnLeaveTheFactory;
     TButton *btnDownloadPreset;
+    TTabSheet *TabSheet2;
+    TPanel *Panel2;
+    TTrackBar *tbRatio;
+    TTrackBar *tbThreshold;
+    TTrackBar *tbRelease;
+    TTrackBar *tbAttack;
+    TLabel *Label20;
+    TLabel *Label21;
+    TLabel *Label23;
+    TLabel *Label25;
+    TLabel *Label26;
+    TLabel *Label27;
+    TLabel *Label32;
+    TLabel *Label33;
+    TButton *btnSetComp;
     void __fastcall FormCreate(TObject *Sender);
     void __fastcall FormDestroy(TObject *Sender);
     void __fastcall btnRefreshClick(TObject *Sender);
@@ -444,6 +459,11 @@ __published:	// IDE-managed Components
     void __fastcall btnUnlockExtClick(TObject *Sender);
     void __fastcall btnLeaveTheFactoryClick(TObject *Sender);
     void __fastcall btnDownloadPresetClick(TObject *Sender);
+    void __fastcall tbRatioChange(TObject *Sender);
+    void __fastcall tbThresholdChange(TObject *Sender);
+    void __fastcall tbReleaseChange(TObject *Sender);
+    void __fastcall tbAttackChange(TObject *Sender);
+    void __fastcall btnSetCompClick(TObject *Sender);
 
 private:
     // 已经选择设备
