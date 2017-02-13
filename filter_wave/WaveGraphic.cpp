@@ -69,7 +69,14 @@ static double Canvas2Gain(double y)
 }
 static double Freq2Canvas(double freq)
 {
-    return log(freq / 20) / log(FREQ_INTERVAL_RATIO) * CHART_WIDTH_RATIO + LEFT_MARGIN;
+    try
+    {
+        return log(freq / 20) / log(FREQ_INTERVAL_RATIO) * CHART_WIDTH_RATIO + LEFT_MARGIN;
+    }
+    catch(...)
+    {
+        return 0;
+    }
 }
 static double Gain2Canvas(double gain)
 {
