@@ -500,6 +500,8 @@ __published:	// IDE-managed Components
           TShiftState Shift);
     void __fastcall edtCompGainKeyDown(TObject *Sender, WORD &Key,
           TShiftState Shift);
+    void __fastcall edtCompRatioExit(TObject *Sender);
+    void __fastcall edtCompRatioEnter(TObject *Sender);
 
 private:
     // 已经选择设备

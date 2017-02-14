@@ -1,8 +1,8 @@
 object Form1: TForm1
-  Left = 5
-  Top = 137
-  Width = 1667
-  Height = 754
+  Left = 0
+  Top = 0
+  Width = 1366
+  Height = 728
   Caption = 'D1608'
   Color = clBtnFace
   Font.Charset = GB2312_CHARSET
@@ -22,8 +22,8 @@ object Form1: TForm1
   object PageControl1: TPageControl
     Left = 0
     Top = 25
-    Width = 1651
-    Height = 691
+    Width = 1350
+    Height = 665
     ActivePage = tsOperator
     Align = alClient
     TabIndex = 1
@@ -31,18 +31,18 @@ object Form1: TForm1
     object tsSearch: TTabSheet
       Caption = #26597#35810#35774#22791
       DesignSize = (
-        1643
-        663)
+        1342
+        637)
       object Bevel1: TBevel
         Left = 8
-        Top = 517
-        Width = 1748
+        Top = 491
+        Width = 1732
         Height = 10
         Anchors = [akLeft, akRight, akBottom]
         Shape = bsBottomLine
       end
       object Label1: TLabel
-        Left = 1527
+        Left = 1511
         Top = 52
         Width = 53
         Height = 13
@@ -51,15 +51,15 @@ object Form1: TForm1
       end
       object mmLog: TMemo
         Left = 8
-        Top = 536
-        Width = 1748
+        Top = 510
+        Width = 1732
         Height = 126
         Anchors = [akLeft, akRight, akBottom]
         ReadOnly = True
         TabOrder = 0
       end
       object btnRefresh: TButton
-        Left = 1526
+        Left = 1510
         Top = 5
         Width = 106
         Height = 25
@@ -71,8 +71,8 @@ object Form1: TForm1
       object lvDevice: TListView
         Left = 8
         Top = 0
-        Width = 1504
-        Height = 513
+        Width = 1488
+        Height = 487
         Anchors = [akLeft, akTop, akRight, akBottom]
         Columns = <
           item
@@ -121,7 +121,7 @@ object Form1: TForm1
         Visible = False
       end
       object cbAutoRefresh: TCheckBox
-        Left = 1527
+        Left = 1511
         Top = 32
         Width = 97
         Height = 17
@@ -132,7 +132,7 @@ object Form1: TForm1
         TabOrder = 4
       end
       object spInterval: TCSpinEdit
-        Left = 1583
+        Left = 1567
         Top = 48
         Width = 49
         Height = 22
@@ -143,7 +143,7 @@ object Form1: TForm1
         Value = 1
       end
       object btnSelect: TButton
-        Left = 1526
+        Left = 1510
         Top = 77
         Width = 106
         Height = 25
@@ -22932,6 +22932,8 @@ object Form1: TForm1
             ParentCtl3D = False
             TabOrder = 0
             Text = '1'
+            OnEnter = edtCompRatioEnter
+            OnExit = edtCompRatioExit
             OnKeyDown = edtCompRatioKeyDown
           end
           object edtCompThreshold: TEdit
@@ -22946,6 +22948,8 @@ object Form1: TForm1
             ParentCtl3D = False
             TabOrder = 1
             Text = '0'
+            OnEnter = edtCompRatioEnter
+            OnExit = edtCompRatioExit
             OnKeyDown = edtCompThresholdKeyDown
           end
           object edtCompAttackTime: TEdit
@@ -22960,6 +22964,8 @@ object Form1: TForm1
             ParentCtl3D = False
             TabOrder = 2
             Text = '64'
+            OnEnter = edtCompRatioEnter
+            OnExit = edtCompRatioExit
             OnKeyDown = edtCompAttackTimeKeyDown
           end
           object edtCompReleaseTime: TEdit
@@ -22974,6 +22980,8 @@ object Form1: TForm1
             ParentCtl3D = False
             TabOrder = 3
             Text = '1000'
+            OnEnter = edtCompRatioEnter
+            OnExit = edtCompRatioExit
             OnKeyDown = edtCompReleaseTimeKeyDown
           end
           object edtCompGain: TEdit
@@ -22988,6 +22996,8 @@ object Form1: TForm1
             ParentCtl3D = False
             TabOrder = 4
             Text = '0'
+            OnEnter = edtCompRatioEnter
+            OnExit = edtCompRatioExit
             OnKeyDown = edtCompGainKeyDown
           end
         end
@@ -31420,7 +31430,7 @@ object Form1: TForm1
   object ToolBar1: TToolBar
     Left = 0
     Top = 0
-    Width = 1651
+    Width = 1350
     Height = 25
     ButtonHeight = 21
     ButtonWidth = 77
@@ -31507,6 +31517,7 @@ object Form1: TForm1
     ParentBiDiMode = False
     ParentFont = False
     TabOrder = 2
+    Visible = False
     OnExit = edtInputExit
     OnKeyDown = edtInputKeyDown
   end

@@ -783,6 +783,8 @@ void __fastcall TForm1::btnSelectClick(TObject *Sender)
     udpControl->SendBuffer(dst_ip, 905, &preset_cmd, sizeof(preset_cmd));
 
     tsOperator->Show();
+    pnlDspDetail->Hide();
+    pnlMix->Hide();
     cbWatch->Down = true;
 
     keep_live_count = 0;
@@ -1542,6 +1544,7 @@ void __fastcall TForm1::ToggleDSP(TObject *Sender)
 
             // 隐藏COMP界面
             pnlComp->Hide();
+            btnDSPCOMP->Hide();
         }
         else
         {
@@ -1562,6 +1565,7 @@ void __fastcall TForm1::ToggleDSP(TObject *Sender)
             edtCompReleaseTime->Text = config_map.output_dsp[dsp_num-1].release_time/10.0;
             edtCompGain->Text = config_map.output_dsp[dsp_num-1].comp_gain/10.0;
             pnlComp->Show();
+            btnDSPCOMP->Show();
         }
 
         pnlDspDetail->Top = 192;
@@ -3134,7 +3138,6 @@ void __fastcall TForm1::edtCompReleaseTimeKeyDown(TObject *Sender,
     }
 }
 //---------------------------------------------------------------------------
-
 void __fastcall TForm1::edtCompGainKeyDown(TObject *Sender, WORD &Key,
       TShiftState Shift)
 {
@@ -3154,6 +3157,7 @@ void __fastcall TForm1::edtCompGainKeyDown(TObject *Sender, WORD &Key,
     }
     else if (Key == VK_RETURN)
     {
+        // 格式化和校验
         config_map.output_dsp[dsp_id-1].comp_gain = edtCompGain->Text.ToDouble()*10.0; 
 
         D1608Cmd cmd;
@@ -3162,6 +3166,19 @@ void __fastcall TForm1::edtCompGainKeyDown(TObject *Sender, WORD &Key,
         cmd.length = 4;
         SendCmd(cmd);
     }
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::edtCompRatioExit(TObject *Sender)
+{
+    TEdit * edt = (TEdit*)Sender;
+    WORD Key = VK_ESCAPE;
+    edt->OnKeyDown(Sender, Key, TShiftState());
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::edtCompRatioEnter(TObject *Sender)
+{
+    TEdit * edt = (TEdit*)Sender;
+    edt->SelectAll();
 }
 //---------------------------------------------------------------------------
 
