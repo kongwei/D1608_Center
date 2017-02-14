@@ -22795,7 +22795,7 @@ object Form1: TForm1
           Layout = blGlyphBottom
           OnClick = btnDspResetEQClick
         end
-        object Panel8: TPanel
+        object pnlComp: TPanel
           Left = 128
           Top = 160
           Width = 249
@@ -22994,9 +22994,9 @@ object Form1: TForm1
         object panelBand9: TPanel
           Tag = 9
           Left = 387
-          Top = 193
+          Top = 177
           Width = 382
-          Height = 23
+          Height = 29
           Alignment = taLeftJustify
           BevelOuter = bvNone
           Color = 15248250
@@ -23009,7 +23009,7 @@ object Form1: TForm1
             Width = 8
             Height = 13
             AutoSize = False
-            Caption = '8'
+            Caption = '6'
             Color = clBtnFace
             ParentColor = False
           end
@@ -24373,7 +24373,7 @@ object Form1: TForm1
           Left = 387
           Top = 32
           Width = 382
-          Height = 23
+          Height = 29
           Alignment = taLeftJustify
           BevelOuter = bvNone
           Color = 15248250
@@ -24460,9 +24460,9 @@ object Form1: TForm1
         object panelBand3: TPanel
           Tag = 3
           Left = 387
-          Top = 55
+          Top = 61
           Width = 382
-          Height = 23
+          Height = 29
           Alignment = taLeftJustify
           BevelOuter = bvNone
           Color = 15248250
@@ -24549,9 +24549,9 @@ object Form1: TForm1
         object panelBand4: TPanel
           Tag = 4
           Left = 387
-          Top = 78
+          Top = 90
           Width = 382
-          Height = 23
+          Height = 29
           Alignment = taLeftJustify
           BevelOuter = bvNone
           Color = 15248250
@@ -24640,9 +24640,9 @@ object Form1: TForm1
         object panelBand5: TPanel
           Tag = 5
           Left = 387
-          Top = 101
+          Top = 119
           Width = 382
-          Height = 23
+          Height = 29
           Alignment = taLeftJustify
           BevelOuter = bvNone
           Color = 15248250
@@ -24729,9 +24729,9 @@ object Form1: TForm1
         object panelBand6: TPanel
           Tag = 6
           Left = 387
-          Top = 124
+          Top = 148
           Width = 382
-          Height = 23
+          Height = 29
           Alignment = taLeftJustify
           BevelOuter = bvNone
           Color = 15248250
@@ -24817,8 +24817,8 @@ object Form1: TForm1
         end
         object panelBand7: TPanel
           Tag = 7
-          Left = 387
-          Top = 147
+          Left = 771
+          Top = 171
           Width = 382
           Height = 23
           Alignment = taLeftJustify
@@ -24907,8 +24907,8 @@ object Form1: TForm1
         end
         object panelBand8: TPanel
           Tag = 8
-          Left = 387
-          Top = 170
+          Left = 771
+          Top = 194
           Width = 382
           Height = 23
           Alignment = taLeftJustify

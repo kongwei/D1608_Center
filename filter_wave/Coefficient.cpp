@@ -506,6 +506,13 @@ void InitConfigMap()
 		config_map.output_dsp[i].filter[LP_FILTER-2].TYPE = 3;	// High Shelf
 		config_map.output_dsp[i].filter[LP_FILTER-1].TYPE = 1211;	// LP
 			config_map.output_dsp[i].filter[LP_FILTER-1].bypass = 1;
+
+        // Ñ¹Ëõ²ÎÊý
+        config_map.output_dsp[i].ratio = 100;
+        config_map.output_dsp[i].threshold = 0;
+        config_map.output_dsp[i].attack_time = 640;
+        config_map.output_dsp[i].release_time = 10000;
+        config_map.output_dsp[i].comp_gain = 0;
 	}
 
     // mix_mute

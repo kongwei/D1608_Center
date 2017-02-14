@@ -1539,6 +1539,9 @@ void __fastcall TForm1::ToggleDSP(TObject *Sender)
             int dsp_num = btn->Tag;
             TrackBar27->Position = config_map.input_dsp[dsp_num-1].level_b;
             btnPhanton->Down = config_map.input_dsp[dsp_num-1].phantom_switch;
+
+            // Òþ²ØCOMP½çÃæ
+            pnlComp->Hide();
         }
         else
         {
@@ -1558,6 +1561,7 @@ void __fastcall TForm1::ToggleDSP(TObject *Sender)
             edtCompAttackTime->Text = config_map.output_dsp[dsp_num-1].attack_time/10.0;
             edtCompReleaseTime->Text = config_map.output_dsp[dsp_num-1].release_time/10.0;
             edtCompGain->Text = config_map.output_dsp[dsp_num-1].comp_gain/10.0;
+            pnlComp->Show();
         }
 
         pnlDspDetail->Top = 192;

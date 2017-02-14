@@ -155,7 +155,7 @@ __published:	// IDE-managed Components
     TSpeedButtonNoFrame *btnDSPCOMP;
     TLabel *Label3;
     TPaintBox *PaintBox1;
-    TPanel *Panel8;
+    TPanel *pnlComp;
     TPanel *panelBand9;
     TLabel *Label4;
     TComboBox *cbType9;
