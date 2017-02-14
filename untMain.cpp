@@ -214,7 +214,7 @@ static void CreateInputPanel(int panel_id, TForm1 * form)
 {
     CopyInputPanelButton(form->input_panel_dsp_btn, panel_id)->Caption = "DSP " + String(char('A'-1+panel_id));
     form->input_eq_btn[panel_id-1] = CopyInputPanelButton(form->input_panel_eq_btn, panel_id);
-    form->input_comp_btn[panel_id-1] = CopyInputPanelButton(form->input_panel_comp_btn, panel_id);
+    //form->input_comp_btn[panel_id-1] = CopyInputPanelButton(form->input_panel_comp_btn, panel_id);
     form->input_auto_btn[panel_id-1] = CopyInputPanelButton(form->input_panel_auto_btn, panel_id);
     form->input_default_btn[panel_id-1] = CopyInputPanelButton(form->input_panel_default_btn, panel_id);
     form->input_invert_btn[panel_id-1] = CopyInputPanelButton(form->input_panel_invert_btn, panel_id);
@@ -951,17 +951,6 @@ void __fastcall TForm1::ToogleAuto(TObject *Sender)
 #endif
 }
 //---------------------------------------------------------------------------
-void __fastcall TForm1::ToogleCOMP(TObject *Sender)
-{
-/*    TSpeedButton* btn = (TSpeedButton*)Sender;
-    int dsp_id = btn->Tag;
-    static int input_comp = 0;
-    input_comp = SetBit(input_comp, dsp_id, btn->Down);
-    D1608Cmd cmd = InputComp(input_comp);
-    cmd.length = 1;
-    SendCmd(cmd);*/
-}
-//---------------------------------------------------------------------------
 void __fastcall TForm1::ToogleEQ(TObject *Sender)
 {
     TSpeedButton* btn = (TSpeedButton*)Sender;
@@ -1064,6 +1053,11 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             }
 
             lblDiff->Caption = calc_data._8vdc-calc_data._8va;
+
+            ValueListEditor2->Cells[1][18] = (int)((calc_data._8va - calc_data._8vac) / 0.27);
+            ValueListEditor2->Cells[1][19] = (calc_data._48va - calc_data._46vc) / 0.5;
+            ValueListEditor2->Cells[1][20] = (calc_data._16va - calc_data._16vac) / 0.5;
+            ValueListEditor2->Cells[1][21] = (calc_data._x16vac - calc_data._x16va) / 0.5;
         }
         else if (cmd.id == GetOffsetOfData(&config_map.op_code.noop))
         {
@@ -1462,17 +1456,6 @@ void __fastcall TForm1::ToogleOutputMix(TObject *Sender)
     }
 }
 //---------------------------------------------------------------------------
-void __fastcall TForm1::ToogleLimit(TObject *Sender)
-{
-/*    TSpeedButton* btn = (TSpeedButton*)Sender;
-    int dsp_id = btn->Tag;
-    static int output_limit = 0;
-    output_limit = SetBit(output_limit, dsp_id, btn->Down);
-    D1608Cmd cmd = OutputLimit(output_limit);
-    cmd.length = 1;
-    SendCmd(cmd);*/
-}
-//---------------------------------------------------------------------------
 void __fastcall TForm1::ToogleOutputEQ(TObject *Sender)
 {
     TSpeedButton* btn = (TSpeedButton*)Sender;
@@ -1567,6 +1550,14 @@ void __fastcall TForm1::ToggleDSP(TObject *Sender)
 
             int dsp_num = btn->Tag-100;
             TrackBar27->Position = config_map.output_dsp[dsp_num-1].level_b;
+
+            // COMP
+            btnDSPCOMP->Down = config_map.output_dsp[dsp_num-1].comp_switch;
+            edtCompRatio->Text = config_map.output_dsp[dsp_num-1].ratio/100.0;
+            edtCompThreshold->Text = config_map.output_dsp[dsp_num-1].threshold/10.0;
+            edtCompAttackTime->Text = config_map.output_dsp[dsp_num-1].attack_time/10.0;
+            edtCompReleaseTime->Text = config_map.output_dsp[dsp_num-1].release_time/10.0;
+            edtCompGain->Text = config_map.output_dsp[dsp_num-1].comp_gain/10.0;
         }
 
         pnlDspDetail->Top = 192;
@@ -2110,9 +2101,22 @@ void __fastcall TForm1::WatchPaint(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TForm1::input_panel_dsp_numClick(TObject *Sender)
 {
-    TLabel * label = (TLabel*)Sender;
-    label->Caption = InputBox("修改名称", "", label->Caption);
+    TLabel* label = (TLabel*) Sender;
+    ShowInputPanel(label, after_input_panel_dsp_numClick, label->Caption);
+}
+void __fastcall TForm1::after_input_panel_dsp_numClick(TObject *Sender)
+{
+    TLabel* label = (TLabel*) Sender;
 
+    if (label->Caption == edtInput->Text)
+    {
+        return;
+    }
+    else
+    {
+        label->Caption = edtInput->Text;
+    }
+    
     D1608Cmd cmd;
     cmd.type = tbGlobalDspName->Down;
     if (cmd.type)
@@ -2130,8 +2134,21 @@ void __fastcall TForm1::input_panel_dsp_numClick(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TForm1::output_panel_dsp_numClick(TObject *Sender)
 {
-    TLabel * label = (TLabel*)Sender;
-    label->Caption = InputBox("修改名称", "", label->Caption);
+    TLabel* label = (TLabel*) Sender;
+    ShowInputPanel(label, after_output_panel_dsp_numClick, label->Caption);
+}
+void __fastcall TForm1::after_output_panel_dsp_numClick(TObject *Sender)
+{
+    TLabel* label = (TLabel*) Sender;
+
+    if (label->Caption == edtInput->Text)
+    {
+        return;
+    }
+    else
+    {
+        label->Caption = edtInput->Text;
+    }
 
     D1608Cmd cmd;
     cmd.type = tbGlobalDspName->Down;
@@ -2464,7 +2481,7 @@ void __fastcall TForm1::ApplyConfigToUI()
         input_type_lbl[i]->Caption = InputGain2String(config_map.input_dsp[i].gain);
 
         input_eq_btn[i]->Down = config_map.input_dsp[i].eq_switch;
-        input_comp_btn[i]->Down = config_map.input_dsp[i].comp_switch;
+        //input_comp_btn[i]->Down = config_map.input_dsp[i].comp_switch;
         input_auto_btn[i]->Down = config_map.input_dsp[i].auto_switch;
         //input_default_btn[i]->Down = config_map.input_dsp[i].;
         input_invert_btn[i]->Down = config_map.input_dsp[i].invert_switch;
@@ -2868,37 +2885,279 @@ void __fastcall TForm1::btnDownloadPresetClick(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TForm1::tbRatioChange(TObject *Sender)
 {
-    Label26->Caption = tbRatio->Position/10.0;
+    edtRatio->Text = tbRatio->Position/100.0;
+    btnSetComp->Click();
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::tbThresholdChange(TObject *Sender)
 {
-    Label27->Caption = tbThreshold->Position;
-    Label27->Caption = Label27->Caption + " dB";    
-}
-//---------------------------------------------------------------------------
-void __fastcall TForm1::tbReleaseChange(TObject *Sender)
-{
-    Label32->Caption = tbRelease->Position;
-    Label32->Caption = Label32->Caption + " ms";
+    edtThreshold->Text = tbThreshold->Position / 10.0;
+    btnSetComp->Click();
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::tbAttackChange(TObject *Sender)
 {
-    Label33->Caption = tbAttack->Position;    
-    Label33->Caption = Label33->Caption + " ms";
+    edtAttack->Text = tbAttack->Position / 10.0;
+    btnSetComp->Click();
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::tbReleaseChange(TObject *Sender)
+{
+    edtRelease->Text = tbRelease->Position / 10.0;
+    btnSetComp->Click();
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::btnSetCompClick(TObject *Sender)
 {
     D1608Cmd cmd;
     cmd.id = GetOffsetOfData(&config_map.op_code.comp);
-    cmd.data.data_32_array[0] = tbRatio->Position;
-    cmd.data.data_32_array[1] = tbThreshold->Position;
-    cmd.data.data_32_array[2] = tbAttack->Position;
-    cmd.data.data_32_array[3] = tbRelease->Position;
+    cmd.data.data_32_array[0] = edtRatio->Text.ToDouble()*100;
+    cmd.data.data_32_array[1] = edtThreshold->Text.ToDouble()*10.0;
+    cmd.data.data_32_array[2] = edtAttack->Text.ToDouble()*10;
+    cmd.data.data_32_array[3] = edtRelease->Text.ToDouble()*10;
     cmd.length = 16;
     SendCmd(cmd);
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::edtRatioKeyDown(TObject *Sender, WORD &Key,
+      TShiftState Shift)
+{
+    if (Key == VK_RETURN)
+    {
+        btnSetComp->Click();
+    }    
+}
+//---------------------------------------------------------------------------
+void TForm1::ShowInputPanel(TControl * Sender, TNotifyEvent event, String default_text)
+{
+    inputObject = Sender;
+    input_event = event;
+
+    TPoint pos(edtInput->Left, edtInput->Top);
+    pos = Sender->ClientToParent(pos, this);
+    
+    pos = edtInput->ParentToClient(pos, this);
+
+    edtInput->Left = pos.x;
+    edtInput->Top = pos.y;
+    
+    edtInput->Text = default_text;
+    edtInput->Show();
+    edtInput->SetFocus();
+    edtInput->SelectAll();
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::btnInputCancelClick(TObject *Sender)
+{
+    inputObject = NULL;
+    edtInput->Hide();    
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::btnInputOKClick(TObject *Sender)
+{
+    input_event(inputObject);
+
+    inputObject = NULL;
+    edtInput->Hide();    
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::edtInputExit(TObject *Sender)
+{
+    btnInputCancelClick(Sender);
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::edtInputKeyDown(TObject *Sender, WORD &Key,
+      TShiftState Shift)
+{
+    if (Key == VK_ESCAPE)
+    {
+        btnInputCancelClick(Sender);
+    }
+    else if (Key == VK_RETURN)
+    {
+        btnInputOKClick(Sender);
+    }
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::SpeedButtonNoFrame1Click(TObject *Sender)
+{
+    //    
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::ToogleCOMP(TObject *Sender)
+{
+    TSpeedButton* btn = (TSpeedButton*)Sender;
+    int dsp_id = btn->Parent->Tag;
+
+    if (dsp_id < 100)
+    {
+        return;
+    }
+
+    output_comp_btn[dsp_id-101]->Down = btn->Down;
+    output_comp_btn[dsp_id-101]->Click();
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::ToogleLimit(TObject *Sender)
+{
+    TSpeedButton* btn = (TSpeedButton*)Sender;
+    int dsp_id = btn->Tag;
+
+    D1608Cmd cmd;
+    cmd.id = GetOffsetOfData(&config_map.output_dsp[dsp_id-1].comp_switch);
+    cmd.data.data_8 = btn->Down;
+    cmd.length = 1;
+    SendCmd(cmd);
+
+    config_map.output_dsp[dsp_id-1].comp_switch = btn->Down;
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::edtCompRatioKeyDown(TObject *Sender, WORD &Key,
+      TShiftState Shift)
+{
+    TSpeedButton* btn = (TSpeedButton*)Sender;
+    int dsp_id = btn->Parent->Parent->Tag;
+
+    if (dsp_id < 100)
+    {
+        return;
+    }
+
+    dsp_id -= 100;
+
+    if (Key == VK_ESCAPE)
+    {
+        edtCompRatio->Text = config_map.output_dsp[dsp_id-1].ratio/100.0;        
+    }
+    else if (Key == VK_RETURN)
+    {
+        config_map.output_dsp[dsp_id-1].ratio = edtCompRatio->Text.ToDouble()*100.0; 
+
+        D1608Cmd cmd;
+        cmd.id = GetOffsetOfData(&config_map.output_dsp[dsp_id-1].ratio);
+        cmd.data.data_32 = config_map.output_dsp[dsp_id-1].ratio;
+        cmd.length = 4;
+        SendCmd(cmd);
+    }
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::edtCompThresholdKeyDown(TObject *Sender, WORD &Key,
+      TShiftState Shift)
+{
+    TSpeedButton* btn = (TSpeedButton*)Sender;
+    int dsp_id = btn->Parent->Parent->Tag;
+
+    if (dsp_id < 100)
+    {
+        return;
+    }
+
+    dsp_id -= 100;
+
+    if (Key == VK_ESCAPE)
+    {
+        edtCompThreshold->Text = config_map.output_dsp[dsp_id-1].threshold / 10.0;
+    }
+    else if (Key == VK_RETURN)
+    {
+        config_map.output_dsp[dsp_id-1].threshold = edtCompThreshold->Text.ToDouble()*10.0;
+        
+        D1608Cmd cmd;
+        cmd.id = GetOffsetOfData(&config_map.output_dsp[dsp_id-1].threshold);
+        cmd.data.data_32 = config_map.output_dsp[dsp_id-1].threshold;
+        cmd.length = 4;
+        SendCmd(cmd);
+    }
+}
+//---------------------------------------------------------------------------
+
+void __fastcall TForm1::edtCompAttackTimeKeyDown(TObject *Sender,
+      WORD &Key, TShiftState Shift)
+{
+    TSpeedButton* btn = (TSpeedButton*)Sender;
+    int dsp_id = btn->Parent->Parent->Tag;
+
+    if (dsp_id < 100)
+    {
+        return;
+    }
+
+    dsp_id -= 100;
+
+    if (Key == VK_ESCAPE)
+    {
+        edtCompAttackTime->Text = config_map.output_dsp[dsp_id-1].attack_time/10.0;
+    }
+    else if (Key == VK_RETURN)
+    {
+        config_map.output_dsp[dsp_id-1].attack_time = edtCompAttackTime->Text.ToDouble()*10.0;
+        
+        D1608Cmd cmd;
+        cmd.id = GetOffsetOfData(&config_map.output_dsp[dsp_id-1].attack_time);
+        cmd.data.data_32 = config_map.output_dsp[dsp_id-1].attack_time;
+        cmd.length = 4;
+        SendCmd(cmd);
+    }
+}
+//---------------------------------------------------------------------------
+
+void __fastcall TForm1::edtCompReleaseTimeKeyDown(TObject *Sender,
+      WORD &Key, TShiftState Shift)
+{
+    TSpeedButton* btn = (TSpeedButton*)Sender;
+    int dsp_id = btn->Parent->Parent->Tag;
+
+    if (dsp_id < 100)
+    {
+        return;
+    }
+
+    dsp_id -= 100;
+
+    if (Key == VK_ESCAPE)
+    {
+        edtCompReleaseTime->Text = config_map.output_dsp[dsp_id-1].release_time/10.0;        
+    }
+    else if (Key == VK_RETURN)
+    {
+        config_map.output_dsp[dsp_id-1].release_time = edtCompReleaseTime->Text.ToDouble()*10.0;
+        
+        D1608Cmd cmd;
+        cmd.id = GetOffsetOfData(&config_map.output_dsp[dsp_id-1].release_time);
+        cmd.data.data_32 = config_map.output_dsp[dsp_id-1].release_time;
+        cmd.length = 4;
+        SendCmd(cmd);
+    }
+}
+//---------------------------------------------------------------------------
+
+void __fastcall TForm1::edtCompGainKeyDown(TObject *Sender, WORD &Key,
+      TShiftState Shift)
+{
+    TSpeedButton* btn = (TSpeedButton*)Sender;
+    int dsp_id = btn->Parent->Parent->Tag;
+
+    if (dsp_id < 100)
+    {
+        return;
+    }
+
+    dsp_id -= 100;
+
+    if (Key == VK_ESCAPE)
+    {
+        edtCompGain->Text = config_map.output_dsp[dsp_id-1].comp_gain/10.0;        
+    }
+    else if (Key == VK_RETURN)
+    {
+        config_map.output_dsp[dsp_id-1].comp_gain = edtCompGain->Text.ToDouble()*10.0; 
+
+        D1608Cmd cmd;
+        cmd.id = GetOffsetOfData(&config_map.output_dsp[dsp_id-1].comp_gain);
+        cmd.data.data_32 = config_map.output_dsp[dsp_id-1].comp_gain;
+        cmd.length = 4;
+        SendCmd(cmd);
+    }
 }
 //---------------------------------------------------------------------------
 

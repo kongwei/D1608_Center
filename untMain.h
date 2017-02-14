@@ -343,11 +343,29 @@ __published:	// IDE-managed Components
     TLabel *Label21;
     TLabel *Label23;
     TLabel *Label25;
-    TLabel *Label26;
     TLabel *Label27;
     TLabel *Label32;
     TLabel *Label33;
     TButton *btnSetComp;
+    TEdit *edtThreshold;
+    TEdit *edtAttack;
+    TEdit *edtRelease;
+    TEdit *edtRatio;
+    TEdit *edtInput;
+    TLabel *Label26;
+    TLabel *Label34;
+    TLabel *Label35;
+    TLabel *Label36;
+    TLabel *Label37;
+    TEdit *edtCompRatio;
+    TEdit *edtCompThreshold;
+    TEdit *edtCompAttackTime;
+    TEdit *edtCompReleaseTime;
+    TEdit *edtCompGain;
+    TLabel *Label38;
+    TLabel *Label39;
+    TLabel *Label40;
+    TLabel *Label41;
     void __fastcall FormCreate(TObject *Sender);
     void __fastcall FormDestroy(TObject *Sender);
     void __fastcall btnRefreshClick(TObject *Sender);
@@ -464,6 +482,24 @@ __published:	// IDE-managed Components
     void __fastcall tbReleaseChange(TObject *Sender);
     void __fastcall tbAttackChange(TObject *Sender);
     void __fastcall btnSetCompClick(TObject *Sender);
+    void __fastcall edtRatioKeyDown(TObject *Sender, WORD &Key,
+          TShiftState Shift);
+    void __fastcall btnInputCancelClick(TObject *Sender);
+    void __fastcall btnInputOKClick(TObject *Sender);
+    void __fastcall edtInputExit(TObject *Sender);
+    void __fastcall edtInputKeyDown(TObject *Sender, WORD &Key,
+          TShiftState Shift);
+    void __fastcall edtCompRatioKeyDown(TObject *Sender, WORD &Key,
+          TShiftState Shift);
+    void __fastcall SpeedButtonNoFrame1Click(TObject *Sender);
+    void __fastcall edtCompThresholdKeyDown(TObject *Sender, WORD &Key,
+          TShiftState Shift);
+    void __fastcall edtCompAttackTimeKeyDown(TObject *Sender, WORD &Key,
+          TShiftState Shift);
+    void __fastcall edtCompReleaseTimeKeyDown(TObject *Sender, WORD &Key,
+          TShiftState Shift);
+    void __fastcall edtCompGainKeyDown(TObject *Sender, WORD &Key,
+          TShiftState Shift);
 
 private:
     // 已经选择设备
@@ -555,6 +591,12 @@ private:
     int roboot_count;
 
     int keep_live_count;
+
+    void ShowInputPanel(TControl * Sender, TNotifyEvent event, String default_text);
+    TControl * inputObject;
+    TNotifyEvent input_event;
+    void __fastcall after_input_panel_dsp_numClick(TObject *Sender);
+    void __fastcall after_output_panel_dsp_numClick(TObject *Sender);
 };
 //---------------------------------------------------------------------------
 extern PACKAGE TForm1 *Form1;

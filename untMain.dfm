@@ -1,7 +1,7 @@
 object Form1: TForm1
-  Left = -21
-  Top = 58
-  Width = 1265
+  Left = 5
+  Top = 137
+  Width = 1667
   Height = 754
   Caption = 'D1608'
   Color = clBtnFace
@@ -22,27 +22,27 @@ object Form1: TForm1
   object PageControl1: TPageControl
     Left = 0
     Top = 25
-    Width = 1249
+    Width = 1651
     Height = 691
-    ActivePage = TabSheet1
+    ActivePage = tsOperator
     Align = alClient
-    TabIndex = 2
+    TabIndex = 1
     TabOrder = 0
     object tsSearch: TTabSheet
       Caption = #26597#35810#35774#22791
       DesignSize = (
-        1241
+        1643
         663)
       object Bevel1: TBevel
         Left = 8
         Top = 517
-        Width = 1117
+        Width = 1748
         Height = 10
         Anchors = [akLeft, akRight, akBottom]
         Shape = bsBottomLine
       end
       object Label1: TLabel
-        Left = 1136
+        Left = 1527
         Top = 52
         Width = 53
         Height = 13
@@ -52,14 +52,14 @@ object Form1: TForm1
       object mmLog: TMemo
         Left = 8
         Top = 536
-        Width = 1117
+        Width = 1748
         Height = 126
         Anchors = [akLeft, akRight, akBottom]
         ReadOnly = True
         TabOrder = 0
       end
       object btnRefresh: TButton
-        Left = 1135
+        Left = 1526
         Top = 5
         Width = 106
         Height = 25
@@ -71,7 +71,7 @@ object Form1: TForm1
       object lvDevice: TListView
         Left = 8
         Top = 0
-        Width = 1117
+        Width = 1504
         Height = 513
         Anchors = [akLeft, akTop, akRight, akBottom]
         Columns = <
@@ -121,7 +121,7 @@ object Form1: TForm1
         Visible = False
       end
       object cbAutoRefresh: TCheckBox
-        Left = 1136
+        Left = 1527
         Top = 32
         Width = 97
         Height = 17
@@ -132,7 +132,7 @@ object Form1: TForm1
         TabOrder = 4
       end
       object spInterval: TCSpinEdit
-        Left = 1192
+        Left = 1583
         Top = 48
         Width = 49
         Height = 22
@@ -143,7 +143,7 @@ object Form1: TForm1
         Value = 1
       end
       object btnSelect: TButton
-        Left = 1135
+        Left = 1526
         Top = 77
         Width = 106
         Height = 25
@@ -7352,7 +7352,7 @@ object Form1: TForm1
           4A4A4A4A4A4A4A4A4A4A717171A6A6A6FFFFFFFFFFFF}
         Layout = blGlyphBottom
         NumGlyphs = 4
-        OnClick = ToogleCOMP
+        Visible = False
         Channel = 1
       end
       object input_panel_auto_btn: TSpeedButtonNoFrame
@@ -21924,7 +21924,7 @@ object Form1: TForm1
       end
       object pnlDspDetail: TPanel
         Left = 104
-        Top = 296
+        Top = 264
         Width = 961
         Height = 497
         Color = 13684944
@@ -22441,6 +22441,7 @@ object Form1: TForm1
             FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
             FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
             FFFFFFFFFFFFFFFFFFFF}
+          OnClick = SpeedButtonNoFrame1Click
         end
         object btnDSPCOMP: TSpeedButtonNoFrame
           Tag = 1
@@ -22800,9 +22801,195 @@ object Form1: TForm1
           Width = 249
           Height = 89
           BevelOuter = bvNone
-          Caption = 'COMP'#21442#25968
-          Color = 3167572
+          Color = 6346058
           TabOrder = 0
+          object Label26: TLabel
+            Left = 56
+            Top = 4
+            Width = 25
+            Height = 13
+            Caption = 'Ratio'
+            Font.Charset = DEFAULT_CHARSET
+            Font.Color = 1579032
+            Font.Height = -11
+            Font.Name = 'MS Sans Serif'
+            Font.Style = []
+            ParentFont = False
+          end
+          object Label34: TLabel
+            Left = 34
+            Top = 20
+            Width = 47
+            Height = 13
+            Caption = 'Threshold'
+            Font.Charset = DEFAULT_CHARSET
+            Font.Color = 1579032
+            Font.Height = -11
+            Font.Name = 'MS Sans Serif'
+            Font.Style = []
+            ParentFont = False
+          end
+          object Label35: TLabel
+            Left = 24
+            Top = 36
+            Width = 57
+            Height = 13
+            Caption = 'Attack Time'
+            Font.Charset = DEFAULT_CHARSET
+            Font.Color = 1579032
+            Font.Height = -11
+            Font.Name = 'MS Sans Serif'
+            Font.Style = []
+            ParentFont = False
+          end
+          object Label36: TLabel
+            Left = 16
+            Top = 52
+            Width = 65
+            Height = 13
+            Caption = 'Release Time'
+            Font.Charset = DEFAULT_CHARSET
+            Font.Color = 1579032
+            Font.Height = -11
+            Font.Name = 'MS Sans Serif'
+            Font.Style = []
+            ParentFont = False
+          end
+          object Label37: TLabel
+            Left = 59
+            Top = 68
+            Width = 22
+            Height = 13
+            Caption = 'Gain'
+            Font.Charset = DEFAULT_CHARSET
+            Font.Color = 1579032
+            Font.Height = -11
+            Font.Name = 'MS Sans Serif'
+            Font.Style = []
+            ParentFont = False
+          end
+          object Label38: TLabel
+            Left = 210
+            Top = 20
+            Width = 13
+            Height = 13
+            Caption = 'dB'
+            Font.Charset = DEFAULT_CHARSET
+            Font.Color = 1579032
+            Font.Height = -11
+            Font.Name = 'MS Sans Serif'
+            Font.Style = []
+            ParentFont = False
+          end
+          object Label39: TLabel
+            Left = 210
+            Top = 36
+            Width = 13
+            Height = 13
+            Caption = 'ms'
+            Font.Charset = DEFAULT_CHARSET
+            Font.Color = 1579032
+            Font.Height = -11
+            Font.Name = 'MS Sans Serif'
+            Font.Style = []
+            ParentFont = False
+          end
+          object Label40: TLabel
+            Left = 210
+            Top = 52
+            Width = 13
+            Height = 13
+            Caption = 'ms'
+            Font.Charset = DEFAULT_CHARSET
+            Font.Color = 1579032
+            Font.Height = -11
+            Font.Name = 'MS Sans Serif'
+            Font.Style = []
+            ParentFont = False
+          end
+          object Label41: TLabel
+            Left = 210
+            Top = 68
+            Width = 13
+            Height = 13
+            Caption = 'dB'
+            Font.Charset = DEFAULT_CHARSET
+            Font.Color = 1579032
+            Font.Height = -11
+            Font.Name = 'MS Sans Serif'
+            Font.Style = []
+            ParentFont = False
+          end
+          object edtCompRatio: TEdit
+            Tag = 101
+            Left = 104
+            Top = 5
+            Width = 101
+            Height = 14
+            BorderStyle = bsNone
+            Color = clBtnFace
+            Ctl3D = False
+            ParentCtl3D = False
+            TabOrder = 0
+            Text = '1'
+            OnKeyDown = edtCompRatioKeyDown
+          end
+          object edtCompThreshold: TEdit
+            Tag = 101
+            Left = 104
+            Top = 21
+            Width = 101
+            Height = 14
+            BorderStyle = bsNone
+            Color = clBtnFace
+            Ctl3D = False
+            ParentCtl3D = False
+            TabOrder = 1
+            Text = '0'
+            OnKeyDown = edtCompThresholdKeyDown
+          end
+          object edtCompAttackTime: TEdit
+            Tag = 101
+            Left = 104
+            Top = 37
+            Width = 101
+            Height = 14
+            BorderStyle = bsNone
+            Color = clBtnFace
+            Ctl3D = False
+            ParentCtl3D = False
+            TabOrder = 2
+            Text = '64'
+            OnKeyDown = edtCompAttackTimeKeyDown
+          end
+          object edtCompReleaseTime: TEdit
+            Tag = 101
+            Left = 104
+            Top = 53
+            Width = 101
+            Height = 14
+            BorderStyle = bsNone
+            Color = clBtnFace
+            Ctl3D = False
+            ParentCtl3D = False
+            TabOrder = 3
+            Text = '1000'
+            OnKeyDown = edtCompReleaseTimeKeyDown
+          end
+          object edtCompGain: TEdit
+            Tag = 101
+            Left = 104
+            Top = 69
+            Width = 101
+            Height = 14
+            BorderStyle = bsNone
+            Color = clBtnFace
+            Ctl3D = False
+            ParentCtl3D = False
+            TabOrder = 4
+            Text = '0'
+            OnKeyDown = edtCompGainKeyDown
+          end
         end
         object panelBand9: TPanel
           Tag = 9
@@ -26205,7 +26392,7 @@ object Form1: TForm1
         object p_output_inner_level: TAdvTrackBar
           Tag = 1
           Left = 137
-          Top = 245
+          Top = 269
           Width = 48
           Height = 217
           BackGroundStretched = True
@@ -27388,7 +27575,7 @@ object Form1: TForm1
         object p_input_inner_level: TAdvTrackBar
           Tag = 1
           Left = 73
-          Top = 245
+          Top = 269
           Width = 48
           Height = 217
           BackGroundStretched = True
@@ -30819,7 +31006,7 @@ object Form1: TForm1
         Left = 960
         Top = 24
         Width = 193
-        Height = 345
+        Height = 433
         Strings.Strings = (
           '2.5v=      '
           'base=       '
@@ -30837,7 +31024,11 @@ object Form1: TForm1
           '12va=      '
           '16va=      '
           '16vac=     '
-          '')
+          '---='
+          '8v(mA)='
+          '48v(mA)='
+          '16v(mA)='
+          '-16v(mA)=')
         TabOrder = 4
         ColWidths = (
           100
@@ -31040,7 +31231,7 @@ object Form1: TForm1
       end
       object btnDownloadPreset: TButton
         Left = 992
-        Top = 408
+        Top = 480
         Width = 139
         Height = 25
         Caption = #19979#36733'preset'
@@ -31053,7 +31244,7 @@ object Form1: TForm1
       ImageIndex = 3
       object Label20: TLabel
         Left = 480
-        Top = 48
+        Top = 56
         Width = 35
         Height = 13
         Caption = 'Ratio'
@@ -31067,45 +31258,38 @@ object Form1: TForm1
       end
       object Label23: TLabel
         Left = 480
-        Top = 160
+        Top = 200
         Width = 49
         Height = 13
         Caption = 'Release'
       end
       object Label25: TLabel
         Left = 480
-        Top = 208
+        Top = 152
         Width = 42
         Height = 13
         Caption = 'Attack'
       end
-      object Label26: TLabel
-        Left = 816
-        Top = 56
-        Width = 49
-        Height = 13
-        Caption = 'Label26'
-      end
       object Label27: TLabel
-        Left = 816
+        Left = 920
         Top = 112
-        Width = 49
+        Width = 14
         Height = 13
-        Caption = 'Label26'
+        Caption = 'dB'
       end
       object Label32: TLabel
-        Left = 816
-        Top = 168
-        Width = 49
+        Left = 920
+        Top = 208
+        Width = 14
         Height = 13
-        Caption = 'Label26'
+        Caption = 'ms'
       end
       object Label33: TLabel
-        Left = 816
-        Top = 216
-        Width = 49
+        Left = 920
+        Top = 160
+        Width = 14
         Height = 13
-        Caption = 'Label26'
+        Caption = 'ms'
       end
       object Panel2: TPanel
         Left = 32
@@ -31117,9 +31301,10 @@ object Form1: TForm1
       end
       object tbRatio: TTrackBar
         Left = 552
-        Top = 48
+        Top = 56
         Width = 217
         Height = 45
+        Max = 100
         Min = 1
         Orientation = trHorizontal
         Frequency = 1
@@ -31137,10 +31322,11 @@ object Form1: TForm1
         Width = 217
         Height = 45
         Max = 0
-        Min = -60
+        Min = -320
         Orientation = trHorizontal
-        Frequency = 1
-        Position = -60
+        PageSize = 10
+        Frequency = 10
+        Position = 0
         SelEnd = 0
         SelStart = 0
         TabOrder = 2
@@ -31150,36 +31336,36 @@ object Form1: TForm1
       end
       object tbRelease: TTrackBar
         Left = 552
-        Top = 160
+        Top = 200
         Width = 217
         Height = 45
-        LineSize = 10
-        Max = 200
-        Min = 10
+        Max = 50000
+        Min = 1
         Orientation = trHorizontal
         PageSize = 10
-        Frequency = 10
-        Position = 10
+        Frequency = 1000
+        Position = 10000
         SelEnd = 0
         SelStart = 0
-        TabOrder = 3
+        TabOrder = 4
         TickMarks = tmBottomRight
         TickStyle = tsAuto
         OnChange = tbReleaseChange
       end
       object tbAttack: TTrackBar
         Left = 552
-        Top = 208
+        Top = 152
         Width = 217
         Height = 45
-        Max = 32
+        Max = 20000
         Min = 1
         Orientation = trHorizontal
-        Frequency = 1
-        Position = 1
+        PageSize = 10
+        Frequency = 1000
+        Position = 640
         SelEnd = 0
         SelStart = 0
-        TabOrder = 4
+        TabOrder = 3
         TickMarks = tmBottomRight
         TickStyle = tsAuto
         OnChange = tbAttackChange
@@ -31193,12 +31379,48 @@ object Form1: TForm1
         TabOrder = 5
         OnClick = btnSetCompClick
       end
+      object edtThreshold: TEdit
+        Left = 784
+        Top = 112
+        Width = 121
+        Height = 21
+        TabOrder = 6
+        Text = '0'
+        OnKeyDown = edtRatioKeyDown
+      end
+      object edtAttack: TEdit
+        Left = 784
+        Top = 160
+        Width = 121
+        Height = 21
+        TabOrder = 7
+        Text = '64'
+        OnKeyDown = edtRatioKeyDown
+      end
+      object edtRelease: TEdit
+        Left = 784
+        Top = 208
+        Width = 121
+        Height = 21
+        TabOrder = 8
+        Text = '1000'
+        OnKeyDown = edtRatioKeyDown
+      end
+      object edtRatio: TEdit
+        Left = 784
+        Top = 64
+        Width = 121
+        Height = 21
+        TabOrder = 9
+        Text = '1'
+        OnKeyDown = edtRatioKeyDown
+      end
     end
   end
   object ToolBar1: TToolBar
     Left = 0
     Top = 0
-    Width = 1249
+    Width = 1651
     Height = 25
     ButtonHeight = 21
     ButtonWidth = 77
@@ -31262,6 +31484,31 @@ object Form1: TForm1
       ImageIndex = 5
       OnClick = btnDeviceNameClick
     end
+  end
+  object edtInput: TEdit
+    Tag = 1
+    Left = 568
+    Top = 16
+    Width = 38
+    Height = 13
+    AutoSelect = False
+    AutoSize = False
+    BevelEdges = []
+    BevelInner = bvNone
+    BevelOuter = bvNone
+    BiDiMode = bdLeftToRight
+    BorderStyle = bsNone
+    Color = 4864300
+    Font.Charset = GB2312_CHARSET
+    Font.Color = clAqua
+    Font.Height = -12
+    Font.Name = #23435#20307
+    Font.Style = [fsBold]
+    ParentBiDiMode = False
+    ParentFont = False
+    TabOrder = 2
+    OnExit = edtInputExit
+    OnKeyDown = edtInputKeyDown
   end
   object udpSLP: TIdUDPServer
     BufferSize = 65535
