@@ -25,6 +25,7 @@ GlobalConfig global_config = {0};
 //TAdvGDIPPicture * x = new TAdvGDIPPicture();
 
 static bool on_loading = false;
+static String last_device_name;
 
 //static char head[] = "\x53\x65\x74\x50\x61\x72\x61\x00\x00\x00\x4D\x41\x54\x31\x36\x31\x30\x43\x6F\x6E\x66\x69\x67\x44\x61\x74\x61\x00\x00\x00";
 
@@ -737,6 +738,16 @@ void __fastcall TForm1::udpSLPUDPRead(TObject *Sender,
     {
         item->Selected = true;
     }
+
+    if (last_device_name == "" || device_name == last_device_name)
+    {
+        // 连接第一个
+        file_dirty = false;
+        cbAutoRefresh->Checked = false;
+        btnSelect->Click();
+
+        last_device_name = device_name;
+    }
 }                                         
 //---------------------------------------------------------------------------
 void __fastcall TForm1::lvDeviceSelectItem(TObject *Sender,
@@ -1398,6 +1409,9 @@ void __fastcall TForm1::tmWatchTimer(TObject *Sender)
             pb_watch_list[i]->Tag = -49;
             pb_watch_list[i]->Invalidate();
         }
+
+        // 重新启动自动刷新
+        cbAutoRefresh->Checked = true;
     }
 }
 //---------------------------------------------------------------------------
@@ -2583,7 +2597,7 @@ void __fastcall TForm1::SetFileDirty(bool dirty_flag)
 void __fastcall TForm1::UpdateCaption()
 {
     if (global_config.d1616_name[0] == '\0')
-        Caption = "D1608";
+        Caption = last_device_name;//"D1608";
     else
         Caption = global_config.d1616_name;
     Caption = Caption + " " + preset_lib_filename;
