@@ -1,6 +1,6 @@
 object Form1: TForm1
-  Left = 0
-  Top = 0
+  Left = 256
+  Top = 58
   Width = 1366
   Height = 728
   Caption = 'D1608'
@@ -24,135 +24,10 @@ object Form1: TForm1
     Top = 25
     Width = 1350
     Height = 665
-    ActivePage = tsSearch
+    ActivePage = TabSheet4
     Align = alClient
-    TabIndex = 0
+    TabIndex = 1
     TabOrder = 0
-    object tsSearch: TTabSheet
-      Caption = #26597#35810#35774#22791
-      DesignSize = (
-        1342
-        637)
-      object Bevel1: TBevel
-        Left = 8
-        Top = 491
-        Width = 1732
-        Height = 10
-        Anchors = [akLeft, akRight, akBottom]
-        Shape = bsBottomLine
-      end
-      object Label1: TLabel
-        Left = 1511
-        Top = 52
-        Width = 53
-        Height = 13
-        Anchors = [akTop, akRight]
-        Caption = #38388#38548'('#31186')'
-      end
-      object mmLog: TMemo
-        Left = 8
-        Top = 510
-        Width = 1732
-        Height = 126
-        Anchors = [akLeft, akRight, akBottom]
-        ReadOnly = True
-        TabOrder = 0
-      end
-      object btnRefresh: TButton
-        Left = 1510
-        Top = 5
-        Width = 106
-        Height = 25
-        Anchors = [akTop, akRight]
-        Caption = #31435#21363#21047#26032
-        TabOrder = 1
-        OnClick = btnRefreshClick
-      end
-      object lvDevice: TListView
-        Left = 8
-        Top = 0
-        Width = 1488
-        Height = 487
-        Anchors = [akLeft, akTop, akRight, akBottom]
-        Columns = <
-          item
-            Width = 30
-          end
-          item
-            Caption = 'IP'
-            Width = 80
-          end
-          item
-            Caption = #26412#22320#24191#25773'IP'
-            Width = 80
-          end
-          item
-            Caption = #35774#22791#31867#22411
-            Width = 150
-          end
-          item
-            Caption = 'MAC'
-            Width = 100
-          end
-          item
-            Caption = #29256#26412
-            Width = 80
-          end
-          item
-            Caption = #26085#26399
-            Width = 60
-          end>
-        GridLines = True
-        HideSelection = False
-        ReadOnly = True
-        RowSelect = True
-        TabOrder = 2
-        ViewStyle = vsReport
-        OnDblClick = lvDeviceDblClick
-        OnSelectItem = lvDeviceSelectItem
-      end
-      object lbIplist: TListBox
-        Left = 16
-        Top = 168
-        Width = 105
-        Height = 17
-        ItemHeight = 13
-        TabOrder = 3
-        Visible = False
-      end
-      object cbAutoRefresh: TCheckBox
-        Left = 1511
-        Top = 32
-        Width = 97
-        Height = 17
-        Anchors = [akTop, akRight]
-        Caption = #33258#21160#21047#26032
-        Checked = True
-        State = cbChecked
-        TabOrder = 4
-      end
-      object spInterval: TCSpinEdit
-        Left = 1567
-        Top = 48
-        Width = 49
-        Height = 22
-        Anchors = [akTop, akRight]
-        MaxValue = 20
-        MinValue = 1
-        TabOrder = 5
-        Value = 1
-      end
-      object btnSelect: TButton
-        Left = 1510
-        Top = 77
-        Width = 106
-        Height = 25
-        Anchors = [akTop, akRight]
-        Caption = #36873#25321#35774#22791
-        TabOrder = 6
-        OnClick = btnSelectClick
-      end
-    end
     object tsOperator: TTabSheet
       Caption = #25805#20316
       ImageIndex = 1
@@ -30885,35 +30760,56 @@ object Form1: TForm1
         TabOrder = 12
       end
     end
-    object TabSheet1: TTabSheet
-      Caption = #26434#39033
-      ImageIndex = 2
+    object TabSheet4: TTabSheet
+      Caption = #30417#25511
+      ImageIndex = 5
+      object ValueListEditor2: TValueListEditor
+        Left = 8
+        Top = 16
+        Width = 193
+        Height = 433
+        Strings.Strings = (
+          '2.5v=      '
+          'base=       '
+          '5vd=       '
+          '8vdc=      '
+          '8vac=      '
+          '8va=       '
+          '-16vac=    '
+          '-16va=     '
+          '46vc=      '
+          '48va=      '
+          '46va=      '
+          '5va=       '
+          '-12va=     '
+          '12va=      '
+          '16va=      '
+          '16vac=     '
+          '---='
+          '8v(mA)='
+          '48v(mA)='
+          '16v(mA)='
+          '-16v(mA)=')
+        TabOrder = 0
+        ColWidths = (
+          100
+          87)
+      end
+    end
+    object TabSheet3: TTabSheet
+      Caption = #31995#32479
+      ImageIndex = 4
       object Bevel2: TBevel
         Left = 160
         Top = 320
         Width = 425
         Height = 193
       end
-      object Label17: TLabel
-        Left = 760
-        Top = 8
-        Width = 39
-        Height = 13
-        Caption = #26816#27979#20540
-      end
-      object Label18: TLabel
-        Left = 960
-        Top = 8
-        Width = 39
-        Height = 13
-        Caption = #35745#31639#20540
-      end
-      object lblDiff: TLabel
-        Left = 760
-        Top = 376
-        Width = 49
-        Height = 13
-        Caption = 'lblDiff'
+      object Bevel3: TBevel
+        Left = 592
+        Top = 416
+        Width = 289
+        Height = 97
       end
       object Label22: TLabel
         Left = 186
@@ -30952,19 +30848,22 @@ object Form1: TForm1
         Caption = 'DOWN'
         OnClick = btnKeyPasswordDownClick
       end
-      object Bevel3: TBevel
-        Left = 592
-        Top = 416
-        Width = 289
-        Height = 97
-      end
-      object memo_debug: TMemo
-        Left = 0
-        Top = 520
-        Width = 985
-        Height = 137
-        Lines.Strings = (
-          'memo_debug')
+      object clbAvaliablePreset: TCheckListBox
+        Left = 8
+        Top = 328
+        Width = 121
+        Height = 113
+        OnClickCheck = clbAvaliablePresetClickCheck
+        ItemHeight = 13
+        Items.Strings = (
+          'PRESET1'
+          'PRESET2'
+          'PRESET3'
+          'PRESET4'
+          'PRESET5'
+          'PRESET6'
+          'PRESET7'
+          'PRESET8')
         TabOrder = 0
       end
       object edtIp: TEdit
@@ -30983,6 +30882,166 @@ object Form1: TForm1
         Caption = #35774#32622#38745#24577'IP'
         TabOrder = 2
         OnClick = btnSetIpClick
+      end
+      object btnLeaveTheFactory: TButton
+        Left = 456
+        Top = 288
+        Width = 75
+        Height = 25
+        Caption = #20986#21378
+        TabOrder = 3
+        OnClick = btnLeaveTheFactoryClick
+      end
+      object btnSetLock: TButton
+        Left = 424
+        Top = 480
+        Width = 75
+        Height = 25
+        Caption = #35774#32622
+        TabOrder = 4
+        OnClick = btnSetLockClick
+      end
+      object edtPassword: TEdit
+        Left = 328
+        Top = 452
+        Width = 169
+        Height = 21
+        TabOrder = 5
+        OnKeyPress = edtPasswordKeyPress
+      end
+      object edtKeyPassword: TEdit
+        Left = 328
+        Top = 420
+        Width = 169
+        Height = 21
+        TabOrder = 6
+        OnKeyDown = edtKeyPasswordKeyDown
+        OnKeyPress = edtKeyPasswordKeyPress
+      end
+      object edtLockedString: TEdit
+        Left = 328
+        Top = 388
+        Width = 169
+        Height = 21
+        Enabled = False
+        TabOrder = 7
+      end
+      object edtUnlockPassword: TEdit
+        Left = 696
+        Top = 452
+        Width = 169
+        Height = 21
+        TabOrder = 8
+      end
+      object cbRunningTimer: TCheckBox
+        Left = 168
+        Top = 328
+        Width = 153
+        Height = 17
+        Caption = #36816#34892#26102#38271#38480#21046'('#23567#26102')'#65306
+        TabOrder = 9
+        OnClick = cbRunningTimerClick
+      end
+      object cbRebootCount: TCheckBox
+        Left = 168
+        Top = 360
+        Width = 153
+        Height = 17
+        Caption = #38480#21046#21551#21160#27425#25968#65306
+        TabOrder = 10
+        OnClick = cbRebootCountClick
+      end
+      object cbLockedString: TCheckBox
+        Left = 168
+        Top = 392
+        Width = 153
+        Height = 17
+        Caption = #33258#23450#20041#38145#23450#20449#24687#65306
+        TabOrder = 11
+        OnClick = cbLockedStringClick
+      end
+      object edtRunningTimer: TEdit
+        Left = 328
+        Top = 324
+        Width = 169
+        Height = 21
+        Enabled = False
+        TabOrder = 12
+        Text = '0'
+        OnExit = edtRunningTimerExit
+        OnKeyDown = edtRebootCountKeyDown
+      end
+      object edtRebootCount: TEdit
+        Left = 328
+        Top = 356
+        Width = 169
+        Height = 21
+        Enabled = False
+        TabOrder = 13
+        Text = '0'
+        OnExit = edtRebootCountExit
+        OnKeyDown = edtRebootCountKeyDown
+      end
+      object btnUnlockExt: TButton
+        Left = 368
+        Top = 288
+        Width = 75
+        Height = 25
+        Caption = #21518#21488#35299#38145
+        TabOrder = 14
+        OnClick = btnUnlockExtClick
+      end
+      object btnUnlock: TButton
+        Left = 792
+        Top = 480
+        Width = 75
+        Height = 25
+        Caption = #35299#38145
+        TabOrder = 15
+        OnClick = btnUnlockClick
+      end
+      object btnDownloadPreset: TButton
+        Left = 992
+        Top = 480
+        Width = 139
+        Height = 25
+        Caption = #19979#36733'preset'
+        TabOrder = 16
+        OnClick = btnDownloadPresetClick
+      end
+    end
+    object TabSheet1: TTabSheet
+      Caption = #26434#39033
+      ImageIndex = 2
+      object Label17: TLabel
+        Left = 760
+        Top = 8
+        Width = 39
+        Height = 13
+        Caption = #26816#27979#20540
+      end
+      object Label18: TLabel
+        Left = 960
+        Top = 8
+        Width = 39
+        Height = 13
+        Caption = #35745#31639#20540
+      end
+      object lblDiff: TLabel
+        Left = 760
+        Top = 376
+        Width = 49
+        Height = 13
+        Caption = 'lblDiff'
+      end
+      object memo_debug: TMemo
+        Left = 0
+        Top = 400
+        Width = 985
+        Height = 257
+        Lines.Strings = (
+          'memo_debug')
+        TabOrder = 0
       end
       object ValueListEditor1: TValueListEditor
         Left = 760
@@ -31007,39 +31066,7 @@ object Form1: TForm1
           '16va=      '
           '16vac=     '
           '')
-        TabOrder = 3
-        ColWidths = (
-          100
-          87)
-      end
-      object ValueListEditor2: TValueListEditor
-        Left = 960
-        Top = 24
-        Width = 193
-        Height = 433
-        Strings.Strings = (
-          '2.5v=      '
-          'base=       '
-          '5vd=       '
-          '8vdc=      '
-          '8vac=      '
-          '8va=       '
-          '-16vac=    '
-          '-16va=     '
-          '46vc=      '
-          '48va=      '
-          '46va=      '
-          '5va=       '
-          '-12va=     '
-          '12va=      '
-          '16va=      '
-          '16vac=     '
-          '---='
-          '8v(mA)='
-          '48v(mA)='
-          '16v(mA)='
-          '-16v(mA)=')
-        TabOrder = 4
+        TabOrder = 1
         ColWidths = (
           100
           87)
@@ -31062,7 +31089,7 @@ object Form1: TForm1
         GridLines = True
         ReadOnly = True
         RowSelect = True
-        TabOrder = 5
+        TabOrder = 2
         ViewStyle = vsReport
       end
       object btnGetLog: TButton
@@ -31071,7 +31098,7 @@ object Form1: TForm1
         Width = 75
         Height = 25
         Caption = #33719#21462#26085#24535
-        TabOrder = 6
+        TabOrder = 3
         OnClick = btnGetLogClick
       end
       object btnGetDebug: TButton
@@ -31080,7 +31107,7 @@ object Form1: TForm1
         Width = 99
         Height = 25
         Caption = #33719#21462#35843#35797#20449#24687
-        TabOrder = 7
+        TabOrder = 4
         OnClick = btnGetDebugClick
       end
       object lvDebug: TListView
@@ -31101,152 +31128,8 @@ object Form1: TForm1
         GridLines = True
         ReadOnly = True
         RowSelect = True
-        TabOrder = 8
+        TabOrder = 5
         ViewStyle = vsReport
-      end
-      object clbAvaliablePreset: TCheckListBox
-        Left = 8
-        Top = 328
-        Width = 121
-        Height = 113
-        OnClickCheck = clbAvaliablePresetClickCheck
-        ItemHeight = 13
-        Items.Strings = (
-          'PRESET1'
-          'PRESET2'
-          'PRESET3'
-          'PRESET4'
-          'PRESET5'
-          'PRESET6'
-          'PRESET7'
-          'PRESET8')
-        TabOrder = 9
-      end
-      object btnSetLock: TButton
-        Left = 424
-        Top = 480
-        Width = 75
-        Height = 25
-        Caption = #35774#32622
-        TabOrder = 10
-        OnClick = btnSetLockClick
-      end
-      object edtPassword: TEdit
-        Left = 328
-        Top = 452
-        Width = 169
-        Height = 21
-        TabOrder = 11
-        OnKeyPress = edtPasswordKeyPress
-      end
-      object edtKeyPassword: TEdit
-        Left = 328
-        Top = 420
-        Width = 169
-        Height = 21
-        TabOrder = 12
-        OnKeyDown = edtKeyPasswordKeyDown
-        OnKeyPress = edtKeyPasswordKeyPress
-      end
-      object edtLockedString: TEdit
-        Left = 328
-        Top = 388
-        Width = 169
-        Height = 21
-        Enabled = False
-        TabOrder = 13
-      end
-      object edtUnlockPassword: TEdit
-        Left = 696
-        Top = 452
-        Width = 169
-        Height = 21
-        TabOrder = 14
-      end
-      object btnUnlock: TButton
-        Left = 792
-        Top = 480
-        Width = 75
-        Height = 25
-        Caption = #35299#38145
-        TabOrder = 15
-        OnClick = btnUnlockClick
-      end
-      object cbRunningTimer: TCheckBox
-        Left = 168
-        Top = 328
-        Width = 153
-        Height = 17
-        Caption = #36816#34892#26102#38271#38480#21046'('#23567#26102')'#65306
-        TabOrder = 16
-        OnClick = cbRunningTimerClick
-      end
-      object cbRebootCount: TCheckBox
-        Left = 168
-        Top = 360
-        Width = 153
-        Height = 17
-        Caption = #38480#21046#21551#21160#27425#25968#65306
-        TabOrder = 17
-        OnClick = cbRebootCountClick
-      end
-      object cbLockedString: TCheckBox
-        Left = 168
-        Top = 392
-        Width = 153
-        Height = 17
-        Caption = #33258#23450#20041#38145#23450#20449#24687#65306
-        TabOrder = 18
-        OnClick = cbLockedStringClick
-      end
-      object edtRunningTimer: TEdit
-        Left = 328
-        Top = 324
-        Width = 169
-        Height = 21
-        Enabled = False
-        TabOrder = 19
-        Text = '0'
-        OnExit = edtRunningTimerExit
-        OnKeyDown = edtRebootCountKeyDown
-      end
-      object edtRebootCount: TEdit
-        Left = 328
-        Top = 356
-        Width = 169
-        Height = 21
-        Enabled = False
-        TabOrder = 20
-        Text = '0'
-        OnExit = edtRebootCountExit
-        OnKeyDown = edtRebootCountKeyDown
-      end
-      object btnUnlockExt: TButton
-        Left = 368
-        Top = 288
-        Width = 75
-        Height = 25
-        Caption = #21518#21488#35299#38145
-        TabOrder = 21
-        OnClick = btnUnlockExtClick
-      end
-      object btnLeaveTheFactory: TButton
-        Left = 456
-        Top = 288
-        Width = 75
-        Height = 25
-        Caption = #20986#21378
-        TabOrder = 22
-        OnClick = btnLeaveTheFactoryClick
-      end
-      object btnDownloadPreset: TButton
-        Left = 992
-        Top = 480
-        Width = 139
-        Height = 25
-        Caption = #19979#36733'preset'
-        TabOrder = 23
-        OnClick = btnDownloadPresetClick
       end
     end
     object TabSheet2: TTabSheet
@@ -31424,6 +31307,131 @@ object Form1: TForm1
         TabOrder = 9
         Text = '1'
         OnKeyDown = edtRatioKeyDown
+      end
+    end
+    object tsSearch: TTabSheet
+      Caption = #26597#35810#35774#22791
+      DesignSize = (
+        1342
+        637)
+      object Bevel1: TBevel
+        Left = 8
+        Top = 491
+        Width = 1732
+        Height = 10
+        Anchors = [akLeft, akRight, akBottom]
+        Shape = bsBottomLine
+      end
+      object Label1: TLabel
+        Left = 1511
+        Top = 52
+        Width = 53
+        Height = 13
+        Anchors = [akTop, akRight]
+        Caption = #38388#38548'('#31186')'
+      end
+      object mmLog: TMemo
+        Left = 8
+        Top = 510
+        Width = 1732
+        Height = 126
+        Anchors = [akLeft, akRight, akBottom]
+        ReadOnly = True
+        TabOrder = 0
+      end
+      object btnRefresh: TButton
+        Left = 1510
+        Top = 5
+        Width = 106
+        Height = 25
+        Anchors = [akTop, akRight]
+        Caption = #31435#21363#21047#26032
+        TabOrder = 1
+        OnClick = btnRefreshClick
+      end
+      object lvDevice: TListView
+        Left = 8
+        Top = 0
+        Width = 1488
+        Height = 487
+        Anchors = [akLeft, akTop, akRight, akBottom]
+        Columns = <
+          item
+            Width = 30
+          end
+          item
+            Caption = 'IP'
+            Width = 80
+          end
+          item
+            Caption = #26412#22320#24191#25773'IP'
+            Width = 80
+          end
+          item
+            Caption = #35774#22791#31867#22411
+            Width = 150
+          end
+          item
+            Caption = 'MAC'
+            Width = 100
+          end
+          item
+            Caption = #29256#26412
+            Width = 80
+          end
+          item
+            Caption = #26085#26399
+            Width = 60
+          end>
+        GridLines = True
+        HideSelection = False
+        ReadOnly = True
+        RowSelect = True
+        TabOrder = 2
+        ViewStyle = vsReport
+        OnDblClick = lvDeviceDblClick
+        OnSelectItem = lvDeviceSelectItem
+      end
+      object lbIplist: TListBox
+        Left = 16
+        Top = 168
+        Width = 105
+        Height = 17
+        ItemHeight = 13
+        TabOrder = 3
+        Visible = False
+      end
+      object cbAutoRefresh: TCheckBox
+        Left = 1511
+        Top = 32
+        Width = 97
+        Height = 17
+        Anchors = [akTop, akRight]
+        Caption = #33258#21160#21047#26032
+        Checked = True
+        State = cbChecked
+        TabOrder = 4
+      end
+      object spInterval: TCSpinEdit
+        Left = 1567
+        Top = 48
+        Width = 49
+        Height = 22
+        Anchors = [akTop, akRight]
+        MaxValue = 20
+        MinValue = 1
+        TabOrder = 5
+        Value = 1
+      end
+      object btnSelect: TButton
+        Left = 1510
+        Top = 77
+        Width = 106
+        Height = 25
+        Anchors = [akTop, akRight]
+        Caption = #36873#25321#35774#22791
+        TabOrder = 6
+        OnClick = btnSelectClick
       end
     end
   end

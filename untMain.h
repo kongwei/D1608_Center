@@ -366,6 +366,8 @@ __published:	// IDE-managed Components
     TLabel *Label39;
     TLabel *Label40;
     TLabel *Label41;
+    TTabSheet *TabSheet3;
+    TTabSheet *TabSheet4;
     void __fastcall FormCreate(TObject *Sender);
     void __fastcall FormDestroy(TObject *Sender);
     void __fastcall btnRefreshClick(TObject *Sender);
