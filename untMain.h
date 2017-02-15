@@ -501,7 +501,7 @@ __published:	// IDE-managed Components
     void __fastcall edtCompGainKeyDown(TObject *Sender, WORD &Key,
           TShiftState Shift);
     void __fastcall edtCompRatioExit(TObject *Sender);
-    void __fastcall edtCompRatioEnter(TObject *Sender);
+    void __fastcall edtCompRatioClick(TObject *Sender);
 
 private:
     // 已经选择设备

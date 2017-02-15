@@ -22932,7 +22932,7 @@ object Form1: TForm1
             ParentCtl3D = False
             TabOrder = 0
             Text = '1'
-            OnEnter = edtCompRatioEnter
+            OnClick = edtCompRatioClick
             OnExit = edtCompRatioExit
             OnKeyDown = edtCompRatioKeyDown
           end
@@ -22948,7 +22948,7 @@ object Form1: TForm1
             ParentCtl3D = False
             TabOrder = 1
             Text = '0'
-            OnEnter = edtCompRatioEnter
+            OnClick = edtCompRatioClick
             OnExit = edtCompRatioExit
             OnKeyDown = edtCompThresholdKeyDown
           end
@@ -22964,7 +22964,7 @@ object Form1: TForm1
             ParentCtl3D = False
             TabOrder = 2
             Text = '64'
-            OnEnter = edtCompRatioEnter
+            OnClick = edtCompRatioClick
             OnExit = edtCompRatioExit
             OnKeyDown = edtCompAttackTimeKeyDown
           end
@@ -22980,7 +22980,7 @@ object Form1: TForm1
             ParentCtl3D = False
             TabOrder = 3
             Text = '1000'
-            OnEnter = edtCompRatioEnter
+            OnClick = edtCompRatioClick
             OnExit = edtCompRatioExit
             OnKeyDown = edtCompReleaseTimeKeyDown
           end
@@ -22996,7 +22996,7 @@ object Form1: TForm1
             ParentCtl3D = False
             TabOrder = 4
             Text = '0'
-            OnEnter = edtCompRatioEnter
+            OnClick = edtCompRatioClick
             OnExit = edtCompRatioExit
             OnKeyDown = edtCompGainKeyDown
           end

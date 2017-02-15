@@ -34,6 +34,34 @@ unsigned int GetOffsetOfData(void * p_data)
     return (char*)p_data - p_config_map;
 }
 
+String FormatFloat(float value, int precise)
+{
+    if ((value <= 0.000001) && (value >= -0.000001))
+        return "0";
+    // 保留n个数字精度
+    int count = 0;
+    value *= pow10(precise);
+    count = log10(abs(value));
+    value = (int)(value / pow10(count-precise+1));
+    value = value * pow10(count-precise+1);
+    value /= pow10(precise);
+    return String::FormatFloat("0.###", value);
+}
+struct CompConfig
+{
+    int min_value;
+    int max_value;
+    int default_value;
+    float scale;
+    int precise;
+    //int step;
+};
+
+CompConfig ratio_config = {1, 100, 100, 100, 2};
+CompConfig threshold_config = {-320, 0, 0, 10, 3};
+CompConfig attack_config = {1, 20000, 640, 10, 3};
+CompConfig release_config = {10, 50000, 10000, 10, 3};
+CompConfig gain_config = {-120, 240, 0, 10, 3};
 //---------------------------------------------------------------------------
 void SelectNullControl()
 {
@@ -558,6 +586,9 @@ __fastcall TForm1::TForm1(TComponent* Owner)
 //---------------------------------------------------------------------------
 void __fastcall TForm1::FormCreate(TObject *Sender)
 {
+    Width = 877+827;
+    Height = 728+50; 
+
     // 输出结构体大小
     memo_debug->Lines->Add("InputConfigMap:" + IntToStr(sizeof(InputConfigMap)));
     memo_debug->Lines->Add("OutputConfigMap:" + IntToStr(sizeof(OutputConfigMap)));
@@ -3023,88 +3054,122 @@ void __fastcall TForm1::ToogleLimit(TObject *Sender)
 void __fastcall TForm1::edtCompRatioKeyDown(TObject *Sender, WORD &Key,
       TShiftState Shift)
 {
-    TSpeedButton* btn = (TSpeedButton*)Sender;
-    int dsp_id = btn->Parent->Parent->Tag;
+    TEdit* edt = (TEdit*)Sender;
+    int dsp_id = edt->Parent->Parent->Tag;
 
     if (dsp_id < 100)
     {
         return;
     }
-
     dsp_id -= 100;
 
     if (Key == VK_ESCAPE)
     {
-        edtCompRatio->Text = config_map.output_dsp[dsp_id-1].ratio/100.0;        
+        edt->Text = FormatFloat(config_map.output_dsp[dsp_id-1].ratio/ratio_config.scale, ratio_config.precise);
     }
     else if (Key == VK_RETURN)
     {
-        config_map.output_dsp[dsp_id-1].ratio = edtCompRatio->Text.ToDouble()*100.0; 
+        try{
+            config_map.output_dsp[dsp_id-1].ratio = edt->Text.ToDouble()*ratio_config.scale;
+            if (config_map.output_dsp[dsp_id-1].ratio > ratio_config.max_value)
+                config_map.output_dsp[dsp_id-1].ratio = ratio_config.max_value;
+            else if (config_map.output_dsp[dsp_id-1].ratio < ratio_config.min_value)
+                config_map.output_dsp[dsp_id-1].ratio = ratio_config.min_value;
+            
+            D1608Cmd cmd;
+            cmd.id = GetOffsetOfData(&config_map.output_dsp[dsp_id-1].ratio);
+            cmd.data.data_32 = config_map.output_dsp[dsp_id-1].ratio;
+            cmd.length = 4;
+            SendCmd(cmd);
+        }
+        catch(...)
+        {
+        }
 
-        D1608Cmd cmd;
-        cmd.id = GetOffsetOfData(&config_map.output_dsp[dsp_id-1].ratio);
-        cmd.data.data_32 = config_map.output_dsp[dsp_id-1].ratio;
-        cmd.length = 4;
-        SendCmd(cmd);
+        edt->Text = FormatFloat(config_map.output_dsp[dsp_id-1].ratio/ratio_config.scale, ratio_config.precise);
+        edt->SelectAll();
     }
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::edtCompThresholdKeyDown(TObject *Sender, WORD &Key,
       TShiftState Shift)
 {
-    TSpeedButton* btn = (TSpeedButton*)Sender;
-    int dsp_id = btn->Parent->Parent->Tag;
+    TEdit* edt = (TEdit*)Sender;
+    int dsp_id = edt->Parent->Parent->Tag;
 
     if (dsp_id < 100)
     {
         return;
     }
-
     dsp_id -= 100;
 
     if (Key == VK_ESCAPE)
     {
-        edtCompThreshold->Text = config_map.output_dsp[dsp_id-1].threshold / 10.0;
+        edt->Text = FormatFloat(config_map.output_dsp[dsp_id-1].threshold/threshold_config.scale, threshold_config.precise);
     }
     else if (Key == VK_RETURN)
     {
-        config_map.output_dsp[dsp_id-1].threshold = edtCompThreshold->Text.ToDouble()*10.0;
-        
-        D1608Cmd cmd;
-        cmd.id = GetOffsetOfData(&config_map.output_dsp[dsp_id-1].threshold);
-        cmd.data.data_32 = config_map.output_dsp[dsp_id-1].threshold;
-        cmd.length = 4;
-        SendCmd(cmd);
+        try{
+            config_map.output_dsp[dsp_id-1].threshold = edt->Text.ToDouble()*threshold_config.scale;
+
+            if (config_map.output_dsp[dsp_id-1].threshold > threshold_config.max_value)
+                config_map.output_dsp[dsp_id-1].threshold = threshold_config.max_value;
+            else if (config_map.output_dsp[dsp_id-1].threshold < threshold_config.min_value)
+                config_map.output_dsp[dsp_id-1].threshold = threshold_config.min_value;
+            
+            D1608Cmd cmd;
+            cmd.id = GetOffsetOfData(&config_map.output_dsp[dsp_id-1].threshold);
+            cmd.data.data_32 = config_map.output_dsp[dsp_id-1].threshold;
+            cmd.length = 4;
+            SendCmd(cmd);
+        }
+        catch(...)
+        {
+        }
+
+        edt->Text = FormatFloat(config_map.output_dsp[dsp_id-1].threshold/threshold_config.scale, threshold_config.precise);
+        edt->SelectAll();
     }
 }
 //---------------------------------------------------------------------------
-
 void __fastcall TForm1::edtCompAttackTimeKeyDown(TObject *Sender,
       WORD &Key, TShiftState Shift)
 {
-    TSpeedButton* btn = (TSpeedButton*)Sender;
-    int dsp_id = btn->Parent->Parent->Tag;
+    TEdit* edt = (TEdit*)Sender;
+    int dsp_id = edt->Parent->Parent->Tag;
 
     if (dsp_id < 100)
     {
         return;
     }
-
     dsp_id -= 100;
 
     if (Key == VK_ESCAPE)
     {
-        edtCompAttackTime->Text = config_map.output_dsp[dsp_id-1].attack_time/10.0;
+        edt->Text = FormatFloat(config_map.output_dsp[dsp_id-1].attack_time/attack_config.scale, attack_config.precise);
     }
     else if (Key == VK_RETURN)
     {
-        config_map.output_dsp[dsp_id-1].attack_time = edtCompAttackTime->Text.ToDouble()*10.0;
-        
-        D1608Cmd cmd;
-        cmd.id = GetOffsetOfData(&config_map.output_dsp[dsp_id-1].attack_time);
-        cmd.data.data_32 = config_map.output_dsp[dsp_id-1].attack_time;
-        cmd.length = 4;
-        SendCmd(cmd);
+        try{
+            config_map.output_dsp[dsp_id-1].attack_time = edt->Text.ToDouble()*attack_config.scale;
+
+            if (config_map.output_dsp[dsp_id-1].attack_time > attack_config.max_value)
+                config_map.output_dsp[dsp_id-1].attack_time = attack_config.max_value;
+            else if (config_map.output_dsp[dsp_id-1].attack_time < attack_config.min_value)
+                config_map.output_dsp[dsp_id-1].attack_time = attack_config.min_value;
+            
+            D1608Cmd cmd;
+            cmd.id = GetOffsetOfData(&config_map.output_dsp[dsp_id-1].attack_time);
+            cmd.data.data_32 = config_map.output_dsp[dsp_id-1].attack_time;
+            cmd.length = 4;
+            SendCmd(cmd);
+        }
+        catch(...)
+        {
+        }
+
+        edt->Text = FormatFloat(config_map.output_dsp[dsp_id-1].attack_time/attack_config.scale, attack_config.precise);
+        edt->SelectAll();
     }
 }
 //---------------------------------------------------------------------------
@@ -3112,59 +3177,82 @@ void __fastcall TForm1::edtCompAttackTimeKeyDown(TObject *Sender,
 void __fastcall TForm1::edtCompReleaseTimeKeyDown(TObject *Sender,
       WORD &Key, TShiftState Shift)
 {
-    TSpeedButton* btn = (TSpeedButton*)Sender;
-    int dsp_id = btn->Parent->Parent->Tag;
+    TEdit* edt = (TEdit*)Sender;
+    int dsp_id = edt->Parent->Parent->Tag;
 
     if (dsp_id < 100)
     {
         return;
     }
-
     dsp_id -= 100;
 
     if (Key == VK_ESCAPE)
     {
-        edtCompReleaseTime->Text = config_map.output_dsp[dsp_id-1].release_time/10.0;        
+        edt->Text = FormatFloat(config_map.output_dsp[dsp_id-1].release_time/release_config.scale, release_config.precise);
     }
     else if (Key == VK_RETURN)
     {
-        config_map.output_dsp[dsp_id-1].release_time = edtCompReleaseTime->Text.ToDouble()*10.0;
-        
-        D1608Cmd cmd;
-        cmd.id = GetOffsetOfData(&config_map.output_dsp[dsp_id-1].release_time);
-        cmd.data.data_32 = config_map.output_dsp[dsp_id-1].release_time;
-        cmd.length = 4;
-        SendCmd(cmd);
+        try{
+            config_map.output_dsp[dsp_id-1].release_time = edtCompReleaseTime->Text.ToDouble()*release_config.scale;
+
+            if (config_map.output_dsp[dsp_id-1].release_time > release_config.max_value)
+                config_map.output_dsp[dsp_id-1].release_time = release_config.max_value;
+            else if (config_map.output_dsp[dsp_id-1].release_time < release_config.min_value)
+                config_map.output_dsp[dsp_id-1].release_time = release_config.min_value;
+            
+            D1608Cmd cmd;
+            cmd.id = GetOffsetOfData(&config_map.output_dsp[dsp_id-1].release_time);
+            cmd.data.data_32 = config_map.output_dsp[dsp_id-1].release_time;
+            cmd.length = 4;
+            SendCmd(cmd);
+        }
+        catch(...)
+        {
+        }
+
+        edt->Text = FormatFloat(config_map.output_dsp[dsp_id-1].release_time/release_config.scale, release_config.precise);
+        edt->SelectAll();
     }
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::edtCompGainKeyDown(TObject *Sender, WORD &Key,
       TShiftState Shift)
 {
-    TSpeedButton* btn = (TSpeedButton*)Sender;
-    int dsp_id = btn->Parent->Parent->Tag;
+    TEdit* edt = (TEdit*)Sender;
+    int dsp_id = edt->Parent->Parent->Tag;
 
     if (dsp_id < 100)
     {
         return;
     }
-
     dsp_id -= 100;
 
     if (Key == VK_ESCAPE)
     {
-        edtCompGain->Text = config_map.output_dsp[dsp_id-1].comp_gain/10.0;        
+        edt->Text = FormatFloat(config_map.output_dsp[dsp_id-1].comp_gain/gain_config.scale, gain_config.precise);
     }
     else if (Key == VK_RETURN)
     {
-        // 格式化和校验
-        config_map.output_dsp[dsp_id-1].comp_gain = edtCompGain->Text.ToDouble()*10.0; 
+        try{
+            config_map.output_dsp[dsp_id-1].comp_gain = edt->Text.ToDouble()*gain_config.scale; 
 
-        D1608Cmd cmd;
-        cmd.id = GetOffsetOfData(&config_map.output_dsp[dsp_id-1].comp_gain);
-        cmd.data.data_32 = config_map.output_dsp[dsp_id-1].comp_gain;
-        cmd.length = 4;
-        SendCmd(cmd);
+            if (config_map.output_dsp[dsp_id-1].comp_gain > gain_config.max_value)
+                config_map.output_dsp[dsp_id-1].comp_gain = gain_config.max_value;
+            else if (config_map.output_dsp[dsp_id-1].comp_gain < gain_config.min_value)
+                config_map.output_dsp[dsp_id-1].comp_gain = gain_config.min_value;
+            
+            D1608Cmd cmd;
+            cmd.id = GetOffsetOfData(&config_map.output_dsp[dsp_id-1].comp_gain);
+            cmd.data.data_32 = config_map.output_dsp[dsp_id-1].comp_gain;
+            cmd.length = 4;
+            SendCmd(cmd);
+        }
+        catch(...)
+        {
+        }
+
+        edt->Text = FormatFloat(config_map.output_dsp[dsp_id-1].comp_gain/gain_config.scale, gain_config.precise);
+        edt->SelectAll();
     }
 }
 //---------------------------------------------------------------------------
@@ -3173,12 +3261,14 @@ void __fastcall TForm1::edtCompRatioExit(TObject *Sender)
     TEdit * edt = (TEdit*)Sender;
     WORD Key = VK_ESCAPE;
     edt->OnKeyDown(Sender, Key, TShiftState());
+    edt->OnClick = edtCompRatioClick; 
 }
 //---------------------------------------------------------------------------
-void __fastcall TForm1::edtCompRatioEnter(TObject *Sender)
+void __fastcall TForm1::edtCompRatioClick(TObject *Sender)
 {
     TEdit * edt = (TEdit*)Sender;
     edt->SelectAll();
+    edt->OnClick = NULL;
 }
 //---------------------------------------------------------------------------
 
