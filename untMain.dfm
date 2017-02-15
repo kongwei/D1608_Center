@@ -24,9 +24,9 @@ object Form1: TForm1
     Top = 25
     Width = 1350
     Height = 665
-    ActivePage = tsOperator
+    ActivePage = tsSearch
     Align = alClient
-    TabIndex = 1
+    TabIndex = 0
     TabOrder = 0
     object tsSearch: TTabSheet
       Caption = #26597#35810#35774#22791
@@ -91,7 +91,7 @@ object Form1: TForm1
             Width = 150
           end
           item
-            Caption = #24207#21015#21495
+            Caption = 'MAC'
             Width = 100
           end
           item

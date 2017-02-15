@@ -688,7 +688,6 @@ void __fastcall TForm1::btnRefreshClick(TObject *Sender)
     }
 }
 //---------------------------------------------------------------------------
-
 void __fastcall TForm1::udpSLPUDPRead(TObject *Sender,
       TStream *AData, TIdSocketHandle *ABinding)
 {
@@ -697,7 +696,9 @@ void __fastcall TForm1::udpSLPUDPRead(TObject *Sender,
 
     String ip_address;
         ip_address.sprintf("%u.%u.%u.%u", (BYTE)slp_pack.ip[0], (BYTE)slp_pack.ip[1], (BYTE)slp_pack.ip[2], (BYTE)slp_pack.ip[3]);
-    String device_name = slp_pack.type;
+    String mac;
+        mac.sprintf("%02X:%02X:%02X:%02X:%02X:%02X", (BYTE)slp_pack.mac[0], (BYTE)slp_pack.mac[1], (BYTE)slp_pack.mac[2], (BYTE)slp_pack.mac[3], (BYTE)slp_pack.mac[4], (BYTE)slp_pack.mac[5]);
+    String device_name = slp_pack.name;
 
     TListItem * item = NULL;
     // 查找是否列表中已经存在
@@ -711,6 +712,7 @@ void __fastcall TForm1::udpSLPUDPRead(TObject *Sender,
             item->Data = (void*)2;
             item->SubItems->Strings[1] = ABinding->IP;
             item->SubItems->Strings[2] = device_name;
+            item->SubItems->Strings[3] = mac;
             break;
         }
     }
@@ -723,6 +725,7 @@ void __fastcall TForm1::udpSLPUDPRead(TObject *Sender,
         item->SubItems->Add(ip_address);
         item->SubItems->Add(ABinding->IP);
         item->SubItems->Add(device_name);
+        item->SubItems->Add(mac);
     }
 
     if (last_select_device_ip == ip_address)

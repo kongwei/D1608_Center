@@ -58,7 +58,7 @@ extern "C"{
     {
         __int8 ip[4];
         __int8 flag1[10];
-        __int8 flag2[26];
+        __int8 name[26];
         __int8 flag3[64];
         __int8 type[16];
         __int8 ser[16];
