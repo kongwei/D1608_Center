@@ -1105,6 +1105,50 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             ValueListEditor2->Cells[1][19] = (calc_data._48va - calc_data._46vc) / 0.5;
             ValueListEditor2->Cells[1][20] = (calc_data._16va - calc_data._16vac) / 0.5;
             ValueListEditor2->Cells[1][21] = (calc_data._x16vac - calc_data._x16va) / 0.5;
+
+            // Êä³ö½çÃæ
+            calc_data._5vd   = CalcVot1(true_data->_5vd, 6.81,  6.81);                             
+            calc_data._8vdc  = CalcVot1(true_data->_8vdc, 4.75, 10);                                
+            calc_data._8vac  = CalcVot1(true_data->_8vac, 4.75, 10);                                
+            calc_data._8va   = CalcVot1(true_data->_8va, 4.75, 10);                                
+            calc_data._x16vac= CalcVot2(true_data->_16vac, true_data->_x16vac, 3.32, 20, 14.7, 20);   
+            calc_data._x16va = CalcVot2(true_data->_16va, true_data->_x16va, 3.32, 20, 14.7, 20);   
+            calc_data._46vc  = CalcVot1(true_data->_46vc, 4.75, 75); 
+            calc_data._48va  = CalcVot1(true_data->_48va, 4.75, 75);                                
+            calc_data._46va  = CalcVot1(true_data->_46va, 4.75, 75);                                
+            calc_data._5va   = CalcVot1(true_data-> _5va, 6.81, 6.81);                                
+            calc_data._x12va = CalcVot2(true_data->_12va, true_data->_x12va, 4.75, 14.7, 10, 14.7); 
+            calc_data._12va  = CalcVot1(true_data->_12va, 4.75, 14.7);                              
+            calc_data._16va  = CalcVot1(true_data->_16va, 3.32, 20);                                
+            calc_data._16vac = CalcVot1(true_data->_16vac, 3.32, 20);                                
+
+            //====================================================================
+            lbl2_5V->Caption = String::FormatFloat("0.00 ", calc_data._2_5v / 100.0);
+            lbl3_3V->Caption = "-- ";
+            lbl3_3Vd->Caption = String::FormatFloat("0.00 ", (calc_data._2_5v+75) / 100.0);
+            lbl5Va->Caption = String::FormatFloat("0.00 ", calc_data._5va / 100.0);
+            lbl5Vd->Caption = String::FormatFloat("0.00 ", calc_data._5vd / 100.0);
+            lbl8Va->Caption = String::FormatFloat("0.00 ", calc_data._8va / 100.0);
+            lbl8Vd->Caption = String::FormatFloat("0.00 ", calc_data._8vdc / 100.0);
+            lbl12Va->Caption = String::FormatFloat("0.00 ", calc_data._12va / 100.0);
+            lbl_12Va->Caption = String::FormatFloat("0.00 ", calc_data._x12va / 100.0);
+            lbl16Va->Caption = String::FormatFloat("0.00 ", calc_data._16va / 100.0);
+            lbl_16Va->Caption = String::FormatFloat("0.00 ", calc_data._x16va / 100.0);
+            lbl48Va->Caption = String::FormatFloat("0.00 ", calc_data._48va / 100.0);
+
+            //====================================================================
+            lbl2_5mA->Caption = "-- ";
+            lbl3_3mA->Caption = String::FormatFloat("0.00 ", calc_data._8vdc / 100.0 * 0.10);           //8Vd * 0.10
+            lbl3_3mAd->Caption = String((int)((calc_data._8va - calc_data._8vdc) / 0.27 * 0.85)) + " "; //8Vd * 0.85
+            lbl5mAa->Caption = String((int)((calc_data._8va - calc_data._8vac) / 0.27)) + " ";          // 8Va
+            lbl5mAd->Caption = String((int)((calc_data._8va - calc_data._8vdc) / 0.27 * 0.05)) + " ";   // 8Vd * 0.05
+            lbl8mAa->Caption = String((int)((calc_data._8va - calc_data._8vac) / 0.27)) + " ";
+            lbl8mAd->Caption = String((int)((calc_data._8va - calc_data._8vdc) / 0.27)) + " ";
+            lbl12mAa->Caption = String((calc_data._16vac - calc_data._16va) / 0.5) + " ";               // 16Va
+            lbl_12mAa->Caption = String((calc_data._x16va - calc_data._x16vac) / 0.5) + " ";            // -16Va
+            lbl16mAa->Caption = String((calc_data._16vac - calc_data._16va) / 0.5) + " ";
+            lbl_16mAa->Caption = String((calc_data._x16va - calc_data._x16vac) / 0.5) + " ";
+            lbl48mAa->Caption = String((calc_data._48va - calc_data._46vc) / 0.5) + " ";
         }
         else if (cmd.id == GetOffsetOfData(&config_map.op_code.noop))
         {

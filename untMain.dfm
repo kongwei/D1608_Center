@@ -1,6 +1,6 @@
 object Form1: TForm1
-  Left = 256
-  Top = 58
+  Left = 304
+  Top = 57
   Width = 1366
   Height = 728
   Caption = 'D1608'
@@ -30763,37 +30763,535 @@ object Form1: TForm1
     object TabSheet4: TTabSheet
       Caption = #30417#25511
       ImageIndex = 5
-      object ValueListEditor2: TValueListEditor
-        Left = 8
-        Top = 16
-        Width = 193
-        Height = 433
-        Strings.Strings = (
-          '2.5v=      '
-          'base=       '
-          '5vd=       '
-          '8vdc=      '
-          '8vac=      '
-          '8va=       '
-          '-16vac=    '
-          '-16va=     '
-          '46vc=      '
-          '48va=      '
-          '46va=      '
-          '5va=       '
-          '-12va=     '
-          '12va=      '
-          '16va=      '
-          '16vac=     '
-          '---='
-          '8v(mA)='
-          '48v(mA)='
-          '16v(mA)='
-          '-16v(mA)=')
-        TabOrder = 0
-        ColWidths = (
-          100
-          87)
+      object SpeedButton1: TSpeedButton
+        Left = 40
+        Top = 176
+        Width = 60
+        Height = 22
+        AllowAllUp = True
+        GroupIndex = 1
+        Caption = '5Vd'
+      end
+      object SpeedButton2: TSpeedButton
+        Left = 40
+        Top = 208
+        Width = 60
+        Height = 22
+        AllowAllUp = True
+        GroupIndex = 1
+        Caption = '8Va'
+      end
+      object SpeedButton3: TSpeedButton
+        Left = 40
+        Top = 272
+        Width = 60
+        Height = 22
+        AllowAllUp = True
+        GroupIndex = 1
+        Caption = '12Va'
+      end
+      object SpeedButton4: TSpeedButton
+        Left = 40
+        Top = 336
+        Width = 60
+        Height = 22
+        AllowAllUp = True
+        GroupIndex = 1
+        Caption = '16Va'
+      end
+      object SpeedButton5: TSpeedButton
+        Left = 40
+        Top = 368
+        Width = 60
+        Height = 22
+        AllowAllUp = True
+        GroupIndex = 1
+        Caption = '-16Va'
+      end
+      object SpeedButton6: TSpeedButton
+        Left = 40
+        Top = 400
+        Width = 60
+        Height = 22
+        AllowAllUp = True
+        GroupIndex = 1
+        Caption = '48Va'
+      end
+      object lbl5Vd: TLabel
+        Left = 136
+        Top = 176
+        Width = 56
+        Height = 19
+        Alignment = taRightJustify
+        AutoSize = False
+        Caption = '5Vd'
+        Color = clBackground
+        Font.Charset = ANSI_CHARSET
+        Font.Color = clAqua
+        Font.Height = -20
+        Font.Name = 'DS-Digital'
+        Font.Style = [fsBold]
+        ParentColor = False
+        ParentFont = False
+      end
+      object lbl12Va: TLabel
+        Left = 136
+        Top = 272
+        Width = 56
+        Height = 19
+        Alignment = taRightJustify
+        AutoSize = False
+        Caption = '12Va'
+        Color = clBackground
+        Font.Charset = ANSI_CHARSET
+        Font.Color = clAqua
+        Font.Height = -20
+        Font.Name = 'DS-Digital'
+        Font.Style = [fsBold]
+        ParentColor = False
+        ParentFont = False
+      end
+      object lbl16Va: TLabel
+        Left = 136
+        Top = 336
+        Width = 56
+        Height = 19
+        Alignment = taRightJustify
+        AutoSize = False
+        Caption = '16Va'
+        Color = clBackground
+        Font.Charset = ANSI_CHARSET
+        Font.Color = clAqua
+        Font.Height = -20
+        Font.Name = 'DS-Digital'
+        Font.Style = [fsBold]
+        ParentColor = False
+        ParentFont = False
+      end
+      object lbl_16Va: TLabel
+        Left = 136
+        Top = 368
+        Width = 56
+        Height = 19
+        Alignment = taRightJustify
+        AutoSize = False
+        Caption = '-16Va'
+        Color = clBackground
+        Font.Charset = ANSI_CHARSET
+        Font.Color = clAqua
+        Font.Height = -20
+        Font.Name = 'DS-Digital'
+        Font.Style = [fsBold]
+        ParentColor = False
+        ParentFont = False
+      end
+      object lbl8Va: TLabel
+        Left = 136
+        Top = 208
+        Width = 56
+        Height = 19
+        Alignment = taRightJustify
+        AutoSize = False
+        Caption = '8Va'
+        Color = clBackground
+        Font.Charset = ANSI_CHARSET
+        Font.Color = clAqua
+        Font.Height = -20
+        Font.Name = 'DS-Digital'
+        Font.Style = [fsBold]
+        ParentColor = False
+        ParentFont = False
+      end
+      object lbl48Va: TLabel
+        Left = 136
+        Top = 400
+        Width = 56
+        Height = 19
+        Alignment = taRightJustify
+        AutoSize = False
+        Caption = '48Va'
+        Color = clBackground
+        Font.Charset = ANSI_CHARSET
+        Font.Color = clAqua
+        Font.Height = -20
+        Font.Name = 'DS-Digital'
+        Font.Style = [fsBold]
+        ParentColor = False
+        ParentFont = False
+      end
+      object Label48: TLabel
+        Left = 136
+        Top = 24
+        Width = 47
+        Height = 13
+        Caption = #30005#21387'(V)'
+      end
+      object Label49: TLabel
+        Left = 232
+        Top = 24
+        Width = 54
+        Height = 13
+        Caption = #30005#27969'(mA)'
+      end
+      object lbl5mAd: TLabel
+        Left = 232
+        Top = 176
+        Width = 44
+        Height = 19
+        Alignment = taRightJustify
+        AutoSize = False
+        Caption = '5Vd'
+        Color = clBackground
+        Font.Charset = ANSI_CHARSET
+        Font.Color = clAqua
+        Font.Height = -20
+        Font.Name = 'DS-Digital'
+        Font.Style = [fsBold]
+        ParentColor = False
+        ParentFont = False
+      end
+      object lbl12mAa: TLabel
+        Left = 232
+        Top = 272
+        Width = 44
+        Height = 19
+        Alignment = taRightJustify
+        AutoSize = False
+        Caption = '12Va'
+        Color = clBackground
+        Font.Charset = ANSI_CHARSET
+        Font.Color = clAqua
+        Font.Height = -20
+        Font.Name = 'DS-Digital'
+        Font.Style = [fsBold]
+        ParentColor = False
+        ParentFont = False
+      end
+      object lbl16mAa: TLabel
+        Left = 232
+        Top = 336
+        Width = 44
+        Height = 19
+        Alignment = taRightJustify
+        AutoSize = False
+        Caption = '16Va'
+        Color = clBackground
+        Font.Charset = ANSI_CHARSET
+        Font.Color = clAqua
+        Font.Height = -20
+        Font.Name = 'DS-Digital'
+        Font.Style = [fsBold]
+        ParentColor = False
+        ParentFont = False
+      end
+      object lbl_16mAa: TLabel
+        Left = 232
+        Top = 368
+        Width = 44
+        Height = 19
+        Alignment = taRightJustify
+        AutoSize = False
+        Caption = '-16Va'
+        Color = clBackground
+        Font.Charset = ANSI_CHARSET
+        Font.Color = clAqua
+        Font.Height = -20
+        Font.Name = 'DS-Digital'
+        Font.Style = [fsBold]
+        ParentColor = False
+        ParentFont = False
+      end
+      object lbl8mAa: TLabel
+        Left = 232
+        Top = 208
+        Width = 44
+        Height = 19
+        Alignment = taRightJustify
+        AutoSize = False
+        Caption = '8Va'
+        Color = clBackground
+        Font.Charset = ANSI_CHARSET
+        Font.Color = clAqua
+        Font.Height = -20
+        Font.Name = 'DS-Digital'
+        Font.Style = [fsBold]
+        ParentColor = False
+        ParentFont = False
+      end
+      object lbl48mAa: TLabel
+        Left = 232
+        Top = 400
+        Width = 44
+        Height = 19
+        Alignment = taRightJustify
+        AutoSize = False
+        Caption = '48Va'
+        Color = clBackground
+        Font.Charset = ANSI_CHARSET
+        Font.Color = clAqua
+        Font.Height = -20
+        Font.Name = 'DS-Digital'
+        Font.Style = [fsBold]
+        ParentColor = False
+        ParentFont = False
+      end
+      object lbl2_5: TSpeedButton
+        Left = 40
+        Top = 48
+        Width = 60
+        Height = 22
+        AllowAllUp = True
+        GroupIndex = 1
+        Caption = '2.5V'
+      end
+      object SpeedButton8: TSpeedButton
+        Left = 40
+        Top = 80
+        Width = 60
+        Height = 22
+        AllowAllUp = True
+        GroupIndex = 1
+        Caption = '3.3V'
+      end
+      object SpeedButton9: TSpeedButton
+        Left = 40
+        Top = 112
+        Width = 60
+        Height = 22
+        AllowAllUp = True
+        GroupIndex = 1
+        Caption = '3.3Vd'
+      end
+      object SpeedButton10: TSpeedButton
+        Left = 40
+        Top = 144
+        Width = 60
+        Height = 22
+        AllowAllUp = True
+        GroupIndex = 1
+        Caption = '5Va'
+      end
+      object SpeedButton11: TSpeedButton
+        Left = 40
+        Top = 240
+        Width = 60
+        Height = 22
+        AllowAllUp = True
+        GroupIndex = 1
+        Caption = '8Vd'
+      end
+      object SpeedButton12: TSpeedButton
+        Left = 40
+        Top = 304
+        Width = 60
+        Height = 22
+        AllowAllUp = True
+        GroupIndex = 1
+        Caption = '-12Va'
+      end
+      object lbl2_5V: TLabel
+        Left = 136
+        Top = 48
+        Width = 56
+        Height = 19
+        Alignment = taRightJustify
+        AutoSize = False
+        Caption = '2.5V'
+        Color = clBackground
+        Font.Charset = ANSI_CHARSET
+        Font.Color = clAqua
+        Font.Height = -20
+        Font.Name = 'DS-Digital'
+        Font.Style = [fsBold]
+        ParentColor = False
+        ParentFont = False
+      end
+      object lbl3_3Vd: TLabel
+        Left = 136
+        Top = 112
+        Width = 56
+        Height = 19
+        Alignment = taRightJustify
+        AutoSize = False
+        Caption = '3.3Vd'
+        Color = clBackground
+        Font.Charset = ANSI_CHARSET
+        Font.Color = clAqua
+        Font.Height = -20
+        Font.Name = 'DS-Digital'
+        Font.Style = [fsBold]
+        ParentColor = False
+        ParentFont = False
+      end
+      object lbl5Va: TLabel
+        Left = 136
+        Top = 144
+        Width = 56
+        Height = 19
+        Alignment = taRightJustify
+        AutoSize = False
+        Caption = '5Va'
+        Color = clBackground
+        Font.Charset = ANSI_CHARSET
+        Font.Color = clAqua
+        Font.Height = -20
+        Font.Name = 'DS-Digital'
+        Font.Style = [fsBold]
+        ParentColor = False
+        ParentFont = False
+      end
+      object lbl8Vd: TLabel
+        Left = 136
+        Top = 240
+        Width = 56
+        Height = 19
+        Alignment = taRightJustify
+        AutoSize = False
+        Caption = '8Vd'
+        Color = clBackground
+        Font.Charset = ANSI_CHARSET
+        Font.Color = clAqua
+        Font.Height = -20
+        Font.Name = 'DS-Digital'
+        Font.Style = [fsBold]
+        ParentColor = False
+        ParentFont = False
+      end
+      object lbl3_3V: TLabel
+        Left = 136
+        Top = 80
+        Width = 56
+        Height = 19
+        Alignment = taRightJustify
+        AutoSize = False
+        Caption = '3.3V'
+        Color = clBackground
+        Font.Charset = ANSI_CHARSET
+        Font.Color = clAqua
+        Font.Height = -20
+        Font.Name = 'DS-Digital'
+        Font.Style = [fsBold]
+        ParentColor = False
+        ParentFont = False
+      end
+      object lbl_12Va: TLabel
+        Left = 136
+        Top = 304
+        Width = 56
+        Height = 19
+        Alignment = taRightJustify
+        AutoSize = False
+        Caption = '-12Va'
+        Color = clBackground
+        Font.Charset = ANSI_CHARSET
+        Font.Color = clAqua
+        Font.Height = -20
+        Font.Name = 'DS-Digital'
+        Font.Style = [fsBold]
+        ParentColor = False
+        ParentFont = False
+      end
+      object lbl2_5mA: TLabel
+        Left = 232
+        Top = 48
+        Width = 44
+        Height = 19
+        Alignment = taRightJustify
+        AutoSize = False
+        Caption = '2.5V'
+        Color = clBackground
+        Font.Charset = ANSI_CHARSET
+        Font.Color = clAqua
+        Font.Height = -20
+        Font.Name = 'DS-Digital'
+        Font.Style = [fsBold]
+        ParentColor = False
+        ParentFont = False
+      end
+      object lbl3_3mAd: TLabel
+        Left = 232
+        Top = 112
+        Width = 44
+        Height = 19
+        Alignment = taRightJustify
+        AutoSize = False
+        Caption = '3.3Vd'
+        Color = clBackground
+        Font.Charset = ANSI_CHARSET
+        Font.Color = clAqua
+        Font.Height = -20
+        Font.Name = 'DS-Digital'
+        Font.Style = [fsBold]
+        ParentColor = False
+        ParentFont = False
+      end
+      object lbl5mAa: TLabel
+        Left = 232
+        Top = 144
+        Width = 44
+        Height = 19
+        Alignment = taRightJustify
+        AutoSize = False
+        Caption = '5Va'
+        Color = clBackground
+        Font.Charset = ANSI_CHARSET
+        Font.Color = clAqua
+        Font.Height = -20
+        Font.Name = 'DS-Digital'
+        Font.Style = [fsBold]
+        ParentColor = False
+        ParentFont = False
+      end
+      object lbl8mAd: TLabel
+        Left = 232
+        Top = 240
+        Width = 44
+        Height = 19
+        Alignment = taRightJustify
+        AutoSize = False
+        Caption = '8Vd'
+        Color = clBackground
+        Font.Charset = ANSI_CHARSET
+        Font.Color = clAqua
+        Font.Height = -20
+        Font.Name = 'DS-Digital'
+        Font.Style = [fsBold]
+        ParentColor = False
+        ParentFont = False
+      end
+      object lbl3_3mA: TLabel
+        Left = 232
+        Top = 80
+        Width = 44
+        Height = 19
+        Alignment = taRightJustify
+        AutoSize = False
+        Caption = '3.3V'
+        Color = clBackground
+        Font.Charset = ANSI_CHARSET
+        Font.Color = clAqua
+        Font.Height = -20
+        Font.Name = 'DS-Digital'
+        Font.Style = [fsBold]
+        ParentColor = False
+        ParentFont = False
+      end
+      object lbl_12mAa: TLabel
+        Left = 232
+        Top = 304
+        Width = 44
+        Height = 19
+        Alignment = taRightJustify
+        AutoSize = False
+        Caption = '-12Va'
+        Color = clBackground
+        Font.Charset = ANSI_CHARSET
+        Font.Color = clAqua
+        Font.Height = -20
+        Font.Name = 'DS-Digital'
+        Font.Style = [fsBold]
+        ParentColor = False
+        ParentFont = False
       end
     end
     object TabSheet3: TTabSheet
@@ -31035,9 +31533,9 @@ object Form1: TForm1
         Caption = 'lblDiff'
       end
       object memo_debug: TMemo
-        Left = 0
-        Top = 400
-        Width = 985
+        Left = 8
+        Top = 280
+        Width = 729
         Height = 257
         Lines.Strings = (
           'memo_debug')
@@ -31130,6 +31628,46 @@ object Form1: TForm1
         RowSelect = True
         TabOrder = 5
         ViewStyle = vsReport
+      end
+      object ValueListEditor2: TValueListEditor
+        Left = 960
+        Top = 24
+        Width = 193
+        Height = 433
+        Ctl3D = True
+        Font.Charset = ANSI_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -14
+        Font.Name = #23435#20307
+        Font.Style = []
+        ParentCtl3D = False
+        ParentFont = False
+        Strings.Strings = (
+          '2.5v=      '
+          'base=       '
+          '5vd=       '
+          '8vdc=      '
+          '8vac=      '
+          '8va=       '
+          '-16vac=    '
+          '-16va=     '
+          '46vc=      '
+          '48va=      '
+          '46va=      '
+          '5va=       '
+          '-12va=     '
+          '12va=      '
+          '16va=      '
+          '16vac=     '
+          '---='
+          '8v(mA)='
+          '48v(mA)='
+          '16v(mA)='
+          '-16v(mA)=')
+        TabOrder = 6
+        ColWidths = (
+          100
+          87)
       end
     end
     object TabSheet2: TTabSheet
@@ -31564,8 +32102,8 @@ object Form1: TForm1
     Height = 20
     Masked = False
     Width = 168
-    Left = 256
-    Top = 168
+    Left = 632
+    Top = 8
     Bitmap = {
       494C0101080009000400A8001400FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000A00200003C00000001002000000000000076
@@ -36779,8 +37317,8 @@ object Form1: TForm1
     OwnerDraw = True
     ParentBiDiMode = False
     TrackButton = tbLeftButton
-    Left = 120
-    Top = 112
+    Left = 720
+    Top = 8
     object M11: TMenuItem
       Caption = 'MIC'
       OnClick = M41Click
@@ -36826,8 +37364,8 @@ object Form1: TForm1
     OwnerDraw = True
     ParentBiDiMode = False
     TrackButton = tbLeftButton
-    Left = 152
-    Top = 112
+    Left = 752
+    Top = 8
     object MenuItem3: TMenuItem
       Caption = '200mv'
       OnClick = MenuItem3Click
@@ -36857,8 +37395,8 @@ object Form1: TForm1
     Height = 20
     Masked = False
     Width = 168
-    Left = 312
-    Top = 168
+    Left = 672
+    Top = 8
     Bitmap = {
       494C0101100013000400A8001400FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000A0020000640000000100200000000000001A
@@ -45548,8 +46086,8 @@ object Form1: TForm1
     OwnerDraw = True
     ParentBiDiMode = False
     TrackButton = tbLeftButton
-    Left = 184
-    Top = 112
+    Left = 784
+    Top = 8
     object SavePreset: TMenuItem
       Caption = 'Save Preset As...'
       OnClick = btnSavePresetToFileClick
