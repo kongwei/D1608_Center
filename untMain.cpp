@@ -550,6 +550,8 @@ __fastcall TForm1::TForm1(TComponent* Owner)
     filter_set.Register(paint_agent, panel_agent);
 
     pnlDspDetail->DoubleBuffered = true;
+    pnlHeader->DoubleBuffered = true;
+    pnlMonitor->DoubleBuffered = true;
 
     // TODO: 受到滤波器数量影响
     panel_agent->SetPanel(0, panelBand0, edtFreq0, edtQ0, edtGain0, cbType0, cbBypass0);
@@ -589,8 +591,8 @@ __fastcall TForm1::TForm1(TComponent* Owner)
 //---------------------------------------------------------------------------
 void __fastcall TForm1::FormCreate(TObject *Sender)
 {
-    Width = 877+827;
-    Height = 728+50;
+    Width = 1664;
+    Height = 798;
 
     pnlOperator->Show();
 
@@ -638,6 +640,33 @@ void __fastcall TForm1::FormCreate(TObject *Sender)
     this->Repaint();
 
     pnlMix->BringToFront();
+
+    // 设置最大最小值
+    cg2_5V->MaxValue = 250+150;
+    //cg3_3V->Progress = "-- ";
+    cg3_3Vd->MaxValue = 330+150;
+    cg5Va->MaxValue = 500+150;
+    cg5Vd->MaxValue = 500+150;
+    cg8Va->MaxValue = 800+150;
+    cg8Vd->MaxValue = 800+150;
+    cg12Va->MaxValue = 1200+150;
+    cg_12Va->MaxValue = 1200+150;
+    cg16Va->MaxValue = 1600+150;
+    cg_16Va->MaxValue = 1600+150;
+    cg48Va->MaxValue = 4800+150;
+
+    cg2_5V->MinValue = 250-150;
+    //cg3_3V->Progress = "-- ";
+    cg3_3Vd->MinValue = 330-150;
+    cg5Va->MinValue = 500-150;
+    cg5Vd->MinValue = 500-150;
+    cg8Va->MinValue = 800-150;
+    cg8Vd->MinValue = 800-150;
+    cg12Va->MinValue = 1200-150;
+    cg_12Va->MinValue = 1200-150;
+    cg16Va->MinValue = 1600-150;
+    cg_16Va->MinValue = 1600-150;
+    cg48Va->MinValue = 4800-150;
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::FormDestroy(TObject *Sender)
@@ -1038,6 +1067,10 @@ int CalcVot2(unsigned __int16 true_data1, unsigned __int16 true_data2, float ra,
 {
     return ((true_data2 * (rc+rd) / rc) - (true_data1 * (rd/rc) * (ra+rb) / ra))  / 10;
 }
+String IntToAbsSring(int value)
+{
+    return String(abs(value));
+}
 void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
       TIdSocketHandle *ABinding)
 {
@@ -1176,8 +1209,10 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
 
                     Series1->Add(value, "", clLime);
 
-                    lineUpLimit->Add(line_value*1.5, "e", clRed);
-                    lineDownLimit->Add(line_value*0.5, "b", clRed);
+                    //lineUpLimit->Add(line_value*1.5, "e", clRed);
+                    //lineDownLimit->Add(line_value*0.5, "b", clRed);
+                    lineUpLimit->Add(line_value+1.5, "e", clRed);
+                    lineDownLimit->Add(line_value-1.5, "b", clRed);
 
                     Chart1->BottomAxis->Scroll(1, false);
                 }
@@ -1188,22 +1223,25 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
 
             //====================================================================
             lbl2_5mA->Caption = "-- ";
-            lbl3_3mA->Caption = String((int)((calc_data._8va - calc_data._8vdc) / 0.27 * 0.1)) + " ";   //8Vd * 0.10
-            lbl3_3mAd->Caption = String((int)((calc_data._8va - calc_data._8vdc) / 0.27 * 0.85)) + " "; //8Vd * 0.85
-            lbl5mAa->Caption = String((int)((calc_data._8va - calc_data._8vac) / 0.27)) + " ";          // 8Va
-            lbl5mAd->Caption = String((int)((calc_data._8va - calc_data._8vdc) / 0.27 * 0.05)) + " ";   // 8Vd * 0.05
-            lbl8mAa->Caption = String((int)((calc_data._8va - calc_data._8vac) / 0.27)) + " ";
-            lbl8mAd->Caption = String((int)((calc_data._8va - calc_data._8vdc) / 0.27)) + " ";
-            lbl12mAa->Caption = String((calc_data._16vac - calc_data._16va) / 0.5) + " ";               // 16Va
-            lbl_12mAa->Caption = String((calc_data._x16va - calc_data._x16vac) / 0.5) + " ";            // -16Va
-            lbl16mAa->Caption = String((calc_data._16vac - calc_data._16va) / 0.5) + " ";
-            lbl_16mAa->Caption = String((calc_data._x16va - calc_data._x16vac) / 0.5) + " ";
-            lbl48mAa->Caption = String((calc_data._48va - calc_data._46vc) / 0.5) + " ";
+            lbl3_3mA->Caption = IntToAbsSring((int)((calc_data._8va - calc_data._8vdc) / 0.27 * 0.1)) + " ";   //8Vd * 0.10
+            lbl3_3mAd->Caption = IntToAbsSring((int)((calc_data._8va - calc_data._8vdc) / 0.27 * 0.85)) + " "; //8Vd * 0.85
+            lbl5mAa->Caption = IntToAbsSring((int)((calc_data._8va - calc_data._8vac) / 0.27)) + " ";          // 8Va
+            lbl5mAd->Caption = IntToAbsSring((int)((calc_data._8va - calc_data._8vdc) / 0.27 * 0.05)) + " ";   // 8Vd * 0.05
+            lbl8mAa->Caption = IntToAbsSring((int)((calc_data._8va - calc_data._8vac) / 0.27)) + " ";
+            lbl8mAd->Caption = IntToAbsSring((int)((calc_data._8va - calc_data._8vdc) / 0.27)) + " ";
+            lbl12mAa->Caption = IntToAbsSring((calc_data._16vac - calc_data._16va) / 0.5) + " ";               // 16Va
+            lbl_12mAa->Caption = IntToAbsSring((calc_data._x16va - calc_data._x16vac) / 0.5) + " ";            // -16Va
+            lbl16mAa->Caption = IntToAbsSring((calc_data._16vac - calc_data._16va) / 0.5) + " ";
+            lbl_16mAa->Caption = IntToAbsSring((calc_data._x16va - calc_data._x16vac) / 0.5) + " ";
+            lbl48mAa->Caption = IntToAbsSring((calc_data._48va - calc_data._46vc) / 0.5) + " ";
         }
         else if (cmd.id == GetOffsetOfData(&config_map.op_code.noop))
         {
             keep_live_count = 0;
             //tsOperator->Caption = "操作(连接)";
+            shape_live->Show();
+            shape_link->Show();
+            shape_power->Show();
         }
         else
         {
@@ -1484,7 +1522,7 @@ void __fastcall TForm1::tmWatchTimer(TObject *Sender)
     }
 
     // keep alive
-    if ((keep_live_count < 10) && udpControl->Active)
+    if ((keep_live_count < 5) && udpControl->Active)
     {
         keep_live_count++;
     
@@ -1497,6 +1535,9 @@ void __fastcall TForm1::tmWatchTimer(TObject *Sender)
         // TODO: 断链
         udpControl->Active = false;
         //tsOperator->Caption = "操作(断开)";
+        shape_live->Hide();
+        shape_link->Hide();
+        shape_power->Hide();
         // Level Meter归零
         for (int i=0;i<32;i++)
         {
@@ -2707,6 +2748,10 @@ void __fastcall TForm1::UpdateCaption()
         Caption = last_device_name;//"D1608";
     else
         Caption = global_config.d1616_name;
+
+    lblDeviceName->Caption = Caption;
+    lblDeviceName->Font->Name = "DigifaceWide";
+
     Caption = Caption + " " + preset_lib_filename;
     if (file_dirty)
     {
@@ -3430,20 +3475,24 @@ void __fastcall TForm1::lbl5VdClick(TObject *Sender)
     lineDownLimit->Clear();
     Chart1->BottomAxis->SetMinMax(0, 100);
 
+    // TODO: 需要考虑纵坐标范围
     if (line_value > 0)
     {
-        Chart1->LeftAxis->SetMinMax(0, line_value*2);
+        //Chart1->LeftAxis->SetMinMax(0, line_value*2);
     }
     else
     {
-        Chart1->LeftAxis->SetMinMax(line_value*2, 0);
+        //Chart1->LeftAxis->SetMinMax(line_value*2, 0);
     }
+    Chart1->LeftAxis->SetMinMax(line_value-3, line_value+3);
 
 
     for (int i=0;i<100;i++)
     {
-        lineUpLimit->AddXY(i, line_value*1.5, "e", clRed);
-        lineDownLimit->AddXY(i,   line_value*0.5, "b", clRed);
+        //lineUpLimit->AddXY(i, line_value*1.5, "e", clRed);
+        //lineDownLimit->AddXY(i,   line_value*0.5, "b", clRed);
+        lineUpLimit->AddXY(i,   line_value+1.5, "e", clRed);
+        lineDownLimit->AddXY(i, line_value-1.5, "b", clRed);
         Series1->AddNull("");
     }
 
@@ -3466,14 +3515,19 @@ void __fastcall TForm1::tmLedTimer(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TForm1::PaintBox2Paint(TObject *Sender)
 {
+    PaintBox2->Canvas->Draw(0,0,imgBody->Picture->Graphic);
+
     Graphics::TBitmap * bmp = new Graphics::TBitmap();
     bmp->Width = Bevel8->Width;
     bmp->Height = Bevel8->Height;
+
+    bmp->Canvas->CopyRect(Rect(0,0,Bevel8->Width,Bevel8->Height),
+                                PaintBox2->Canvas,
+                                Rect(Bevel8->Left,Bevel8->Top,Bevel8->Width,Bevel8->Height));
+
     bmp->Canvas->Brush->Color = TColor(0x4A392C);
-    bmp->Canvas->FillRect(Rect(0,0,Bevel8->Width,Bevel8->Height));
-
-
-    PaintBox2->Canvas->Draw(0,0,imgBody->Picture->Graphic);
+    bmp->Canvas->Pen->Style = psClear;
+    bmp->Canvas->RoundRect(0,0,Bevel8->Width,Bevel8->Height, 25,25);
 
     BLENDFUNCTION blend;
     blend.BlendOp = AC_SRC_OVER;
@@ -3502,7 +3556,7 @@ void __fastcall TForm1::PaintBox3Paint(TObject *Sender)
     BLENDFUNCTION blend;
     blend.BlendOp = AC_SRC_OVER;
     blend.BlendFlags = 0;
-    blend.SourceConstantAlpha = 128;
+    blend.SourceConstantAlpha = 200;
     blend.AlphaFormat = 0;
 
     ::AlphaBlend(PaintBox3->Canvas->Handle,
@@ -3528,6 +3582,31 @@ void __fastcall TForm1::PaintBox3Paint(TObject *Sender)
     ::AlphaBlend(PaintBox3->Canvas->Handle,
         Bevel7->Left,Bevel7->Top,Bevel7->Width,Bevel7->Height,
         bmp->Canvas->Handle, 0, 0, Bevel7->Width,Bevel7->Height, blend);
+
+    delete bmp;
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::PaintBox4Paint(TObject *Sender)
+{
+    Graphics::TBitmap * bmp = new Graphics::TBitmap();
+    bmp->Width = 500;
+    bmp->Height = 500;
+    bmp->Canvas->Brush->Color = TColor(0x008E3539);
+    bmp->Canvas->Pen->Color = clBtnFace;
+    bmp->Canvas->RoundRect(0,0,Bevel9->Width,Bevel9->Height, 10,10);
+
+
+    PaintBox4->Canvas->Draw(0,0,imgHeader->Picture->Graphic);
+
+    BLENDFUNCTION blend;
+    blend.BlendOp = AC_SRC_OVER;
+    blend.BlendFlags = 0;
+    blend.SourceConstantAlpha = 128;
+    blend.AlphaFormat = 0;
+
+    ::AlphaBlend(PaintBox4->Canvas->Handle,
+        Bevel9->Left,Bevel9->Top,Bevel9->Width,Bevel9->Height,
+        bmp->Canvas->Handle, 0, 0, Bevel9->Width,Bevel9->Height, blend);
 
     delete bmp;
 }

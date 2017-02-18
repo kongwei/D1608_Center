@@ -295,7 +295,7 @@ __published:	// IDE-managed Components
     TToolButton *cbWatch;
     TToolButton *divbase;
     TEdit *edtIp;
-    TButton *btnSetIp;
+    TSpeedButton *btnSetIp;
     TValueListEditor *ValueListEditor1;
     TValueListEditor *ValueListEditor2;
     TLabel *Label17;
@@ -308,14 +308,14 @@ __published:	// IDE-managed Components
     TEdit *edtPresetName;
     TSpeedButton *btnModifyPresetName;
     TCheckListBox *clbAvaliablePreset;
-    TButton *btnSetLock;
+    TSpeedButton *btnSetLock;
     TLabel *Label22;
     TEdit *edtPassword;
     TEdit *edtKeyPassword;
     TEdit *edtLockedString;
     TLabel *Label24;
     TEdit *edtUnlockPassword;
-    TButton *btnUnlock;
+    TSpeedButton *btnUnlock;
     TCheckBox *cbRunningTimer;
     TCheckBox *cbRebootCount;
     TCheckBox *cbLockedString;
@@ -326,8 +326,8 @@ __published:	// IDE-managed Components
     TSpeedButton *btnKeyPasswordDown;
     TBevel *Bevel2;
     TBevel *Bevel3;
-    TButton *btnUnlockExt;
-    TButton *btnLeaveTheFactory;
+    TSpeedButton *btnUnlockExt;
+    TSpeedButton *btnLeaveTheFactory;
     TPanel *Panel2;
     TTrackBar *tbRatio;
     TTrackBar *tbThreshold;
@@ -407,7 +407,7 @@ __published:	// IDE-managed Components
     TBevel *Bevel6;
     TBevel *Bevel7;
     TPanel *pnlHeader;
-    TImage *Image4;
+    TImage *imgHeader;
         TSpeedButtonNoFrame *SpeedButtonNoFrame2;
         TSpeedButtonNoFrame *SpeedButtonNoFrame3;
         TSpeedButtonNoFrame *SpeedButtonNoFrame4;
@@ -445,6 +445,20 @@ __published:	// IDE-managed Components
     TLabel *Label44;
     TLabel *Label45;
     TLabel *Label46;
+    TLabel *lblDeviceName;
+    TLabel *lblDeviceInfo;
+    TShape *shape_link;
+    TShape *shape_power;
+    TBevel *Bevel9;
+    TPaintBox *PaintBox4;
+    TImage *Image4;
+    TImage *Image5;
+    TImage *Image6;
+    TImage *Image7;
+    TImage *Image8;
+    TImage *Image9;
+    TImage *Image10;
+    TImage *Image11;
     void __fastcall FormCreate(TObject *Sender);
     void __fastcall FormDestroy(TObject *Sender);
     void __fastcall btnRefreshClick(TObject *Sender);
@@ -584,6 +598,7 @@ __published:	// IDE-managed Components
     void __fastcall SpeedButtonNoFrame2MouseDown(TObject *Sender,
           TMouseButton Button, TShiftState Shift, int X, int Y);
     void __fastcall PaintBox3Paint(TObject *Sender);
+    void __fastcall PaintBox4Paint(TObject *Sender);
 
 private:
     // 已经选择设备
