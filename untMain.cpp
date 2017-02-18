@@ -13,6 +13,8 @@
 #pragma link "AdvTrackBar"
 #pragma link "SpeedButtonNoFrame"
 #pragma link "AdvGDIPicture"
+#pragma comment(lib,"Msimg32.lib")
+#pragma link "CGAUGES"
 #pragma resource "*.dfm"
 #pragma comment(lib, "gdiplus.lib")
 
@@ -244,8 +246,8 @@ static void CreateInputPanel(int panel_id, TForm1 * form)
     CopyInputPanelButton(form->input_panel_dsp_btn, panel_id)->Caption = "DSP " + String(char('A'-1+panel_id));
     form->input_eq_btn[panel_id-1] = CopyInputPanelButton(form->input_panel_eq_btn, panel_id);
     //form->input_comp_btn[panel_id-1] = CopyInputPanelButton(form->input_panel_comp_btn, panel_id);
-    form->input_auto_btn[panel_id-1] = CopyInputPanelButton(form->input_panel_auto_btn, panel_id);
-    form->input_default_btn[panel_id-1] = CopyInputPanelButton(form->input_panel_default_btn, panel_id);
+    //form->input_auto_btn[panel_id-1] = CopyInputPanelButton(form->input_panel_auto_btn, panel_id);
+    //form->input_default_btn[panel_id-1] = CopyInputPanelButton(form->input_panel_default_btn, panel_id);
     form->input_invert_btn[panel_id-1] = CopyInputPanelButton(form->input_panel_invert_btn, panel_id);
     form->input_noise_btn[panel_id-1] = CopyInputPanelButton(form->input_panel_noise_btn, panel_id);
     form->input_mute_btn[panel_id-1] = CopyInputPanelButton(form->input_panel_mute_btn, panel_id);
@@ -430,9 +432,9 @@ __fastcall TForm1::TForm1(TComponent* Owner)
     // 生成InputPanel
     input_type_lbl[0] = input_type;
     input_eq_btn[0] = input_panel_eq_btn;
-    input_comp_btn[0] = input_panel_comp_btn;
-    input_auto_btn[0] = input_panel_auto_btn;
-    input_default_btn[0] = input_panel_default_btn;
+    //input_comp_btn[0] = input_panel_comp_btn;
+    //input_auto_btn[0] = input_panel_auto_btn;
+    //input_default_btn[0] = input_panel_default_btn;
     input_invert_btn[0] = input_panel_invert_btn;
     input_noise_btn[0] = input_panel_noise_btn;
     input_mute_btn[0] = input_panel_mute_btn;
@@ -588,7 +590,30 @@ __fastcall TForm1::TForm1(TComponent* Owner)
 void __fastcall TForm1::FormCreate(TObject *Sender)
 {
     Width = 877+827;
-    Height = 728+50; 
+    Height = 728+50;
+
+    tsOperator->TabVisible = false;
+    tsMonitor->TabVisible = false;
+    tsSystem->TabVisible = false;
+    tsMist->TabVisible = false;
+    tsComp->TabVisible = false;
+    tsSearch->TabVisible = false;
+
+    tsOperator->Show();
+
+    SetWindowLong(edtPreset->Handle, GWL_STYLE, GetWindowLong(edtPreset->Handle, GWL_STYLE) | ES_CENTER);
+
+    // 加载字体
+    HRSRC hRsrc = FindResource(NULL, "DIGIFAW", RT_RCDATA);
+    DWORD cbSize = SizeofResource(NULL, hRsrc);
+    HGLOBAL hMem = LoadResource(NULL, hRsrc);
+    LPVOID pvData = LockResource(hMem);
+    DWORD nFontsInstalled = 0;
+    HANDLE hFontInstalled = AddFontMemResourceEx(pvData, cbSize, NULL, &nFontsInstalled);
+    if (hFontInstalled == NULL)
+    {
+    }
+
 
     // 输出结构体大小
     memo_debug->Lines->Add("InputConfigMap:" + IntToStr(sizeof(InputConfigMap)));
@@ -1116,7 +1141,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             calc_data._46vc  = CalcVot1(true_data->_46vc, 4.75, 75); 
             calc_data._48va  = CalcVot1(true_data->_48va, 4.75, 75);                                
             calc_data._46va  = CalcVot1(true_data->_46va, 4.75, 75);                                
-            calc_data._5va   = CalcVot1(true_data-> _5va, 6.81, 6.81);                                
+            calc_data._5va   = CalcVot1(true_data-> _5va, 6.81, 6.81);
             calc_data._x12va = CalcVot2(true_data->_12va, true_data->_x12va, 4.75, 14.7, 10, 14.7); 
             calc_data._12va  = CalcVot1(true_data->_12va, 4.75, 14.7);                              
             calc_data._16va  = CalcVot1(true_data->_16va, 3.32, 20);                                
@@ -1135,6 +1160,38 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             lbl16Va->Caption = String::FormatFloat("0.00 ", calc_data._16va / 100.0);
             lbl_16Va->Caption = String::FormatFloat("0.00 ", calc_data._x16va / 100.0);
             lbl48Va->Caption = String::FormatFloat("0.00 ", calc_data._48va / 100.0);
+
+            //====================================================================
+            cg2_5V->Progress = calc_data._2_5v;
+            //cg3_3V->Progress = "-- ";
+            cg3_3Vd->Progress = (calc_data._2_5v+75);
+            cg5Va->Progress = calc_data._5va;
+            cg5Vd->Progress = calc_data._5vd;
+            cg8Va->Progress = calc_data._8va;
+            cg8Vd->Progress = calc_data._8vdc;
+            cg12Va->Progress = calc_data._12va;
+            cg_12Va->Progress = calc_data._x12va + 2400;
+            cg16Va->Progress = calc_data._16va;
+            cg_16Va->Progress = calc_data._x16va + 3200;
+            cg48Va->Progress = calc_data._48va;
+
+            // 补充到曲线图
+            if (active_adc != NULL)
+            {
+                try {
+                    double value = active_adc->Caption.ToDouble();
+
+                    Series1->Add(value, "", clLime);
+
+                    lineUpLimit->Add(line_value*1.5, "e", clRed);
+                    lineDownLimit->Add(line_value*0.5, "b", clRed);
+
+                    Chart1->BottomAxis->Scroll(1, false);
+                }
+                catch(...)
+                {
+                }
+            }
 
             //====================================================================
             lbl2_5mA->Caption = "-- ";
@@ -1994,6 +2051,19 @@ void __fastcall TForm1::btnDspResetEQClick(TObject *Sender)
         filter_set.SetBypass(LP_FILTER, true);
         filter_set.GetFilter(LP_FILTER)->name = "L";
         filter_set.RepaintPaint(LP_FILTER);
+
+    // 压缩参数
+    Word enter_key = VK_RETURN;
+    edtCompRatio->Text = 1;
+    edtCompRatio->OnKeyDown(edtCompRatio, enter_key, TShiftState());
+    edtCompThreshold->Text = 0;
+    edtCompThreshold->OnKeyDown(edtCompThreshold, enter_key, TShiftState());
+    edtCompAttackTime->Text = 64;
+    edtCompAttackTime->OnKeyDown(edtCompAttackTime, enter_key, TShiftState());
+    edtCompReleaseTime->Text = 1000;
+    edtCompReleaseTime->OnKeyDown(edtCompReleaseTime, enter_key, TShiftState());
+    edtCompGain->Text = 0;
+    edtCompGain->OnKeyDown(edtCompGain, enter_key, TShiftState());
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::input_panel_level_editKeyDown(TObject *Sender,
@@ -2582,7 +2652,7 @@ void __fastcall TForm1::ApplyConfigToUI()
 
         input_eq_btn[i]->Down = config_map.input_dsp[i].eq_switch;
         //input_comp_btn[i]->Down = config_map.input_dsp[i].comp_switch;
-        input_auto_btn[i]->Down = config_map.input_dsp[i].auto_switch;
+        //input_auto_btn[i]->Down = config_map.input_dsp[i].auto_switch;
         //input_default_btn[i]->Down = config_map.input_dsp[i].;
         input_invert_btn[i]->Down = config_map.input_dsp[i].invert_switch;
         input_noise_btn[i]->Down = config_map.input_dsp[i].noise_switch;
@@ -2719,17 +2789,6 @@ void __fastcall TForm1::RecallClick(TObject *Sender)
     SendCmd(cmd);
 }
 //---------------------------------------------------------------------------
-void __fastcall TForm1::ToolButton1Click(TObject *Sender)
-{
-    //
-}
-//---------------------------------------------------------------------------
-void __fastcall TForm1::ToolButton2Click(TObject *Sender)
-{
-    //
-}
-//---------------------------------------------------------------------------
-
 void __fastcall TForm1::btnSetIpClick(TObject *Sender)
 {
     D1608Cmd cmd;
@@ -2976,11 +3035,6 @@ void __fastcall TForm1::btnLeaveTheFactoryClick(TObject *Sender)
     cmd.type = 1;
     cmd.id = offsetof(GlobalConfig, adjust_running_time);
     SendCmd(cmd);
-}
-//---------------------------------------------------------------------------
-void __fastcall TForm1::btnDownloadPresetClick(TObject *Sender)
-{
-    // 下载某个preset在flash里的值
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::tbRatioChange(TObject *Sender)
@@ -3330,6 +3384,61 @@ void __fastcall TForm1::edtCompRatioClick(TObject *Sender)
     TEdit * edt = (TEdit*)Sender;
     edt->SelectAll();
     edt->OnClick = NULL;
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::SpeedButtonNoFrame2Click(TObject *Sender)
+{
+    TControl* control = (TControl*)Sender;
+
+    PageControl1->ActivePageIndex = control->Tag;
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::lbl5VdClick(TObject *Sender)
+{
+    // 记录显示的
+    TControl* control = (TControl*)Sender;
+
+    shape_active_adc->Top = control->Top;
+    shape_active_adc->Show();
+
+    line_value = control->Tag / 10.0;
+    Series1->Clear();
+    lineUpLimit->Clear();
+    lineDownLimit->Clear();
+    Chart1->BottomAxis->SetMinMax(0, 100);
+
+    if (line_value > 0)
+    {
+        Chart1->LeftAxis->SetMinMax(0, line_value*2);
+    }
+    else
+    {
+        Chart1->LeftAxis->SetMinMax(line_value*2, 0);
+    }
+
+
+    for (int i=0;i<100;i++)
+    {
+        lineUpLimit->AddXY(i, line_value*1.5, "e", clRed);
+        lineDownLimit->AddXY(i,   line_value*0.5, "b", clRed);
+        Series1->AddNull("");
+    }
+
+    active_adc = (TLabel*)Sender;
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::tmLedTimer(TObject *Sender)
+{
+    static int count = 0;
+    count += 32;
+    count = count % 512;
+
+    int diff = abs(count - 256);
+
+    if (diff == 256)
+        diff = 255;
+
+    shape_live->Brush->Color = diff * 0x100;
 }
 //---------------------------------------------------------------------------
 

@@ -35,6 +35,12 @@
 #include <Grids.hpp>
 #include <ValEdit.hpp>
 #include <CheckLst.hpp>
+#include <jpeg.hpp>
+#include <Chart.hpp>
+#include <Series.hpp>
+#include <TeEngine.hpp>
+#include <TeeProcs.hpp>
+#include "CGAUGES.h"
 extern "C"{
 #include "../enc28j60_iap_app/inc/D1608Pack.h"
 }
@@ -249,14 +255,13 @@ __published:	// IDE-managed Components
     TAdvTrackBar *p_output_inner_level;
     TAdvTrackBar *p_input_inner_level;
     TPaintBox *pb_watch;
-    TAdvTrackBar *input_panel_trackbar;
     TPanel *pnlMix;
     TImage *pnlmix_background;
     TSpeedButtonNoFrame *pnlmix_mute;
     TEdit *pnlmix_level_edit;
     TAdvTrackBar *pnlmix_level_trackbar;
     TStaticText *pnlmix_dsp_num;
-    TTabSheet *TabSheet1;
+    TTabSheet *tsMist;
     TMemo *memo_debug;
     TImageList *ImageList1;
     TButton *btnRecall;
@@ -291,11 +296,8 @@ __published:	// IDE-managed Components
     TMenuItem *N82;
     TEdit *edtPreset;
     TToolBar *ToolBar1;
-    TToolButton *ToolButton1;
-    TToolButton *ToolButton2;
     TToolButton *cbWatch;
     TToolButton *divbase;
-    TToolButton *ToolButton5;
     TEdit *edtIp;
     TButton *btnSetIp;
     TValueListEditor *ValueListEditor1;
@@ -303,14 +305,12 @@ __published:	// IDE-managed Components
     TLabel *Label17;
     TLabel *Label18;
     TLabel *lblDiff;
-    TToolButton *tbGlobalDspName;
     TListView *lvLog;
     TButton *btnGetLog;
     TButton *btnGetDebug;
     TListView *lvDebug;
     TEdit *edtPresetName;
     TSpeedButton *btnModifyPresetName;
-    TToolButton *btnDeviceName;
     TCheckListBox *clbAvaliablePreset;
     TButton *btnSetLock;
     TLabel *Label22;
@@ -332,8 +332,7 @@ __published:	// IDE-managed Components
     TBevel *Bevel3;
     TButton *btnUnlockExt;
     TButton *btnLeaveTheFactory;
-    TButton *btnDownloadPreset;
-    TTabSheet *TabSheet2;
+    TTabSheet *tsComp;
     TPanel *Panel2;
     TTrackBar *tbRatio;
     TTrackBar *tbThreshold;
@@ -366,8 +365,8 @@ __published:	// IDE-managed Components
     TLabel *Label39;
     TLabel *Label40;
     TLabel *Label41;
-    TTabSheet *TabSheet3;
-    TTabSheet *TabSheet4;
+    TTabSheet *tsSystem;
+    TTabSheet *tsMonitor;
     TSpeedButton *SpeedButton1;
     TSpeedButton *SpeedButton2;
     TSpeedButton *SpeedButton3;
@@ -406,6 +405,44 @@ __published:	// IDE-managed Components
     TLabel *lbl8mAd;
     TLabel *lbl3_3mA;
     TLabel *lbl_12mAa;
+    TSpeedButton *tbGlobalDspName;
+    TSpeedButton *btnDeviceName;
+    TLabel *Label42;
+    TBevel *Bevel4;
+    TBevel *Bevel5;
+    TLabel *Label43;
+    TBevel *Bevel6;
+    TBevel *Bevel7;
+    TPanel *Panel3;
+    TImage *Image4;
+        TSpeedButtonNoFrame *SpeedButtonNoFrame2;
+        TSpeedButtonNoFrame *SpeedButtonNoFrame3;
+        TSpeedButtonNoFrame *SpeedButtonNoFrame4;
+    TSpeedButtonNoFrame *SpeedButtonNoFrame5;
+    TSpeedButtonNoFrame *SpeedButtonNoFrame6;
+    TSpeedButtonNoFrame *SpeedButtonNoFrame7;
+    TAdvTrackBar *input_panel_trackbar;
+    TChart *Chart1;
+    TLineSeries *Series1;
+    TLineSeries *lineDownLimit;
+    TLineSeries *lineUpLimit;
+    TCGauge *cg2_5V;
+    TCGauge *cg3_3V;
+    TCGauge *cg3_3Vd;
+    TCGauge *cg5Va;
+    TCGauge *cg5Vd;
+    TCGauge *cg8Va;
+    TCGauge *cg8Vd;
+    TCGauge *cg12Va;
+    TCGauge *cg_12Va;
+    TCGauge *cg16Va;
+    TCGauge *cg_16Va;
+    TCGauge *cg48Va;
+    TShape *shape_active_adc;
+    TTimer *tmLed;
+    TShape *shape_live;
+    TImage *Image5;
+    TPanel *pnlOperator;
     void __fastcall FormCreate(TObject *Sender);
     void __fastcall FormDestroy(TObject *Sender);
     void __fastcall btnRefreshClick(TObject *Sender);
@@ -490,8 +527,6 @@ __published:	// IDE-managed Components
     void __fastcall StoreClick(TObject *Sender);
     void __fastcall StoreAsClick(TObject *Sender);
     void __fastcall RecallClick(TObject *Sender);
-    void __fastcall ToolButton1Click(TObject *Sender);
-    void __fastcall ToolButton2Click(TObject *Sender);
     void __fastcall btnSetIpClick(TObject *Sender);
     void __fastcall tbGlobalDspNameClick(TObject *Sender);
     void __fastcall btnGetLogClick(TObject *Sender);
@@ -516,7 +551,6 @@ __published:	// IDE-managed Components
     void __fastcall edtKeyPasswordKeyPress(TObject *Sender, char &Key);
     void __fastcall btnUnlockExtClick(TObject *Sender);
     void __fastcall btnLeaveTheFactoryClick(TObject *Sender);
-    void __fastcall btnDownloadPresetClick(TObject *Sender);
     void __fastcall tbRatioChange(TObject *Sender);
     void __fastcall tbThresholdChange(TObject *Sender);
     void __fastcall tbReleaseChange(TObject *Sender);
@@ -542,6 +576,9 @@ __published:	// IDE-managed Components
           TShiftState Shift);
     void __fastcall edtCompRatioExit(TObject *Sender);
     void __fastcall edtCompRatioClick(TObject *Sender);
+    void __fastcall SpeedButtonNoFrame2Click(TObject *Sender);
+    void __fastcall lbl5VdClick(TObject *Sender);
+    void __fastcall tmLedTimer(TObject *Sender);
 
 private:
     // 已经选择设备
@@ -639,6 +676,10 @@ private:
     TNotifyEvent input_event;
     void __fastcall after_input_panel_dsp_numClick(TObject *Sender);
     void __fastcall after_output_panel_dsp_numClick(TObject *Sender);
+
+    // 电压检测标准值
+    float line_value;
+    TLabel* active_adc;
 };
 //---------------------------------------------------------------------------
 extern PACKAGE TForm1 *Form1;
