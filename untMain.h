@@ -81,9 +81,6 @@ extern "C"{
 class TForm1 : public TForm
 {
 __published:	// IDE-managed Components
-    TPageControl *PageControl1;
-    TTabSheet *tsSearch;
-    TTabSheet *tsOperator;
     TBevel *Bevel1;
     TLabel *Label1;
     TMemo *mmLog;
@@ -261,7 +258,6 @@ __published:	// IDE-managed Components
     TEdit *pnlmix_level_edit;
     TAdvTrackBar *pnlmix_level_trackbar;
     TStaticText *pnlmix_dsp_num;
-    TTabSheet *tsMist;
     TMemo *memo_debug;
     TImageList *ImageList1;
     TButton *btnRecall;
@@ -332,7 +328,6 @@ __published:	// IDE-managed Components
     TBevel *Bevel3;
     TButton *btnUnlockExt;
     TButton *btnLeaveTheFactory;
-    TTabSheet *tsComp;
     TPanel *Panel2;
     TTrackBar *tbRatio;
     TTrackBar *tbThreshold;
@@ -365,8 +360,6 @@ __published:	// IDE-managed Components
     TLabel *Label39;
     TLabel *Label40;
     TLabel *Label41;
-    TTabSheet *tsSystem;
-    TTabSheet *tsMonitor;
     TSpeedButton *SpeedButton1;
     TSpeedButton *SpeedButton2;
     TSpeedButton *SpeedButton3;
@@ -413,14 +406,11 @@ __published:	// IDE-managed Components
     TLabel *Label43;
     TBevel *Bevel6;
     TBevel *Bevel7;
-    TPanel *Panel3;
+    TPanel *pnlHeader;
     TImage *Image4;
         TSpeedButtonNoFrame *SpeedButtonNoFrame2;
         TSpeedButtonNoFrame *SpeedButtonNoFrame3;
         TSpeedButtonNoFrame *SpeedButtonNoFrame4;
-    TSpeedButtonNoFrame *SpeedButtonNoFrame5;
-    TSpeedButtonNoFrame *SpeedButtonNoFrame6;
-    TSpeedButtonNoFrame *SpeedButtonNoFrame7;
     TAdvTrackBar *input_panel_trackbar;
     TChart *Chart1;
     TLineSeries *Series1;
@@ -441,8 +431,20 @@ __published:	// IDE-managed Components
     TShape *shape_active_adc;
     TTimer *tmLed;
     TShape *shape_live;
-    TImage *Image5;
+    TImage *imgBody;
     TPanel *pnlOperator;
+    TPanel *pnlMonitor;
+    TPanel *pnlSystem;
+    TPanel *pnlMist;
+    TPanel *pnlComp1;
+    TPanel *pnlSearch;
+    TPanel *Panel3;
+    TPaintBox *PaintBox2;
+    TBevel *Bevel8;
+    TPaintBox *PaintBox3;
+    TLabel *Label44;
+    TLabel *Label45;
+    TLabel *Label46;
     void __fastcall FormCreate(TObject *Sender);
     void __fastcall FormDestroy(TObject *Sender);
     void __fastcall btnRefreshClick(TObject *Sender);
@@ -576,9 +578,12 @@ __published:	// IDE-managed Components
           TShiftState Shift);
     void __fastcall edtCompRatioExit(TObject *Sender);
     void __fastcall edtCompRatioClick(TObject *Sender);
-    void __fastcall SpeedButtonNoFrame2Click(TObject *Sender);
     void __fastcall lbl5VdClick(TObject *Sender);
     void __fastcall tmLedTimer(TObject *Sender);
+    void __fastcall PaintBox2Paint(TObject *Sender);
+    void __fastcall SpeedButtonNoFrame2MouseDown(TObject *Sender,
+          TMouseButton Button, TShiftState Shift, int X, int Y);
+    void __fastcall PaintBox3Paint(TObject *Sender);
 
 private:
     // 已经选择设备

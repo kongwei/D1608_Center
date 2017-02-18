@@ -277,10 +277,10 @@ static void CreateOutputPanel(int panel_id, TForm1 * form)
 }
 static void CopyWatchPanel(int panel_id, TForm1 * form, String label, int left)
 {
-    TPanel * watch_panel = new TPanel(form->tsOperator);
+    TPanel * watch_panel = new TPanel(form->pnlOperator);
     watch_panel->SetBounds(left, form->watch_panel->Top, form->watch_panel->Width, form->watch_panel->Height);
     watch_panel->BevelOuter = form->watch_panel->BevelOuter;
-    watch_panel->Parent = form->tsOperator;
+    watch_panel->Parent = form->pnlOperator;
     watch_panel->Color = form->watch_panel->Color;
 
     TImage * bk_image = new TImage(watch_panel);
@@ -592,14 +592,7 @@ void __fastcall TForm1::FormCreate(TObject *Sender)
     Width = 877+827;
     Height = 728+50;
 
-    tsOperator->TabVisible = false;
-    tsMonitor->TabVisible = false;
-    tsSystem->TabVisible = false;
-    tsMist->TabVisible = false;
-    tsComp->TabVisible = false;
-    tsSearch->TabVisible = false;
-
-    tsOperator->Show();
+    pnlOperator->Show();
 
     SetWindowLong(edtPreset->Handle, GWL_STYLE, GetWindowLong(edtPreset->Handle, GWL_STYLE) | ES_CENTER);
 
@@ -852,7 +845,7 @@ void __fastcall TForm1::btnSelectClick(TObject *Sender)
     preset_cmd.preset = 0; // 读取global_config
     udpControl->SendBuffer(dst_ip, 905, &preset_cmd, sizeof(preset_cmd));
 
-    tsOperator->Show();
+    pnlOperator->Show();
     pnlDspDetail->Hide();
     pnlMix->Hide();
     cbWatch->Down = true;
@@ -1195,7 +1188,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
 
             //====================================================================
             lbl2_5mA->Caption = "-- ";
-            lbl3_3mA->Caption = String::FormatFloat("0.00 ", calc_data._8vdc / 100.0 * 0.10);           //8Vd * 0.10
+            lbl3_3mA->Caption = String((int)((calc_data._8va - calc_data._8vdc) / 0.27 * 0.1)) + " ";   //8Vd * 0.10
             lbl3_3mAd->Caption = String((int)((calc_data._8va - calc_data._8vdc) / 0.27 * 0.85)) + " "; //8Vd * 0.85
             lbl5mAa->Caption = String((int)((calc_data._8va - calc_data._8vac) / 0.27)) + " ";          // 8Va
             lbl5mAd->Caption = String((int)((calc_data._8va - calc_data._8vdc) / 0.27 * 0.05)) + " ";   // 8Vd * 0.05
@@ -1210,7 +1203,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
         else if (cmd.id == GetOffsetOfData(&config_map.op_code.noop))
         {
             keep_live_count = 0;
-            tsOperator->Caption = "操作(连接)";
+            //tsOperator->Caption = "操作(连接)";
         }
         else
         {
@@ -1503,7 +1496,7 @@ void __fastcall TForm1::tmWatchTimer(TObject *Sender)
     {
         // TODO: 断链
         udpControl->Active = false;
-        tsOperator->Caption = "操作(断开)";
+        //tsOperator->Caption = "操作(断开)";
         // Level Meter归零
         for (int i=0;i<32;i++)
         {
@@ -3386,11 +3379,41 @@ void __fastcall TForm1::edtCompRatioClick(TObject *Sender)
     edt->OnClick = NULL;
 }
 //---------------------------------------------------------------------------
-void __fastcall TForm1::SpeedButtonNoFrame2Click(TObject *Sender)
+void __fastcall TForm1::SpeedButtonNoFrame2MouseDown(TObject *Sender,
+      TMouseButton Button, TShiftState Shift, int X, int Y)
 {
     TControl* control = (TControl*)Sender;
+    int tag = control->Tag;
+    if (Button == mbRight)
+        tag = tag + 3;
 
-    PageControl1->ActivePageIndex = control->Tag;
+    switch (tag)
+    {
+    case 0:
+        pnlOperator->Show();
+        pnlOperator->BringToFront();
+        break;
+    case 1:
+        pnlMonitor->Show();
+        pnlMonitor->BringToFront();
+        break;
+    case 2:
+        pnlSystem->Show();
+        pnlSystem->BringToFront();
+        break;
+    case 3:
+        pnlComp1->Show();
+        pnlComp1->BringToFront();
+        break;
+    case 4:
+        pnlMist->Show();
+        pnlMist->BringToFront();
+        break;
+    case 5:
+        pnlSearch->Show();
+        pnlSearch->BringToFront();
+        break;
+    }
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::lbl5VdClick(TObject *Sender)
@@ -3438,7 +3461,75 @@ void __fastcall TForm1::tmLedTimer(TObject *Sender)
     if (diff == 256)
         diff = 255;
 
-    shape_live->Brush->Color = diff * 0x100;
+    shape_live->Brush->Color = TColor(diff * 0x100);
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::PaintBox2Paint(TObject *Sender)
+{
+    Graphics::TBitmap * bmp = new Graphics::TBitmap();
+    bmp->Width = Bevel8->Width;
+    bmp->Height = Bevel8->Height;
+    bmp->Canvas->Brush->Color = TColor(0x4A392C);
+    bmp->Canvas->FillRect(Rect(0,0,Bevel8->Width,Bevel8->Height));
+
+
+    PaintBox2->Canvas->Draw(0,0,imgBody->Picture->Graphic);
+
+    BLENDFUNCTION blend;
+    blend.BlendOp = AC_SRC_OVER;
+    blend.BlendFlags = 0;
+    blend.SourceConstantAlpha = 128;
+    blend.AlphaFormat = 0;
+
+    ::AlphaBlend(PaintBox2->Canvas->Handle,
+        Bevel8->Left,Bevel8->Top,Bevel8->Width,Bevel8->Height,
+        bmp->Canvas->Handle, 0, 0, Bevel8->Width,Bevel8->Height, blend);
+
+    delete bmp;
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::PaintBox3Paint(TObject *Sender)
+{
+    Graphics::TBitmap * bmp = new Graphics::TBitmap();
+    bmp->Width = 500;
+    bmp->Height = 500;
+    bmp->Canvas->Brush->Color = TColor(0x4A392C);
+    bmp->Canvas->FillRect(Rect(0,0,500,500));
+
+
+    PaintBox3->Canvas->Draw(0,0,imgBody->Picture->Graphic);
+
+    BLENDFUNCTION blend;
+    blend.BlendOp = AC_SRC_OVER;
+    blend.BlendFlags = 0;
+    blend.SourceConstantAlpha = 128;
+    blend.AlphaFormat = 0;
+
+    ::AlphaBlend(PaintBox3->Canvas->Handle,
+        Bevel2->Left,Bevel2->Top,Bevel2->Width,Bevel2->Height,
+        bmp->Canvas->Handle, 0, 0, Bevel2->Width,Bevel2->Height, blend);
+
+    ::AlphaBlend(PaintBox3->Canvas->Handle,
+        Bevel3->Left,Bevel3->Top,Bevel3->Width,Bevel3->Height,
+        bmp->Canvas->Handle, 0, 0, Bevel3->Width,Bevel3->Height, blend);
+
+    ::AlphaBlend(PaintBox3->Canvas->Handle,
+        Bevel4->Left,Bevel4->Top,Bevel4->Width,Bevel4->Height,
+        bmp->Canvas->Handle, 0, 0, Bevel4->Width,Bevel4->Height, blend);
+
+    ::AlphaBlend(PaintBox3->Canvas->Handle,
+        Bevel5->Left,Bevel5->Top,Bevel5->Width,Bevel5->Height,
+        bmp->Canvas->Handle, 0, 0, Bevel5->Width,Bevel5->Height, blend);
+
+    ::AlphaBlend(PaintBox3->Canvas->Handle,
+        Bevel6->Left,Bevel6->Top,Bevel6->Width,Bevel6->Height,
+        bmp->Canvas->Handle, 0, 0, Bevel6->Width,Bevel6->Height, blend);
+
+    ::AlphaBlend(PaintBox3->Canvas->Handle,
+        Bevel7->Left,Bevel7->Top,Bevel7->Width,Bevel7->Height,
+        bmp->Canvas->Handle, 0, 0, Bevel7->Width,Bevel7->Height, blend);
+
+    delete bmp;
 }
 //---------------------------------------------------------------------------
 
