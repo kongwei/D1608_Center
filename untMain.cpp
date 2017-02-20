@@ -1400,7 +1400,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             }
 
 
-            if (preset_cmd.store_page < 8)
+            if (preset_cmd.store_page < 9)
             {
                 // next
                 udpControl->SendBuffer(dst_ip, 905, &preset_cmd, sizeof(preset_cmd));
@@ -2726,6 +2726,10 @@ void __fastcall TForm1::ApplyConfigToUI()
         else
             output_dsp_name[i]->Caption = dsp_name;
     }
+
+    // master
+    master_panel_trackbar->Position = config_map.master_mix.level_a;
+    btnMasterMute->Down = (config_map.master_mix.mute_switch==1);
 
     on_loading = false;
 }
