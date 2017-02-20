@@ -7574,6 +7574,7 @@ object Form1: TForm1
     Align = alClient
     BevelOuter = bvNone
     Caption = 'pnlOperator'
+    PopupMenu = PopupMenu3
     TabOrder = 3
     Visible = False
     object output_panel_bkground: TImage
