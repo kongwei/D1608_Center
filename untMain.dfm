@@ -1,8 +1,8 @@
 object Form1: TForm1
-  Left = 2
-  Top = 2
-  Width = 1364
-  Height = 726
+  Left = -8
+  Top = -8
+  Width = 1382
+  Height = 744
   Caption = 'D1608'
   Color = clBtnFace
   Font.Charset = GB2312_CHARSET
@@ -22,8 +22,8 @@ object Form1: TForm1
   object imgBody: TImage
     Left = 0
     Top = 106
-    Width = 1362
-    Height = 565
+    Width = 1366
+    Height = 600
     Align = alClient
     Picture.Data = {
       0A544A504547496D61676596CB0100FFD8FFE000104A46494600010100000100
@@ -3908,8 +3908,8 @@ object Form1: TForm1
   object pnlComp1: TPanel
     Left = 0
     Top = 106
-    Width = 1362
-    Height = 565
+    Width = 1366
+    Height = 600
     Align = alClient
     BevelOuter = bvNone
     TabOrder = 7
@@ -4088,143 +4088,11 @@ object Form1: TForm1
       TabOrder = 9
     end
   end
-  object pnlSearch: TPanel
-    Left = 0
-    Top = 106
-    Width = 1362
-    Height = 565
-    Align = alClient
-    BevelOuter = bvNone
-    TabOrder = 8
-    Visible = False
-    DesignSize = (
-      1362
-      565)
-    object Label1: TLabel
-      Left = 1364
-      Top = 52
-      Width = 53
-      Height = 13
-      Anchors = [akTop, akRight]
-      Caption = #38388#38548'('#31186')'
-    end
-    object Bevel1: TBevel
-      Left = -390
-      Top = 541
-      Width = 1823
-      Height = 10
-      Anchors = [akLeft, akRight, akBottom]
-      Shape = bsBottomLine
-    end
-    object btnRefresh: TButton
-      Left = 1311
-      Top = 5
-      Width = 106
-      Height = 25
-      Anchors = [akTop, akRight]
-      Caption = #31435#21363#21047#26032
-      TabOrder = 0
-      OnClick = btnRefreshClick
-    end
-    object mmLog: TMemo
-      Left = -382
-      Top = 532
-      Width = 1815
-      Height = 126
-      Anchors = [akLeft, akRight, akBottom]
-      ReadOnly = True
-      TabOrder = 1
-    end
-    object btnSelect: TButton
-      Left = 1311
-      Top = 77
-      Width = 106
-      Height = 25
-      Anchors = [akTop, akRight]
-      Caption = #36873#25321#35774#22791
-      TabOrder = 2
-      OnClick = btnSelectClick
-    end
-    object spInterval: TCSpinEdit
-      Left = 1368
-      Top = 48
-      Width = 49
-      Height = 22
-      Anchors = [akTop, akRight]
-      MaxValue = 20
-      MinValue = 1
-      TabOrder = 3
-      Value = 1
-    end
-    object cbAutoRefresh: TCheckBox
-      Left = 1320
-      Top = 32
-      Width = 97
-      Height = 17
-      Anchors = [akTop, akRight]
-      Caption = #33258#21160#21047#26032
-      Checked = True
-      State = cbChecked
-      TabOrder = 4
-    end
-    object lbIplist: TListBox
-      Left = 16
-      Top = 168
-      Width = 105
-      Height = 17
-      ItemHeight = 13
-      TabOrder = 5
-      Visible = False
-    end
-    object lvDevice: TListView
-      Left = -138
-      Top = 0
-      Width = 1419
-      Height = 509
-      Anchors = [akLeft, akTop, akRight, akBottom]
-      Columns = <
-        item
-          Width = 30
-        end
-        item
-          Caption = 'IP'
-          Width = 100
-        end
-        item
-          Caption = #26412#22320#24191#25773'IP'
-          Width = 100
-        end
-        item
-          Caption = #35774#22791#31867#22411
-          Width = 150
-        end
-        item
-          Caption = 'MAC'
-          Width = 140
-        end
-        item
-          Caption = #29256#26412
-          Width = 80
-        end
-        item
-          Caption = #26085#26399
-          Width = 60
-        end>
-      GridLines = True
-      HideSelection = False
-      ReadOnly = True
-      RowSelect = True
-      TabOrder = 6
-      ViewStyle = vsReport
-      OnDblClick = lvDeviceDblClick
-      OnSelectItem = lvDeviceSelectItem
-    end
-  end
   object pnlMist: TPanel
     Left = 0
     Top = 106
-    Width = 1362
-    Height = 565
+    Width = 1366
+    Height = 600
     Align = alClient
     BevelOuter = bvNone
     TabOrder = 6
@@ -4391,7 +4259,7 @@ object Form1: TForm1
   object ToolBar1: TToolBar
     Left = 0
     Top = 0
-    Width = 1362
+    Width = 1366
     Height = 25
     ButtonHeight = 21
     ButtonWidth = 56
@@ -4448,7 +4316,7 @@ object Form1: TForm1
   object pnlHeader: TPanel
     Left = 0
     Top = 25
-    Width = 1362
+    Width = 1366
     Height = 80
     Align = alTop
     BevelOuter = bvNone
@@ -4456,7 +4324,7 @@ object Form1: TForm1
     object PaintBox4: TPaintBox
       Left = 0
       Top = 0
-      Width = 1362
+      Width = 1366
       Height = 80
       Align = alClient
       OnPaint = PaintBox4Paint
@@ -5719,7 +5587,7 @@ object Form1: TForm1
   object Panel3: TPanel
     Left = 0
     Top = 105
-    Width = 1362
+    Width = 1366
     Height = 1
     Align = alTop
     BevelOuter = bvNone
@@ -5729,8 +5597,8 @@ object Form1: TForm1
   object pnlMonitor: TPanel
     Left = 0
     Top = 106
-    Width = 1362
-    Height = 565
+    Width = 1366
+    Height = 600
     Align = alClient
     BevelOuter = bvNone
     TabOrder = 4
@@ -5738,8 +5606,8 @@ object Form1: TForm1
     object PaintBox2: TPaintBox
       Left = 0
       Top = 0
-      Width = 1362
-      Height = 565
+      Width = 1366
+      Height = 600
       Align = alClient
       OnPaint = PaintBox2Paint
     end
@@ -6602,8 +6470,8 @@ object Form1: TForm1
   object pnlSystem: TPanel
     Left = 0
     Top = 106
-    Width = 1362
-    Height = 565
+    Width = 1366
+    Height = 600
     Align = alClient
     BevelOuter = bvNone
     TabOrder = 5
@@ -6611,8 +6479,8 @@ object Form1: TForm1
     object PaintBox3: TPaintBox
       Left = 0
       Top = 0
-      Width = 1362
-      Height = 565
+      Width = 1366
+      Height = 600
       Align = alClient
       OnPaint = PaintBox3Paint
     end
@@ -7569,8 +7437,8 @@ object Form1: TForm1
   object pnlOperator: TPanel
     Left = 0
     Top = 106
-    Width = 1362
-    Height = 565
+    Width = 1366
+    Height = 600
     Align = alClient
     BevelOuter = bvNone
     Caption = 'pnlOperator'
@@ -38314,6 +38182,138 @@ object Form1: TForm1
         Version = '1.6.2.0'
         Visible = False
       end
+    end
+  end
+  object pnlSearch: TPanel
+    Left = 0
+    Top = 106
+    Width = 1366
+    Height = 600
+    Align = alClient
+    BevelOuter = bvNone
+    TabOrder = 8
+    Visible = False
+    DesignSize = (
+      1366
+      600)
+    object Label1: TLabel
+      Left = 1192
+      Top = 52
+      Width = 53
+      Height = 13
+      Anchors = [akTop, akRight]
+      Caption = #38388#38548'('#31186')'
+    end
+    object Bevel1: TBevel
+      Left = 8
+      Top = 352
+      Width = 973
+      Height = 10
+      Anchors = [akLeft, akRight, akBottom]
+      Shape = bsBottomLine
+    end
+    object btnRefresh: TButton
+      Left = 1195
+      Top = 5
+      Width = 106
+      Height = 25
+      Anchors = [akTop, akRight]
+      Caption = #31435#21363#21047#26032
+      TabOrder = 0
+      OnClick = btnRefreshClick
+    end
+    object mmLog: TMemo
+      Left = 8
+      Top = 368
+      Width = 1097
+      Height = 189
+      Anchors = [akLeft, akRight, akBottom]
+      ReadOnly = True
+      TabOrder = 1
+    end
+    object btnSelect: TButton
+      Left = 1195
+      Top = 77
+      Width = 106
+      Height = 25
+      Anchors = [akTop, akRight]
+      Caption = #36873#25321#35774#22791
+      TabOrder = 2
+      OnClick = btnSelectClick
+    end
+    object spInterval: TCSpinEdit
+      Left = 1252
+      Top = 48
+      Width = 49
+      Height = 22
+      Anchors = [akTop, akRight]
+      MaxValue = 20
+      MinValue = 1
+      TabOrder = 3
+      Value = 1
+    end
+    object cbAutoRefresh: TCheckBox
+      Left = 1204
+      Top = 32
+      Width = 97
+      Height = 17
+      Anchors = [akTop, akRight]
+      Caption = #33258#21160#21047#26032
+      Checked = True
+      State = cbChecked
+      TabOrder = 4
+    end
+    object lbIplist: TListBox
+      Left = 16
+      Top = 168
+      Width = 105
+      Height = 17
+      ItemHeight = 13
+      TabOrder = 5
+      Visible = False
+    end
+    object lvDevice: TListView
+      Left = 8
+      Top = 8
+      Width = 1089
+      Height = 345
+      Anchors = [akLeft, akTop, akRight, akBottom]
+      Columns = <
+        item
+          Width = 30
+        end
+        item
+          Caption = 'IP'
+          Width = 100
+        end
+        item
+          Caption = #26412#22320#24191#25773'IP'
+          Width = 100
+        end
+        item
+          Caption = #35774#22791#31867#22411
+          Width = 150
+        end
+        item
+          Caption = 'MAC'
+          Width = 140
+        end
+        item
+          Caption = #29256#26412
+          Width = 80
+        end
+        item
+          Caption = #26085#26399
+          Width = 60
+        end>
+      GridLines = True
+      HideSelection = False
+      ReadOnly = True
+      RowSelect = True
+      TabOrder = 6
+      ViewStyle = vsReport
+      OnDblClick = lvDeviceDblClick
+      OnSelectItem = lvDeviceSelectItem
     end
   end
   object udpSLP: TIdUDPServer

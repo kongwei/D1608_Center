@@ -613,9 +613,9 @@ void __fastcall TForm1::FormCreate(TObject *Sender)
     // 输出结构体大小
     memo_debug->Lines->Add("InputConfigMap:" + IntToStr(sizeof(InputConfigMap)));
     memo_debug->Lines->Add("OutputConfigMap:" + IntToStr(sizeof(OutputConfigMap)));
-    memo_debug->Lines->Add("MasterConfigMap:" + IntToStr(sizeof(MasterConfigMap)));
+    memo_debug->Lines->Add("MasterMixConfigMap:" + IntToStr(sizeof(MasterMixConfigMap)));
     memo_debug->Lines->Add("ConfigMap:" + IntToStr(sizeof(ConfigMap)));
-    memo_debug->Lines->Add("mix_mute:" + IntToStr(sizeof(config_map.mix_mute)));
+    memo_debug->Lines->Add("mix_mute:" + IntToStr(sizeof(config_map.master_mix.mix_mute)));
 
     // 根据数量初始化控制器
     // Panel->Tag
@@ -1247,7 +1247,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
         {
             memo_debug->Lines->Add("Reply：" + CmdLog(cmd));
 
-            if (cmd.id == GetOffsetOfData(&config_map.master.level_a))
+            if (cmd.id == GetOffsetOfData(&config_map.master_mix.level_a))
             {
                 master_panel_trackbar->OnChange = NULL;
                 master_panel_trackbar->Position = cmd.data.data_32;
@@ -1267,7 +1267,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
                     }
                 }
 
-                config_map.master.level_a = value;
+                config_map.master_mix.level_a = value;
             }
         }
     }
@@ -1377,8 +1377,8 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
                 memcpy(&config_map.output_dsp[12], preset_cmd.data, sizeof(config_map.output_dsp[0])*4);
                 break;
             case 8:
-                memcpy(&config_map.master, preset_cmd.data,
-                        sizeof(config_map.master)+sizeof(config_map.mix)+sizeof(config_map.mix_mute));
+                memcpy(&config_map.master_mix, preset_cmd.data,
+                        sizeof(config_map.master_mix));
                 break;
             }
 
@@ -1461,8 +1461,8 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
                 memcpy(preset_cmd.data, &config_map.output_dsp[12], sizeof(config_map.output_dsp[0])*4);
                 break;
             case 8:
-                memcpy(preset_cmd.data, &config_map.master,
-                        sizeof(config_map.master)+sizeof(config_map.mix)+sizeof(config_map.mix_mute));
+                memcpy(preset_cmd.data, &config_map.master_mix,
+                        sizeof(config_map.master_mix));
             default:
                 break;
             }
@@ -1630,8 +1630,8 @@ void __fastcall TForm1::ToogleOutputMix(TObject *Sender)
 
         for (int i=0;i<=16;i++)
         {
-            mix_mute_btn[i]->Down = config_map.mix_mute[i][out_dsp_num-1];
-            mix_level_trackbar[i]->Position = config_map.mix[i][out_dsp_num-1];
+            mix_mute_btn[i]->Down = config_map.master_mix.mix_mute[i][out_dsp_num-1];
+            mix_level_trackbar[i]->Position = config_map.master_mix.mix[i][out_dsp_num-1];
         }
     }
     else
@@ -1829,12 +1829,12 @@ void __fastcall TForm1::MasterVolumeChange(TObject *Sender)
     }
 
     D1608Cmd cmd;
-    cmd.id = GetOffsetOfData(&config_map.master.level_a);
+    cmd.id = GetOffsetOfData(&config_map.master_mix.level_a);
     cmd.data.data_32 = value;
     cmd.length = 4;
     SendCmd(cmd);
 
-    config_map.master.level_a = value;
+    config_map.master_mix.level_a = value;
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::btnMixMuteClick(TObject *Sender)
@@ -1855,12 +1855,12 @@ void __fastcall TForm1::btnMasterMuteClick(TObject *Sender)
     TSpeedButton* btn = (TSpeedButton*)Sender;
 
     D1608Cmd cmd;
-    cmd.id = GetOffsetOfData(&config_map.master.mute_switch);
+    cmd.id = GetOffsetOfData(&config_map.master_mix.mute_switch);
     cmd.data.data_8 = btn->Down;
     cmd.length = 1;
     SendCmd(cmd);
 
-    config_map.master.mute_switch = btn->Down;
+    config_map.master_mix.mute_switch = btn->Down;
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::btnPhantonClick(TObject *Sender)
@@ -2418,12 +2418,12 @@ void __fastcall TForm1::pnlmix_level_trackbarChange(TObject *Sender)
         int out_dsp_num = last_out_num_btn->Tag;
 
         D1608Cmd cmd;
-        cmd.id = GetOffsetOfData(&config_map.mix[in_dsp_num-1][out_dsp_num-1]);
+        cmd.id = GetOffsetOfData(&config_map.master_mix.mix[in_dsp_num-1][out_dsp_num-1]);
         cmd.data.data_16 = value;
         cmd.length = 2;
         SendCmd(cmd);
 
-        config_map.mix[in_dsp_num-1][out_dsp_num-1] = value;
+        config_map.master_mix.mix[in_dsp_num-1][out_dsp_num-1] = value;
     }
 }
 //---------------------------------------------------------------------------
@@ -2478,12 +2478,12 @@ void __fastcall TForm1::pnlmix_muteClick(TObject *Sender)
         int out_dsp_num = last_out_num_btn->Tag;
 
         D1608Cmd cmd;
-        cmd.id = GetOffsetOfData(&config_map.mix_mute[in_dsp_num-1][out_dsp_num-1]);
+        cmd.id = GetOffsetOfData(&config_map.master_mix.mix_mute[in_dsp_num-1][out_dsp_num-1]);
         cmd.data.data_8 = btn->Down;
         cmd.length = 1;
         SendCmd(cmd);
 
-        config_map.mix_mute[in_dsp_num-1][out_dsp_num-1] = btn->Down;
+        config_map.master_mix.mix_mute[in_dsp_num-1][out_dsp_num-1] = btn->Down;
     }
 }
 //---------------------------------------------------------------------------
