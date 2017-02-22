@@ -2779,6 +2779,10 @@ static void OnFeedbackData(unsigned int cmd_id, int length, TForm1 * frm)
 		else if (cmd_id == GetOffsetOfData(&config_map.input_dsp[ObjectIndex].phantom_switch))
 		{
             // 小界面
+            if (frm->pnlDspDetail->Visible && (frm->pnlDspDetail->Tag-1==ObjectIndex))
+            {
+                frm->btnPhanton->Down = config_map.input_dsp[ObjectIndex].phantom_switch;
+            }
 		}
 		else if (cmd_id == GetOffsetOfData((char*)&config_map.input_dsp[ObjectIndex].level_a))
 		{
@@ -2787,6 +2791,10 @@ static void OnFeedbackData(unsigned int cmd_id, int length, TForm1 * frm)
 		else if (cmd_id == GetOffsetOfData((char*)&config_map.input_dsp[ObjectIndex].level_b))
 		{
             // 小界面
+            if (frm->pnlDspDetail->Visible && (frm->pnlDspDetail->Tag-1==ObjectIndex))
+            {
+                frm->TrackBar27->Position = config_map.input_dsp[ObjectIndex].level_b;
+            }
 		}
 		else if (cmd_id == GetOffsetOfData((char*)&config_map.input_dsp[ObjectIndex].gain))
 		{
@@ -2815,6 +2823,10 @@ static void OnFeedbackData(unsigned int cmd_id, int length, TForm1 * frm)
 		else if (cmd_id == GetOffsetOfData(&config_map.output_dsp[ObjectIndex].comp_switch))
 		{
             frm->output_comp_btn[ObjectIndex]->Down = config_map.output_dsp[ObjectIndex].comp_switch;
+            if (frm->pnlDspDetail->Visible && (frm->pnlDspDetail->Tag-101==ObjectIndex))
+            {
+                frm->btnDSPCOMP->Down = config_map.output_dsp[ObjectIndex].comp_switch;
+            }
 		}
 		else if (cmd_id == GetOffsetOfData(&config_map.output_dsp[ObjectIndex].invert_switch))
 		{
@@ -2831,30 +2843,53 @@ static void OnFeedbackData(unsigned int cmd_id, int length, TForm1 * frm)
 		else if (cmd_id == GetOffsetOfData((char*)&config_map.output_dsp[ObjectIndex].level_b))
 		{
             // 小界面
+            if (frm->pnlDspDetail->Visible && (frm->pnlDspDetail->Tag-101==ObjectIndex))
+            {
+                frm->TrackBar27->Position = config_map.output_dsp[ObjectIndex].level_b;
+            }
 		}
 		else if (cmd_id == GetOffsetOfData((char*)&config_map.output_dsp[ObjectIndex].gain))
 		{
-            // 小界面
+           frm->output_type_lbl[ObjectIndex]->Caption = OutputGain2String(config_map.input_dsp[ObjectIndex].gain);
 		}
 		else if (cmd_id == GetOffsetOfData((char*)&config_map.output_dsp[ObjectIndex].ratio))
 		{
             // 小界面
+            if (frm->pnlDspDetail->Visible && (frm->pnlDspDetail->Tag-101==ObjectIndex))
+            {
+                frm->edtCompRatio->Text = config_map.output_dsp[ObjectIndex].ratio/100.0;
+            }
 		}
 		else if (cmd_id == GetOffsetOfData((char*)&config_map.output_dsp[ObjectIndex].threshold))
 		{
             // 小界面
+            if (frm->pnlDspDetail->Visible && (frm->pnlDspDetail->Tag-101==ObjectIndex))
+            {
+                frm->edtCompThreshold->Text = config_map.output_dsp[ObjectIndex].threshold/10.0;
+            }
 		}
 		else if (cmd_id == GetOffsetOfData((char*)&config_map.output_dsp[ObjectIndex].attack_time))
 		{
             // 小界面
+            if (frm->pnlDspDetail->Visible && (frm->pnlDspDetail->Tag-101==ObjectIndex))
+            {
+                frm->edtCompAttackTime->Text = config_map.output_dsp[ObjectIndex].attack_time/10.0;
+            }
 		}
 		else if (cmd_id == GetOffsetOfData((char*)&config_map.output_dsp[ObjectIndex].release_time))
 		{
             // 小界面
+            if (frm->pnlDspDetail->Visible && (frm->pnlDspDetail->Tag-101==ObjectIndex))
+            {
+                frm->edtCompReleaseTime->Text = config_map.output_dsp[ObjectIndex].release_time/10.0;
+            }
 		}
 		else if (cmd_id == GetOffsetOfData((char*)&config_map.output_dsp[ObjectIndex].comp_gain))
 		{
-           frm->output_type_lbl[ObjectIndex]->Caption = OutputGain2String(config_map.input_dsp[ObjectIndex].gain);
+            if (frm->pnlDspDetail->Visible && (frm->pnlDspDetail->Tag-101==ObjectIndex))
+            {
+                frm->edtCompGain->Text = config_map.output_dsp[ObjectIndex].comp_gain/10.0;
+            }
 		}
 		else if (cmd_id >= GetOffsetOfData(&config_map.output_dsp[ObjectIndex].filter)
 			&& (cmd_id < GetOffsetOfData(&config_map.output_dsp[ObjectIndex].filter) + sizeof(config_map.output_dsp[ObjectIndex].filter)))
