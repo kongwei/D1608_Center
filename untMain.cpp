@@ -28,6 +28,7 @@ GlobalConfig global_config = {0};
 
 static bool on_loading = false;
 static String last_device_name;
+static void OnFeedbackData(unsigned int cmd_id, int length, TForm1 * frm);
 
 //static char head[] = "\x53\x65\x74\x50\x61\x72\x61\x00\x00\x00\x4D\x41\x54\x31\x36\x31\x30\x43\x6F\x6E\x66\x69\x67\x44\x61\x74\x61\x00\x00\x00";
 
@@ -1247,6 +1248,9 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
         {
             memo_debug->Lines->Add("Reply：" + CmdLog(cmd));
 
+            memcpy(((char*)(&config_map))+cmd.id, (char*)&cmd.data, cmd.length);
+            OnFeedbackData(cmd.id, cmd.length, this);
+#if 0
             if (cmd.id == GetOffsetOfData(&config_map.master_mix.level_a))
             {
                 master_panel_trackbar->OnChange = NULL;
@@ -1269,6 +1273,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
 
                 config_map.master_mix.level_a = value;
             }
+#endif
         }
     }
     else if (ABinding->PeerPort == 903)
@@ -2733,6 +2738,157 @@ void __fastcall TForm1::ApplyConfigToUI()
 
     on_loading = false;
 }
+static void OnFeedbackData(unsigned int cmd_id, int length, TForm1 * frm)
+{
+    on_loading = true;
+
+	int ObjectIndex = -1;
+	if ((cmd_id >= GetOffsetOfData(&config_map.input_dsp))
+		&& (cmd_id < sizeof(config_map.input_dsp)+GetOffsetOfData(&config_map.input_dsp)))
+	{
+		ObjectIndex = (cmd_id - GetOffsetOfData(&config_map.input_dsp)) / sizeof(config_map.input_dsp[0]);
+		
+		if (cmd_id == GetOffsetOfData(&config_map.input_dsp[ObjectIndex].eq_switch))
+		{
+            frm->input_eq_btn[ObjectIndex]->Down = config_map.input_dsp[ObjectIndex].eq_switch;
+		}
+// 		else if (cmd_id == GetOffsetOfData(&config_map.input_dsp[ObjectIndex].comp_switch))
+// 		{
+// 		}
+// 		else if (cmd_id == GetOffsetOfData(&config_map.input_dsp[ObjectIndex].auto_switch))
+// 		{
+// 		}
+		else if (cmd_id == GetOffsetOfData(&config_map.input_dsp[ObjectIndex].invert_switch))
+		{
+            frm->input_invert_btn[ObjectIndex]->Down = config_map.input_dsp[ObjectIndex].invert_switch;
+		}
+		else if (cmd_id == GetOffsetOfData(&config_map.input_dsp[ObjectIndex].noise_switch))
+		{
+            frm->input_noise_btn[ObjectIndex]->Down = config_map.input_dsp[ObjectIndex].noise_switch;
+		}
+		else if (cmd_id == GetOffsetOfData(&config_map.input_dsp[ObjectIndex].mute_switch))
+		{
+            frm->input_mute_btn[ObjectIndex]->Down = config_map.input_dsp[ObjectIndex].mute_switch;
+		}
+		else if (cmd_id == GetOffsetOfData(&config_map.input_dsp[ObjectIndex].phantom_switch))
+		{
+            // 小界面
+		}
+		else if (cmd_id == GetOffsetOfData((char*)&config_map.input_dsp[ObjectIndex].level_a))
+		{
+            frm->input_level_trackbar[ObjectIndex]->Position = config_map.input_dsp[ObjectIndex].level_a;
+		}
+		else if (cmd_id == GetOffsetOfData((char*)&config_map.input_dsp[ObjectIndex].level_b))
+		{
+            // 小界面
+		}
+		else if (cmd_id == GetOffsetOfData((char*)&config_map.input_dsp[ObjectIndex].gain))
+		{
+            frm->input_type_lbl[ObjectIndex]->Caption = InputGain2String(config_map.input_dsp[ObjectIndex].gain);
+		}
+// 		else if (cmd_id == GetOffsetOfData((char*)&config_map.input_dsp[ObjectIndex].delay))
+// 		{
+// 		}
+		else if (cmd_id >= GetOffsetOfData(&config_map.input_dsp[ObjectIndex].filter)
+			&& (cmd_id < GetOffsetOfData(&config_map.input_dsp[ObjectIndex].filter) + sizeof(config_map.input_dsp[ObjectIndex].filter)))
+		{
+			//int filter = (cmd_id - GetOffsetOfData(&config_map.input_dsp[ObjectIndex].filter)) / sizeof(config_map.input_dsp[ObjectIndex].filter[0]);
+            // 小界面
+		}
+	}
+	else if ((cmd_id >= GetOffsetOfData(&config_map.output_dsp))
+		&& (cmd_id < sizeof(config_map.output_dsp)+GetOffsetOfData(&config_map.output_dsp)))
+	{
+		// output
+		ObjectIndex = (cmd_id - GetOffsetOfData(&config_map.output_dsp)) / sizeof(config_map.output_dsp[0]);
+
+		if (cmd_id == GetOffsetOfData(&config_map.output_dsp[ObjectIndex].eq_switch))
+		{
+            frm->output_eq_btn[ObjectIndex]->Down = config_map.output_dsp[ObjectIndex].eq_switch;
+		}
+		else if (cmd_id == GetOffsetOfData(&config_map.output_dsp[ObjectIndex].comp_switch))
+		{
+            frm->output_comp_btn[ObjectIndex]->Down = config_map.output_dsp[ObjectIndex].comp_switch;
+		}
+		else if (cmd_id == GetOffsetOfData(&config_map.output_dsp[ObjectIndex].invert_switch))
+		{
+            frm->output_invert_btn[ObjectIndex]->Down = config_map.output_dsp[ObjectIndex].invert_switch;
+		}
+		else if (cmd_id == GetOffsetOfData(&config_map.output_dsp[ObjectIndex].mute_switch))
+		{
+            frm->output_mute_btn[ObjectIndex]->Down = config_map.output_dsp[ObjectIndex].mute_switch;
+		}
+		else if (cmd_id == GetOffsetOfData((char*)&config_map.output_dsp[ObjectIndex].level_a))
+		{
+            frm->output_level_trackbar[ObjectIndex]->Position = config_map.output_dsp[ObjectIndex].level_a;
+		}
+		else if (cmd_id == GetOffsetOfData((char*)&config_map.output_dsp[ObjectIndex].level_b))
+		{
+            // 小界面
+		}
+		else if (cmd_id == GetOffsetOfData((char*)&config_map.output_dsp[ObjectIndex].gain))
+		{
+            // 小界面
+		}
+		else if (cmd_id == GetOffsetOfData((char*)&config_map.output_dsp[ObjectIndex].ratio))
+		{
+            // 小界面
+		}
+		else if (cmd_id == GetOffsetOfData((char*)&config_map.output_dsp[ObjectIndex].threshold))
+		{
+            // 小界面
+		}
+		else if (cmd_id == GetOffsetOfData((char*)&config_map.output_dsp[ObjectIndex].attack_time))
+		{
+            // 小界面
+		}
+		else if (cmd_id == GetOffsetOfData((char*)&config_map.output_dsp[ObjectIndex].release_time))
+		{
+            // 小界面
+		}
+		else if (cmd_id == GetOffsetOfData((char*)&config_map.output_dsp[ObjectIndex].comp_gain))
+		{
+           frm->output_type_lbl[ObjectIndex]->Caption = OutputGain2String(config_map.input_dsp[ObjectIndex].gain);
+		}
+		else if (cmd_id >= GetOffsetOfData(&config_map.output_dsp[ObjectIndex].filter)
+			&& (cmd_id < GetOffsetOfData(&config_map.output_dsp[ObjectIndex].filter) + sizeof(config_map.output_dsp[ObjectIndex].filter)))
+		{
+			//int filter = (cmd_id - GetOffsetOfData(&config_map.output_dsp[ObjectIndex].filter)) / sizeof(config_map.output_dsp[ObjectIndex].filter[0]);
+            // 小界面
+		}
+	}
+	else if ((cmd_id >= GetOffsetOfData(&config_map.master_mix))
+		&& (cmd_id < GetOffsetOfData((void*)&config_map.master_mix.mix)))
+	{
+		if (cmd_id == GetOffsetOfData(&config_map.master_mix.mute_switch))
+		{
+			frm->btnMasterMute->Down = config_map.master_mix.mute_switch;
+		}
+		else if (cmd_id == GetOffsetOfData((char*)&config_map.master_mix.level_a))
+		{
+            frm->master_panel_trackbar->Position = config_map.master_mix.level_a;
+		}
+	}
+	else if ((cmd_id >= GetOffsetOfData((char*)&config_map.master_mix.mix))
+		&& (cmd_id < sizeof(config_map.master_mix.mix)+GetOffsetOfData((char*)&config_map.master_mix.mix)))
+	{
+		//int offset = (cmd_id - GetOffsetOfData((char*)&config_map.master_mix.mix))/sizeof(config_map.master_mix.mix[0][0]);
+		//int channel_in = offset / OUTPUT_DSP_NUM;
+		//int channel_out = offset % OUTPUT_DSP_NUM;
+        // 小界面
+	}
+	else if ((cmd_id >= GetOffsetOfData((char*)&config_map.master_mix.mix_mute))
+		&& (cmd_id < sizeof(config_map.master_mix.mix_mute)+GetOffsetOfData((char*)&config_map.master_mix.mix_mute)))
+	{
+		//int offset = (cmd_id - GetOffsetOfData((char*)&config_map.master_mix.mix_mute))/sizeof(config_map.master_mix.mix_mute[0][0]);
+		//int channel_in = offset / OUTPUT_DSP_NUM;
+		//int channel_out = offset % OUTPUT_DSP_NUM;
+        // 小界面
+	}
+
+    on_loading = false;
+}
+
 //---------------------------------------------------------------------------
 void __fastcall TForm1::SetPresetLibFilename(String filename)
 {
