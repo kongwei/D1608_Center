@@ -631,6 +631,9 @@ private:
     int eq_freq[11];
     int eq_gain[11];
     int eq_q[11];
+
+    // 部分刷新界面的函数
+    void OnFeedbackData(unsigned int cmd_id, int length);
 public:
     void SendCmd(D1608Cmd& cmd);
 //----------------------------------

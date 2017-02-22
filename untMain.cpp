@@ -28,7 +28,6 @@ GlobalConfig global_config = {0};
 
 static bool on_loading = false;
 static String last_device_name;
-static void OnFeedbackData(unsigned int cmd_id, int length, TForm1 * frm);
 
 //static char head[] = "\x53\x65\x74\x50\x61\x72\x61\x00\x00\x00\x4D\x41\x54\x31\x36\x31\x30\x43\x6F\x6E\x66\x69\x67\x44\x61\x74\x61\x00\x00\x00";
 
@@ -1255,7 +1254,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             memo_debug->Lines->Add("Reply：" + CmdLog(cmd));
 
             memcpy(((char*)(&config_map))+cmd.id, (char*)&cmd.data, cmd.length);
-            OnFeedbackData(cmd.id, cmd.length, this);
+            OnFeedbackData(cmd.id, cmd.length);
 #if 0
             if (cmd.id == GetOffsetOfData(&config_map.master_mix.level_a))
             {
@@ -2744,7 +2743,7 @@ void __fastcall TForm1::ApplyConfigToUI()
 
     on_loading = false;
 }
-static void OnFeedbackData(unsigned int cmd_id, int length, TForm1 * frm)
+void TForm1::OnFeedbackData(unsigned int cmd_id, int length)
 {
     on_loading = true;
 
@@ -2756,7 +2755,7 @@ static void OnFeedbackData(unsigned int cmd_id, int length, TForm1 * frm)
 		
 		if (cmd_id == GetOffsetOfData(&config_map.input_dsp[ObjectIndex].eq_switch))
 		{
-            frm->input_eq_btn[ObjectIndex]->Down = config_map.input_dsp[ObjectIndex].eq_switch;
+            input_eq_btn[ObjectIndex]->Down = config_map.input_dsp[ObjectIndex].eq_switch;
 		}
 // 		else if (cmd_id == GetOffsetOfData(&config_map.input_dsp[ObjectIndex].comp_switch))
 // 		{
@@ -2766,39 +2765,39 @@ static void OnFeedbackData(unsigned int cmd_id, int length, TForm1 * frm)
 // 		}
 		else if (cmd_id == GetOffsetOfData(&config_map.input_dsp[ObjectIndex].invert_switch))
 		{
-            frm->input_invert_btn[ObjectIndex]->Down = config_map.input_dsp[ObjectIndex].invert_switch;
+            input_invert_btn[ObjectIndex]->Down = config_map.input_dsp[ObjectIndex].invert_switch;
 		}
 		else if (cmd_id == GetOffsetOfData(&config_map.input_dsp[ObjectIndex].noise_switch))
 		{
-            frm->input_noise_btn[ObjectIndex]->Down = config_map.input_dsp[ObjectIndex].noise_switch;
+            input_noise_btn[ObjectIndex]->Down = config_map.input_dsp[ObjectIndex].noise_switch;
 		}
 		else if (cmd_id == GetOffsetOfData(&config_map.input_dsp[ObjectIndex].mute_switch))
 		{
-            frm->input_mute_btn[ObjectIndex]->Down = config_map.input_dsp[ObjectIndex].mute_switch;
+            input_mute_btn[ObjectIndex]->Down = config_map.input_dsp[ObjectIndex].mute_switch;
 		}
 		else if (cmd_id == GetOffsetOfData(&config_map.input_dsp[ObjectIndex].phantom_switch))
 		{
             // 小界面
-            if (frm->pnlDspDetail->Visible && (frm->pnlDspDetail->Tag-1==ObjectIndex))
+            if (pnlDspDetail->Visible && (pnlDspDetail->Tag-1==ObjectIndex))
             {
-                frm->btnPhanton->Down = config_map.input_dsp[ObjectIndex].phantom_switch;
+                btnPhanton->Down = config_map.input_dsp[ObjectIndex].phantom_switch;
             }
 		}
 		else if (cmd_id == GetOffsetOfData((char*)&config_map.input_dsp[ObjectIndex].level_a))
 		{
-            frm->input_level_trackbar[ObjectIndex]->Position = config_map.input_dsp[ObjectIndex].level_a;
+            input_level_trackbar[ObjectIndex]->Position = config_map.input_dsp[ObjectIndex].level_a;
 		}
 		else if (cmd_id == GetOffsetOfData((char*)&config_map.input_dsp[ObjectIndex].level_b))
 		{
             // 小界面
-            if (frm->pnlDspDetail->Visible && (frm->pnlDspDetail->Tag-1==ObjectIndex))
+            if (pnlDspDetail->Visible && (pnlDspDetail->Tag-1==ObjectIndex))
             {
-                frm->TrackBar27->Position = config_map.input_dsp[ObjectIndex].level_b;
+                TrackBar27->Position = config_map.input_dsp[ObjectIndex].level_b;
             }
 		}
 		else if (cmd_id == GetOffsetOfData((char*)&config_map.input_dsp[ObjectIndex].gain))
 		{
-            frm->input_type_lbl[ObjectIndex]->Caption = InputGain2String(config_map.input_dsp[ObjectIndex].gain);
+            input_type_lbl[ObjectIndex]->Caption = InputGain2String(config_map.input_dsp[ObjectIndex].gain);
 		}
 // 		else if (cmd_id == GetOffsetOfData((char*)&config_map.input_dsp[ObjectIndex].delay))
 // 		{
@@ -2808,6 +2807,11 @@ static void OnFeedbackData(unsigned int cmd_id, int length, TForm1 * frm)
 		{
 			//int filter = (cmd_id - GetOffsetOfData(&config_map.input_dsp[ObjectIndex].filter)) / sizeof(config_map.input_dsp[ObjectIndex].filter[0]);
             // 小界面
+            if (pnlDspDetail->Visible && (pnlDspDetail->Tag-1==ObjectIndex))
+            {
+                panel_agent->LoadPreset();
+                PaintBox1->Refresh();
+            }
 		}
 	}
 	else if ((cmd_id >= GetOffsetOfData(&config_map.output_dsp))
@@ -2818,77 +2822,77 @@ static void OnFeedbackData(unsigned int cmd_id, int length, TForm1 * frm)
 
 		if (cmd_id == GetOffsetOfData(&config_map.output_dsp[ObjectIndex].eq_switch))
 		{
-            frm->output_eq_btn[ObjectIndex]->Down = config_map.output_dsp[ObjectIndex].eq_switch;
+            output_eq_btn[ObjectIndex]->Down = config_map.output_dsp[ObjectIndex].eq_switch;
 		}
 		else if (cmd_id == GetOffsetOfData(&config_map.output_dsp[ObjectIndex].comp_switch))
 		{
-            frm->output_comp_btn[ObjectIndex]->Down = config_map.output_dsp[ObjectIndex].comp_switch;
-            if (frm->pnlDspDetail->Visible && (frm->pnlDspDetail->Tag-101==ObjectIndex))
+            output_comp_btn[ObjectIndex]->Down = config_map.output_dsp[ObjectIndex].comp_switch;
+            if (pnlDspDetail->Visible && (pnlDspDetail->Tag-101==ObjectIndex))
             {
-                frm->btnDSPCOMP->Down = config_map.output_dsp[ObjectIndex].comp_switch;
+                btnDSPCOMP->Down = config_map.output_dsp[ObjectIndex].comp_switch;
             }
 		}
 		else if (cmd_id == GetOffsetOfData(&config_map.output_dsp[ObjectIndex].invert_switch))
 		{
-            frm->output_invert_btn[ObjectIndex]->Down = config_map.output_dsp[ObjectIndex].invert_switch;
+            output_invert_btn[ObjectIndex]->Down = config_map.output_dsp[ObjectIndex].invert_switch;
 		}
 		else if (cmd_id == GetOffsetOfData(&config_map.output_dsp[ObjectIndex].mute_switch))
 		{
-            frm->output_mute_btn[ObjectIndex]->Down = config_map.output_dsp[ObjectIndex].mute_switch;
+            output_mute_btn[ObjectIndex]->Down = config_map.output_dsp[ObjectIndex].mute_switch;
 		}
 		else if (cmd_id == GetOffsetOfData((char*)&config_map.output_dsp[ObjectIndex].level_a))
 		{
-            frm->output_level_trackbar[ObjectIndex]->Position = config_map.output_dsp[ObjectIndex].level_a;
+            output_level_trackbar[ObjectIndex]->Position = config_map.output_dsp[ObjectIndex].level_a;
 		}
 		else if (cmd_id == GetOffsetOfData((char*)&config_map.output_dsp[ObjectIndex].level_b))
 		{
             // 小界面
-            if (frm->pnlDspDetail->Visible && (frm->pnlDspDetail->Tag-101==ObjectIndex))
+            if (pnlDspDetail->Visible && (pnlDspDetail->Tag-101==ObjectIndex))
             {
-                frm->TrackBar27->Position = config_map.output_dsp[ObjectIndex].level_b;
+                TrackBar27->Position = config_map.output_dsp[ObjectIndex].level_b;
             }
 		}
 		else if (cmd_id == GetOffsetOfData((char*)&config_map.output_dsp[ObjectIndex].gain))
 		{
-           frm->output_type_lbl[ObjectIndex]->Caption = OutputGain2String(config_map.input_dsp[ObjectIndex].gain);
+           output_type_lbl[ObjectIndex]->Caption = OutputGain2String(config_map.input_dsp[ObjectIndex].gain);
 		}
 		else if (cmd_id == GetOffsetOfData((char*)&config_map.output_dsp[ObjectIndex].ratio))
 		{
             // 小界面
-            if (frm->pnlDspDetail->Visible && (frm->pnlDspDetail->Tag-101==ObjectIndex))
+            if (pnlDspDetail->Visible && (pnlDspDetail->Tag-101==ObjectIndex))
             {
-                frm->edtCompRatio->Text = config_map.output_dsp[ObjectIndex].ratio/100.0;
+                edtCompRatio->Text = config_map.output_dsp[ObjectIndex].ratio/100.0;
             }
 		}
 		else if (cmd_id == GetOffsetOfData((char*)&config_map.output_dsp[ObjectIndex].threshold))
 		{
             // 小界面
-            if (frm->pnlDspDetail->Visible && (frm->pnlDspDetail->Tag-101==ObjectIndex))
+            if (pnlDspDetail->Visible && (pnlDspDetail->Tag-101==ObjectIndex))
             {
-                frm->edtCompThreshold->Text = config_map.output_dsp[ObjectIndex].threshold/10.0;
+                edtCompThreshold->Text = config_map.output_dsp[ObjectIndex].threshold/10.0;
             }
 		}
 		else if (cmd_id == GetOffsetOfData((char*)&config_map.output_dsp[ObjectIndex].attack_time))
 		{
             // 小界面
-            if (frm->pnlDspDetail->Visible && (frm->pnlDspDetail->Tag-101==ObjectIndex))
+            if (pnlDspDetail->Visible && (pnlDspDetail->Tag-101==ObjectIndex))
             {
-                frm->edtCompAttackTime->Text = config_map.output_dsp[ObjectIndex].attack_time/10.0;
+                edtCompAttackTime->Text = config_map.output_dsp[ObjectIndex].attack_time/10.0;
             }
 		}
 		else if (cmd_id == GetOffsetOfData((char*)&config_map.output_dsp[ObjectIndex].release_time))
 		{
             // 小界面
-            if (frm->pnlDspDetail->Visible && (frm->pnlDspDetail->Tag-101==ObjectIndex))
+            if (pnlDspDetail->Visible && (pnlDspDetail->Tag-101==ObjectIndex))
             {
-                frm->edtCompReleaseTime->Text = config_map.output_dsp[ObjectIndex].release_time/10.0;
+                edtCompReleaseTime->Text = config_map.output_dsp[ObjectIndex].release_time/10.0;
             }
 		}
 		else if (cmd_id == GetOffsetOfData((char*)&config_map.output_dsp[ObjectIndex].comp_gain))
 		{
-            if (frm->pnlDspDetail->Visible && (frm->pnlDspDetail->Tag-101==ObjectIndex))
+            if (pnlDspDetail->Visible && (pnlDspDetail->Tag-101==ObjectIndex))
             {
-                frm->edtCompGain->Text = config_map.output_dsp[ObjectIndex].comp_gain/10.0;
+                edtCompGain->Text = config_map.output_dsp[ObjectIndex].comp_gain/10.0;
             }
 		}
 		else if (cmd_id >= GetOffsetOfData(&config_map.output_dsp[ObjectIndex].filter)
@@ -2896,6 +2900,11 @@ static void OnFeedbackData(unsigned int cmd_id, int length, TForm1 * frm)
 		{
 			//int filter = (cmd_id - GetOffsetOfData(&config_map.output_dsp[ObjectIndex].filter)) / sizeof(config_map.output_dsp[ObjectIndex].filter[0]);
             // 小界面
+            if (pnlDspDetail->Visible && (pnlDspDetail->Tag-101==ObjectIndex))
+            {
+                panel_agent->LoadPreset();
+                PaintBox1->Refresh();
+            }
 		}
 	}
 	else if ((cmd_id >= GetOffsetOfData(&config_map.master_mix))
@@ -2903,11 +2912,11 @@ static void OnFeedbackData(unsigned int cmd_id, int length, TForm1 * frm)
 	{
 		if (cmd_id == GetOffsetOfData(&config_map.master_mix.mute_switch))
 		{
-			frm->btnMasterMute->Down = config_map.master_mix.mute_switch;
+			btnMasterMute->Down = config_map.master_mix.mute_switch;
 		}
 		else if (cmd_id == GetOffsetOfData((char*)&config_map.master_mix.level_a))
 		{
-            frm->master_panel_trackbar->Position = config_map.master_mix.level_a;
+            master_panel_trackbar->Position = config_map.master_mix.level_a;
 		}
 	}
 	else if ((cmd_id >= GetOffsetOfData((char*)&config_map.master_mix.mix))

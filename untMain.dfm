@@ -1,6 +1,6 @@
 object Form1: TForm1
-  Left = 302
-  Top = 78
+  Left = 228
+  Top = 1
   Width = 1364
   Height = 726
   Caption = 'D1608'
@@ -31473,8 +31473,8 @@ object Form1: TForm1
       end
     end
     object pnlDspDetail: TPanel
-      Left = 144
-      Top = 562
+      Left = 152
+      Top = 402
       Width = 961
       Height = 497
       Color = 13684944
