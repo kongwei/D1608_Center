@@ -101,7 +101,7 @@ void PanelAgent::SetPanelSelect(int band)
 }
 void PanelAgent::LoadPreset()
 {
-    for (int band=1;band<11;band++)
+    for (int band=1;band<12;band++)
     {
         if (_panel[band] != NULL)
         {

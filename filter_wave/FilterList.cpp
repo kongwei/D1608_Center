@@ -24,10 +24,10 @@ void FilterSet::SetActiveBand(int band)
 
 bool FilterSet::IsBandForbidden(int band)
 {
-    if (GetFilterFreq(band)<=0.00001)
-    {
+    if (filter[band].name == NULL)
         return true;
-    }
+    if (GetFilterFreq(band)<=0.00001)
+        return true;
 
     if (band == 0)
     {

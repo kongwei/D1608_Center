@@ -14,6 +14,8 @@ public:
     FilterSet()
     {
         select_band = 0;
+        for (int i=0;i<12;i++)
+            bypass[i] = true;
     }
     Coefficient* GetFilter(int band);
 
