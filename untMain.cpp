@@ -2922,18 +2922,34 @@ void TForm1::OnFeedbackData(unsigned int cmd_id, int length)
 	else if ((cmd_id >= GetOffsetOfData((char*)&config_map.master_mix.mix))
 		&& (cmd_id < sizeof(config_map.master_mix.mix)+GetOffsetOfData((char*)&config_map.master_mix.mix)))
 	{
-		//int offset = (cmd_id - GetOffsetOfData((char*)&config_map.master_mix.mix))/sizeof(config_map.master_mix.mix[0][0]);
-		//int channel_in = offset / OUTPUT_DSP_NUM;
-		//int channel_out = offset % OUTPUT_DSP_NUM;
+		int offset = (cmd_id - GetOffsetOfData((char*)&config_map.master_mix.mix))/sizeof(config_map.master_mix.mix[0][0]);
+		int channel_in = offset / OUTPUT_DSP_NUM;
+		int channel_out = offset % OUTPUT_DSP_NUM;
         // 小界面
+        if (pnlMix->Visible && pnlMix->Tag-1==channel_out)
+        {
+            for (int i=0;i<=16;i++)
+            {
+                mix_mute_btn[i]->Down = config_map.master_mix.mix_mute[i][channel_out];
+                mix_level_trackbar[i]->Position = config_map.master_mix.mix[i][channel_out];
+            }
+        }
 	}
 	else if ((cmd_id >= GetOffsetOfData((char*)&config_map.master_mix.mix_mute))
 		&& (cmd_id < sizeof(config_map.master_mix.mix_mute)+GetOffsetOfData((char*)&config_map.master_mix.mix_mute)))
 	{
-		//int offset = (cmd_id - GetOffsetOfData((char*)&config_map.master_mix.mix_mute))/sizeof(config_map.master_mix.mix_mute[0][0]);
-		//int channel_in = offset / OUTPUT_DSP_NUM;
-		//int channel_out = offset % OUTPUT_DSP_NUM;
+		int offset = (cmd_id - GetOffsetOfData((char*)&config_map.master_mix.mix_mute))/sizeof(config_map.master_mix.mix_mute[0][0]);
+		int channel_in = offset / OUTPUT_DSP_NUM;
+		int channel_out = offset % OUTPUT_DSP_NUM;
         // 小界面
+        if (pnlMix->Visible && pnlMix->Tag-1==channel_out)
+        {
+            for (int i=0;i<=16;i++)
+            {
+                mix_mute_btn[i]->Down = config_map.master_mix.mix_mute[i][channel_out];
+                mix_level_trackbar[i]->Position = config_map.master_mix.mix[i][channel_out];
+            }
+        }
 	}
 
     on_loading = false;
