@@ -626,9 +626,15 @@ void __fastcall TForm1::FormCreate(TObject *Sender)
     mmLog->Text = Now();
                                      
     if (FileExists("iap.log"))
-    {                                                             
-        log_file = new TFileStream("iap.log", fmOpenWrite);
-        log_file->Seek(0, soFromEnd);
+    {
+        try{
+            log_file = new TFileStream("iap.log", fmOpenWrite);
+            log_file->Seek(0, soFromEnd);
+        }
+        catch(...)
+        {
+            log_file = new TFileStream("iap"+Now().FormatString("yymmdd_hhnnss")+".log", fmCreate);
+        }
     }
     else
     {
