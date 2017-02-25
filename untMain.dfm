@@ -1,8 +1,8 @@
 object Form1: TForm1
-  Left = 228
-  Top = 1
-  Width = 1364
-  Height = 726
+  Left = 0
+  Top = 0
+  Width = 1367
+  Height = 728
   Caption = 'D1608'
   Color = clBtnFace
   Font.Charset = GB2312_CHARSET
@@ -23,7 +23,7 @@ object Form1: TForm1
     Left = 0
     Top = 106
     Width = 1362
-    Height = 565
+    Height = 567
     Align = alClient
     Picture.Data = {
       0A544A504547496D61676596CB0100FFD8FFE000104A46494600010100000100
@@ -3909,7 +3909,7 @@ object Form1: TForm1
     Left = 0
     Top = 106
     Width = 1362
-    Height = 565
+    Height = 567
     Align = alClient
     BevelOuter = bvNone
     TabOrder = 7
@@ -4092,7 +4092,7 @@ object Form1: TForm1
     Left = 0
     Top = 106
     Width = 1362
-    Height = 565
+    Height = 567
     Align = alClient
     BevelOuter = bvNone
     TabOrder = 6
@@ -5598,7 +5598,7 @@ object Form1: TForm1
     Left = 0
     Top = 106
     Width = 1362
-    Height = 565
+    Height = 567
     Align = alClient
     BevelOuter = bvNone
     TabOrder = 4
@@ -5607,7 +5607,7 @@ object Form1: TForm1
       Left = 0
       Top = 0
       Width = 1362
-      Height = 565
+      Height = 567
       Align = alClient
       OnPaint = PaintBox2Paint
     end
@@ -6471,7 +6471,7 @@ object Form1: TForm1
     Left = 0
     Top = 106
     Width = 1362
-    Height = 565
+    Height = 567
     Align = alClient
     BevelOuter = bvNone
     TabOrder = 5
@@ -6480,7 +6480,7 @@ object Form1: TForm1
       Left = 0
       Top = 0
       Width = 1362
-      Height = 565
+      Height = 567
       Align = alClient
       OnPaint = PaintBox3Paint
     end
@@ -7438,14 +7438,14 @@ object Form1: TForm1
     Left = 0
     Top = 106
     Width = 1362
-    Height = 565
+    Height = 567
     Align = alClient
     BevelOuter = bvNone
     TabOrder = 8
     Visible = False
     DesignSize = (
       1362
-      565)
+      567)
     object Label1: TLabel
       Left = 1188
       Top = 52
@@ -7456,7 +7456,7 @@ object Form1: TForm1
     end
     object Bevel1: TBevel
       Left = 8
-      Top = 317
+      Top = 319
       Width = 969
       Height = 10
       Anchors = [akLeft, akRight, akBottom]
@@ -7474,7 +7474,7 @@ object Form1: TForm1
     end
     object mmLog: TMemo
       Left = 8
-      Top = 333
+      Top = 335
       Width = 1093
       Height = 189
       Anchors = [akLeft, akRight, akBottom]
@@ -7526,7 +7526,7 @@ object Form1: TForm1
       Left = 8
       Top = 8
       Width = 1085
-      Height = 310
+      Height = 312
       Anchors = [akLeft, akTop, akRight, akBottom]
       Columns = <
         item
@@ -7570,7 +7570,7 @@ object Form1: TForm1
     Left = 0
     Top = 106
     Width = 1362
-    Height = 565
+    Height = 567
     Align = alClient
     BevelOuter = bvNone
     Caption = 'pnlOperator'
@@ -22424,23 +22424,6 @@ object Form1: TForm1
         OnClick = input_panel_dsp_numClick
       end
     end
-    object output_panel_dsp_num: TStaticText
-      Left = 870
-      Top = 651
-      Width = 11
-      Height = 15
-      Caption = '1'
-      Color = 15263976
-      Font.Charset = GB2312_CHARSET
-      Font.Color = clWindowText
-      Font.Height = -11
-      Font.Name = #23435#20307
-      Font.Style = [fsBold]
-      ParentColor = False
-      ParentFont = False
-      TabOrder = 4
-      OnClick = output_panel_dsp_numClick
-    end
     object output_panel_level_edit: TEdit
       Tag = 1
       Left = 868
@@ -31473,8 +31456,8 @@ object Form1: TForm1
       end
     end
     object pnlDspDetail: TPanel
-      Left = 152
-      Top = 402
+      Left = -504
+      Top = 218
       Width = 961
       Height = 497
       Color = 13684944
@@ -38315,6 +38298,23 @@ object Form1: TForm1
         Version = '1.6.2.0'
         Visible = False
       end
+    end
+    object output_panel_dsp_num: TStaticText
+      Left = 870
+      Top = 651
+      Width = 11
+      Height = 15
+      Caption = '1'
+      Color = 15263976
+      Font.Charset = GB2312_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -11
+      Font.Name = #23435#20307
+      Font.Style = [fsBold]
+      ParentColor = False
+      ParentFont = False
+      TabOrder = 4
+      OnClick = output_panel_dsp_numClick
     end
   end
   object udpSLP: TIdUDPServer
