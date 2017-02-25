@@ -1243,6 +1243,16 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
         }
         else if (cmd.id == GetOffsetOfData(&config_map.op_code.noop))
         {
+            int preset_id = cmd.data.data_32;
+            if (preset_id != cur_preset_id)
+            {
+                D1608PresetCmd preset_cmd;
+                preset_cmd.preset = preset_id; // 读取preset
+                // 从0页读取
+                preset_cmd.store_page = 0;
+                udpControl->SendBuffer(dst_ip, 905, &preset_cmd, sizeof(preset_cmd));
+            }
+
             keep_live_count = 0;
             //tsOperator->Caption = "操作(连接)";
             shape_live->Show();
@@ -2923,7 +2933,7 @@ void TForm1::OnFeedbackData(unsigned int cmd_id, int length)
 		&& (cmd_id < sizeof(config_map.master_mix.mix)+GetOffsetOfData((char*)&config_map.master_mix.mix)))
 	{
 		int offset = (cmd_id - GetOffsetOfData((char*)&config_map.master_mix.mix))/sizeof(config_map.master_mix.mix[0][0]);
-		int channel_in = offset / OUTPUT_DSP_NUM;
+		//int channel_in = offset / OUTPUT_DSP_NUM;
 		int channel_out = offset % OUTPUT_DSP_NUM;
         // 小界面
         if (pnlMix->Visible && pnlMix->Tag-1==channel_out)
@@ -2939,7 +2949,7 @@ void TForm1::OnFeedbackData(unsigned int cmd_id, int length)
 		&& (cmd_id < sizeof(config_map.master_mix.mix_mute)+GetOffsetOfData((char*)&config_map.master_mix.mix_mute)))
 	{
 		int offset = (cmd_id - GetOffsetOfData((char*)&config_map.master_mix.mix_mute))/sizeof(config_map.master_mix.mix_mute[0][0]);
-		int channel_in = offset / OUTPUT_DSP_NUM;
+		//int channel_in = offset / OUTPUT_DSP_NUM;
 		int channel_out = offset % OUTPUT_DSP_NUM;
         // 小界面
         if (pnlMix->Visible && pnlMix->Tag-1==channel_out)
