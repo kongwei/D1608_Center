@@ -30,6 +30,7 @@ static bool on_loading = false;
 static String last_device_name;
 
 //static char head[] = "\x53\x65\x74\x50\x61\x72\x61\x00\x00\x00\x4D\x41\x54\x31\x36\x31\x30\x43\x6F\x6E\x66\x69\x67\x44\x61\x74\x61\x00\x00\x00";
+static BLENDFUNCTION blend = {AC_SRC_OVER, 0, 200, 0};
 
 unsigned int GetOffsetOfData(void * p_data)
 {
@@ -252,6 +253,9 @@ static void CreateInputPanel(int panel_id, TForm1 * form)
     form->input_noise_btn[panel_id-1] = CopyInputPanelButton(form->input_panel_noise_btn, panel_id);
     form->input_mute_btn[panel_id-1] = CopyInputPanelButton(form->input_panel_mute_btn, panel_id);
     form->input_level_edit[panel_id-1] = CopyInputPanelEdit(form->input_panel_level_edit, panel_id);
+//        form->input_level_edit[panel_id-1]->Color =
+//            form->input_panel_bkground->Canvas->Pixels[form->input_level_edit[panel_id-1]->Left+19]
+//                                                      [form->input_level_edit[panel_id-1]->Top-140];
     form->input_level_trackbar[panel_id-1] = CopyInputPanelTrackbar(form->input_panel_trackbar, panel_id);
     form->input_dsp_name[panel_id-1] = CopyInputPanelLabel(form->input_panel_dsp_num, panel_id);
         form->input_dsp_name[panel_id-1]->Caption = String(char('A'-1+panel_id));
@@ -284,9 +288,17 @@ static void CopyWatchPanel(int panel_id, TForm1 * form, String label, int left)
     watch_panel->Color = form->watch_panel->Color;
 
     TImage * bk_image = new TImage(watch_panel);
-    bk_image->Picture = form->watch_bkimage->Picture;
-    bk_image->BoundsRect = form->watch_bkimage->BoundsRect;
+    bk_image->BoundsRect = form->imgWatch->BoundsRect;
     bk_image->Parent = watch_panel;
+    //bk_image->Picture = form->imgWatch->Picture;
+    bk_image->Picture->Bitmap = new Graphics::TBitmap();
+    bk_image->Picture->Bitmap->Height = bk_image->Height;
+    bk_image->Picture->Bitmap->Width = bk_image->Width;
+    bk_image->Canvas->Draw(-watch_panel->Left, -watch_panel->Top, form->imgBody->Picture->Graphic);
+
+    ::AlphaBlend(bk_image->Canvas->Handle,
+        0,0,bk_image->Width,bk_image->Height,
+        form->imgWatch->Canvas->Handle, 0,0,bk_image->Width,bk_image->Height, blend);
 
     TPaintBox * pb_level = new TPaintBox(watch_panel);
     pb_level->BoundsRect = form->pb_watch->BoundsRect;
@@ -420,15 +432,29 @@ __fastcall TForm1::TForm1(TComponent* Owner)
 
     // 生成input背景
     input_panel_bkground->Picture->Bitmap->Width = 16 * PANEL_WIDTH;
+    input_panel_bkground->Picture->Bitmap->Height = Image3->Height;
+
+    input_panel_bkground->Canvas->Draw(
+        -input_panel_bkground->Left,
+        -input_panel_bkground->Top,
+        imgBody->Picture->Graphic);
+
     for (int i=0;i<16;i++)
+    {
+        ::AlphaBlend(input_panel_bkground->Canvas->Handle,
+            i*PANEL_WIDTH,Image3->Top,PANEL_WIDTH,Image3->Height,
+            Image3->Canvas->Handle, 0, 0, PANEL_WIDTH,Image3->Height, blend);
+    }
+    /*for (int i=0;i<16;i++)
     {
         TRect templet_image_rect = Image3->BoundsRect;
         TRect dest_rect = TRect(i*PANEL_WIDTH,
                                 templet_image_rect.Top,
                                 (i+1)*PANEL_WIDTH,
                                 templet_image_rect.Bottom);
-        input_panel_bkground->Canvas->CopyRect(dest_rect, input_panel_bkground->Canvas, templet_image_rect);
-    }
+        input_panel_bkground->Canvas->CopyRect(dest_rect, Image3->Canvas, templet_image_rect);
+    }*/
+    
     // 生成InputPanel
     input_type_lbl[0] = input_type;
     input_eq_btn[0] = input_panel_eq_btn;
@@ -444,18 +470,47 @@ __fastcall TForm1::TForm1(TComponent* Owner)
         CreateInputPanel(i, this);
         CopyWatchPanel(i, this, String((char)('A'-1+i))+" ("+IntToStr(i)+")", (i-1) * PANEL_WIDTH);
     }
+    CopyWatchPanel(1, this, String((char)('A'-1+1))+" ("+IntToStr(1)+")", (1-1) * PANEL_WIDTH);
+
+    //------------------------------------
+    // mix和master
+    imgMasterMixBg->Canvas->Draw(
+        -imgMasterMixBg->Left,
+        -imgMasterMixBg->Top,
+        imgBody->Picture->Graphic);
+    ::AlphaBlend(imgMasterMixBg->Canvas->Handle,
+        0,0,imgMasterMixBg->Width,imgMasterMixBg->Height,
+        imgMasterMix->Canvas->Handle, 0,0,imgMasterMixBg->Width,imgMasterMixBg->Height, blend);
+
+    imgPresetBg->Canvas->Draw(
+        -imgPresetBg->Left,
+        -imgPresetBg->Top,
+        imgBody->Picture->Graphic);
+    ::AlphaBlend(imgPresetBg->Canvas->Handle,
+        0,0,imgMasterMixBg->Width,imgPresetBg->Height,
+        imgPreset->Canvas->Handle, 0,0,imgPreset->Width,imgPreset->Height, blend);
+
 
     //------------------------------------
     output_panel_bkground->Width = OUTPUT_DSP_NUM * PANEL_WIDTH;
     output_panel_bkground->Picture->Bitmap->Width = OUTPUT_DSP_NUM * PANEL_WIDTH;
-    for (int i=1;i<OUTPUT_DSP_NUM;i++)
+    output_panel_bkground->Canvas->Draw(
+        -output_panel_bkground->Left,
+        -output_panel_bkground->Top,
+        imgBody->Picture->Graphic);
+
+    for (int i=0;i<OUTPUT_DSP_NUM;i++)
     {
-        TRect templet_image_rect = Image3->BoundsRect;
+        ::AlphaBlend(output_panel_bkground->Canvas->Handle,
+            i*PANEL_WIDTH,Image12->Top,PANEL_WIDTH,Image12->Height,
+            Image12->Canvas->Handle, 0, 0, PANEL_WIDTH,Image12->Height, blend);
+/*        TRect templet_image_rect = Image3->BoundsRect;
         TRect dest_rect = TRect(i*PANEL_WIDTH,
                                 templet_image_rect.Top,
                                 (i+1)*PANEL_WIDTH,
                                 templet_image_rect.Bottom);
         output_panel_bkground->Canvas->CopyRect(dest_rect, output_panel_bkground->Canvas, templet_image_rect);
+*/
     }
 
     mix_panel_trackbar->Thumb->Picture = input_panel_trackbar->Thumb->Picture;
@@ -510,7 +565,7 @@ __fastcall TForm1::TForm1(TComponent* Owner)
     //----------------------------------
     for (int i=17;i<=17+15;i++)
     {
-        CopyWatchPanel(i, this, String(1+(i-17)), mix_panel->Left + mix_panel->Width + (i-17) * PANEL_WIDTH);
+        CopyWatchPanel(i, this, String(1+(i-17)), imgMasterMixBg->Left + imgMasterMixBg->Width + (i-17) * PANEL_WIDTH);
     }
     input_level_edit[0] = input_panel_level_edit;
     input_level_trackbar[0] = input_panel_trackbar;
@@ -1943,8 +1998,11 @@ void __fastcall TForm1::FormMouseWheel(TObject *Sender, TShiftState Shift,
         {
             key = VK_DOWN;
         }
-        edt->OnKeyDown(edt, key, shift);
-        Handled = true;
+        if (edt->OnKeyDown != NULL)
+        {
+            edt->OnKeyDown(edt, key, shift);
+            Handled = true;
+        }
         return;
     }
 
@@ -3629,7 +3687,7 @@ void __fastcall TForm1::edtCompGainKeyDown(TObject *Sender, WORD &Key,
                 config_map.output_dsp[dsp_id-1].comp_gain = gain_config.max_value;
             else if (config_map.output_dsp[dsp_id-1].comp_gain < gain_config.min_value)
                 config_map.output_dsp[dsp_id-1].comp_gain = gain_config.min_value;
-            
+
             D1608Cmd cmd;
             cmd.id = GetOffsetOfData(&config_map.output_dsp[dsp_id-1].comp_gain);
             cmd.data.data_32 = config_map.output_dsp[dsp_id-1].comp_gain;
