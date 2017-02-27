@@ -1826,7 +1826,7 @@ void __fastcall TForm1::ToggleDSP(TObject *Sender)
             btnDSPCOMP->Show();
         }
 
-        pnlDspDetail->Top = 192;
+        pnlDspDetail->Top = 168;
         pnlDspDetail->Show();
 
         panel_agent->LoadPreset();
