@@ -3512,12 +3512,12 @@ void __fastcall TForm1::edtCompRatioKeyDown(TObject *Sender, WORD &Key,
 
     if (Key == VK_ESCAPE)
     {
-        edt->Text = FormatFloat(config_map.output_dsp[dsp_id-1].ratio/ratio_config.scale, ratio_config.precise);
+        edt->Text = FormatFloat(100.0 / config_map.output_dsp[dsp_id-1].ratio, ratio_config.precise); // /ratio_config.scale
     }
     else if (Key == VK_RETURN)
     {
         try{
-            config_map.output_dsp[dsp_id-1].ratio = edt->Text.ToDouble()*ratio_config.scale;
+            config_map.output_dsp[dsp_id-1].ratio = 100.0 / edt->Text.ToDouble();//*ratio_config.scale;
             if (config_map.output_dsp[dsp_id-1].ratio > ratio_config.max_value)
                 config_map.output_dsp[dsp_id-1].ratio = ratio_config.max_value;
             else if (config_map.output_dsp[dsp_id-1].ratio < ratio_config.min_value)
@@ -3533,7 +3533,7 @@ void __fastcall TForm1::edtCompRatioKeyDown(TObject *Sender, WORD &Key,
         {
         }
 
-        edt->Text = FormatFloat(config_map.output_dsp[dsp_id-1].ratio/ratio_config.scale, ratio_config.precise);
+        edt->Text = FormatFloat(100.0/config_map.output_dsp[dsp_id-1].ratio, ratio_config.precise); // /ratio_config.scale
         edt->SelectAll();
     }
 }
