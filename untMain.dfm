@@ -16872,14 +16872,6 @@ object Form1: TForm1
         E8E8E8E8E8E8E8E8E8E8E8E8E8E8E8E8E8E8E8E8E8E8E8E8E8E8E8E8E8E8E800
         0000}
     end
-    object btnModifyPresetName: TSpeedButton
-      Left = 1056
-      Top = 0
-      Width = 18
-      Height = 17
-      Visible = False
-      OnClick = btnModifyPresetNameClick
-    end
     object output_panel_dsp_btn: TSpeedButtonNoFrame
       Tag = 101
       Left = 868
@@ -34403,30 +34395,22 @@ object Form1: TForm1
         E8E8E8E8E8E8E8E8E8E8E8E8E8E8E8E8E8E8E8E8E8E8E8E8E8E8E8E8E8E8E868
         5045}
     end
-    object edtPresetName: TEdit
-      Tag = 1
-      Left = 461
-      Top = 0
-      Width = 588
-      Height = 17
-      AutoSelect = False
+    object lblPresetName: TLabel
+      Left = 819
+      Top = 16
+      Width = 41
+      Height = 13
+      Alignment = taCenter
       AutoSize = False
-      BevelEdges = []
-      BevelInner = bvNone
-      BevelOuter = bvNone
-      BiDiMode = bdLeftToRight
-      BorderStyle = bsNone
-      Color = 4864300
+      Caption = 'preset'
       Font.Charset = GB2312_CHARSET
-      Font.Color = clAqua
-      Font.Height = -12
+      Font.Color = clWindowText
+      Font.Height = -13
       Font.Name = #23435#20307
       Font.Style = [fsBold]
-      ParentBiDiMode = False
       ParentFont = False
-      ReadOnly = True
-      TabOrder = 0
-      Visible = False
+      Transparent = True
+      OnClick = lblPresetNameClick
     end
     object input_panel_trackbar: TAdvTrackBar
       Tag = 1
@@ -34480,7 +34464,7 @@ object Form1: TForm1
       Slider.Size = 55
       Slider.Visible = False
       Slider.Offset = 14
-      TabOrder = 1
+      TabOrder = 0
       Thumb.BorderColor = 10317632
       Thumb.BorderColorHot = 10079963
       Thumb.BorderColorDown = 4548219
@@ -34837,7 +34821,7 @@ object Form1: TForm1
       Width = 831
       Height = 289
       Color = clActiveCaption
-      TabOrder = 2
+      TabOrder = 1
       Visible = False
       object pnlmix_background: TImage
         Left = 1
@@ -36946,7 +36930,7 @@ object Form1: TForm1
       Font.Style = [fsBold]
       ParentBiDiMode = False
       ParentFont = False
-      TabOrder = 4
+      TabOrder = 3
       Text = '10'
       OnClick = input_panel_level_editClick
       OnExit = output_panel_level_editExit
@@ -37003,7 +36987,7 @@ object Form1: TForm1
       Slider.Size = 55
       Slider.Visible = False
       Slider.Offset = 14
-      TabOrder = 5
+      TabOrder = 4
       Thumb.BorderColor = 10317632
       Thumb.BorderColorHot = 10079963
       Thumb.BorderColorDown = 4548219
@@ -37175,7 +37159,7 @@ object Form1: TForm1
       Font.Style = [fsBold]
       ParentBiDiMode = False
       ParentFont = False
-      TabOrder = 6
+      TabOrder = 5
       Text = '-10.0'
       OnClick = input_panel_level_editClick
       OnExit = input_panel_level_editExit
@@ -37190,7 +37174,7 @@ object Form1: TForm1
       Color = 7953478
       Ctl3D = False
       ParentCtl3D = False
-      TabOrder = 7
+      TabOrder = 6
       Visible = False
       object imgWatch: TImage
         Left = 0
@@ -37775,7 +37759,7 @@ object Form1: TForm1
       Top = 0
       Width = 433
       Height = 21
-      TabOrder = 8
+      TabOrder = 7
       Visible = False
     end
     object pnlDspDetail: TPanel
@@ -37784,7 +37768,7 @@ object Form1: TForm1
       Width = 961
       Height = 497
       Color = 13684944
-      TabOrder = 3
+      TabOrder = 2
       Visible = False
       DesignSize = (
         961
@@ -44636,7 +44620,7 @@ object Form1: TForm1
       Font.Style = [fsBold]
       ParentColor = False
       ParentFont = False
-      TabOrder = 10
+      TabOrder = 9
       Visible = False
     end
     object mix_panel_trackbar: TAdvTrackBar
@@ -44690,7 +44674,7 @@ object Form1: TForm1
       Slider.Size = 55
       Slider.Visible = False
       Slider.Offset = 14
-      TabOrder = 11
+      TabOrder = 10
       Thumb.BorderColor = 10317632
       Thumb.BorderColorHot = 10079963
       Thumb.BorderColorDown = 4548219
@@ -44863,7 +44847,7 @@ object Form1: TForm1
       Font.Style = [fsBold]
       ParentBiDiMode = False
       ParentFont = False
-      TabOrder = 12
+      TabOrder = 11
       Text = '0.0'
       Visible = False
       OnClick = input_panel_level_editClick
@@ -44921,7 +44905,7 @@ object Form1: TForm1
       Slider.Size = 55
       Slider.Visible = False
       Slider.Offset = 14
-      TabOrder = 13
+      TabOrder = 12
       Thumb.BorderColor = 10317632
       Thumb.BorderColorHot = 10079963
       Thumb.BorderColorDown = 4548219
@@ -45092,7 +45076,7 @@ object Form1: TForm1
       Font.Style = [fsBold]
       ParentBiDiMode = False
       ParentFont = False
-      TabOrder = 15
+      TabOrder = 14
       Text = '0.0'
       OnClick = input_panel_level_editClick
       OnExit = master_panel_level_editExit
@@ -45104,7 +45088,7 @@ object Form1: TForm1
       Width = 75
       Height = 25
       Caption = 'Recall'
-      TabOrder = 17
+      TabOrder = 16
       Visible = False
     end
     object ProgressBar1: TProgressBar
@@ -45116,7 +45100,7 @@ object Form1: TForm1
       Max = 65535
       Orientation = pbVertical
       Step = 12
-      TabOrder = 14
+      TabOrder = 13
       Visible = False
     end
     object edtPreset: TEdit
@@ -45141,7 +45125,7 @@ object Form1: TForm1
       ParentBiDiMode = False
       ParentFont = False
       ReadOnly = True
-      TabOrder = 16
+      TabOrder = 15
     end
     object input_panel_dsp_num: TStaticText
       Left = 6
@@ -45157,7 +45141,7 @@ object Form1: TForm1
       Font.Style = [fsBold]
       ParentColor = False
       ParentFont = False
-      TabOrder = 19
+      TabOrder = 18
       OnClick = input_panel_dsp_numClick
     end
     object StaticText2: TStaticText
@@ -45174,7 +45158,7 @@ object Form1: TForm1
       Font.Style = [fsBold]
       ParentColor = False
       ParentFont = False
-      TabOrder = 9
+      TabOrder = 8
     end
     object output_panel_dsp_num: TStaticText
       Left = 870
@@ -45190,7 +45174,7 @@ object Form1: TForm1
       Font.Style = [fsBold]
       ParentColor = False
       ParentFont = False
-      TabOrder = 18
+      TabOrder = 17
       OnClick = output_panel_dsp_numClick
     end
   end

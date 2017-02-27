@@ -2752,7 +2752,7 @@ void __fastcall TForm1::ApplyConfigToUI()
 {
     on_loading = true;
 
-    edtPresetName->Text = global_config.preset_name[cur_preset_id];
+    lblPresetName->Caption = global_config.preset_name[cur_preset_id];
 
     for (int i=0;i<8;i++)
         clbAvaliablePreset->Checked[i] = global_config.avaliable_preset[i];
@@ -3149,14 +3149,14 @@ void __fastcall TForm1::btnGetDebugClick(TObject *Sender)
     udpControl->SendBuffer(dst_ip, 904, buf, 1024);
 }
 //---------------------------------------------------------------------------
-void __fastcall TForm1::btnModifyPresetNameClick(TObject *Sender)
+void __fastcall TForm1::lblPresetNameClick(TObject *Sender)
 {
-    edtPresetName->Text = InputBox("修改名称", "", edtPresetName->Text);
+    lblPresetName->Caption = InputBox("修改名称", "", lblPresetName->Caption);
 
     D1608Cmd cmd;
     cmd.type = 1;
     cmd.id = offsetof(GlobalConfig, preset_name[cur_preset_id]);
-    strncpy(cmd.data.data_string, edtPresetName->Text.c_str(), 16);
+    strncpy(cmd.data.data_string, lblPresetName->Caption.c_str(), 16);
     cmd.length = 17;
     SendCmd(cmd);
 }
@@ -3905,4 +3905,5 @@ void __fastcall TForm1::PaintBox4Paint(TObject *Sender)
     delete bmp;
 }
 //---------------------------------------------------------------------------
+
 

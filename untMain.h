@@ -300,8 +300,6 @@ __published:	// IDE-managed Components
     TButton *btnGetLog;
     TButton *btnGetDebug;
     TListView *lvDebug;
-    TEdit *edtPresetName;
-    TSpeedButton *btnModifyPresetName;
     TCheckListBox *clbAvaliablePreset;
     TSpeedButton *btnSetLock;
     TLabel *Label22;
@@ -460,6 +458,7 @@ __published:	// IDE-managed Components
     TImage *imgPresetBg;
     TImage *imgPreset;
     TEdit *edtPreset;
+    TLabel *lblPresetName;
     void __fastcall FormCreate(TObject *Sender);
     void __fastcall FormDestroy(TObject *Sender);
     void __fastcall btnRefreshClick(TObject *Sender);
@@ -548,7 +547,7 @@ __published:	// IDE-managed Components
     void __fastcall tbGlobalDspNameClick(TObject *Sender);
     void __fastcall btnGetLogClick(TObject *Sender);
     void __fastcall btnGetDebugClick(TObject *Sender);
-    void __fastcall btnModifyPresetNameClick(TObject *Sender);
+    void __fastcall lblPresetNameClick(TObject *Sender);
     void __fastcall btnDeviceNameClick(TObject *Sender);
     void __fastcall clbAvaliablePresetClickCheck(TObject *Sender);
     void __fastcall btnSetLockClick(TObject *Sender);
