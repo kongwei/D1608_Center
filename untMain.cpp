@@ -61,11 +61,19 @@ struct CompConfig
     //int step;
 };
 
-CompConfig ratio_config = {1, 100, 100, 100, 2};
+CompConfig ratio_config = {0, 100, 100, 100, 2};
 CompConfig threshold_config = {-320, 0, 0, 10, 3};
 CompConfig attack_config = {1, 20000, 640, 10, 3};
 CompConfig release_config = {10, 50000, 10000, 10, 3};
 CompConfig gain_config = {-120, 240, 0, 10, 3};
+
+String Ration2String(double ratio)
+{
+    if (ratio == 0)
+        return "∞";
+    else
+        return FormatFloat(100.0 / ratio, ratio_config.precise);
+}
 //---------------------------------------------------------------------------
 void SelectNullControl()
 {
@@ -601,7 +609,7 @@ __fastcall TForm1::TForm1(TComponent* Owner)
     //---------------------------------------------
     // DSP详细配置界面
     panel_agent = new PanelAgent(filter_set);
-    paint_agent = new PaintAgent(PaintBox1, filter_set);
+    paint_agent = new PaintAgent(PaintBox1, pbComp, filter_set);
     filter_set.Register(paint_agent, panel_agent);
 
     pnlDspDetail->DoubleBuffered = true;
@@ -1800,6 +1808,11 @@ void __fastcall TForm1::ToggleDSP(TObject *Sender)
             TrackBar27->Position = config_map.input_dsp[dsp_num-1].level_b;
             btnPhanton->Down = config_map.input_dsp[dsp_num-1].phantom_switch;
 
+            // 调整PaintBox1的尺寸
+            PaintBox1->Left = 8;
+            PaintBox1->Width = 945;
+            pbComp->Hide();
+
             // 隐藏COMP界面
             pnlComp->Hide();
             btnDSPCOMP->Hide();
@@ -1815,9 +1828,14 @@ void __fastcall TForm1::ToggleDSP(TObject *Sender)
             int dsp_num = btn->Tag-100;
             TrackBar27->Position = config_map.output_dsp[dsp_num-1].level_b;
 
+            // 调整PaintBox1的尺寸
+            PaintBox1->Left = 248;
+            PaintBox1->Width = 705;
+            pbComp->Show();
+
             // COMP
             btnDSPCOMP->Down = config_map.output_dsp[dsp_num-1].comp_switch;
-            edtCompRatio->Text = config_map.output_dsp[dsp_num-1].ratio/100.0;
+            edtCompRatio->Text = Ration2String(config_map.output_dsp[dsp_num-1].ratio);
             edtCompThreshold->Text = config_map.output_dsp[dsp_num-1].threshold/10.0;
             edtCompAttackTime->Text = config_map.output_dsp[dsp_num-1].attack_time/10.0;
             edtCompReleaseTime->Text = config_map.output_dsp[dsp_num-1].release_time/10.0;
@@ -2929,7 +2947,7 @@ void TForm1::OnFeedbackData(unsigned int cmd_id, int length)
             // 小界面
             if (pnlDspDetail->Visible && (pnlDspDetail->Tag-101==ObjectIndex))
             {
-                edtCompRatio->Text = config_map.output_dsp[ObjectIndex].ratio/100.0;
+                edtCompRatio->Text = Ration2String(config_map.output_dsp[ObjectIndex].ratio);
             }
 		}
 		else if (cmd_id == GetOffsetOfData((char*)&config_map.output_dsp[ObjectIndex].threshold))
@@ -3512,12 +3530,15 @@ void __fastcall TForm1::edtCompRatioKeyDown(TObject *Sender, WORD &Key,
 
     if (Key == VK_ESCAPE)
     {
-        edt->Text = FormatFloat(100.0 / config_map.output_dsp[dsp_id-1].ratio, ratio_config.precise); // /ratio_config.scale
+        edt->Text = Ration2String(config_map.output_dsp[dsp_id-1].ratio);
     }
     else if (Key == VK_RETURN)
     {
         try{
-            config_map.output_dsp[dsp_id-1].ratio = 100.0 / edt->Text.ToDouble();//*ratio_config.scale;
+            if (edt->Text == "∞")
+                config_map.output_dsp[dsp_id-1].ratio = 0;
+            else
+                config_map.output_dsp[dsp_id-1].ratio = 100.0 / edt->Text.ToDouble();//*ratio_config.scale;
             if (config_map.output_dsp[dsp_id-1].ratio > ratio_config.max_value)
                 config_map.output_dsp[dsp_id-1].ratio = ratio_config.max_value;
             else if (config_map.output_dsp[dsp_id-1].ratio < ratio_config.min_value)
@@ -3528,12 +3549,15 @@ void __fastcall TForm1::edtCompRatioKeyDown(TObject *Sender, WORD &Key,
             cmd.data.data_32 = config_map.output_dsp[dsp_id-1].ratio;
             cmd.length = 4;
             SendCmd(cmd);
+
+            filter_set.ratio = config_map.output_dsp[dsp_id-1].ratio / 100.0;
+            pbComp->Invalidate();
         }
         catch(...)
         {
         }
 
-        edt->Text = FormatFloat(100.0/config_map.output_dsp[dsp_id-1].ratio, ratio_config.precise); // /ratio_config.scale
+        edt->Text = Ration2String(config_map.output_dsp[dsp_id-1].ratio);
         edt->SelectAll();
     }
 }
@@ -3563,12 +3587,15 @@ void __fastcall TForm1::edtCompThresholdKeyDown(TObject *Sender, WORD &Key,
                 config_map.output_dsp[dsp_id-1].threshold = threshold_config.max_value;
             else if (config_map.output_dsp[dsp_id-1].threshold < threshold_config.min_value)
                 config_map.output_dsp[dsp_id-1].threshold = threshold_config.min_value;
-            
+
             D1608Cmd cmd;
             cmd.id = GetOffsetOfData(&config_map.output_dsp[dsp_id-1].threshold);
             cmd.data.data_32 = config_map.output_dsp[dsp_id-1].threshold;
             cmd.length = 4;
             SendCmd(cmd);
+
+            filter_set.threshold = config_map.output_dsp[dsp_id-1].threshold / 10.0;
+            pbComp->Invalidate();
         }
         catch(...)
         {
@@ -3693,6 +3720,9 @@ void __fastcall TForm1::edtCompGainKeyDown(TObject *Sender, WORD &Key,
             cmd.data.data_32 = config_map.output_dsp[dsp_id-1].comp_gain;
             cmd.length = 4;
             SendCmd(cmd);
+
+            filter_set.gain = config_map.output_dsp[dsp_id-1].comp_gain / 10.0;
+            pbComp->Invalidate();
         }
         catch(...)
         {

@@ -38524,9 +38524,9 @@ object Form1: TForm1
         ParentFont = False
       end
       object PaintBox1: TPaintBox
-        Left = 8
+        Left = 248
         Top = 256
-        Width = 945
+        Width = 705
         Height = 233
         Anchors = [akLeft, akTop, akRight, akBottom]
       end
@@ -38634,6 +38634,12 @@ object Form1: TForm1
           0000}
         Layout = blGlyphBottom
         OnClick = btnDspResetEQClick
+      end
+      object pbComp: TPaintBox
+        Left = 8
+        Top = 256
+        Width = 233
+        Height = 233
       end
       object pnlComp: TPanel
         Left = 128

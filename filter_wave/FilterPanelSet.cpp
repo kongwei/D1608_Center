@@ -101,12 +101,12 @@ void PanelAgent::SetPanelSelect(int band)
 }
 void PanelAgent::LoadPreset()
 {
+    int dsp_id = Form1->pnlDspDetail->Tag;
     for (int band=1;band<12;band++)
     {
         if (_panel[band] != NULL)
         {
             // Ð´ÈëFilterSet
-            int dsp_id = Form1->pnlDspDetail->Tag;
             if (dsp_id == 0)
             {
             }
@@ -129,6 +129,15 @@ void PanelAgent::LoadPreset()
 
             UpdateFreqQGain(band);
         }
+    }
+
+    if (dsp_id >= 100)
+    {
+        _filter_set.ratio = config_map.output_dsp[dsp_id-101].ratio / 100.0;
+        _filter_set.threshold = config_map.output_dsp[dsp_id-101].threshold / 10.0;
+        _filter_set.attack_time = config_map.output_dsp[dsp_id-101].attack_time / 10.0;
+        _filter_set.release_time = config_map.output_dsp[dsp_id-101].release_time / 10.0;
+        _filter_set.gain = config_map.output_dsp[dsp_id-101].comp_gain / 10.0;
     }
 }
 

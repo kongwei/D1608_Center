@@ -459,6 +459,7 @@ __published:	// IDE-managed Components
     TImage *imgPreset;
     TEdit *edtPreset;
     TLabel *lblPresetName;
+    TPaintBox *pbComp;
     void __fastcall FormCreate(TObject *Sender);
     void __fastcall FormDestroy(TObject *Sender);
     void __fastcall btnRefreshClick(TObject *Sender);

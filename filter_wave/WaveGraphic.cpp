@@ -108,7 +108,7 @@ static double Str2Double(String str, double old_freq)
     }
 }
 //---------------------------------------------------------------------------
-PaintAgent::PaintAgent(TPaintBox* paint_box, FilterSet& filter_set)
+PaintAgent::PaintAgent(TPaintBox* paint_box, TPaintBox* paint_box_comp, FilterSet& filter_set)
 :_filter_set(filter_set)
 {
     paint_control = paint_box;
@@ -116,6 +116,9 @@ PaintAgent::PaintAgent(TPaintBox* paint_box, FilterSet& filter_set)
     paint_control->OnMouseUp = OnMouseUp;
     paint_control->OnMouseMove = OnMouseMove;
     paint_control->OnPaint = OnPaint;
+
+    paint_control_comp = paint_box_comp;
+    paint_control_comp->OnPaint = OnCompPaint;
 
     is_mouse_down = false;
 }
@@ -295,7 +298,6 @@ void __fastcall PaintAgent::OnPaint(TObject * Sender)
 
     y = Gain2Canvas(-18); gdiplus_g.DrawLine(&bold_pen, left-8, y, right, y);
 }
-
 //---------------------------------------------------------------------------
 void __fastcall PaintAgent::OnMouseWheel(TObject *Sender, TShiftState Shift,
       int WheelDelta, TPoint &MousePos, bool &Handled)
@@ -403,3 +405,112 @@ void DrawThumb(PaintAgent* paint_agent, Gdiplus::Graphics &gdiplus_g)
         }
     }
 }
+//---------------------------------------------------------------------------
+static double CHART_RATIO;
+static float Comp2CanvasY(double y)
+{
+    y = -y * CHART_RATIO + Gain2Canvas(18);
+    // 保留1位小数
+    y = Floor(10 * y);
+    return y / 10;
+}
+static float Comp2CanvasX(double x)
+{
+    x = (x+72) * CHART_RATIO + LEFT_MARGIN;
+    // 保留1位小数
+    x = Floor(10 * x);
+    return x / 10;
+}
+void __fastcall PaintAgent::OnCompPaint(TObject * Sender)
+{
+    //CHART_RATIO = (paint_control_comp->Width - RIGHT_MARGIN - RIGHT_MARGIN) / 72.0;
+    // TODO: 依赖PEQ图
+    CHART_RATIO = (Gain2Canvas(-18) - Gain2Canvas(18)) / 72;
+
+    TCanvas * canvas = paint_control_comp->Canvas;
+    Gdiplus::Graphics gdiplus_g(canvas->Handle);
+    gdiplus_g.SetSmoothingMode(GDIPLUS_MODE);
+
+    // 清除图像
+    gdiplus_g.Clear(BACKGROUND_COLOR);
+
+    // 绘制网格
+    int left = Comp2CanvasX(-72);
+    int right = Comp2CanvasX(0);
+    int top = Comp2CanvasY(0);
+    int bottom = Comp2CanvasY(-72);
+
+    Gdiplus::Font font(L"Arial", 8);
+    SolidBrush brush(MAIN_GRID_COLOR);
+    PointF p;
+
+    Pen pen(GRID_COLOR, 1);
+    Pen bold_pen(MAIN_GRID_COLOR, 2);
+
+    int y;
+    y = Comp2CanvasY(0);  gdiplus_g.DrawLine(&bold_pen, left-8, y, right, y);
+    p = PointF(left-LEFT_MARGIN, y-6); gdiplus_g.DrawString(L"  0db", 5, &font, p, &brush);
+    y = Comp2CanvasY(-6);  gdiplus_g.DrawLine(&pen, left-8, y, right, y);
+    y = Comp2CanvasY(-12);  gdiplus_g.DrawLine(&pen, left-8, y, right, y);
+    y = Comp2CanvasY(-18);  gdiplus_g.DrawLine(&pen, left-8, y, right, y);
+    y = Comp2CanvasY(-24);  gdiplus_g.DrawLine(&bold_pen, left-8, y, right, y);
+    p = PointF(left-LEFT_MARGIN, y-6); gdiplus_g.DrawString(L"-24db", 5, &font, p, &brush);
+    y = Comp2CanvasY(-30);  gdiplus_g.DrawLine(&pen, left-8, y, right, y);
+    y = Comp2CanvasY(-36);  gdiplus_g.DrawLine(&pen, left-8, y, right, y);
+    y = Comp2CanvasY(-42);  gdiplus_g.DrawLine(&pen, left-8, y, right, y);
+    y = Comp2CanvasY(-48);  gdiplus_g.DrawLine(&bold_pen, left-8, y, right, y);
+    p = PointF(left-LEFT_MARGIN, y-6); gdiplus_g.DrawString(L"-48db", 5, &font, p, &brush);
+    y = Comp2CanvasY(-54);  gdiplus_g.DrawLine(&pen, left-8, y, right, y);
+    y = Comp2CanvasY(-60);  gdiplus_g.DrawLine(&pen, left-8, y, right, y);
+    y = Comp2CanvasY(-66);  gdiplus_g.DrawLine(&pen, left-8, y, right, y);
+    y = Comp2CanvasY(-72);  gdiplus_g.DrawLine(&bold_pen, left-8, y, right, y);
+    p = PointF(left-LEFT_MARGIN, y-6); gdiplus_g.DrawString(L"-72db", 5, &font, p, &brush);
+
+    int x;
+    x = Comp2CanvasX(0); gdiplus_g.DrawLine(&bold_pen, x, top, x, bottom+5);
+    p = PointF(x-15, bottom+10); gdiplus_g.DrawString(L"  0db", 5, &font, p, &brush);
+    x = Comp2CanvasX(-6); gdiplus_g.DrawLine(&pen, x, top, x, bottom);
+    x = Comp2CanvasX(-12); gdiplus_g.DrawLine(&pen, x, top, x, bottom);
+    x = Comp2CanvasX(-18); gdiplus_g.DrawLine(&pen, x, top, x, bottom+5);
+    x = Comp2CanvasX(-24); gdiplus_g.DrawLine(&bold_pen, x, top, x, bottom+5);
+    p = PointF(x-15, bottom+10); gdiplus_g.DrawString(L"-24db", 5, &font, p, &brush);
+    x = Comp2CanvasX(-30); gdiplus_g.DrawLine(&pen, x, top, x, bottom);
+    x = Comp2CanvasX(-36); gdiplus_g.DrawLine(&pen, x, top, x, bottom);
+    x = Comp2CanvasX(-42); gdiplus_g.DrawLine(&pen, x, top, x, bottom+5);
+    x = Comp2CanvasX(-48); gdiplus_g.DrawLine(&bold_pen, x, top, x, bottom+5);
+    p = PointF(x-15, bottom+10); gdiplus_g.DrawString(L"-48db", 5, &font, p, &brush);
+    x = Comp2CanvasX(-54); gdiplus_g.DrawLine(&pen, x, top, x, bottom);
+    x = Comp2CanvasX(-60); gdiplus_g.DrawLine(&pen, x, top, x, bottom);
+    x = Comp2CanvasX(-66); gdiplus_g.DrawLine(&pen, x, top, x, bottom+5);
+    x = Comp2CanvasX(-72); gdiplus_g.DrawLine(&bold_pen, x, top, x, bottom+5);
+    p = PointF(x-15, bottom+10); gdiplus_g.DrawString(L"-72db", 5, &font, p, &brush);
+
+    // 标准线
+    gdiplus_g.DrawLine(&pen, Comp2CanvasX(-72), Comp2CanvasY(-72), Comp2CanvasX(0), Comp2CanvasY(0));
+
+    
+    // 根据comp参数进行绘制
+    double ratio = _filter_set.ratio;
+    // 从 -100 ~ Threshold (db) 绘制直线
+    double threshold = _filter_set.threshold;
+    // 整体增益提高
+    double gain = _filter_set.gain;
+
+    // 计算3个点
+    Gdiplus::Point point_org(-72, -72+gain);
+    Gdiplus::Point point_threshold(threshold, threshold+gain);
+    Gdiplus::Point point_end(0, threshold+(0-threshold)*ratio+gain);
+
+    point_org.X = Comp2CanvasX(point_org.X);
+    point_org.Y = Comp2CanvasY(point_org.Y);
+    point_threshold.X = Comp2CanvasX(point_threshold.X);
+    point_threshold.Y = Comp2CanvasY(point_threshold.Y);
+    point_end.X = Comp2CanvasX(point_end.X);
+    point_end.Y = Comp2CanvasY(point_end.Y);
+
+    Gdiplus::Pen wave_pen(WAVE_COLOR, 2);
+    gdiplus_g.DrawLine(&wave_pen, point_org, point_threshold);
+    gdiplus_g.DrawLine(&wave_pen, point_threshold, point_end);
+}
+//---------------------------------------------------------------------------
+

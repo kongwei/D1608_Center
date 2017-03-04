@@ -51,7 +51,6 @@ private:
     TComboBox* _cbType[12];
     TCheckBox* _cbBypass[12];
 
-
     void __fastcall cbTypeChange(TObject *Sender);
     void __fastcall cbBypassClick(TObject *Sender);
 

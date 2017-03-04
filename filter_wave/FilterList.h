@@ -29,6 +29,13 @@ public:
 
     void Register(PaintAgent* paint_agent, PanelAgent* panel_agent);
     void RepaintPaint(int band=0);
+
+    // 输出部分的Comp参数
+    double ratio;
+    double threshold;
+    double attack_time;
+    double release_time;
+    double gain;
 private:
     // TODO: 第一个元素没有使用到
     bool bypass[12];
