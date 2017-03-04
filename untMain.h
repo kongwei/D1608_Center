@@ -704,6 +704,8 @@ private:
     // 电压检测标准值
     float line_value;
     TLabel* active_adc;
+
+    D1608Cmd last_cmd;
 };
 //---------------------------------------------------------------------------
 extern PACKAGE TForm1 *Form1;

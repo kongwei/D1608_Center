@@ -20,6 +20,11 @@ public:
         paint_control->Repaint();
     }
 
+    bool IsMouseDown()
+    {
+        return is_mouse_down;
+    }
+
     FilterSet& _filter_set;
 private:
     TPaintBox* paint_control;

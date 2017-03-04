@@ -29,6 +29,8 @@ GlobalConfig global_config = {0};
 static bool on_loading = false;
 static String last_device_name;
 
+static Word enter_key = VK_RETURN;
+
 //static char head[] = "\x53\x65\x74\x50\x61\x72\x61\x00\x00\x00\x4D\x41\x54\x31\x36\x31\x30\x43\x6F\x6E\x66\x69\x67\x44\x61\x74\x61\x00\x00\x00";
 static BLENDFUNCTION blend = {AC_SRC_OVER, 0, 200, 0};
 
@@ -749,7 +751,6 @@ void __fastcall TForm1::FormDestroy(TObject *Sender)
 //---------------------------------------------------------------------------
 void TForm1::SendCmd(D1608Cmd& cmd)
 {
-#if 1
     unsigned __int8 * p = (unsigned __int8*)&cmd;
     edtDebug->Text = "";
     String cmd_text = "";
@@ -758,12 +759,14 @@ void TForm1::SendCmd(D1608Cmd& cmd)
         cmd_text = cmd_text + IntToHex(p[i], 2) + " ";
     }
     edtDebug->Text = cmd_text;
-#endif
+
     if (on_loading || !udpControl->Active)
     {
     }
     else
     {
+        if (cmd.type == 0)
+            last_cmd = cmd;
         udpControl->SendBuffer(dst_ip, 2305, &cmd, sizeof(cmd));
     }
 
@@ -1324,34 +1327,14 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
         }
         else
         {
-            memo_debug->Lines->Add("Reply：" + CmdLog(cmd));
-
-            memcpy(((char*)(&config_map))+cmd.id, (char*)&cmd.data, cmd.length);
-            OnFeedbackData(cmd.id, cmd.length);
-#if 0
-            if (cmd.id == GetOffsetOfData(&config_map.master_mix.level_a))
+            if (last_cmd.id != cmd.id || !paint_agent->IsMouseDown())
             {
-                master_panel_trackbar->OnChange = NULL;
-                master_panel_trackbar->Position = cmd.data.data_32;
-                master_panel_trackbar->OnChange = MasterVolumeChange;
+                memo_debug->Lines->Add("Reply：" + CmdLog(cmd));
 
-                int value = cmd.data.data_32;
-                if (master_panel_level_edit != NULL)
-                {
-                    if (value == -720)
-                    {
-                        master_panel_level_edit->Text = "Off";
-                    }
-                    else
-                    {
-                        String x;
-                        master_panel_level_edit->Text = x.sprintf("%1.1f", value/10.0);
-                    }
-                }
-
-                config_map.master_mix.level_a = value;
+                // TODO: 如果是当前调节的数据，需要忽略
+                memcpy(((char*)(&config_map))+cmd.id, (char*)&cmd.data, cmd.length);
+                OnFeedbackData(cmd.id, cmd.length);
             }
-#endif
         }
     }
     else if (ABinding->PeerPort == 903)
@@ -1610,6 +1593,7 @@ void __fastcall TForm1::tmWatchTimer(TObject *Sender)
         keep_live_count++;
     
         D1608Cmd cmd;
+        cmd.type = 1;
         cmd.id = GetOffsetOfData(&config_map.op_code.noop);
         SendCmd(cmd);
     }
@@ -2183,7 +2167,6 @@ void __fastcall TForm1::btnDspResetEQClick(TObject *Sender)
         filter_set.RepaintPaint(LP_FILTER);
 
     // 压缩参数
-    Word enter_key = VK_RETURN;
     edtCompRatio->Text = 1;
     edtCompRatio->OnKeyDown(edtCompRatio, enter_key, TShiftState());
     edtCompThreshold->Text = 0;
@@ -2944,34 +2927,34 @@ void TForm1::OnFeedbackData(unsigned int cmd_id, int length)
 		}
 		else if (cmd_id == GetOffsetOfData((char*)&config_map.output_dsp[ObjectIndex].ratio))
 		{
-            // 小界面
             if (pnlDspDetail->Visible && (pnlDspDetail->Tag-101==ObjectIndex))
             {
                 edtCompRatio->Text = Ration2String(config_map.output_dsp[ObjectIndex].ratio);
+                edtCompRatio->OnKeyDown(edtCompRatio, enter_key, TShiftState());
             }
 		}
 		else if (cmd_id == GetOffsetOfData((char*)&config_map.output_dsp[ObjectIndex].threshold))
 		{
-            // 小界面
             if (pnlDspDetail->Visible && (pnlDspDetail->Tag-101==ObjectIndex))
             {
                 edtCompThreshold->Text = config_map.output_dsp[ObjectIndex].threshold/10.0;
+                edtCompThreshold->OnKeyDown(edtCompThreshold, enter_key, TShiftState());
             }
 		}
 		else if (cmd_id == GetOffsetOfData((char*)&config_map.output_dsp[ObjectIndex].attack_time))
 		{
-            // 小界面
             if (pnlDspDetail->Visible && (pnlDspDetail->Tag-101==ObjectIndex))
             {
                 edtCompAttackTime->Text = config_map.output_dsp[ObjectIndex].attack_time/10.0;
+                edtCompAttackTime->OnKeyDown(edtCompAttackTime, enter_key, TShiftState());
             }
 		}
 		else if (cmd_id == GetOffsetOfData((char*)&config_map.output_dsp[ObjectIndex].release_time))
 		{
-            // 小界面
             if (pnlDspDetail->Visible && (pnlDspDetail->Tag-101==ObjectIndex))
             {
                 edtCompReleaseTime->Text = config_map.output_dsp[ObjectIndex].release_time/10.0;
+                edtCompReleaseTime->OnKeyDown(edtCompReleaseTime, enter_key, TShiftState());
             }
 		}
 		else if (cmd_id == GetOffsetOfData((char*)&config_map.output_dsp[ObjectIndex].comp_gain))
@@ -2979,13 +2962,13 @@ void TForm1::OnFeedbackData(unsigned int cmd_id, int length)
             if (pnlDspDetail->Visible && (pnlDspDetail->Tag-101==ObjectIndex))
             {
                 edtCompGain->Text = config_map.output_dsp[ObjectIndex].comp_gain/10.0;
+                edtCompGain->OnKeyDown(edtCompGain, enter_key, TShiftState());
             }
 		}
 		else if (cmd_id >= GetOffsetOfData(&config_map.output_dsp[ObjectIndex].filter)
 			&& (cmd_id < GetOffsetOfData(&config_map.output_dsp[ObjectIndex].filter) + sizeof(config_map.output_dsp[ObjectIndex].filter)))
 		{
 			//int filter = (cmd_id - GetOffsetOfData(&config_map.output_dsp[ObjectIndex].filter)) / sizeof(config_map.output_dsp[ObjectIndex].filter[0]);
-            // 小界面
             if (pnlDspDetail->Visible && (pnlDspDetail->Tag-101==ObjectIndex))
             {
                 panel_agent->LoadPreset();
@@ -3799,15 +3782,7 @@ void __fastcall TForm1::lbl5VdClick(TObject *Sender)
     lineDownLimit->Clear();
     Chart1->BottomAxis->SetMinMax(0, 100);
 
-    // TODO: 需要考虑纵坐标范围
-    if (line_value > 0)
-    {
-        //Chart1->LeftAxis->SetMinMax(0, line_value*2);
-    }
-    else
-    {
-        //Chart1->LeftAxis->SetMinMax(line_value*2, 0);
-    }
+    // 纵坐标范围设定为+-3V
     Chart1->LeftAxis->SetMinMax(line_value-3, line_value+3);
 
 
