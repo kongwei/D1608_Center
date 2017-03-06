@@ -212,25 +212,25 @@ void __fastcall PaintAgent::OnPaint(TObject * Sender)
     Pen bold_pen(MAIN_GRID_COLOR, 2);
     int y;
     y = Gain2Canvas(18);  gdiplus_g.DrawLine(&bold_pen, left-8, y, right, y);
-    p = PointF(left-LEFT_MARGIN, y-6); gdiplus_g.DrawString(L" 18db", 5, &font, p, &brush);
+    p = PointF(left-LEFT_MARGIN, y-6); gdiplus_g.DrawString(L" 18dB", 5, &font, p, &brush);
     y = Gain2Canvas(15);  gdiplus_g.DrawLine(&pen,      left, y, right, y);
     y = Gain2Canvas(12);  gdiplus_g.DrawLine(&pen,      left-8, y, right, y);
-    p = PointF(left-LEFT_MARGIN, y-6); gdiplus_g.DrawString(L" 12db", 5, &font, p, &brush);
+    p = PointF(left-LEFT_MARGIN, y-6); gdiplus_g.DrawString(L" 12dB", 5, &font, p, &brush);
     y = Gain2Canvas( 9);  gdiplus_g.DrawLine(&pen,      left, y, right, y);
     y = Gain2Canvas( 6);  gdiplus_g.DrawLine(&pen,      left-8, y, right, y);
-    p = PointF(left-LEFT_MARGIN, y-6); gdiplus_g.DrawString(L"  6db", 5, &font, p, &brush);
+    p = PointF(left-LEFT_MARGIN, y-6); gdiplus_g.DrawString(L"  6dB", 5, &font, p, &brush);
     y = Gain2Canvas( 3);  gdiplus_g.DrawLine(&pen,      left, y, right, y);
     y = Gain2Canvas( 0);  gdiplus_g.DrawLine(&pen,      left-8, y, right, y);
-    p = PointF(left-LEFT_MARGIN, y-6); gdiplus_g.DrawString(L"  0db", 5, &font, p, &brush);
+    p = PointF(left-LEFT_MARGIN, y-6); gdiplus_g.DrawString(L"  0dB", 5, &font, p, &brush);
     y = Gain2Canvas(- 3);  gdiplus_g.DrawLine(&pen,     left, y, right, y);
     y = Gain2Canvas(- 6); gdiplus_g.DrawLine(&pen,      left-8, y, right, y);
-    p = PointF(left-LEFT_MARGIN, y-6); gdiplus_g.DrawString(L" -6db", 5, &font, p, &brush);
+    p = PointF(left-LEFT_MARGIN, y-6); gdiplus_g.DrawString(L" -6dB", 5, &font, p, &brush);
     y = Gain2Canvas(- 9);  gdiplus_g.DrawLine(&pen,     left, y, right, y);
     y = Gain2Canvas(-12); gdiplus_g.DrawLine(&pen,      left-8, y, right, y);
-    p = PointF(left-LEFT_MARGIN, y-6); gdiplus_g.DrawString(L"-12db", 5, &font, p, &brush);
+    p = PointF(left-LEFT_MARGIN, y-6); gdiplus_g.DrawString(L"-12dB", 5, &font, p, &brush);
     y = Gain2Canvas(-15);  gdiplus_g.DrawLine(&pen,     left, y, right, y);
     y = Gain2Canvas(-18); gdiplus_g.DrawLine(&bold_pen, left-8, y, right, y);
-    p = PointF(left-LEFT_MARGIN, y-6); gdiplus_g.DrawString(L"-18db", 5, &font, p, &brush);
+    p = PointF(left-LEFT_MARGIN, y-6); gdiplus_g.DrawString(L"-18dB", 5, &font, p, &brush);
 
     int x;
     x = Freq2Canvas(20); gdiplus_g.DrawLine(&bold_pen, x, top, x, bottom+5);
@@ -449,41 +449,41 @@ void __fastcall PaintAgent::OnCompPaint(TObject * Sender)
 
     int y;
     y = Comp2CanvasY(0);  gdiplus_g.DrawLine(&bold_pen, left-8, y, right, y);
-    p = PointF(left-LEFT_MARGIN, y-6); gdiplus_g.DrawString(L"  0db", 5, &font, p, &brush);
+    p = PointF(left-LEFT_MARGIN, y-6); gdiplus_g.DrawString(L"  0dB", 5, &font, p, &brush);
     y = Comp2CanvasY(-6);  gdiplus_g.DrawLine(&pen, left-8, y, right, y);
     y = Comp2CanvasY(-12);  gdiplus_g.DrawLine(&pen, left-8, y, right, y);
     y = Comp2CanvasY(-18);  gdiplus_g.DrawLine(&pen, left-8, y, right, y);
     y = Comp2CanvasY(-24);  gdiplus_g.DrawLine(&bold_pen, left-8, y, right, y);
-    p = PointF(left-LEFT_MARGIN, y-6); gdiplus_g.DrawString(L"-24db", 5, &font, p, &brush);
+    p = PointF(left-LEFT_MARGIN, y-6); gdiplus_g.DrawString(L"-24dB", 5, &font, p, &brush);
     y = Comp2CanvasY(-30);  gdiplus_g.DrawLine(&pen, left-8, y, right, y);
     y = Comp2CanvasY(-36);  gdiplus_g.DrawLine(&pen, left-8, y, right, y);
     y = Comp2CanvasY(-42);  gdiplus_g.DrawLine(&pen, left-8, y, right, y);
     y = Comp2CanvasY(-48);  gdiplus_g.DrawLine(&bold_pen, left-8, y, right, y);
-    p = PointF(left-LEFT_MARGIN, y-6); gdiplus_g.DrawString(L"-48db", 5, &font, p, &brush);
+    p = PointF(left-LEFT_MARGIN, y-6); gdiplus_g.DrawString(L"-48dB", 5, &font, p, &brush);
     y = Comp2CanvasY(-54);  gdiplus_g.DrawLine(&pen, left-8, y, right, y);
     y = Comp2CanvasY(-60);  gdiplus_g.DrawLine(&pen, left-8, y, right, y);
     y = Comp2CanvasY(-66);  gdiplus_g.DrawLine(&pen, left-8, y, right, y);
     y = Comp2CanvasY(-72);  gdiplus_g.DrawLine(&bold_pen, left-8, y, right, y);
-    p = PointF(left-LEFT_MARGIN, y-6); gdiplus_g.DrawString(L"-72db", 5, &font, p, &brush);
+    p = PointF(left-LEFT_MARGIN, y-6); gdiplus_g.DrawString(L"-72dB", 5, &font, p, &brush);
 
     int x;
     x = Comp2CanvasX(0); gdiplus_g.DrawLine(&bold_pen, x, top, x, bottom+5);
-    p = PointF(x-15, bottom+10); gdiplus_g.DrawString(L"  0db", 5, &font, p, &brush);
+    p = PointF(x-15, bottom+10); gdiplus_g.DrawString(L"  0dB", 5, &font, p, &brush);
     x = Comp2CanvasX(-6); gdiplus_g.DrawLine(&pen, x, top, x, bottom);
     x = Comp2CanvasX(-12); gdiplus_g.DrawLine(&pen, x, top, x, bottom);
     x = Comp2CanvasX(-18); gdiplus_g.DrawLine(&pen, x, top, x, bottom+5);
     x = Comp2CanvasX(-24); gdiplus_g.DrawLine(&bold_pen, x, top, x, bottom+5);
-    p = PointF(x-15, bottom+10); gdiplus_g.DrawString(L"-24db", 5, &font, p, &brush);
+    p = PointF(x-15, bottom+10); gdiplus_g.DrawString(L"-24dB", 5, &font, p, &brush);
     x = Comp2CanvasX(-30); gdiplus_g.DrawLine(&pen, x, top, x, bottom);
     x = Comp2CanvasX(-36); gdiplus_g.DrawLine(&pen, x, top, x, bottom);
     x = Comp2CanvasX(-42); gdiplus_g.DrawLine(&pen, x, top, x, bottom+5);
     x = Comp2CanvasX(-48); gdiplus_g.DrawLine(&bold_pen, x, top, x, bottom+5);
-    p = PointF(x-15, bottom+10); gdiplus_g.DrawString(L"-48db", 5, &font, p, &brush);
+    p = PointF(x-15, bottom+10); gdiplus_g.DrawString(L"-48dB", 5, &font, p, &brush);
     x = Comp2CanvasX(-54); gdiplus_g.DrawLine(&pen, x, top, x, bottom);
     x = Comp2CanvasX(-60); gdiplus_g.DrawLine(&pen, x, top, x, bottom);
     x = Comp2CanvasX(-66); gdiplus_g.DrawLine(&pen, x, top, x, bottom+5);
     x = Comp2CanvasX(-72); gdiplus_g.DrawLine(&bold_pen, x, top, x, bottom+5);
-    p = PointF(x-15, bottom+10); gdiplus_g.DrawString(L"-72db", 5, &font, p, &brush);
+    p = PointF(x-15, bottom+10); gdiplus_g.DrawString(L"-72dB", 5, &font, p, &brush);
 
     // 标准线
     gdiplus_g.DrawLine(&pen, Comp2CanvasX(-72), Comp2CanvasY(-72), Comp2CanvasX(0), Comp2CanvasY(0));
@@ -491,7 +491,7 @@ void __fastcall PaintAgent::OnCompPaint(TObject * Sender)
     
     // 根据comp参数进行绘制
     double ratio = _filter_set.ratio;
-    // 从 -100 ~ Threshold (db) 绘制直线
+    // 从 -100 ~ Threshold (dB) 绘制直线
     double threshold = _filter_set.threshold;
     // 整体增益提高
     double gain = _filter_set.gain;
