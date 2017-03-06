@@ -424,7 +424,7 @@ static float Comp2CanvasX(double x)
 void __fastcall PaintAgent::OnCompPaint(TObject * Sender)
 {
     //CHART_RATIO = (paint_control_comp->Width - RIGHT_MARGIN - RIGHT_MARGIN) / 72.0;
-    // TODO: ÒÀÀµPEQÍ¼
+    // BAD: ÒÀÀµPEQÍ¼
     CHART_RATIO = (Gain2Canvas(-18) - Gain2Canvas(18)) / 72;
 
     TCanvas * canvas = paint_control_comp->Canvas;

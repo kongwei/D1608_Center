@@ -125,7 +125,7 @@ void FilterSet::RepaintPaint(int band)
 
     if (band > 0)
     {
-        // TODO: 下发系数 需要优化
+        // 下发PEQ系数
         D1608Cmd cmd;
         double tmp;
 

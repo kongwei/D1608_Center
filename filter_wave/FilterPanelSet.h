@@ -43,7 +43,7 @@ public:
 
     void LoadPreset();
 private:
-    // TODO: 浪费了第一个元素
+    // BAD:浪费了第一个元素
     TPanel* _panel[12];
     TEdit* _edtFreq[12];
     TEdit* _edtQ[12];

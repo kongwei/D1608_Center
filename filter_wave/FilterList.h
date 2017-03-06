@@ -37,7 +37,7 @@ public:
     double release_time;
     double gain;
 private:
-    // TODO: 第一个元素没有使用到
+    // BAD: 浪费了第一个元素
     bool bypass[12];
     Coefficient filter[12];
     int select_band;

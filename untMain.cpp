@@ -618,7 +618,7 @@ __fastcall TForm1::TForm1(TComponent* Owner)
     pnlHeader->DoubleBuffered = true;
     pnlMonitor->DoubleBuffered = true;
 
-    // TODO: 受到滤波器数量影响
+    // 受到滤波器数量影响
     panel_agent->SetPanel(0, panelBand0, edtFreq0, edtQ0, edtGain0, cbType0, cbBypass0);
     panel_agent->SetPanel(1, panelBand1, edtFreq1, edtQ1, edtGain1, cbType1, cbBypass1);
     panel_agent->SetPanel(2, panelBand2, edtFreq2, edtQ2, edtGain2, cbType2, cbBypass2);
@@ -1330,11 +1330,11 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
         }
         else
         {
+            // 如果是当前调节的数据，需要忽略
             if (last_cmd.id != cmd.id || !paint_agent->IsMouseDown())
             {
                 memo_debug->Lines->Add("Reply：" + CmdLog(cmd));
 
-                // TODO: 如果是当前调节的数据，需要忽略
                 memcpy(((char*)(&config_map))+cmd.id, (char*)&cmd.data, cmd.length);
                 OnFeedbackData(cmd.id, cmd.length);
             }
@@ -1602,7 +1602,6 @@ void __fastcall TForm1::tmWatchTimer(TObject *Sender)
     }
     else
     {
-        // TODO: 断链
         udpControl->Active = false;
         //tsOperator->Caption = "操作(断开)";
         shape_live->Hide();
