@@ -162,7 +162,7 @@ __published:	// IDE-managed Components
     TEdit *edtGain9;
     TEdit *edtQ9;
     TCheckBox *cbBypass9;
-    TAdvTrackBar *AdvTrackBar3;
+    TAdvTrackBar *dsp_delay_trackbar;
     TPanel *panelBand1;
     TLabel *Label11;
     TLabel *Label12;
@@ -244,7 +244,7 @@ __published:	// IDE-managed Components
     TEdit *edtQ10;
     TEdit *edtGain10;
     TMemo *mmCoeff;
-    TAdvTrackBar *TrackBar27;
+    TAdvTrackBar *dsp_gain_trackbar;
     TAdvTrackBar *p_output_inner_level;
     TAdvTrackBar *p_input_inner_level;
     TPaintBox *pb_watch;
@@ -256,7 +256,6 @@ __published:	// IDE-managed Components
     TStaticText *pnlmix_dsp_num;
     TMemo *memo_debug;
     TImageList *ImageList1;
-    TButton *btnRecall;
     TOpenDialog *OpenDialog1;
     TSaveDialog *SaveDialog1;
     TPopupMenu *PopupMenu3;
@@ -460,6 +459,10 @@ __published:	// IDE-managed Components
     TEdit *edtPreset;
     TLabel *lblPresetName;
     TPaintBox *pbComp;
+    TImage *Image1;
+    TImage *Image2;
+    TEdit *dsp_gain_edit;
+    TEdit *dsp_delay_edit;
     void __fastcall FormCreate(TObject *Sender);
     void __fastcall FormDestroy(TObject *Sender);
     void __fastcall btnRefreshClick(TObject *Sender);
@@ -498,7 +501,7 @@ __published:	// IDE-managed Components
     void __fastcall btnMixMuteClick(TObject *Sender);
     void __fastcall btnMasterMuteClick(TObject *Sender);
     void __fastcall btnPhantonClick(TObject *Sender);
-    void __fastcall TrackBar27Change(TObject *Sender);
+    void __fastcall dsp_gain_trackbarChange(TObject *Sender);
     void __fastcall FormMouseWheel(TObject *Sender, TShiftState Shift,
           int WheelDelta, TPoint &MousePos, bool &Handled);
     void __fastcall input_typeMouseDown(TObject *Sender,
@@ -600,6 +603,13 @@ __published:	// IDE-managed Components
           TMouseButton Button, TShiftState Shift, int X, int Y);
     void __fastcall PaintBox3Paint(TObject *Sender);
     void __fastcall PaintBox4Paint(TObject *Sender);
+    void __fastcall dsp_gain_editExit(TObject *Sender);
+    void __fastcall dsp_gain_editKeyDown(TObject *Sender, WORD &Key,
+          TShiftState Shift);
+    void __fastcall dsp_delay_trackbarChange(TObject *Sender);
+    void __fastcall dsp_delay_editExit(TObject *Sender);
+    void __fastcall dsp_delay_editKeyDown(TObject *Sender, WORD &Key,
+          TShiftState Shift);
 
 private:
     // 已经选择设备

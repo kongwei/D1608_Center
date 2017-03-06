@@ -659,6 +659,9 @@ void __fastcall TForm1::FormCreate(TObject *Sender)
     Width = 1664;
     Height = 798;
 
+    pnlOperator->Width = 1664-16;
+    pnlOperator->Height = 798-(728-584);
+
     pnlOperator->Show();
 
     SetWindowLong(edtPreset->Handle, GWL_STYLE, GetWindowLong(edtPreset->Handle, GWL_STYLE) | ES_CENTER);
@@ -1782,14 +1785,14 @@ void __fastcall TForm1::ToggleDSP(TObject *Sender)
 
         if (btn->Tag < 100)
         {
-            TrackBar27->BackGround = p_input_inner_level->BackGround;
-            TrackBar27->Max = p_input_inner_level->Max;
-            TrackBar27->Min = p_input_inner_level->Min;
+            dsp_gain_trackbar->BackGround = p_input_inner_level->BackGround;
+            dsp_gain_trackbar->Max = p_input_inner_level->Max;
+            dsp_gain_trackbar->Min = p_input_inner_level->Min;
             lblDSPInfo->Caption = "Input Channel " + IntToStr(btn->Tag) + " DSP Setup";
             pnlDspDetail->Left = 0;
 
             int dsp_num = btn->Tag;
-            TrackBar27->Position = config_map.input_dsp[dsp_num-1].level_b;
+            dsp_gain_trackbar->Position = config_map.input_dsp[dsp_num-1].level_b;
             btnPhanton->Down = config_map.input_dsp[dsp_num-1].phantom_switch;
 
             // 调整PaintBox1的尺寸
@@ -1803,14 +1806,14 @@ void __fastcall TForm1::ToggleDSP(TObject *Sender)
         }
         else
         {
-            TrackBar27->BackGround = p_output_inner_level->BackGround;
-            TrackBar27->Max = p_output_inner_level->Max;
-            TrackBar27->Min = p_output_inner_level->Min;
+            dsp_gain_trackbar->BackGround = p_output_inner_level->BackGround;
+            dsp_gain_trackbar->Max = p_output_inner_level->Max;
+            dsp_gain_trackbar->Min = p_output_inner_level->Min;
             lblDSPInfo->Caption = "Output Channel " + IntToStr(btn->Tag-100) + " DSP Setup";
             pnlDspDetail->Left = Width - pnlDspDetail->Width;
 
             int dsp_num = btn->Tag-100;
-            TrackBar27->Position = config_map.output_dsp[dsp_num-1].level_b;
+            dsp_gain_trackbar->Position = config_map.output_dsp[dsp_num-1].level_b;
 
             // 调整PaintBox1的尺寸
             PaintBox1->Left = 248;
@@ -1827,6 +1830,9 @@ void __fastcall TForm1::ToggleDSP(TObject *Sender)
             pnlComp->Show();
             btnDSPCOMP->Show();
         }
+
+        dsp_gain_trackbar->OnChange(dsp_gain_trackbar);
+        dsp_delay_trackbar->OnChange(dsp_delay_trackbar);
 
         pnlDspDetail->Top = 168;
         pnlDspDetail->Show();
@@ -1952,36 +1958,6 @@ void __fastcall TForm1::btnPhantonClick(TObject *Sender)
     SendCmd(cmd);
 
     config_map.input_dsp[dsp_id-1].phantom_switch = btn->Down;
-}
-//---------------------------------------------------------------------------
-void __fastcall TForm1::TrackBar27Change(TObject *Sender)
-{
-    TAdvTrackBar* track = (TAdvTrackBar*)Sender;
-    int value = track->Position;
-    int dsp_num = track->Parent->Tag;
-
-    if (dsp_num < 100)
-    {
-        // input channel
-        D1608Cmd cmd;
-        cmd.id = GetOffsetOfData(&config_map.input_dsp[dsp_num-1].level_b);
-        cmd.data.data_16 = value;
-        cmd.length = 2;
-        SendCmd(cmd);
-
-        config_map.input_dsp[dsp_num-1].level_b = value;
-    }
-    else
-    {
-        // output channel
-        D1608Cmd cmd;
-        cmd.id = GetOffsetOfData(&config_map.output_dsp[dsp_num-101].level_b);
-        cmd.data.data_16 = value;
-        cmd.length = 2;
-        SendCmd(cmd);
-
-        config_map.output_dsp[dsp_num-101].level_b = value;
-    }
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::FormMouseWheel(TObject *Sender, TShiftState Shift,
@@ -2861,7 +2837,7 @@ void TForm1::OnFeedbackData(unsigned int cmd_id, int length)
             // 小界面
             if (pnlDspDetail->Visible && (pnlDspDetail->Tag-1==ObjectIndex))
             {
-                TrackBar27->Position = config_map.input_dsp[ObjectIndex].level_b;
+                dsp_gain_trackbar->Position = config_map.input_dsp[ObjectIndex].level_b;
             }
 		}
 		else if (cmd_id == GetOffsetOfData((char*)&config_map.input_dsp[ObjectIndex].gain))
@@ -2918,7 +2894,7 @@ void TForm1::OnFeedbackData(unsigned int cmd_id, int length)
             // 小界面
             if (pnlDspDetail->Visible && (pnlDspDetail->Tag-101==ObjectIndex))
             {
-                TrackBar27->Position = config_map.output_dsp[ObjectIndex].level_b;
+                dsp_gain_trackbar->Position = config_map.output_dsp[ObjectIndex].level_b;
             }
 		}
 		else if (cmd_id == GetOffsetOfData((char*)&config_map.output_dsp[ObjectIndex].gain))
@@ -3910,5 +3886,104 @@ void __fastcall TForm1::PaintBox4Paint(TObject *Sender)
     delete bmp;
 }
 //---------------------------------------------------------------------------
+void __fastcall TForm1::dsp_gain_trackbarChange(TObject *Sender)
+{
+    TAdvTrackBar* track = (TAdvTrackBar*)Sender;
+    int value = track->Position;
+    int dsp_num = track->Parent->Tag;
+    String x;
+    dsp_gain_edit->Text = x.sprintf("%1.1f", value/10.0);
 
+    if (dsp_num < 100)
+    {
+        if (config_map.input_dsp[dsp_num-1].level_b != value)
+        {
+            // input channel
+            D1608Cmd cmd;
+            cmd.id = GetOffsetOfData(&config_map.input_dsp[dsp_num-1].level_b);
+            cmd.data.data_16 = value;
+            cmd.length = 2;
+            SendCmd(cmd);
+
+            config_map.input_dsp[dsp_num-1].level_b = value;
+        }
+    }
+    else
+    {
+        if (config_map.output_dsp[dsp_num-101].level_b != value)
+        {
+            // output channel
+            D1608Cmd cmd;
+            cmd.id = GetOffsetOfData(&config_map.output_dsp[dsp_num-101].level_b);
+            cmd.data.data_16 = value;
+            cmd.length = 2;
+            SendCmd(cmd);
+
+            config_map.output_dsp[dsp_num-101].level_b = value;
+        }
+    }
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::dsp_gain_editExit(TObject *Sender)
+{
+    dsp_gain_trackbar->OnChange(dsp_gain_trackbar);
+    dsp_gain_edit->OnClick = input_panel_level_editClick;
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::dsp_gain_editKeyDown(TObject *Sender, WORD &Key,
+      TShiftState Shift)
+{
+    if (Key == VK_RETURN)
+    {
+        try{
+            dsp_gain_trackbar->Position = dsp_gain_edit->Text.ToDouble() * 10;
+        }catch(...){
+        }
+
+        dsp_gain_trackbar->OnChange(dsp_gain_trackbar);
+        dsp_gain_edit->SelectAll();
+    }
+    else if (Key == VK_UP || Key == VK_DOWN || Key == VK_PRIOR || Key == VK_NEXT)
+    {
+        dsp_gain_trackbar->Perform(WM_KEYDOWN, Key, 1);
+        dsp_gain_edit->SelectAll();
+        Key = 0;
+    }
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::dsp_delay_trackbarChange(TObject *Sender)
+{
+    TAdvTrackBar* track = (TAdvTrackBar*)Sender;
+    int value = track->Position;
+    //int dsp_num = track->Parent->Tag;
+    dsp_delay_edit->Text = value;
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::dsp_delay_editExit(TObject *Sender)
+{
+    dsp_delay_trackbar->OnChange(dsp_delay_trackbar);
+    dsp_delay_edit->OnClick = input_panel_level_editClick;
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::dsp_delay_editKeyDown(TObject *Sender, WORD &Key,
+      TShiftState Shift)
+{
+    if (Key == VK_RETURN)
+    {
+        try{
+            dsp_delay_trackbar->Position = dsp_delay_edit->Text.ToInt();
+        }catch(...){
+        }
+
+        dsp_delay_trackbar->OnChange(dsp_delay_trackbar);
+        dsp_delay_edit->SelectAll();
+    }
+    else if (Key == VK_UP || Key == VK_DOWN || Key == VK_PRIOR || Key == VK_NEXT)
+    {
+        dsp_delay_trackbar->Perform(WM_KEYDOWN, Key, 1);
+        dsp_delay_edit->SelectAll();
+        Key = 0;
+    }
+}
+//---------------------------------------------------------------------------
 
