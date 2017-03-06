@@ -24,7 +24,8 @@ TForm1 *Form1;
 ConfigMap all_config_map[8];
 ConfigMap config_map;
 GlobalConfig global_config = {0};
-//TAdvGDIPPicture * x = new TAdvGDIPPicture();
+const int REAL_INPUT_DSP_NUM = 8;
+const int REAL_OUTPUT_DSP_NUM = 8;
 
 static bool on_loading = false;
 static String last_device_name;
@@ -438,24 +439,32 @@ __fastcall TForm1::TForm1(TComponent* Owner)
 {
     on_loading = true;
 
+    // 调整尺寸
+    Width = 1664;
+    Height = 798;
+    pnlOperator->Width = Width;//REAL_INPUT_DSP_NUM * PANEL_WIDTH + imgPresetBg->Width + REAL_OUTPUT_DSP_NUM * PANEL_WIDTH;
+    //pnlOperator->Width = Math::Max(pnlOperator->Width, Width);
+    pnlOperator->Height = 798-(728-584);
+    pnlOperator->Top = pnlHeader->Height;
+
     pb_watch_list[0] = pb_watch;
 
     // 生成input背景
-    input_panel_bkground->Picture->Bitmap->Width = 16 * PANEL_WIDTH;
-    input_panel_bkground->Picture->Bitmap->Height = Image3->Height;
+    input_panel_bkground->Picture->Bitmap->Width = REAL_INPUT_DSP_NUM * PANEL_WIDTH;
+    input_panel_bkground->Picture->Bitmap->Height = imgInputTemplate->Height;
 
     input_panel_bkground->Canvas->Draw(
         -input_panel_bkground->Left,
         -input_panel_bkground->Top,
         imgBody->Picture->Graphic);
 
-    for (int i=0;i<16;i++)
+    for (int i=0;i<REAL_INPUT_DSP_NUM;i++)
     {
         ::AlphaBlend(input_panel_bkground->Canvas->Handle,
-            i*PANEL_WIDTH,Image3->Top,PANEL_WIDTH,Image3->Height,
-            Image3->Canvas->Handle, 0, 0, PANEL_WIDTH,Image3->Height, blend);
+            i*PANEL_WIDTH,imgInputTemplate->Top,PANEL_WIDTH,imgInputTemplate->Height,
+            imgInputTemplate->Canvas->Handle, 0, 0, PANEL_WIDTH,imgInputTemplate->Height, blend);
     }
-    /*for (int i=0;i<16;i++)
+    /*for (int i=0;i<REAL_INPUT_DSP_NUM;i++)
     {
         TRect templet_image_rect = Image3->BoundsRect;
         TRect dest_rect = TRect(i*PANEL_WIDTH,
@@ -475,7 +484,7 @@ __fastcall TForm1::TForm1(TComponent* Owner)
     input_noise_btn[0] = input_panel_noise_btn;
     input_mute_btn[0] = input_panel_mute_btn;
     input_dsp_name[0] = input_panel_dsp_num;
-    for (int i=2;i<=16;i++)
+    for (int i=2;i<=REAL_INPUT_DSP_NUM;i++)
     {
         CreateInputPanel(i, this);
         CopyWatchPanel(i, this, String((char)('A'-1+i))+" ("+IntToStr(i)+")", (i-1) * PANEL_WIDTH);
@@ -484,6 +493,21 @@ __fastcall TForm1::TForm1(TComponent* Owner)
 
     //------------------------------------
     // mix和master
+    int mix_panel_left = REAL_INPUT_DSP_NUM * PANEL_WIDTH;
+    imgMasterMixBg->Left = mix_panel_left;
+    imgPresetBg->Left = mix_panel_left;
+    mix_panel_trackbar->Left = mix_panel_left;
+    master_panel_trackbar->Left = mix_panel_left+mix_panel_trackbar->Width;
+    mix_panel_level_edit->Left = mix_panel_left+5;
+    btnMixMute->Left = mix_panel_left+4;
+    master_panel_level_edit->Left = mix_panel_left+53;
+    btnMasterMute->Left = mix_panel_left+52;
+    mix_panel_dsp_num->Left = mix_panel_left+6;
+    master_panel_dsp_num->Left = mix_panel_left+49;
+    lblPresetName->Left = mix_panel_left+53;
+    edtPreset->Left = mix_panel_left+51;
+
+
     imgMasterMixBg->Canvas->Draw(
         -imgMasterMixBg->Left,
         -imgMasterMixBg->Top,
@@ -500,20 +524,51 @@ __fastcall TForm1::TForm1(TComponent* Owner)
         0,0,imgMasterMixBg->Width,imgPresetBg->Height,
         imgPreset->Canvas->Handle, 0,0,imgPreset->Width,imgPreset->Height, blend);
 
+    mix_panel_trackbar->Thumb->Picture = input_panel_trackbar->Thumb->Picture;
+    mix_panel_trackbar->Thumb->PictureHot = input_panel_trackbar->Thumb->PictureHot;
+    mix_panel_trackbar->Thumb->PictureDown = input_panel_trackbar->Thumb->PictureDown;
+
+    master_panel_trackbar->Thumb->Picture = input_panel_trackbar->Thumb->Picture;
+    master_panel_trackbar->Thumb->PictureHot = input_panel_trackbar->Thumb->PictureHot;
+    master_panel_trackbar->Thumb->PictureDown = input_panel_trackbar->Thumb->PictureDown;
+
 
     //------------------------------------
-    output_panel_bkground->Width = OUTPUT_DSP_NUM * PANEL_WIDTH;
-    output_panel_bkground->Picture->Bitmap->Width = OUTPUT_DSP_NUM * PANEL_WIDTH;
+    int output_panel_left = REAL_INPUT_DSP_NUM * PANEL_WIDTH + imgPresetBg->Width;
+    output_panel_bkground->Left = output_panel_left;
+    output_panel_dsp_btn->Left = output_panel_left+4;
+    output_panel_eq_btn->Left = output_panel_left+4;
+    output_panel_comp_btn->Left = output_panel_left+4;
+    output_panel_number_btn->Left = output_panel_left+4;
+    output_panel_invert_btn->Left = output_panel_left+4;
+    output_panel_mute_btn->Left = output_panel_left+4;
+    output_panel_level_edit->Left = output_panel_left+4;
+    output_panel_trackbar->Left = output_panel_left;
+    output_panel_dsp_num->Left = output_panel_left+4;
+
+    output_panel_bkground->Width = Width - output_panel_bkground->Left;// 画满剩余部分 //REAL_OUTPUT_DSP_NUM * PANEL_WIDTH;
+    output_panel_bkground->Picture->Bitmap->Width = output_panel_bkground->Width;
     output_panel_bkground->Canvas->Draw(
         -output_panel_bkground->Left,
         -output_panel_bkground->Top,
         imgBody->Picture->Graphic);
 
-    for (int i=0;i<OUTPUT_DSP_NUM;i++)
+    {
+        // 插入WatchLevel的补充
+        imgWatchLevelBg->Left = output_panel_bkground->Left;
+        imgWatchLevelBg->Width = output_panel_bkground->Width;
+        imgWatchLevelBg->Picture->Bitmap->Width = imgWatchLevelBg->Width;
+        imgWatchLevelBg->Canvas->Draw(
+            -imgWatchLevelBg->Left,
+            -imgWatchLevelBg->Top,
+            imgBody->Picture->Graphic);
+    }
+
+    for (int i=0;i<REAL_OUTPUT_DSP_NUM;i++)
     {
         ::AlphaBlend(output_panel_bkground->Canvas->Handle,
-            i*PANEL_WIDTH,Image12->Top,PANEL_WIDTH,Image12->Height,
-            Image12->Canvas->Handle, 0, 0, PANEL_WIDTH,Image12->Height, blend);
+            i*PANEL_WIDTH,imgOutputTemplate->Top,PANEL_WIDTH,imgOutputTemplate->Height,
+            imgOutputTemplate->Canvas->Handle, 0, 0, PANEL_WIDTH,imgOutputTemplate->Height, blend);
 /*        TRect templet_image_rect = Image3->BoundsRect;
         TRect dest_rect = TRect(i*PANEL_WIDTH,
                                 templet_image_rect.Top,
@@ -523,23 +578,19 @@ __fastcall TForm1::TForm1(TComponent* Owner)
 */
     }
 
-    mix_panel_trackbar->Thumb->Picture = input_panel_trackbar->Thumb->Picture;
-    mix_panel_trackbar->Thumb->PictureHot = input_panel_trackbar->Thumb->PictureHot;
-    mix_panel_trackbar->Thumb->PictureDown = input_panel_trackbar->Thumb->PictureDown;
-
-    master_panel_trackbar->Thumb->Picture = input_panel_trackbar->Thumb->Picture;
-    master_panel_trackbar->Thumb->PictureHot = input_panel_trackbar->Thumb->PictureHot;
-    master_panel_trackbar->Thumb->PictureDown = input_panel_trackbar->Thumb->PictureDown;
-
     output_panel_trackbar->Thumb->PictureDown = input_panel_trackbar->Thumb->PictureDown;
     output_panel_trackbar->Thumb->PictureHot = input_panel_trackbar->Thumb->PictureHot;
+    SetWindowLong(output_panel_level_edit->Handle, GWL_STYLE, GetWindowLong(output_panel_level_edit->Handle, GWL_STYLE) | ES_RIGHT);
+    output_panel_trackbar->OnChange(output_panel_trackbar);
 
     output_eq_btn[0] = output_panel_eq_btn;
     output_comp_btn[0] = output_panel_comp_btn;
     output_invert_btn[0] = output_panel_invert_btn;
     output_mute_btn[0] = output_panel_mute_btn;
     output_dsp_name[0] = output_panel_dsp_num;
-    for (int i=2;i<=OUTPUT_DSP_NUM;i++)
+    output_level_edit[0] = output_panel_level_edit;
+    output_level_trackbar[0] = output_panel_trackbar;
+    for (int i=2;i<=REAL_OUTPUT_DSP_NUM;i++)
     {
         CreateOutputPanel(i, this);
     }
@@ -551,7 +602,7 @@ __fastcall TForm1::TForm1(TComponent* Owner)
     {
         TRect templet_image_rect = pnlmix_background->BoundsRect;
         templet_image_rect.Right = PANEL_WIDTH;
-        
+
         TRect dest_rect = TRect(i*PANEL_WIDTH,
                                 templet_image_rect.Top,
                                 (i+1)*PANEL_WIDTH,
@@ -573,7 +624,7 @@ __fastcall TForm1::TForm1(TComponent* Owner)
     pnlmix_level_trackbar->OnChange(pnlmix_level_trackbar);
 
     //----------------------------------
-    for (int i=17;i<=17+15;i++)
+    for (int i=17;i<17+REAL_OUTPUT_DSP_NUM;i++)
     {
         CopyWatchPanel(i, this, String(1+(i-17)), imgMasterMixBg->Left + imgMasterMixBg->Width + (i-17) * PANEL_WIDTH);
     }
@@ -582,10 +633,6 @@ __fastcall TForm1::TForm1(TComponent* Owner)
     SetWindowLong(input_panel_level_edit->Handle, GWL_STYLE, GetWindowLong(input_panel_level_edit->Handle, GWL_STYLE) | ES_RIGHT);
     input_panel_trackbar->OnChange(input_panel_trackbar);
 
-    output_level_edit[0] = output_panel_level_edit;
-    output_level_trackbar[0] = output_panel_trackbar;
-    SetWindowLong(output_panel_level_edit->Handle, GWL_STYLE, GetWindowLong(output_panel_level_edit->Handle, GWL_STYLE) | ES_RIGHT);
-    output_panel_trackbar->OnChange(output_panel_trackbar);
 
     input_level_edit[16] = mix_panel_level_edit;
     input_level_trackbar[16] = mix_panel_trackbar;
@@ -635,6 +682,7 @@ __fastcall TForm1::TForm1(TComponent* Owner)
     btnDspResetEQ->Click();
 
     SetPresetId(1);
+    // TODO: PRESET NUM
     for (int i=0;i<8;i++)
     {
         all_config_map[i] = config_map;
@@ -656,12 +704,6 @@ __fastcall TForm1::TForm1(TComponent* Owner)
 //---------------------------------------------------------------------------
 void __fastcall TForm1::FormCreate(TObject *Sender)
 {
-    Width = 1664;
-    Height = 798;
-
-    pnlOperator->Width = 1664-16;
-    pnlOperator->Height = 798-(728-584);
-
     pnlOperator->Show();
 
     SetWindowLong(edtPreset->Handle, GWL_STYLE, GetWindowLong(edtPreset->Handle, GWL_STYLE) | ES_CENTER);
@@ -1550,21 +1592,18 @@ void TForm1::MsgWatchHandle(const D1608Cmd& cmd)
         int value = cmd.data.data_32_array[i];
         if (value <= 0)
         {
-            pb_watch_list[i]->Tag = -71;
-            pb_watch_list[i]->Invalidate();
+            UpdateWatchLevel(i, -71);
         }
         else
         {
             try{
                 double valuex = log10(value);
                 double base = log10(0x00FFFFFF);
-                pb_watch_list[i]->Tag = (valuex - base) * 20 + 1 + 24;
-                pb_watch_list[i]->Invalidate();
+                UpdateWatchLevel(i, (valuex - base) * 20 + 1 + 24);
             }
             catch(...)
             {
-                pb_watch_list[i]->Tag = 0;
-                pb_watch_list[i]->Invalidate();
+                UpdateWatchLevel(i, 0);
             }
         }
     }
@@ -1585,8 +1624,7 @@ void __fastcall TForm1::tmWatchTimer(TObject *Sender)
     {
         for (int i=0;i<32;i++)
         {
-            pb_watch_list[i]->Tag = -49;
-            pb_watch_list[i]->Invalidate();
+            UpdateWatchLevel(i, -49);
         }
     }
 
@@ -1610,8 +1648,7 @@ void __fastcall TForm1::tmWatchTimer(TObject *Sender)
         // Level Meter归零
         for (int i=0;i<32;i++)
         {
-            pb_watch_list[i]->Tag = -49;
-            pb_watch_list[i]->Invalidate();
+            UpdateWatchLevel(i, -49);
         }
 
         // 重新启动自动刷新
@@ -1697,7 +1734,7 @@ void __fastcall TForm1::ToogleOutputMix(TObject *Sender)
         // 数据
         int out_dsp_num = last_out_num_btn->Tag;
 
-        for (int i=0;i<=16;i++)
+        for (int i=0;i<REAL_INPUT_DSP_NUM;i++)
         {
             mix_mute_btn[i]->Down = config_map.master_mix.mix_mute[i][out_dsp_num-1];
             mix_level_trackbar[i]->Position = config_map.master_mix.mix[i][out_dsp_num-1];
@@ -1809,7 +1846,7 @@ void __fastcall TForm1::ToggleDSP(TObject *Sender)
             dsp_gain_trackbar->Max = p_output_inner_level->Max;
             dsp_gain_trackbar->Min = p_output_inner_level->Min;
             lblDSPInfo->Caption = "Output Channel " + IntToStr(btn->Tag-100) + " DSP Setup";
-            pnlDspDetail->Left = Width - pnlDspDetail->Width;
+            pnlDspDetail->Left = pnlOperator->Width - pnlDspDetail->Width;
 
             int dsp_num = btn->Tag-100;
             dsp_gain_trackbar->Position = config_map.output_dsp[dsp_num-1].level_b;
@@ -2730,11 +2767,12 @@ void __fastcall TForm1::ApplyConfigToUI()
 
     lblPresetName->Caption = global_config.preset_name[cur_preset_id];
 
+    // TODO: PRESET NUM
     for (int i=0;i<8;i++)
         clbAvaliablePreset->Checked[i] = global_config.avaliable_preset[i];
 
     // 修改界面
-    for (int i=0;i<16;i++)
+    for (int i=0;i<REAL_INPUT_DSP_NUM;i++)
     {
         input_type_lbl[i]->Caption = InputGain2String(config_map.input_dsp[i].gain);
 
@@ -2759,7 +2797,7 @@ void __fastcall TForm1::ApplyConfigToUI()
             input_dsp_name[i]->Caption = dsp_name;
     }
 
-    for (int i=0;i<16;i++)
+    for (int i=0;i<REAL_OUTPUT_DSP_NUM;i++)
     {
         output_type_lbl[i]->Caption = OutputGain2String(config_map.output_dsp[i].gain);
 
@@ -2972,7 +3010,7 @@ void TForm1::OnFeedbackData(unsigned int cmd_id, int length)
         // 小界面
         if (pnlMix->Visible && pnlMix->Tag-1==channel_out)
         {
-            for (int i=0;i<=16;i++)
+            for (int i=0;i<REAL_INPUT_DSP_NUM;i++)
             {
                 mix_mute_btn[i]->Down = config_map.master_mix.mix_mute[i][channel_out];
                 mix_level_trackbar[i]->Position = config_map.master_mix.mix[i][channel_out];
@@ -2988,7 +3026,7 @@ void TForm1::OnFeedbackData(unsigned int cmd_id, int length)
         // 小界面
         if (pnlMix->Visible && pnlMix->Tag-1==channel_out)
         {
-            for (int i=0;i<=16;i++)
+            for (int i=0;i<REAL_INPUT_DSP_NUM;i++)
             {
                 mix_mute_btn[i]->Down = config_map.master_mix.mix_mute[i][channel_out];
                 mix_level_trackbar[i]->Position = config_map.master_mix.mix[i][channel_out];
@@ -3167,6 +3205,7 @@ void __fastcall TForm1::clbAvaliablePresetClickCheck(TObject *Sender)
     if (is_unselect_all)
     {
         // 恢复
+        // TODO: PRESET NUM
         for (int i=0;i<8;i++)
         {
             clbAvaliablePreset->Checked[i] = global_config.avaliable_preset[i];
@@ -3177,6 +3216,7 @@ void __fastcall TForm1::clbAvaliablePresetClickCheck(TObject *Sender)
     D1608Cmd cmd;
     cmd.type = 1;
     cmd.id = offsetof(GlobalConfig, avaliable_preset);
+    // TODO: PRESET NUM
     for (int i=0;i<8;i++)
     {
         global_config.avaliable_preset[i] =  clbAvaliablePreset->Checked[i];

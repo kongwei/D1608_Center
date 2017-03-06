@@ -114,8 +114,8 @@ __published:	// IDE-managed Components
     TImage *imgMasterMixBg;
     TEdit *mix_panel_level_edit;
     TEdit *master_panel_level_edit;
-    TStaticText *StaticText1;
-    TStaticText *StaticText2;
+    TStaticText *mix_panel_dsp_num;
+    TStaticText *master_panel_dsp_num;
     TLabel *input_type;
     TPopupMenu *PopupMenu1;
     TMenuItem *M11;
@@ -133,7 +133,7 @@ __published:	// IDE-managed Components
     TImage *input_panel_bkground;
     TSpeedButtonNoFrame *input_panel_auto_btn;
     TStaticText *input_panel_dsp_num;
-    TImage *Image3;
+    TImage *imgInputTemplate;
     TAdvTrackBar *output_panel_trackbar;
     TImage *output_panel_bkground;
     TSpeedButtonNoFrame *output_panel_mute_btn;
@@ -443,15 +443,15 @@ __published:	// IDE-managed Components
     TShape *shape_power;
     TBevel *Bevel9;
     TPaintBox *PaintBox4;
-    TImage *Image4;
-    TImage *Image5;
-    TImage *Image6;
-    TImage *Image7;
-    TImage *Image8;
-    TImage *Image9;
-    TImage *Image10;
-    TImage *Image11;
-    TImage *Image12;
+    TImage *imgSystemBg2;
+    TImage *imgSystemBg3;
+    TImage *imgSystemBg4;
+    TImage *imgSystemBg5;
+    TImage *imgSystemBg6;
+    TImage *imgSystemBg7;
+    TImage *imgSystemBg1;
+    TImage *imgSystemPresetBg;
+    TImage *imgOutputTemplate;
     TImage *imgMasterMix;
     TProgressBar *ProgressBar1;
     TImage *imgPresetBg;
@@ -459,10 +459,11 @@ __published:	// IDE-managed Components
     TEdit *edtPreset;
     TLabel *lblPresetName;
     TPaintBox *pbComp;
-    TImage *Image1;
-    TImage *Image2;
+    TImage *imgDspGainBtnBg;
+    TImage *imgDspDelayBtnBg;
     TEdit *dsp_gain_edit;
     TEdit *dsp_delay_edit;
+    TImage *imgWatchLevelBg;
     void __fastcall FormCreate(TObject *Sender);
     void __fastcall FormDestroy(TObject *Sender);
     void __fastcall btnRefreshClick(TObject *Sender);
@@ -672,7 +673,6 @@ private:
 
 public:		// User declarations
     __fastcall TForm1(TComponent* Owner);
-    TPaintBox * pb_watch_list[32];
 
     TLabel* input_type_lbl[17];
     TSpeedButton* input_eq_btn[17];
@@ -698,6 +698,18 @@ public:		// User declarations
     TSpeedButton* mix_mute_btn[17];
     TEdit* mix_level_edit[17];
     TAdvTrackBar* mix_level_trackbar[17];
+
+private:
+    void UpdateWatchLevel(int i, int value)
+    {
+        if (pb_watch_list[i] != NULL)
+        {
+            pb_watch_list[i]->Tag = value;
+            pb_watch_list[i]->Invalidate();
+        }
+    }
+public:
+    TPaintBox * pb_watch_list[32];
 
 private:
     long running_timer;
