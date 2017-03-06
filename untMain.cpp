@@ -24,8 +24,8 @@ TForm1 *Form1;
 ConfigMap all_config_map[8];
 ConfigMap config_map;
 GlobalConfig global_config = {0};
-const int REAL_INPUT_DSP_NUM = 8;
-const int REAL_OUTPUT_DSP_NUM = 8;
+int REAL_INPUT_DSP_NUM = 16;
+int REAL_OUTPUT_DSP_NUM = 16;
 
 static bool on_loading = false;
 static String last_device_name;
@@ -437,6 +437,13 @@ static void CreatePnlMix(int panel_id, TForm1 * form)
 __fastcall TForm1::TForm1(TComponent* Owner)
     : TForm(Owner)
 {
+    // 参数处理
+    if (ParamCount() == 2)
+    {
+        REAL_INPUT_DSP_NUM = ParamStr(1).ToIntDef(16);
+        REAL_OUTPUT_DSP_NUM = ParamStr(2).ToIntDef(16);
+    }
+
     on_loading = true;
 
     // 调整尺寸
