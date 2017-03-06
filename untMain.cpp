@@ -154,7 +154,7 @@ static String CmdLog(D1608Cmd cmd)
 static Gdipicture::TGDIPPicture* MixPicture[16] = {NULL};
 static void LoadMixBmp()
 {
-    for (int i=0;i<16;i++)
+    for (int i=0;i<REAL_OUTPUT_DSP_NUM;i++)
     {
         MixPicture[i] = new Gdipicture::TGDIPPicture();
         MixPicture[i]->LoadFromResourceName(NULL, "mix"+IntToStr(i+1));
@@ -447,6 +447,8 @@ __fastcall TForm1::TForm1(TComponent* Owner)
     pnlOperator->Height = 798-(728-584);
     pnlOperator->Top = pnlHeader->Height;
 
+    pnlMix->Width = REAL_INPUT_DSP_NUM * PANEL_WIDTH;
+
     pb_watch_list[0] = pb_watch;
 
     // 生成input背景
@@ -597,8 +599,8 @@ __fastcall TForm1::TForm1(TComponent* Owner)
 
     //----------------------------------
     // 生成pnlmix背景
-    pnlmix_background->Picture->Bitmap->Width = 17 * PANEL_WIDTH;
-    for (int i=1;i<17;i++)
+    pnlmix_background->Picture->Bitmap->Width = REAL_INPUT_DSP_NUM * PANEL_WIDTH;  // TODO: 原来是17个，包括automix，现在只按照输入数量
+    for (int i=1;i<REAL_INPUT_DSP_NUM;i++)   // TODO: 原来是17个，包括automix，现在只按照输入数量
     {
         TRect templet_image_rect = pnlmix_background->BoundsRect;
         templet_image_rect.Right = PANEL_WIDTH;
@@ -614,7 +616,7 @@ __fastcall TForm1::TForm1(TComponent* Owner)
 
     // 生成PnlMix
     mix_mute_btn[0] = pnlmix_mute;
-    for (int i=2;i<=17;i++)
+    for (int i=2;i<=REAL_INPUT_DSP_NUM;i++)    // TODO: 原来是17个，包括automix，现在只按照输入数量
     {
         CreatePnlMix(i, this);
     }
@@ -1714,7 +1716,7 @@ void __fastcall TForm1::ToogleOutputMix(TObject *Sender)
         last_out_num_btn = btn;
         // 切换按钮颜色
 
-        for (int i=0;i<17;i++)
+        for (int i=0;i<REAL_INPUT_DSP_NUM;i++)   // TODO: 原来是17个，包括automix，现在只按照输入数量
         {
             TAdvTrackBar* trackbar = mix_level_trackbar[i];
             if (trackbar != NULL)
@@ -1725,9 +1727,9 @@ void __fastcall TForm1::ToogleOutputMix(TObject *Sender)
             }
         }
 
-        pnlMix->Left = Width - 30 - pnlMix->Width;
+        pnlMix->Left = output_panel_number_btn->Left;//Width - 30 - pnlMix->Width;
 
-        pnlMix->Top = 312;
+        pnlMix->Top = btn->Top + btn->Height + 10;//312;
         pnlMix->Show();
         pnlMix->Tag = btn->Tag;
 
