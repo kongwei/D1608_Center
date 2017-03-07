@@ -464,6 +464,9 @@ __published:	// IDE-managed Components
     TEdit *dsp_gain_edit;
     TEdit *dsp_delay_edit;
     TImage *imgWatchLevelBg;
+    TToolButton *ToolButton1;
+    TCSpinEdit *CSpinEdit1;
+    TCSpinEdit *CSpinEdit2;
     void __fastcall FormCreate(TObject *Sender);
     void __fastcall FormDestroy(TObject *Sender);
     void __fastcall btnRefreshClick(TObject *Sender);
@@ -611,6 +614,8 @@ __published:	// IDE-managed Components
     void __fastcall dsp_delay_editExit(TObject *Sender);
     void __fastcall dsp_delay_editKeyDown(TObject *Sender, WORD &Key,
           TShiftState Shift);
+    void __fastcall CSpinEdit1Change(TObject *Sender);
+    void __fastcall CSpinEdit2Change(TObject *Sender);
 
 private:
     // 已经选择设备
@@ -674,6 +679,9 @@ private:
 public:		// User declarations
     __fastcall TForm1(TComponent* Owner);
 
+    TPanel * watch_panel_inner[17+16];// TODO
+
+    TSpeedButton* input_dsp_btn[17]; // TODO
     TLabel* input_type_lbl[17];
     TSpeedButton* input_eq_btn[17];
     TSpeedButton* input_comp_btn[17];
@@ -686,9 +694,11 @@ public:		// User declarations
     TAdvTrackBar* input_level_trackbar[17];
     TStaticText* input_dsp_name[17];
 
+    TSpeedButton* output_dsp_btn[16];  // TODO
     TLabel* output_type_lbl[16];
     TSpeedButton* output_eq_btn[16];
     TSpeedButton* output_comp_btn[16];
+    TSpeedButton* output_number_btn[16];  // TODO
     TSpeedButton* output_invert_btn[16];
     TSpeedButton* output_mute_btn[16];
     TEdit* output_level_edit[16];
@@ -728,6 +738,9 @@ private:
     TLabel* active_adc;
 
     D1608Cmd last_cmd;
+
+
+    void SetIOChannelNum();
 };
 //---------------------------------------------------------------------------
 extern PACKAGE TForm1 *Form1;
