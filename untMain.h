@@ -479,7 +479,7 @@ __published:	// IDE-managed Components
     void __fastcall ToogleInvert(TObject *Sender);
     void __fastcall ToogleDefault(TObject *Sender);
     void __fastcall ToogleAuto(TObject *Sender);
-    void __fastcall ToogleCOMP(TObject *Sender);
+    void __fastcall ToogleDSPCOMP(TObject *Sender);
     void __fastcall ToogleEQ(TObject *Sender);
     void __fastcall udpControlUDPRead(TObject *Sender, TStream *AData,
           TIdSocketHandle *ABinding);
@@ -489,7 +489,7 @@ __published:	// IDE-managed Components
     void __fastcall SpeedButton119Click(TObject *Sender);
     void __fastcall ToogleDO(TObject *Sender);
     void __fastcall ToogleOutputMix(TObject *Sender);
-    void __fastcall ToogleLimit(TObject *Sender);
+    void __fastcall ToogleCOMP(TObject *Sender);
     void __fastcall ToogleOutputEQ(TObject *Sender);
     void __fastcall OutputVolumeChange(TObject *Sender);
     void __fastcall lvDeviceDblClick(TObject *Sender);

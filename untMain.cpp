@@ -3522,7 +3522,7 @@ void __fastcall TForm1::SpeedButtonNoFrame1Click(TObject *Sender)
     //    
 }
 //---------------------------------------------------------------------------
-void __fastcall TForm1::ToogleCOMP(TObject *Sender)
+void __fastcall TForm1::ToogleDSPCOMP(TObject *Sender)
 {
     TSpeedButton* btn = (TSpeedButton*)Sender;
     int dsp_id = btn->Parent->Tag;
@@ -3536,7 +3536,7 @@ void __fastcall TForm1::ToogleCOMP(TObject *Sender)
     output_comp_btn[dsp_id-101]->Click();
 }
 //---------------------------------------------------------------------------
-void __fastcall TForm1::ToogleLimit(TObject *Sender)
+void __fastcall TForm1::ToogleCOMP(TObject *Sender)
 {
     TSpeedButton* btn = (TSpeedButton*)Sender;
     int dsp_id = btn->Tag;
