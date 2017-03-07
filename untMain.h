@@ -150,8 +150,8 @@ __published:	// IDE-managed Components
     TLabel *Label28;
     TLabel *Label2;
     TSpeedButtonNoFrame *btnPhanton;
-    TSpeedButtonNoFrame *SpeedButtonNoFrame1;
-    TSpeedButtonNoFrame *btnDSPCOMP;
+    TSpeedButtonNoFrame *btnDspEq;
+    TSpeedButtonNoFrame *btnDspComp;
     TLabel *Label3;
     TPaintBox *PaintBox1;
     TPanel *pnlComp;
@@ -586,7 +586,7 @@ __published:	// IDE-managed Components
           TShiftState Shift);
     void __fastcall edtCompRatioKeyDown(TObject *Sender, WORD &Key,
           TShiftState Shift);
-    void __fastcall SpeedButtonNoFrame1Click(TObject *Sender);
+    void __fastcall btnDspEqClick(TObject *Sender);
     void __fastcall edtCompThresholdKeyDown(TObject *Sender, WORD &Key,
           TShiftState Shift);
     void __fastcall edtCompAttackTimeKeyDown(TObject *Sender, WORD &Key,

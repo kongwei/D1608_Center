@@ -1874,7 +1874,9 @@ void __fastcall TForm1::ToggleDSP(TObject *Sender)
 
             // Òþ²ØCOMP½çÃæ
             pnlComp->Hide();
-            btnDSPCOMP->Hide();
+            btnDspComp->Hide();
+
+            btnDspEq->Down = config_map.input_dsp[dsp_num-1].eq_switch;
         }
         else
         {
@@ -1893,14 +1895,16 @@ void __fastcall TForm1::ToggleDSP(TObject *Sender)
             pbComp->Show();
 
             // COMP
-            btnDSPCOMP->Down = config_map.output_dsp[dsp_num-1].comp_switch;
+            btnDspComp->Down = config_map.output_dsp[dsp_num-1].comp_switch;
             edtCompRatio->Text = Ration2String(config_map.output_dsp[dsp_num-1].ratio);
             edtCompThreshold->Text = config_map.output_dsp[dsp_num-1].threshold/10.0;
             edtCompAttackTime->Text = config_map.output_dsp[dsp_num-1].attack_time/10.0;
             edtCompReleaseTime->Text = config_map.output_dsp[dsp_num-1].release_time/10.0;
             edtCompGain->Text = config_map.output_dsp[dsp_num-1].comp_gain/10.0;
             pnlComp->Show();
-            btnDSPCOMP->Show();
+            btnDspComp->Show();
+
+            btnDspEq->Down = config_map.output_dsp[dsp_num-1].eq_switch;
         }
 
         dsp_gain_trackbar->OnChange(dsp_gain_trackbar);
@@ -2874,6 +2878,10 @@ void TForm1::OnFeedbackData(unsigned int cmd_id, int length)
 		if (cmd_id == GetOffsetOfData(&config_map.input_dsp[ObjectIndex].eq_switch))
 		{
             input_eq_btn[ObjectIndex]->Down = config_map.input_dsp[ObjectIndex].eq_switch;
+            if (pnlDspDetail->Visible && (pnlDspDetail->Tag-1==ObjectIndex))
+            {
+                btnDspEq->Down = config_map.input_dsp[ObjectIndex].eq_switch;
+            }
 		}
 // 		else if (cmd_id == GetOffsetOfData(&config_map.input_dsp[ObjectIndex].comp_switch))
 // 		{
@@ -2941,13 +2949,17 @@ void TForm1::OnFeedbackData(unsigned int cmd_id, int length)
 		if (cmd_id == GetOffsetOfData(&config_map.output_dsp[ObjectIndex].eq_switch))
 		{
             output_eq_btn[ObjectIndex]->Down = config_map.output_dsp[ObjectIndex].eq_switch;
+            if (pnlDspDetail->Visible && (pnlDspDetail->Tag-101==ObjectIndex))
+            {
+                btnDspEq->Down = config_map.output_dsp[ObjectIndex].eq_switch;
+            }
 		}
 		else if (cmd_id == GetOffsetOfData(&config_map.output_dsp[ObjectIndex].comp_switch))
 		{
             output_comp_btn[ObjectIndex]->Down = config_map.output_dsp[ObjectIndex].comp_switch;
             if (pnlDspDetail->Visible && (pnlDspDetail->Tag-101==ObjectIndex))
             {
-                btnDSPCOMP->Down = config_map.output_dsp[ObjectIndex].comp_switch;
+                btnDspComp->Down = config_map.output_dsp[ObjectIndex].comp_switch;
             }
 		}
 		else if (cmd_id == GetOffsetOfData(&config_map.output_dsp[ObjectIndex].invert_switch))
@@ -3517,9 +3529,21 @@ void __fastcall TForm1::edtInputKeyDown(TObject *Sender, WORD &Key,
     }
 }
 //---------------------------------------------------------------------------
-void __fastcall TForm1::SpeedButtonNoFrame1Click(TObject *Sender)
+void __fastcall TForm1::btnDspEqClick(TObject *Sender)
 {
-    //    
+    TSpeedButton* btn = (TSpeedButton*)Sender;
+    int dsp_id = btn->Parent->Tag;
+
+    if (dsp_id < 100)
+    {
+        input_eq_btn[dsp_id-1]->Down = btn->Down;
+        input_eq_btn[dsp_id-1]->Click();
+    }
+    else
+    {
+        output_eq_btn[dsp_id-101]->Down = btn->Down;
+        output_eq_btn[dsp_id-101]->Click();
+    }
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::ToogleDSPCOMP(TObject *Sender)
