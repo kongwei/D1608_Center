@@ -21,7 +21,7 @@
 #define PANEL_WIDTH 48
 
 TForm1 *Form1;
-ConfigMap all_config_map[8];
+ConfigMap all_config_map[PRESET_NUM];
 ConfigMap config_map;
 GlobalConfig global_config = {0};
 int REAL_INPUT_DSP_NUM = 16;
@@ -495,15 +495,6 @@ __fastcall TForm1::TForm1(TComponent* Owner)
             i*PANEL_WIDTH,imgInputTemplate->Top,PANEL_WIDTH,imgInputTemplate->Height,
             imgInputTemplate->Canvas->Handle, 0, 0, PANEL_WIDTH,imgInputTemplate->Height, blend);
     }
-    /*for (int i=0;i<REAL_INPUT_DSP_NUM;i++)
-    {
-        TRect templet_image_rect = Image3->BoundsRect;
-        TRect dest_rect = TRect(i*PANEL_WIDTH,
-                                templet_image_rect.Top,
-                                (i+1)*PANEL_WIDTH,
-                                templet_image_rect.Bottom);
-        input_panel_bkground->Canvas->CopyRect(dest_rect, Image3->Canvas, templet_image_rect);
-    }*/
 
     input_level_edit[0] = input_panel_level_edit;
     input_level_trackbar[0] = input_panel_trackbar;
@@ -637,8 +628,8 @@ __fastcall TForm1::TForm1(TComponent* Owner)
 
     //----------------------------------
     // 生成pnlmix背景
-    pnlmix_background->Picture->Bitmap->Width = REAL_INPUT_DSP_NUM * PANEL_WIDTH;  // TODO: 原来是17个，包括automix，现在只按照输入数量
-    for (int i=1;i<REAL_INPUT_DSP_NUM;i++)   // TODO: 原来是17个，包括automix，现在只按照输入数量
+    pnlmix_background->Picture->Bitmap->Width = REAL_INPUT_DSP_NUM * PANEL_WIDTH;  // xDO: 原来是17个，包括automix，现在只按照输入数量
+    for (int i=1;i<REAL_INPUT_DSP_NUM;i++)   // xDO: 原来是17个，包括automix，现在只按照输入数量
     {
         TRect templet_image_rect = pnlmix_background->BoundsRect;
         templet_image_rect.Right = PANEL_WIDTH;
@@ -654,7 +645,7 @@ __fastcall TForm1::TForm1(TComponent* Owner)
 
     // 生成PnlMix
     mix_mute_btn[0] = pnlmix_mute;
-    for (int i=2;i<=REAL_INPUT_DSP_NUM;i++)    // TODO: 原来是17个，包括automix，现在只按照输入数量
+    for (int i=2;i<=REAL_INPUT_DSP_NUM;i++)    // xDO: 原来是17个，包括automix，现在只按照输入数量
     {
         CreatePnlMix(i, this);
     }
@@ -718,8 +709,7 @@ __fastcall TForm1::TForm1(TComponent* Owner)
     btnDspResetEQ->Click();
 
     SetPresetId(1);
-    // TODO: PRESET NUM
-    for (int i=0;i<8;i++)
+    for (int i=0;i<PRESET_NUM;i++)
     {
         all_config_map[i] = config_map;
     }
@@ -835,7 +825,7 @@ void TForm1::SendCmd(D1608Cmd& cmd)
     unsigned __int8 * p = (unsigned __int8*)&cmd;
     edtDebug->Text = "";
     String cmd_text = "";
-    for (unsigned int i=30;i<30+16+cmd.length;i++)
+    for (unsigned int i=sizeof(cmd.flag);i<sizeof(cmd.flag)+16+cmd.length;i++)
     {
         cmd_text = cmd_text + IntToHex(p[i], 2) + " ";
     }
@@ -1257,12 +1247,12 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             __int16 data[16];
 
             // 计算检测到的电压 3.3v ~ 4096
-            for (int i=0; i<16; i++)
+            for (int i=0; i<ADC_NUM; i++)
             {
                 data[i] = cmd.data.data_16_array[i] * 2500 / cmd.data.data_16_array[1];
             }
 
-            for (int i=0; i<16; i++)
+            for (int i=0; i<ADC_NUM; i++)
             {
                 ValueListEditor1->Cells[1][i+1] = cmd.data.data_16_array[i];
             }
@@ -1297,7 +1287,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             calc_data._16vac = CalcVot1(true_data->_16vac, 3.32, 20);                                
 
             __int16 * xcalc_data = (__int16 *)&calc_data;
-            for (int i=0; i<16; i++)
+            for (int i=0; i<ADC_NUM; i++)
             {
                 double vot = xcalc_data[i] / 100.0f;
                 ValueListEditor2->Cells[1][i+1] = FloatToStr(vot);
@@ -1750,7 +1740,7 @@ void __fastcall TForm1::ToogleOutputMix(TObject *Sender)
         last_out_num_btn = btn;
         // 切换按钮颜色
 
-        for (int i=0;i<REAL_INPUT_DSP_NUM;i++)   // TODO: 原来是17个，包括automix，现在只按照输入数量
+        for (int i=0;i<REAL_INPUT_DSP_NUM;i++)   // xDO: 原来是17个，包括automix，现在只按照输入数量
         {
             TAdvTrackBar* trackbar = mix_level_trackbar[i];
             if (trackbar != NULL)
@@ -2807,8 +2797,7 @@ void __fastcall TForm1::ApplyConfigToUI()
 
     lblPresetName->Caption = global_config.preset_name[cur_preset_id];
 
-    // TODO: PRESET NUM
-    for (int i=0;i<8;i++)
+    for (int i=0;i<PRESET_NUM;i++)
         clbAvaliablePreset->Checked[i] = global_config.avaliable_preset[i];
 
     // 修改界面
@@ -3253,8 +3242,7 @@ void __fastcall TForm1::clbAvaliablePresetClickCheck(TObject *Sender)
     if (is_unselect_all)
     {
         // 恢复
-        // TODO: PRESET NUM
-        for (int i=0;i<8;i++)
+        for (int i=0;i<PRESET_NUM;i++)
         {
             clbAvaliablePreset->Checked[i] = global_config.avaliable_preset[i];
         }
@@ -3264,8 +3252,7 @@ void __fastcall TForm1::clbAvaliablePresetClickCheck(TObject *Sender)
     D1608Cmd cmd;
     cmd.type = 1;
     cmd.id = offsetof(GlobalConfig, avaliable_preset);
-    // TODO: PRESET NUM
-    for (int i=0;i<8;i++)
+    for (int i=0;i<PRESET_NUM;i++)
     {
         global_config.avaliable_preset[i] =  clbAvaliablePreset->Checked[i];
         cmd.data.data_string[i] = clbAvaliablePreset->Checked[i];

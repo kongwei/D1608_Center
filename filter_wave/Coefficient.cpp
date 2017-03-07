@@ -521,7 +521,7 @@ void InitConfigMap()
 
     // mix_mute
     memset(&config_map.master_mix.mix_mute, 1, sizeof(config_map.master_mix.mix_mute));
-    for (int i=0;i<16;i++)
+    for (int i=0;i<INPUT_DSP_NUM/*»òÕßOUTPUT_DSP_NUM*/;i++)
     {
         config_map.master_mix.mix_mute[i][i] = 0;
     }
