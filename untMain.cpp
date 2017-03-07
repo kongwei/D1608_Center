@@ -446,19 +446,39 @@ __fastcall TForm1::TForm1(TComponent* Owner)
 
     on_loading = true;
 
+    //x=GetSystemMetrics(SM_CXSCREEN)
+    //y=GetSystemMetrics(SM_CYSCREEN)
+
     // 调整尺寸
-    Width = 1664;
-    Height = 798;
-    pnlOperator->Width = Width;//REAL_INPUT_DSP_NUM * PANEL_WIDTH + imgPresetBg->Width + REAL_OUTPUT_DSP_NUM * PANEL_WIDTH;
-    //pnlOperator->Width = Math::Max(pnlOperator->Width, Width);
+    //Width = 1366;
+    //Height = 798;
+
+    pnlOperator->Width = REAL_INPUT_DSP_NUM * PANEL_WIDTH + imgPresetBg->Width + REAL_OUTPUT_DSP_NUM * PANEL_WIDTH;
+    pnlOperator->Width = Math::Max(pnlOperator->Width, Width-16);
+        HorzScrollBar->Visible = (pnlOperator->Width > Width);
     pnlOperator->Height = 798-(728-584);
     pnlOperator->Top = pnlHeader->Height;
 
-    pnlMix->Width = REAL_INPUT_DSP_NUM * PANEL_WIDTH;
+    pnlMix->Width = REAL_INPUT_DSP_NUM * PANEL_WIDTH;                               
 
     pb_watch_list[0] = pb_watch;
 
-    // 生成input背景
+    //----------------------------------------
+    // 输入
+    int input_panel_left = (pnlOperator->Width - (REAL_INPUT_DSP_NUM * PANEL_WIDTH + imgPresetBg->Width + REAL_OUTPUT_DSP_NUM * PANEL_WIDTH))/2;
+    //watch_panel->Left = input_panel_left;
+    //input_type->Left = input_panel_left;
+    input_panel_bkground->Left = input_panel_left;
+    input_panel_dsp_btn->Left = input_panel_left+4;
+    input_panel_eq_btn->Left = input_panel_left+4;
+    input_panel_invert_btn->Left = input_panel_left+4;
+    input_panel_noise_btn->Left = input_panel_left+4;
+    input_panel_mute_btn->Left = input_panel_left+4;
+    input_panel_eq_btn->Left = input_panel_left+4;
+    input_panel_level_edit->Left = input_panel_left+4;
+    input_panel_trackbar->Left = input_panel_left;
+    input_panel_dsp_num->Left = input_panel_left+4;
+
     input_panel_bkground->Picture->Bitmap->Width = REAL_INPUT_DSP_NUM * PANEL_WIDTH;
     input_panel_bkground->Picture->Bitmap->Height = imgInputTemplate->Height;
 
@@ -482,7 +502,12 @@ __fastcall TForm1::TForm1(TComponent* Owner)
                                 templet_image_rect.Bottom);
         input_panel_bkground->Canvas->CopyRect(dest_rect, Image3->Canvas, templet_image_rect);
     }*/
-    
+
+    input_level_edit[0] = input_panel_level_edit;
+    input_level_trackbar[0] = input_panel_trackbar;
+    SetWindowLong(input_panel_level_edit->Handle, GWL_STYLE, GetWindowLong(input_panel_level_edit->Handle, GWL_STYLE) | ES_RIGHT);
+    input_panel_trackbar->OnChange(input_panel_trackbar);
+
     // 生成InputPanel
     input_type_lbl[0] = input_type;
     input_eq_btn[0] = input_panel_eq_btn;
@@ -496,13 +521,14 @@ __fastcall TForm1::TForm1(TComponent* Owner)
     for (int i=2;i<=REAL_INPUT_DSP_NUM;i++)
     {
         CreateInputPanel(i, this);
-        CopyWatchPanel(i, this, String((char)('A'-1+i))+" ("+IntToStr(i)+")", (i-1) * PANEL_WIDTH);
+        CopyWatchPanel(i, this, String((char)('A'-1+i))+" ("+IntToStr(i)+")", (i-1) * PANEL_WIDTH + input_panel_left);
     }
-    CopyWatchPanel(1, this, String((char)('A'-1+1))+" ("+IntToStr(1)+")", (1-1) * PANEL_WIDTH);
+    CopyWatchPanel(1, this, String((char)('A'-1+1))+" ("+IntToStr(1)+")", (1-1) * PANEL_WIDTH + input_panel_left);
+
 
     //------------------------------------
     // mix和master
-    int mix_panel_left = REAL_INPUT_DSP_NUM * PANEL_WIDTH;
+    int mix_panel_left = input_panel_left + REAL_INPUT_DSP_NUM * PANEL_WIDTH;
     imgMasterMixBg->Left = mix_panel_left;
     imgPresetBg->Left = mix_panel_left;
     mix_panel_trackbar->Left = mix_panel_left;
@@ -543,7 +569,8 @@ __fastcall TForm1::TForm1(TComponent* Owner)
 
 
     //------------------------------------
-    int output_panel_left = REAL_INPUT_DSP_NUM * PANEL_WIDTH + imgPresetBg->Width;
+    // 输出
+    int output_panel_left = mix_panel_left + imgPresetBg->Width;
     output_panel_bkground->Left = output_panel_left;
     output_panel_dsp_btn->Left = output_panel_left+4;
     output_panel_eq_btn->Left = output_panel_left+4;
@@ -555,7 +582,8 @@ __fastcall TForm1::TForm1(TComponent* Owner)
     output_panel_trackbar->Left = output_panel_left;
     output_panel_dsp_num->Left = output_panel_left+4;
 
-    output_panel_bkground->Width = Width - output_panel_bkground->Left;// 画满剩余部分 //REAL_OUTPUT_DSP_NUM * PANEL_WIDTH;
+    //output_panel_bkground->Width = Width - output_panel_bkground->Left;// 画满剩余部分 //REAL_OUTPUT_DSP_NUM * PANEL_WIDTH;
+    output_panel_bkground->Width = REAL_OUTPUT_DSP_NUM * PANEL_WIDTH;
     output_panel_bkground->Picture->Bitmap->Width = output_panel_bkground->Width;
     output_panel_bkground->Canvas->Draw(
         -output_panel_bkground->Left,
@@ -564,9 +592,10 @@ __fastcall TForm1::TForm1(TComponent* Owner)
 
     {
         // 插入WatchLevel的补充
-        imgWatchLevelBg->Left = output_panel_bkground->Left;
-        imgWatchLevelBg->Width = output_panel_bkground->Width;
+        imgWatchLevelBg->Height = pnlOperator->Height;
+        imgWatchLevelBg->Width = pnlOperator->Width;
         imgWatchLevelBg->Picture->Bitmap->Width = imgWatchLevelBg->Width;
+        imgWatchLevelBg->Picture->Bitmap->Height = imgWatchLevelBg->Height;
         imgWatchLevelBg->Canvas->Draw(
             -imgWatchLevelBg->Left,
             -imgWatchLevelBg->Top,
@@ -637,10 +666,6 @@ __fastcall TForm1::TForm1(TComponent* Owner)
     {
         CopyWatchPanel(i, this, String(1+(i-17)), imgMasterMixBg->Left + imgMasterMixBg->Width + (i-17) * PANEL_WIDTH);
     }
-    input_level_edit[0] = input_panel_level_edit;
-    input_level_trackbar[0] = input_panel_trackbar;
-    SetWindowLong(input_panel_level_edit->Handle, GWL_STYLE, GetWindowLong(input_panel_level_edit->Handle, GWL_STYLE) | ES_RIGHT);
-    input_panel_trackbar->OnChange(input_panel_trackbar);
 
 
     input_level_edit[16] = mix_panel_level_edit;
