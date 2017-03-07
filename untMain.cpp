@@ -184,6 +184,8 @@ static TSpeedButton * CopyInputPanelButton(TSpeedButton * src_btn, int dsp_id, G
     dsp_btn->Tag = dsp_id;
     dsp_btn->GroupIndex = (int)dsp_btn; // 所有按钮互不影响
 
+    dsp_btn->Down = src_btn->Down;
+
     return dsp_btn;
 }
 static TAdvTrackBar * CopyInputPanelTrackbar(TAdvTrackBar * src_trackbar, int dsp_id)

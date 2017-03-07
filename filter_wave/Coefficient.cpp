@@ -466,6 +466,8 @@ void InitConfigMap()
 
 	for (int i=0;i<INPUT_DSP_NUM;i++)
 	{
+        config_map.input_dsp[i].eq_switch = 1;
+
 		for (int j=HP_FILTER;j<=LP_FILTER;j++)
 		{
 			config_map.input_dsp[i].filter[j-1].GAIN = 0;
@@ -488,6 +490,8 @@ void InitConfigMap()
 
 	for (int i=0;i<OUTPUT_DSP_NUM;i++)
 	{
+        config_map.output_dsp[i].eq_switch = 1;
+
 		for (int j=HP_FILTER;j<=LP_FILTER;j++)
 		{
 			config_map.output_dsp[i].filter[j-1].GAIN = 0;
