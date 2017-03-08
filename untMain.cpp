@@ -1411,31 +1411,60 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             short event_id;
             short event_data;
         }Event;
+        typedef unsigned char MacCode[8];
         struct
         {
             int address;
-            Event event[128];
+            union{
+                Event event[128];
+                MacCode mac[128];
+            };
         }buff;
+
         AData->ReadBuffer(&buff, sizeof(buff));
-        for (int i=0;i<128;i++)
+        if ((buff.address >= LOG_START_PAGE) && (buff.address < MAC_LIST_START_PAGE))
         {
-            if (buff.event[i].timer != 0xFFFFFFFF)
+            // ÈÕÖ¾
+            for (int i=0;i<128;i++)
             {
-                TListItem * item = lvLog->Items->Add();
+                if (buff.event[i].timer != 0xFFFFFFFF)
+                {
+                    TListItem * item = lvLog->Items->Add();
 
-                int ms = buff.event[i].timer % 10;  buff.event[i].timer /= 10;
-                int sec = buff.event[i].timer % 60; buff.event[i].timer /= 60;
-                int min = buff.event[i].timer % 60; buff.event[i].timer /= 60;
+                    int ms = buff.event[i].timer % 10;  buff.event[i].timer /= 10;
+                    int sec = buff.event[i].timer % 60; buff.event[i].timer /= 60;
+                    int min = buff.event[i].timer % 60; buff.event[i].timer /= 60;
 
-                item->Caption = IntToStr(buff.event[i].timer)+":"
-                              + IntToStr(min)+":"
-                              + IntToStr(sec)+"."
-                              + IntToStr(ms);
-                item->SubItems->Add(buff.event[i].event_id);
-                item->SubItems->Add(buff.event[i].event_data);
+                    item->Caption = IntToStr(buff.event[i].timer)+":"
+                                  + IntToStr(min)+":"
+                                  + IntToStr(sec)+"."
+                                  + IntToStr(ms);
+                    item->SubItems->Add(buff.event[i].event_id);
+                    item->SubItems->Add(buff.event[i].event_data);
+                }
             }
         }
-        if (buff.address < 0x8000000+128*1024+10*5*2*1024+(10* 2*1024))
+        else
+        {
+            // MACµØÖ·
+            for (int i=0;i<128;i++)
+            {
+                if (memcmp(buff.mac[i], "\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF", 8) != 0)
+                {
+                    TListItem * item = lvLog->Items->Add();
+
+                    item->Caption = "";
+                    item->SubItems->Add("mac");
+                    String mac_string;
+                    mac_string.sprintf("%0X-%0X-%0X-%0X-%0X-%0X",
+                                        buff.mac[i][0], buff.mac[i][1], buff.mac[i][2],
+                                        buff.mac[i][3], buff.mac[i][4], buff.mac[i][5]);
+                    item->SubItems->Add(mac_string);
+                }
+            }
+        }
+
+        if (buff.address+1024 < MAC_LIST_START_PAGE+MAC_LIST_SIZE)
         {
             buff.address += 1024;
             udpControl->SendBuffer(dst_ip, 903, &buff, sizeof(buff));
