@@ -1005,12 +1005,11 @@ void __fastcall TForm1::btnSelectClick(TObject *Sender)
     UpdateCaption();
 
     D1608PresetCmd preset_cmd;
-    preset_cmd.preset = 1; // 读取preset
-    // 从0页读取
+    preset_cmd.preset = 1; // 从0页读取preset
     preset_cmd.store_page = 0;
     udpControl->SendBuffer(dst_ip, 905, &preset_cmd, sizeof(preset_cmd));
 
-    preset_cmd.preset = 0; // 读取global_config
+    preset_cmd.preset = 0; // 0表示读取global_config
     udpControl->SendBuffer(dst_ip, 905, &preset_cmd, sizeof(preset_cmd));
 
     pnlOperator->Show();
@@ -1480,6 +1479,32 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             // global_config
             memcpy(&global_config, preset_cmd.data, sizeof(global_config));
             UpdateCaption();
+
+            // 版本校验
+            if (global_config.version >= offsetof(GlobalConfig, ad_da_card))
+            {
+                int dsp_920_num = 0;
+                TPanel* iDsp[8] = {iDsp1, iDsp2, iDsp3, iDsp4, iDsp5, iDsp6, iDsp7, iDsp8};
+                for (int i=0;i<8;i++) // xDO: 暂时只考虑8片
+                {
+                    dsp_920_num += global_config.yss920[i];
+                    iDsp[i]->Caption = (global_config.yss920[i]?"920":"X");
+                }
+
+                REAL_INPUT_DSP_NUM = 0;
+                for (int i=0;i<4;i++)
+                    REAL_INPUT_DSP_NUM += global_config.ad_da_card[i];
+                if (REAL_INPUT_DSP_NUM == 0)
+                    REAL_INPUT_DSP_NUM = 16;
+
+                REAL_OUTPUT_DSP_NUM = 0;
+                for (int i=4;i<8;i++)
+                    REAL_OUTPUT_DSP_NUM += global_config.ad_da_card[i];
+                if (REAL_OUTPUT_DSP_NUM == 0)
+                    REAL_OUTPUT_DSP_NUM = 16;
+
+                SetIOChannelNum();
+            }
         }
         else
         {
