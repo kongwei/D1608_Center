@@ -3529,6 +3529,7 @@ void TForm1::ShowInputPanel(TControl * Sender, TNotifyEvent event, String defaul
     edtInput->Top = pos.y;
     
     edtInput->Text = default_text;
+    edtInput->BringToFront();
     edtInput->Show();
     edtInput->SetFocus();
     edtInput->SelectAll();
