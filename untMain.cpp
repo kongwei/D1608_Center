@@ -3023,7 +3023,7 @@ void TForm1::OnFeedbackData(unsigned int cmd_id, int length)
 		}
 		else if (cmd_id == GetOffsetOfData((char*)&config_map.output_dsp[ObjectIndex].gain))
 		{
-           output_type_lbl[ObjectIndex]->Caption = OutputGain2String(config_map.input_dsp[ObjectIndex].gain);
+           output_type_lbl[ObjectIndex]->Caption = OutputGain2String(config_map.output_dsp[ObjectIndex].gain);
 		}
 		else if (cmd_id == GetOffsetOfData((char*)&config_map.output_dsp[ObjectIndex].ratio))
 		{
