@@ -604,6 +604,9 @@ __fastcall TForm1::TForm1(TComponent* Owner)
 */
     }
 
+
+    output_level_edit[0] = output_panel_level_edit;
+    output_level_trackbar[0] = output_panel_trackbar;
     output_panel_trackbar->Thumb->PictureDown = input_panel_trackbar->Thumb->PictureDown;
     output_panel_trackbar->Thumb->PictureHot = input_panel_trackbar->Thumb->PictureHot;
     SetWindowLong(output_panel_level_edit->Handle, GWL_STYLE, GetWindowLong(output_panel_level_edit->Handle, GWL_STYLE) | ES_RIGHT);
@@ -614,8 +617,6 @@ __fastcall TForm1::TForm1(TComponent* Owner)
     output_invert_btn[0] = output_panel_invert_btn;
     output_mute_btn[0] = output_panel_mute_btn;
     output_dsp_name[0] = output_panel_dsp_num;
-    output_level_edit[0] = output_panel_level_edit;
-    output_level_trackbar[0] = output_panel_trackbar;
     for (int i=2;i<=REAL_OUTPUT_DSP_NUM;i++)
     {
         CreateOutputPanel(i, this);
@@ -1532,6 +1533,9 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
                 if (REAL_OUTPUT_DSP_NUM == 0)
                     REAL_OUTPUT_DSP_NUM = 16;
 
+
+                REAL_INPUT_DSP_NUM = 4;
+                REAL_OUTPUT_DSP_NUM = 4;
                 SetIOChannelNum();
             }
         }
@@ -1901,7 +1905,7 @@ void __fastcall TForm1::ToggleDSP(TObject *Sender)
             dsp_gain_trackbar->Max = p_input_inner_level->Max;
             dsp_gain_trackbar->Min = p_input_inner_level->Min;
             lblDSPInfo->Caption = "Input Channel " + IntToStr(btn->Tag) + " DSP Setup";
-            pnlDspDetail->Left = 0;
+            pnlDspDetail->Left = input_panel_bkground->Left;
 
             int dsp_num = btn->Tag;
             dsp_gain_trackbar->Position = config_map.input_dsp[dsp_num-1].level_b;
@@ -1925,7 +1929,7 @@ void __fastcall TForm1::ToggleDSP(TObject *Sender)
             dsp_gain_trackbar->Max = p_output_inner_level->Max;
             dsp_gain_trackbar->Min = p_output_inner_level->Min;
             lblDSPInfo->Caption = "Output Channel " + IntToStr(btn->Tag-100) + " DSP Setup";
-            pnlDspDetail->Left = pnlOperator->Width - pnlDspDetail->Width;
+            pnlDspDetail->Left = input_panel_bkground->Left + input_panel_bkground->Width - pnlDspDetail->Width;
 
             int dsp_num = btn->Tag-100;
             dsp_gain_trackbar->Position = config_map.output_dsp[dsp_num-1].level_b;
