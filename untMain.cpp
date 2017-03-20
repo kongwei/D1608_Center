@@ -2645,7 +2645,7 @@ void __fastcall TForm1::pnlmix_muteClick(TObject *Sender)
     TSpeedButton* btn = (TSpeedButton*)Sender;
     int dsp_num = btn->Tag;
 
-    if (last_out_num_btn != NULL && mix_level_trackbar[dsp_num] != NULL)
+    if (last_out_num_btn != NULL && mix_level_trackbar[dsp_num-1] != NULL)
     {
         int in_dsp_num = dsp_num;
         int out_dsp_num = last_out_num_btn->Tag;
