@@ -448,8 +448,8 @@ __fastcall TForm1::TForm1(TComponent* Owner)
     //y=GetSystemMetrics(SM_CYSCREEN)
 
     // µ÷Õû³ß´ç
-    //Width = 1366;
-    //Height = 798;
+    Width = 1800;//1366;
+    Height = 780;//798;
 
     pnlOperator->Width = REAL_INPUT_DSP_NUM * PANEL_WIDTH + imgPresetBg->Width + REAL_OUTPUT_DSP_NUM * PANEL_WIDTH;
     pnlOperator->Width = Math::Max(pnlOperator->Width, Width-16);
