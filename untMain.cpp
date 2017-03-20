@@ -1533,9 +1533,6 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
                 if (REAL_OUTPUT_DSP_NUM == 0)
                     REAL_OUTPUT_DSP_NUM = 16;
 
-
-                REAL_INPUT_DSP_NUM = 4;
-                REAL_OUTPUT_DSP_NUM = 4;
                 SetIOChannelNum();
             }
         }
@@ -1914,7 +1911,7 @@ void __fastcall TForm1::ToggleDSP(TObject *Sender)
 
             // 调整PaintBox1的尺寸
             PaintBox1->Left = 8;
-            PaintBox1->Width = 945;
+            PaintBox1->Width = 761;
             pbComp->Hide();
 
             // 隐藏COMP界面
@@ -1929,7 +1926,7 @@ void __fastcall TForm1::ToggleDSP(TObject *Sender)
             dsp_gain_trackbar->Max = p_output_inner_level->Max;
             dsp_gain_trackbar->Min = p_output_inner_level->Min;
             lblDSPInfo->Caption = "Output Channel " + IntToStr(btn->Tag-100) + " DSP Setup";
-            pnlDspDetail->Left = input_panel_bkground->Left + input_panel_bkground->Width - pnlDspDetail->Width;
+            pnlDspDetail->Left = output_panel_bkground->Left + output_panel_bkground->Width - pnlDspDetail->Width;
 
             int dsp_num = btn->Tag-100;
             dsp_gain_trackbar->Position = config_map.output_dsp[dsp_num-1].level_b;
@@ -1937,7 +1934,7 @@ void __fastcall TForm1::ToggleDSP(TObject *Sender)
 
             // 调整PaintBox1的尺寸
             PaintBox1->Left = 248;
-            PaintBox1->Width = 705;
+            PaintBox1->Width = 521;
             pbComp->Show();
 
             // COMP
