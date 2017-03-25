@@ -68,7 +68,7 @@ CompConfig ratio_config = {0, 100, 100, 100, 2};
 CompConfig threshold_config = {-320, 0, 0, 10, 3};
 CompConfig attack_config = {1, 20000, 640, 10, 3};
 CompConfig release_config = {10, 50000, 10000, 10, 3};
-CompConfig gain_config = {-120, 240, 0, 10, 3};
+CompConfig gain_config = {0, 240, 0, 10, 3};
 
 String Ration2String(double ratio)
 {

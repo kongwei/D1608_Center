@@ -133,11 +133,11 @@ void PanelAgent::LoadPreset()
 
     if (dsp_id >= 100)
     {
-        _filter_set.ratio = config_map.output_dsp[dsp_id-101].ratio / 100.0;
-        _filter_set.threshold = config_map.output_dsp[dsp_id-101].threshold / 10.0;
+        _filter_set.ratio = (config_map.output_dsp[dsp_id-101].ratio / 100.0);
+        _filter_set.threshold = (config_map.output_dsp[dsp_id-101].threshold / 10.0);
         _filter_set.attack_time = config_map.output_dsp[dsp_id-101].attack_time / 10.0;
         _filter_set.release_time = config_map.output_dsp[dsp_id-101].release_time / 10.0;
-        _filter_set.gain = config_map.output_dsp[dsp_id-101].comp_gain / 10.0;
+        _filter_set.gain = (config_map.output_dsp[dsp_id-101].comp_gain / 10.0);
     }
 }
 

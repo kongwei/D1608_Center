@@ -22,7 +22,7 @@ public:
 
     bool IsMouseDown()
     {
-        return is_mouse_down;
+        return is_mouse_down || is_comp_mouse_down;
     }
 
     FilterSet& _filter_set;
@@ -32,11 +32,17 @@ private:
     void __fastcall OnMouseUp(TObject *Sender, TMouseButton Button, TShiftState Shift, int X, int Y);
     void __fastcall OnMouseMove(TObject *Sender, TShiftState Shift, int X, int Y);
     void __fastcall OnPaint(TObject * Sender);
+    bool is_mouse_down;
 
     TPaintBox* paint_control_comp;
+    void __fastcall OnCompMouseDown(TObject *Sender, TMouseButton Button, TShiftState Shift, int X, int Y);
+    void __fastcall OnCompMouseUp(TObject *Sender, TMouseButton Button, TShiftState Shift, int X, int Y);
+    void __fastcall OnCompMouseMove(TObject *Sender, TShiftState Shift, int X, int Y);
     void __fastcall OnCompPaint(TObject * Sender);
-
-    bool is_mouse_down;
+    bool is_comp_mouse_down;
+    bool is_comp_gain_selected;
+    bool is_comp_threshold_selected;
+    bool is_comp_ratio_selected;
 };
 
 #endif

@@ -47,7 +47,6 @@ static double CHART_WIDTH_RATIO = 0.5;
 static void DrawWave(double point[1001], Gdiplus::Graphics &gdiplus_g);
 static void DrawFillWave(double point[1001], Gdiplus::Graphics &gdiplus_g);
 static void DrawThumb(PaintAgent* paint_agent, Gdiplus::Graphics &gdiplus_g);
-
 //---------------------------------------------------------------------------
 static double Canvas2Freq(double x)
 {
@@ -118,6 +117,9 @@ PaintAgent::PaintAgent(TPaintBox* paint_box, TPaintBox* paint_box_comp, FilterSe
     paint_control->OnPaint = OnPaint;
 
     paint_control_comp = paint_box_comp;
+    paint_control_comp->OnMouseDown = OnCompMouseDown;
+    paint_control_comp->OnMouseUp = OnCompMouseUp;
+    paint_control_comp->OnMouseMove = OnCompMouseMove;
     paint_control_comp->OnPaint = OnCompPaint;
 
     is_mouse_down = false;
@@ -421,6 +423,17 @@ static float Comp2CanvasX(double x)
     x = Floor(10 * x);
     return x / 10;
 }
+static float CanvasY2Gain(double y)
+{
+    y = (-y + Gain2Canvas(18)) / CHART_RATIO;
+    return y;
+}
+static float CanvasX2Threshold(double x)
+{
+    x = (x - LEFT_MARGIN) / CHART_RATIO - 72;
+    return x;
+}
+
 void __fastcall PaintAgent::OnCompPaint(TObject * Sender)
 {
     //CHART_RATIO = (paint_control_comp->Width - RIGHT_MARGIN - RIGHT_MARGIN) / 72.0;
@@ -511,6 +524,111 @@ void __fastcall PaintAgent::OnCompPaint(TObject * Sender)
     Gdiplus::Pen wave_pen(WAVE_COLOR, 2);
     gdiplus_g.DrawLine(&wave_pen, point_org, point_threshold);
     gdiplus_g.DrawLine(&wave_pen, point_threshold, point_end);
+
+
+    
+    brush.SetColor(is_comp_ratio_selected?ACTIVE_THUMB_COLOR:THUMB_COLOR);
+    gdiplus_g.FillEllipse(&brush, RectF(point_end.X-THUMB_SIZE, point_end.Y-THUMB_SIZE, THUMB_SIZE*2, THUMB_SIZE*2));
+
+    brush.SetColor(is_comp_threshold_selected?ACTIVE_THUMB_COLOR:THUMB_COLOR);
+    gdiplus_g.FillEllipse(&brush, RectF(point_threshold.X-THUMB_SIZE, point_threshold.Y-THUMB_SIZE, THUMB_SIZE*2, THUMB_SIZE*2));
+
+    brush.SetColor(is_comp_gain_selected?ACTIVE_THUMB_COLOR:THUMB_COLOR);
+    gdiplus_g.FillEllipse(&brush, RectF(point_org.X-THUMB_SIZE, point_org.Y-THUMB_SIZE, THUMB_SIZE*2, THUMB_SIZE*2));
 }
 //---------------------------------------------------------------------------
+void __fastcall PaintAgent::OnCompMouseDown(TObject *Sender,
+    TMouseButton Button, TShiftState Shift, int X, int Y)
+{
+    // 根据comp参数进行绘制
+    double ratio = _filter_set.ratio;
+    // 从 -100 ~ Threshold (dB) 绘制直线
+    double threshold = _filter_set.threshold;
+    // 整体增益提高
+    double gain = _filter_set.gain;
+
+    // 计算3个点
+    Gdiplus::Point point_org(-72, -72+gain);
+    Gdiplus::Point point_threshold(threshold, threshold+gain);
+    Gdiplus::Point point_end(0, threshold+(0-threshold)*ratio+gain);
+
+    point_org.X = Comp2CanvasX(point_org.X);
+    point_org.Y = Comp2CanvasY(point_org.Y);
+    point_threshold.X = Comp2CanvasX(point_threshold.X);
+    point_threshold.Y = Comp2CanvasY(point_threshold.Y);
+    point_end.X = Comp2CanvasX(point_end.X);
+    point_end.Y = Comp2CanvasY(point_end.Y);
+
+    RectF point_org_rect = RectF(point_org.X-THUMB_SIZE, point_org.Y-THUMB_SIZE, THUMB_SIZE*2, THUMB_SIZE*2);
+    RectF point_threshold_rect = RectF(point_threshold.X-THUMB_SIZE, point_threshold.Y-THUMB_SIZE, THUMB_SIZE*2, THUMB_SIZE*2);
+    RectF point_end_rect = RectF(point_end.X-THUMB_SIZE, point_end.Y-THUMB_SIZE, THUMB_SIZE*2, THUMB_SIZE*2);
+
+    is_comp_gain_selected = false;
+    is_comp_threshold_selected = false;
+    is_comp_ratio_selected = false;
+    if (point_org_rect.Contains(X,Y))
+    {
+        is_comp_mouse_down = true;
+        is_comp_gain_selected = true;
+        paint_control_comp->Invalidate();
+    }
+    else if (point_threshold_rect.Contains(X,Y))        // threshold 优先，避免在0dB时没法选择该点
+    {
+        is_comp_mouse_down = true;
+        is_comp_threshold_selected = true;
+        paint_control_comp->Invalidate();
+    }
+    else if (point_end_rect.Contains(X,Y))
+    {
+        is_comp_mouse_down = true;
+        is_comp_ratio_selected = true;
+        paint_control_comp->Invalidate();
+    }
+}
+void __fastcall PaintAgent::OnCompMouseUp(TObject *Sender, TMouseButton Button,
+      TShiftState Shift, int X, int Y)
+{
+    is_comp_mouse_down = false;
+    is_comp_gain_selected = false;
+    is_comp_threshold_selected = false;
+    is_comp_ratio_selected = false;
+}
+void __fastcall PaintAgent::OnCompMouseMove(TObject *Sender, TShiftState Shift,
+      int X, int Y)
+{                 
+    if (is_comp_gain_selected)
+    {
+        // 安装 Y 计算 Gain
+        _filter_set.gain = CanvasY2Gain(Y) + 72;
+        _filter_set.gain = max(_filter_set.gain, 0.0);
+        _filter_set.gain = min(_filter_set.gain, 24.0);
+        _filter_set.UpdateCompGain();
+        //paint_control_comp->Invalidate();
+    }
+    else if (is_comp_threshold_selected)
+    {
+        // 安装 Y 计算 Gain
+        _filter_set.threshold = CanvasX2Threshold(X);
+        _filter_set.threshold = max(_filter_set.threshold, -32.0);
+        _filter_set.threshold = min(_filter_set.threshold, 0.0);
+        _filter_set.UpdateCompThreshold();
+        //paint_control_comp->Invalidate();
+    }
+    else if (is_comp_ratio_selected)
+    {
+        // 安装 Y 计算 Gain
+        if (_filter_set.threshold == 0)
+        {
+            _filter_set.ratio = 1;
+        }
+        else
+        {
+            _filter_set.ratio = 1 - (CanvasY2Gain(Y) - _filter_set.gain) / _filter_set.threshold;
+            _filter_set.ratio = max(_filter_set.ratio, 0.0);
+            _filter_set.ratio = min(_filter_set.ratio, 1.0);
+            _filter_set.UpdateCompRatio();
+        }
+        //paint_control_comp->Invalidate();
+    }
+}
 

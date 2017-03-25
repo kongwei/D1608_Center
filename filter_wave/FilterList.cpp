@@ -163,3 +163,26 @@ void FilterSet::RepaintPaint(int band)
     }
 }
 
+void FilterSet::UpdateCompRatio()
+{
+    WORD key = VK_RETURN;
+    if (ratio == 0)
+        Form1->edtCompRatio->Text = "¡Þ";
+    else
+        Form1->edtCompRatio->Text = 1.0 / ratio;
+    Form1->edtCompRatioKeyDown(Form1->edtCompRatio, key, TShiftState());
+}
+void FilterSet::UpdateCompThreshold()
+{
+    WORD key = VK_RETURN;
+    Form1->edtCompThreshold->Text = threshold;
+    Form1->edtCompThresholdKeyDown(Form1->edtCompThreshold, key, TShiftState());
+}
+void FilterSet::UpdateCompGain()
+{
+    WORD key = VK_RETURN;
+    Form1->edtCompGain->Text = gain;
+    Form1->edtCompGainKeyDown(Form1->edtCompGain, key, TShiftState());
+}
+
+

@@ -31,12 +31,17 @@ public:
     void RepaintPaint(int band=0);
 
     // 输出部分的Comp参数
-    double ratio;
-    double threshold;
     double attack_time;
     double release_time;
+    double ratio;
+    double threshold;
     double gain;
+
+    void UpdateCompRatio();
+    void UpdateCompThreshold();
+    void UpdateCompGain();
 private:
+    
     // BAD: 浪费了第一个元素
     bool bypass[12];
     Coefficient filter[12];
