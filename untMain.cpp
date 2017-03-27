@@ -1044,9 +1044,16 @@ void __fastcall TForm1::tmSLPTimer(TObject *Sender)
         udpSLP->Bindings->Items[0]->IP = local_broadcast_ip;
         udpSLP->Bindings->Items[0]->Port = 0;
         udpSLP->BroadcastEnabled = true;
-        udpSLP->Active = true;
-        char search_flag[] = "rep";
-        udpSLP->SendBuffer("255.255.255.255", 888, search_flag, sizeof(search_flag));
+
+        try{
+            udpSLP->Active = true;
+            char search_flag[] = "rep";
+            udpSLP->SendBuffer("255.255.255.255", 888, search_flag, sizeof(search_flag));
+        }
+        catch(...)
+        {
+            AppendLog("ÍøÂçÒì³£");
+        }
     }
     else
     {
