@@ -460,7 +460,7 @@ __fastcall TForm1::TForm1(TComponent* Owner)
     pnlOperator->Width = REAL_INPUT_DSP_NUM * PANEL_WIDTH + imgPresetBg->Width + REAL_OUTPUT_DSP_NUM * PANEL_WIDTH;
     pnlOperator->Width = Math::Max(pnlOperator->Width, Width-16);
         HorzScrollBar->Visible = (pnlOperator->Width > Width);
-    pnlOperator->Height = 798-(728-584);
+    pnlOperator->Height = 798;//-(728-584);
     pnlOperator->Top = pnlHeader->Height;
 
     pnlMix->Width = REAL_INPUT_DSP_NUM * PANEL_WIDTH;                               
