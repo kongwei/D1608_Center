@@ -40,9 +40,9 @@
     <OTHERFILES value=""/>
   </MACROS>
   <OPTIONS>
-    <IDLCFLAGS value="-src_suffix cpp -D_DEBUG -DSTRICT -Ifont -I$(BCB)\include -I$(BCB)\Lib 
-      -I$(BCB)\include\vcl -Ifilter_wave -I&quot;..\..\vcl component pack v6.0.2.0&quot; 
-      -I..\..\new\CentCtrl -I$(BCB)\Projects\Bpl -boa"/>
+    <IDLCFLAGS value="-Ifont -I$(BCB)\include -I$(BCB)\Lib -I$(BCB)\include\vcl -Ifilter_wave 
+      -I&quot;..\..\vcl component pack v6.0.2.0&quot; -I..\..\new\CentCtrl 
+      -I$(BCB)\Projects\Bpl -src_suffix cpp -D_DEBUG -DSTRICT -boa"/>
     <CFLAG1 value="-Od -H=$(BCB)\lib\vcl60.csm -Hc -Vx -Ve -X- -r- -a8 -b- -k -y -v -vi- -c 
       -tW -tWM"/>
     <PFLAGS value="-N2.\tmp -N0.\tmp -$YD -$W -$O- -$A8 -v -JPHNE -M"/>
@@ -75,7 +75,7 @@
   <IDEOPTIONS>
 [Version Info]
 IncludeVerInfo=1
-AutoIncBuild=0
+AutoIncBuild=1
 MajorVer=1
 MinorVer=1
 Release=0

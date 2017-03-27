@@ -319,7 +319,7 @@ static void CopyWatchPanel(int panel_id, TForm1 * form, String label, int left)
     pb_level->BoundsRect = form->pb_watch->BoundsRect;
     pb_level->OnPaint = form->pb_watch->OnPaint;
     pb_level->Parent = watch_panel;
-    pb_level->Tag = form->pb_watch->Tag;
+    pb_level->Tag = panel_id-1;
     form->pb_watch_list[panel_id-1] = pb_level;
 
     TLabel * label_watch = new TLabel(watch_panel);
@@ -450,6 +450,12 @@ __fastcall TForm1::TForm1(TComponent* Owner)
     // µ÷Õû³ß´ç
     Width = 1800;//1366;
     Height = 780;//798;
+
+    for (int i=0;i<32;i++)
+    {
+        level_meter[i][0] = -49;
+        level_meter[i][1] = -100;
+    }
 
     pnlOperator->Width = REAL_INPUT_DSP_NUM * PANEL_WIDTH + imgPresetBg->Width + REAL_OUTPUT_DSP_NUM * PANEL_WIDTH;
     pnlOperator->Width = Math::Max(pnlOperator->Width, Width-16);
@@ -1676,7 +1682,30 @@ void TForm1::MsgWatchHandle(const D1608Cmd& cmd)
             try{
                 double valuex = log10(value);
                 double base = log10(0x00FFFFFF);
-                UpdateWatchLevel(i, (valuex - base) * 20 + 1 + 24);
+
+                if (i < 16)
+                {
+                    UpdateWatchLevel(i, (valuex - base) * 20 + 1 + 24);
+                }
+                else
+                {
+                    int comp_level = abs(cmd.data.data_32_array[i+16]);
+                    if (comp_level <= 0)
+                    {
+                        UpdateWatchLevel(i,
+                            (valuex - base) * 20 + 1 + 24,
+                            -71);
+                    }
+                    else
+                    {
+                        double comp_valuex = log10(comp_level);
+                        UpdateWatchLevel(i,
+                            (valuex - base) * 20 + 1 + 24,
+                            (comp_valuex - base) * 20 + 1 + 24);
+                    }
+
+                }
+
             }
             catch(...)
             {
@@ -2437,7 +2466,7 @@ void __fastcall TForm1::WatchPaint(TObject *Sender)
     TPaintBox * pb_watch = (TPaintBox*)Sender;
 
     //int max_height = pb_watch->Height-2;
-    int level = pb_watch->Tag;
+    int level = level_meter[pb_watch->Tag][0];
 
     // bottom - top
     // 72 - 0
@@ -2474,6 +2503,44 @@ void __fastcall TForm1::WatchPaint(TObject *Sender)
         r.bottom = 24-12+1;
         pb_watch->Canvas->Brush->Color = clRed;
         pb_watch->Canvas->FillRect(r);
+    }
+
+
+    int comp_level = level_meter[pb_watch->Tag][1];
+    if (comp_level > -100)
+    {
+        TRect r;
+        r.left = pb_watch->Width/2;
+        r.right = pb_watch->Width;
+        r.top = 1;
+
+        r.bottom = pb_watch->Height-1;
+        pb_watch->Canvas->Brush->Color = (TColor)0x00795C46;
+        pb_watch->Canvas->FillRect(r);
+
+        r.left+=2;
+        r.right-=2;     
+
+        r.top = 24-comp_level+1;
+        r.bottom = pb_watch->Height-1;
+        if (r.top > r.bottom)
+            r.top = r.bottom;
+        pb_watch->Canvas->Brush->Color = clLime;
+        pb_watch->Canvas->FillRect(r);
+
+        if (comp_level > 0)
+        {
+            r.bottom = 24-0+1;
+            pb_watch->Canvas->Brush->Color = clYellow;
+            pb_watch->Canvas->FillRect(r);
+        }
+
+        if (comp_level > 12)
+        {
+            r.bottom = 24-12+1;
+            pb_watch->Canvas->Brush->Color = clRed;
+            pb_watch->Canvas->FillRect(r);
+        }
     }
 }
 //---------------------------------------------------------------------------

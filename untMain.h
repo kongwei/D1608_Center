@@ -727,14 +727,16 @@ public:		// User declarations
     TAdvTrackBar* mix_level_trackbar[17];
 
 private:
-    void UpdateWatchLevel(int i, int value)
+    void UpdateWatchLevel(int i, int value, int comp_value=-100)
     {
+        level_meter[i][0] = value;
+        level_meter[i][1] = comp_value;
         if (pb_watch_list[i] != NULL)
         {
-            pb_watch_list[i]->Tag = value;
             pb_watch_list[i]->Invalidate();
         }
     }
+    int level_meter[32][2];
 public:
     TPaintBox * pb_watch_list[32];
 
