@@ -2484,7 +2484,7 @@ void __fastcall TForm1::WatchPaint(TObject *Sender)
     r.left+=2;
     r.right-=2;     
 
-    r.top = 24-level+1;
+    r.top = std::max(24-level+1, 1);
     r.bottom = pb_watch->Height-1;
     if (r.top > r.bottom)
         r.top = r.bottom;
@@ -2510,7 +2510,7 @@ void __fastcall TForm1::WatchPaint(TObject *Sender)
     if (comp_level > -100)
     {
         TRect r;
-        r.left = pb_watch->Width/2;
+        r.left = pb_watch->Width/2-1;
         r.right = pb_watch->Width;
         r.top = 1;
 
@@ -2521,7 +2521,7 @@ void __fastcall TForm1::WatchPaint(TObject *Sender)
         r.left+=2;
         r.right-=2;     
 
-        r.top = 24-comp_level+1;
+        r.top = std::max(24-comp_level+1, 1);
         r.bottom = pb_watch->Height-1;
         if (r.top > r.bottom)
             r.top = r.bottom;
