@@ -121,7 +121,7 @@ void Coefficient::PrepreMiddle()
         middles[i] = FilterCoe(freq_point[i] / SAMPLE_FREQ);
         if (middles[i] <= 0.00001)
         {
-            middles[i] = middles[i-1];
+            middles[i] = -30;// 数据太小，用-30表示图片上的负无穷大
         }
         else
         {
