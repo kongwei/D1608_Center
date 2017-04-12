@@ -1548,6 +1548,11 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
 
                 SetIOChannelNum();
             }
+            if (global_config.version >= offsetof(GlobalConfig, auto_saved))
+            {
+                // 读取'自动保存'配置
+                btnPresetAutoSaved->Down = ((global_config.auto_saved == 1) || (global_config.auto_saved == 0xFF));
+            }
         }
         else
         {
@@ -4470,6 +4475,16 @@ void __fastcall TForm1::CSpinEdit2Change(TObject *Sender)
 {
     REAL_OUTPUT_DSP_NUM = CSpinEdit2->Value;
     SetIOChannelNum();
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::btnPresetAutoSavedClick(TObject *Sender)
+{
+    D1608Cmd cmd;
+    cmd.type = 1;
+    cmd.id = offsetof(GlobalConfig, auto_saved);
+    cmd.data.data_8 = btnPresetAutoSaved->Down;
+    cmd.length = 1;
+    SendCmd(cmd);
 }
 //---------------------------------------------------------------------------
 
