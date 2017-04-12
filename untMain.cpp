@@ -1696,8 +1696,14 @@ void TForm1::MsgWatchHandle(const D1608Cmd& cmd)
                 }
                 else
                 {
-                    int comp_level = abs(cmd.data.data_32_array[i+16]);
-                    if (comp_level <= 0)
+                    int comp_level = cmd.data.data_32_array[i+16];
+                    if (comp_level == -100)
+                    {
+                        UpdateWatchLevel(i,
+                            (valuex - base) * 20 + 1 + 24,
+                            -100);
+                    }
+                    else if(comp_level <= 0)
                     {
                         UpdateWatchLevel(i,
                             (valuex - base) * 20 + 1 + 24,
