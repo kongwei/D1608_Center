@@ -171,6 +171,7 @@ void __fastcall PanelAgent::cbTypeChange(TObject *Sender)
         GetGainText(band)->Enabled = true;
     }
 
+    // TODO: 重复代码
     for (int i=FIRST_FILTER;i<=LAST_FILTER-2;i++)
     {
         bool band_forbidden = _filter_set.IsBandForbidden(i);
@@ -198,6 +199,24 @@ void __fastcall PanelAgent::cbBypassClick(TObject *Sender)
     int band = ((TControl*)Sender)->Parent->Tag;
     TCheckBox * bypass_checkbox = (TCheckBox*)Sender;
     _filter_set.SetBypass(band, bypass_checkbox->Checked);
+
+    // TODO: 重复代码
+    for (int i=FIRST_FILTER;i<=LAST_FILTER-2;i++)
+    {
+        bool band_forbidden = _filter_set.IsBandForbidden(i);
+        GetPanel(i)->Enabled = !band_forbidden;
+        GetFreqText(i)->Enabled = !band_forbidden;
+        GetQText(i)->Enabled = !band_forbidden;
+        GetGainText(i)->Enabled = !band_forbidden;
+    }
+    for (int i=LP_FILTER-1;i<=LP_FILTER;i++)
+    {
+        bool band_forbidden = _filter_set.IsBandForbidden(i);
+        GetPanel(i)->Enabled = !band_forbidden;
+        GetFreqText(i)->Enabled = !band_forbidden;
+        GetQText(i)->Enabled = !band_forbidden;
+        GetGainText(i)->Enabled = !band_forbidden;
+    }
 
     SaveToConfigMap(band);
     _filter_set.RepaintPaint(band);
@@ -460,9 +479,20 @@ void PanelAgent::UpdateFreqQGain(int band)
     _edtGain[band]->Text = _filter_set.GetFilter(band)->GetGain();
     _cbBypass[band]->Checked = _filter_set.IsBypass(band);
 
+    String suffix = "";
+    // TODO: 有重复代码
+    if (band == HP_FILTER)
+    {
+        suffix = " High";
+    }
+    else if (band == LP_FILTER)
+    {
+        suffix = " Low";
+    }
+
     for (int i=0;i<_cbType[band]->Items->Count;i++)
     {
-        if (_cbType[band]->Items->Strings[i] == _filter_set.GetFilter(band)->GetType())
+        if (_cbType[band]->Items->Strings[i]+suffix == _filter_set.GetFilter(band)->GetType())
         {
             _cbType[band]->ItemIndex = i;
             break;

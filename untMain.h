@@ -50,7 +50,7 @@ extern "C"{
 #define MAX_PACKAGE_SIZE 1024
 
 #define FIRST_FILTER 1
-#define LAST_FILTER 8
+#define LAST_FILTER 9
 #define HP_FILTER 1
 #define LP_FILTER 11
 

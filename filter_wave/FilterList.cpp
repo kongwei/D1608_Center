@@ -34,14 +34,14 @@ bool FilterSet::IsBandForbidden(int band)
         return true;
     }
 
-    if (band == FIRST_FILTER)
+    if (band == HP_FILTER)
     {
         return false;
     }
 
-    if ((band-FIRST_FILTER+1) <= GetFilter(FIRST_FILTER)->UseIIRCount())
+    if ((band-HP_FILTER+1) <= GetFilter(HP_FILTER)->UseIIRCount())
     {
-        return true;
+        return !IsBypass(HP_FILTER);
     }
 
     if (band == LP_FILTER)
@@ -56,19 +56,19 @@ bool FilterSet::IsBandForbidden(int band)
     case 2:
         if (band >= LP_FILTER-1)
         {
-            return true;
+            return !IsBypass(LP_FILTER);
         }
         break;
     case 3:
         if (band >= LAST_FILTER-2)
         {
-            return true;
+            return !IsBypass(LP_FILTER);
         }
         break;
     case 4:
         if (band >= LAST_FILTER-3)
         {
-            return true;
+            return !IsBypass(LP_FILTER);
         }
         break;
     }
