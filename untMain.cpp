@@ -2337,6 +2337,10 @@ void __fastcall TForm1::input_panel_level_editKeyDown(TObject *Sender,
         InputVolumeChange(input_level_trackbar[dsp_num-1]);
         edt->SelectAll();
     }
+    else if (Key == VK_ESCAPE)
+    {
+        edt->OnExit(edt);
+    }
     else if (Key == VK_UP || Key == VK_DOWN || Key == VK_PRIOR || Key == VK_NEXT)
     {
         input_level_trackbar[dsp_num-1]->Perform(WM_KEYDOWN, Key, 1);
@@ -2366,6 +2370,10 @@ void __fastcall TForm1::output_panel_level_editKeyDown(TObject *Sender,
         OutputVolumeChange(output_level_trackbar[dsp_num-1]);
         edt->SelectAll();
     }
+    else if (Key == VK_ESCAPE)
+    {
+        edt->OnExit(edt);
+    }
     else if (Key == VK_UP || Key == VK_DOWN || Key == VK_PRIOR || Key == VK_NEXT)
     {
         output_level_trackbar[dsp_num-1]->Perform(WM_KEYDOWN, Key, 1);
@@ -2389,6 +2397,10 @@ void __fastcall TForm1::master_panel_level_editKeyDown(TObject *Sender,
 
         MasterVolumeChange(master_panel_trackbar);
         edt->SelectAll();
+    }
+    else if (Key == VK_ESCAPE)
+    {
+        edt->OnExit(edt);
     }
     else if (Key == VK_UP || Key == VK_DOWN || Key == VK_PRIOR || Key == VK_NEXT)
     {
@@ -2712,6 +2724,10 @@ void __fastcall TForm1::pnlmix_level_editKeyDown(TObject *Sender,
 
         pnlmix_level_trackbarChange(mix_level_trackbar[dsp_num-1]);
         edt->SelectAll();
+    }
+    else if (Key == VK_ESCAPE)
+    {
+        edt->OnExit(edt);
     }
     else if (Key == VK_UP || Key == VK_DOWN || Key == VK_PRIOR || Key == VK_NEXT)
     {
@@ -3915,7 +3931,7 @@ void __fastcall TForm1::edtCompGainKeyDown(TObject *Sender, WORD &Key,
 void __fastcall TForm1::edtCompRatioExit(TObject *Sender)
 {
     TEdit * edt = (TEdit*)Sender;
-    WORD Key = VK_ESCAPE;
+    WORD Key = VK_RETURN;
     edt->OnKeyDown(Sender, Key, TShiftState());
     edt->OnClick = edtCompRatioClick; 
 }
@@ -4163,6 +4179,11 @@ void __fastcall TForm1::dsp_gain_editKeyDown(TObject *Sender, WORD &Key,
         dsp_gain_trackbar->OnChange(dsp_gain_trackbar);
         dsp_gain_edit->SelectAll();
     }
+    else if (Key == VK_ESCAPE)
+    {
+        dsp_gain_trackbar->OnChange(dsp_gain_trackbar);
+        dsp_gain_edit->OnClick = input_panel_level_editClick;
+    }
     else if (Key == VK_UP || Key == VK_DOWN || Key == VK_PRIOR || Key == VK_NEXT)
     {
         dsp_gain_trackbar->Perform(WM_KEYDOWN, Key, 1);
@@ -4197,6 +4218,11 @@ void __fastcall TForm1::dsp_delay_editKeyDown(TObject *Sender, WORD &Key,
 
         dsp_delay_trackbar->OnChange(dsp_delay_trackbar);
         dsp_delay_edit->SelectAll();
+    }
+    else if (Key == VK_ESCAPE)
+    {
+        dsp_delay_trackbar->OnChange(dsp_delay_trackbar);
+        dsp_delay_edit->OnClick = input_panel_level_editClick;
     }
     else if (Key == VK_UP || Key == VK_DOWN || Key == VK_PRIOR || Key == VK_NEXT)
     {
