@@ -204,6 +204,16 @@ void Coefficient::ChangFilterParameter(String type, double freq, double gain, do
         LowBessel_24dB(freq);
         _type_id = 2412;
     }
+    else if (type == "48dB Bessel High")
+    {
+        HighPassButterworth_48dB(freq);
+        _type_id = 4802;
+    }
+    else if (type == "48dB Bessel Low")
+    {
+        LowPassButterworth_48dB(freq);
+        _type_id = 4812;
+    }
 
     else if (type == "12dB Linkwitz-Riley High")
     {
@@ -419,6 +429,10 @@ String Coefficient::GetTypeName(int type_id)
         return "24dB Bessel High";
     case 2412:
         return "24dB Bessel Low";
+    case 4802:
+        return "48dB Bessel High";
+    case 4812:
+        return "48dB Bessel Low";
     case 1203:
         return "12dB Linkwitz-Riley High";
     case 1213:

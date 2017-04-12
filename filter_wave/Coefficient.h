@@ -85,6 +85,8 @@ public:
           ||(_type == "18dB Bessel Low")
           ||(_type == "24dB Bessel High")
           ||(_type == "24dB Bessel Low")
+          ||(_type == "48dB Bessel High")
+          ||(_type == "48dB Bessel Low")
           ||(_type == "12dB Linkwitz-Riley High")
           ||(_type == "12dB Linkwitz-Riley Low")
           ||(_type == "24dB Linkwitz-Riley High")
