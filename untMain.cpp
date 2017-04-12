@@ -1991,6 +1991,10 @@ void __fastcall TForm1::ToggleDSP(TObject *Sender)
             edtCompAttackTime->Text = config_map.output_dsp[dsp_num-1].attack_time/10.0;
             edtCompReleaseTime->Text = config_map.output_dsp[dsp_num-1].release_time/10.0;
             edtCompGain->Text = config_map.output_dsp[dsp_num-1].comp_gain/10.0;
+            cbCompAutoTime->Checked = config_map.output_dsp[dsp_num-1].auto_time;
+                edtCompReleaseTime->Enabled = !cbCompAutoTime->Checked;
+                edtCompAttackTime->Enabled = !cbCompAutoTime->Checked;
+
             pnlComp->Show();
             btnDspComp->Show();
 
@@ -3908,7 +3912,7 @@ void __fastcall TForm1::edtCompGainKeyDown(TObject *Sender, WORD &Key,
     else if (Key == VK_RETURN)
     {
         try{
-            config_map.output_dsp[dsp_id-1].comp_gain = edt->Text.ToDouble()*gain_config.scale; 
+            config_map.output_dsp[dsp_id-1].comp_gain = edt->Text.ToDouble()*gain_config.scale;
 
             if (config_map.output_dsp[dsp_id-1].comp_gain > gain_config.max_value)
                 config_map.output_dsp[dsp_id-1].comp_gain = gain_config.max_value;
@@ -3931,6 +3935,23 @@ void __fastcall TForm1::edtCompGainKeyDown(TObject *Sender, WORD &Key,
         edt->Text = FormatFloat(config_map.output_dsp[dsp_id-1].comp_gain/gain_config.scale, gain_config.precise);
         edt->SelectAll();
     }
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::cbCompAutoTimeClick(TObject *Sender)
+{
+    TCheckBox* check_box = (TCheckBox*)Sender;
+    int dsp_id = check_box->Parent->Parent->Tag;
+
+    config_map.output_dsp[dsp_id-101].auto_time = check_box->Checked;
+
+    D1608Cmd cmd;
+    cmd.id = GetOffsetOfData(&config_map.output_dsp[dsp_id-1].auto_time);
+    cmd.data.data_8 = config_map.output_dsp[dsp_id-1].auto_time;
+    cmd.length = 1;
+    SendCmd(cmd);
+
+    edtCompReleaseTime->Enabled = !cbCompAutoTime->Checked;
+    edtCompAttackTime->Enabled = !cbCompAutoTime->Checked;
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::edtCompRatioExit(TObject *Sender)

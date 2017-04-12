@@ -485,6 +485,8 @@ __published:	// IDE-managed Components
     TPanel *iDA_5678;
     TPanel *iDA_13_16;
     TSpeedButton *btnPresetAutoSaved;
+    TCheckBox *cbCompAutoTime;
+    TLabel *Label47;
     void __fastcall FormCreate(TObject *Sender);
     void __fastcall FormDestroy(TObject *Sender);
     void __fastcall btnRefreshClick(TObject *Sender);
@@ -635,6 +637,7 @@ __published:	// IDE-managed Components
     void __fastcall CSpinEdit1Change(TObject *Sender);
     void __fastcall CSpinEdit2Change(TObject *Sender);
     void __fastcall btnPresetAutoSavedClick(TObject *Sender);
+    void __fastcall cbCompAutoTimeClick(TObject *Sender);
 
 private:
     // 已经选择设备
