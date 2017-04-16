@@ -898,15 +898,15 @@ void __fastcall TForm1::udpSLPUDPRead(TObject *Sender,
     // 查找是否列表中已经存在
     for (int i=0;i<lvDevice->Items->Count;i++)
     {
-        item = lvDevice->Items->Item[i];
-        String ip = item->SubItems->Strings[0];
+        TListItem * find_item = lvDevice->Items->Item[i];
+        String ip = find_item->SubItems->Strings[0];
         if (ip == ip_address)
         {
             // 更新属性
-            item->Data = (void*)2;
-            item->SubItems->Strings[1] = ABinding->IP;
-            item->SubItems->Strings[2] = device_name;
-            item->SubItems->Strings[3] = mac;
+            find_item->Data = (void*)2;
+            find_item->SubItems->Strings[0] = ip_address;
+            find_item->SubItems->Strings[1] = ABinding->IP;
+            item = find_item;
             break;
         }
     }
@@ -915,11 +915,9 @@ void __fastcall TForm1::udpSLPUDPRead(TObject *Sender,
     {
         item = lvDevice->Items->Add();
         item->Data = (void*)2;
-        item->Caption = IntToStr(item->Index + 1);
+        item->Caption = device_name.UpperCase();
         item->SubItems->Add(ip_address);
         item->SubItems->Add(ABinding->IP);
-        item->SubItems->Add(device_name);
-        item->SubItems->Add(mac);
     }
 
     if (last_select_device_ip == ip_address)
@@ -937,6 +935,7 @@ void __fastcall TForm1::udpSLPUDPRead(TObject *Sender,
         // 连接第一个
         file_dirty = false;
         cbAutoRefresh->Checked = false;
+        dst_ip = item->SubItems->Strings[0];
         btnSelect->Click();
 
         last_device_name = device_name;
@@ -951,10 +950,7 @@ void __fastcall TForm1::lvDeviceSelectItem(TObject *Sender,
         return;
     }
 
-    dst_ip = Item->SubItems->Strings[0];
-    AppendLog("选择："+IntToStr(Item->Index+1)+" "+dst_ip);
-
-    flag_ip_selected = (dst_ip!="");
+    AppendLog("选择："+IntToStr(Item->Index+1)+" "+Item->SubItems->Strings[0]);
 }
 //---------------------------------------------------------------------------
 void TForm1::AppendLog(String log)
@@ -1522,6 +1518,10 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             // global_config
             memcpy(&global_config, preset_cmd.data, sizeof(global_config));
             UpdateCaption();
+            // 显示版本信息
+            edtDeviceType->Text = global_config.device_type;
+            edtBuildTime->Text = global_config.build_time;
+            //TDateTime d = edtBuildTime->Text;
 
             // 版本校验
             if (global_config.version >= offsetof(GlobalConfig, ad_da_card))
@@ -1919,6 +1919,7 @@ void __fastcall TForm1::lvDeviceDblClick(TObject *Sender)
     if (item != NULL)
     {
         cbAutoRefresh->Checked = false;
+        dst_ip = item->SubItems->Strings[0];
         btnSelect->Click();
     }
 }
@@ -4120,6 +4121,10 @@ void __fastcall TForm1::PaintBox3Paint(TObject *Sender)
         Bevel7->Left,Bevel7->Top,Bevel7->Width,Bevel7->Height,
         bmp->Canvas->Handle, 0, 0, Bevel7->Width,Bevel7->Height, blend);
 
+    ::AlphaBlend(PaintBox3->Canvas->Handle,
+        Bevel10->Left,Bevel10->Top,Bevel10->Width,Bevel10->Height,
+        bmp->Canvas->Handle, 0, 0, Bevel10->Width,Bevel10->Height, blend);
+
     delete bmp;
 }
 //---------------------------------------------------------------------------
@@ -4508,4 +4513,3 @@ void __fastcall TForm1::btnPresetAutoSavedClick(TObject *Sender)
     SendCmd(cmd);
 }
 //---------------------------------------------------------------------------
-

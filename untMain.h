@@ -85,7 +85,6 @@ __published:	// IDE-managed Components
     TLabel *Label1;
     TMemo *mmLog;
     TButton *btnRefresh;
-    TListView *lvDevice;
     TListBox *lbIplist;
     TCheckBox *cbAutoRefresh;
     TCSpinEdit *spInterval;
@@ -487,6 +486,11 @@ __published:	// IDE-managed Components
     TSpeedButton *btnPresetAutoSaved;
     TCheckBox *cbCompAutoTime;
     TLabel *Label47;
+    TListView *lvDevice;
+    TLabel *Label50;
+    TBevel *Bevel10;
+    TEdit *edtDeviceType;
+    TEdit *edtBuildTime;
     void __fastcall FormCreate(TObject *Sender);
     void __fastcall FormDestroy(TObject *Sender);
     void __fastcall btnRefreshClick(TObject *Sender);
@@ -640,8 +644,6 @@ __published:	// IDE-managed Components
     void __fastcall cbCompAutoTimeClick(TObject *Sender);
 
 private:
-    // 已经选择设备
-    bool flag_ip_selected;
     // 已经加载版本文件
     bool flag_file_open;
 
