@@ -531,6 +531,7 @@ void InitConfigMap()
         config_map.output_dsp[i].attack_time = 640;
         config_map.output_dsp[i].release_time = 10000;
         config_map.output_dsp[i].comp_gain = 0;
+        config_map.output_dsp[i].auto_time = 1;
 	}
 
     // mix_mute
