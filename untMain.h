@@ -68,8 +68,7 @@ extern "C"{
         __int8 flag3[64];
         __int8 type[16];
         __int8 ser[16];
-        __int8 ver[16];
-        __int8 fwdate[20];
+        __int8 ver[36];
         __int8 mac[6];
         __int8 mask[4];
         __int8 gateway[4];
@@ -765,8 +764,9 @@ private:
 
     D1608Cmd last_cmd;
 
-
     void SetIOChannelNum();
+
+    void CloseDspDetail();
 };
 //---------------------------------------------------------------------------
 extern PACKAGE TForm1 *Form1;

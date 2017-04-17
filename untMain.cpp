@@ -1615,6 +1615,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             {
                 SetPresetId(preset_id);
                 ApplyConfigToUI();  // 子窗体的数据在加载时更新
+                CloseDspDetail();
             }
         }
     }
@@ -1931,7 +1932,7 @@ void __fastcall TForm1::ToggleDSP(TObject *Sender)
         last_dsp_btn == NULL;
         last_out_num_btn->OnClick(last_out_num_btn);
     }
-    
+
     // DSP button
     if (last_dsp_btn)
     {
@@ -2805,6 +2806,7 @@ void __fastcall TForm1::btnLoadPresetFromFileClick(TObject *Sender)
         delete file;
 
         ApplyConfigToUI();
+        CloseDspDetail();
 
         // Download To Device
         D1608PresetCmd preset_cmd;
@@ -2812,7 +2814,10 @@ void __fastcall TForm1::btnLoadPresetFromFileClick(TObject *Sender)
         preset_cmd.store_page = 0;
         memcpy(preset_cmd.data, &config_map.input_dsp[0], sizeof(config_map.input_dsp[0])*4);
 
-        udpControl->SendBuffer(dst_ip, 907, &preset_cmd, sizeof(preset_cmd));
+        if (udpControl->Active)
+        {
+            udpControl->SendBuffer(dst_ip, 907, &preset_cmd, sizeof(preset_cmd));
+        }
     }
 }
 //---------------------------------------------------------------------------
@@ -2900,6 +2905,7 @@ void __fastcall TForm1::LoadAllPresetClick(TObject *Sender)
         SetPresetId(1);
 
         ApplyConfigToUI();
+        CloseDspDetail();
 
         if (udpControl->Active)
         {
@@ -3174,6 +3180,13 @@ void TForm1::OnFeedbackData(unsigned int cmd_id, int length)
                 edtCompGain->OnKeyDown(edtCompGain, enter_key, TShiftState());
             }
 		}
+		else if (cmd_id == GetOffsetOfData((char*)&config_map.output_dsp[ObjectIndex].auto_time))
+		{
+            if (pnlDspDetail->Visible && (pnlDspDetail->Tag-101==ObjectIndex))
+            {
+                cbCompAutoTime->Checked = config_map.output_dsp[ObjectIndex].auto_time;
+            }
+		}
 		else if (cmd_id >= GetOffsetOfData(&config_map.output_dsp[ObjectIndex].filter)
 			&& (cmd_id < GetOffsetOfData(&config_map.output_dsp[ObjectIndex].filter) + sizeof(config_map.output_dsp[ObjectIndex].filter)))
 		{
@@ -3324,6 +3337,7 @@ void __fastcall TForm1::RecallClick(TObject *Sender)
     config_map = all_config_map[cur_preset_id];
 
     ApplyConfigToUI();
+    CloseDspDetail();
 
     D1608Cmd cmd;
     cmd.id = GetOffsetOfData(&config_map.op_code.switch_preset);
@@ -4513,3 +4527,21 @@ void __fastcall TForm1::btnPresetAutoSavedClick(TObject *Sender)
     SendCmd(cmd);
 }
 //---------------------------------------------------------------------------
+void TForm1::CloseDspDetail()
+{
+    pnlDspDetail->Hide();
+    pnlMix->Hide();
+    if (last_out_num_btn != NULL)
+    {
+        last_out_num_btn->Down =false;
+        last_out_num_btn == NULL;
+    }
+
+    if (last_dsp_btn != NULL)
+    {
+        last_dsp_btn->Down =false;
+        last_dsp_btn == NULL;
+    }
+}
+//---------------------------------------------------------------------------
+
