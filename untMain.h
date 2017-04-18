@@ -62,9 +62,9 @@ extern "C"{
     };
     struct T_slp_pack
     {
-        __int8 ip[4];
-        __int8 flag1[10];
-        __int8 name[26];
+        __int8 ip[4];         // IP地址
+        __int8 id[10];        // 设备ID
+        __int8 name[26];      // 设备名称
         __int8 flag3[64];
         __int8 type[16];
         __int8 ser[16];

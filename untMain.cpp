@@ -28,7 +28,7 @@ int REAL_INPUT_DSP_NUM = 16;
 int REAL_OUTPUT_DSP_NUM = 16;
 
 static bool on_loading = false;
-static String last_device_name;
+static String last_device_id;
 
 static Word enter_key = VK_RETURN;
 
@@ -895,6 +895,7 @@ void __fastcall TForm1::udpSLPUDPRead(TObject *Sender,
     String mac;
         mac.sprintf("%02X:%02X:%02X:%02X:%02X:%02X", (BYTE)slp_pack.mac[0], (BYTE)slp_pack.mac[1], (BYTE)slp_pack.mac[2], (BYTE)slp_pack.mac[3], (BYTE)slp_pack.mac[4], (BYTE)slp_pack.mac[5]);
     String device_name = slp_pack.name;
+    String device_id = slp_pack.id;
 
     TListItem * item = NULL;
     // 查找是否列表中已经存在
@@ -932,7 +933,7 @@ void __fastcall TForm1::udpSLPUDPRead(TObject *Sender,
         item->Selected = true;
     }
 
-    if (last_device_name == "" || device_name == last_device_name)
+    if (last_device_id == "" || device_id == last_device_id)
     {
         // 连接第一个
         file_dirty = false;
@@ -940,7 +941,7 @@ void __fastcall TForm1::udpSLPUDPRead(TObject *Sender,
         dst_ip = item->SubItems->Strings[0];
         btnSelect->Click();
 
-        last_device_name = device_name;
+        last_device_id = device_id;
     }
 }                                         
 //---------------------------------------------------------------------------
@@ -3268,7 +3269,7 @@ void __fastcall TForm1::SetFileDirty(bool dirty_flag)
 void __fastcall TForm1::UpdateCaption()
 {
     if (global_config.d1616_name[0] == '\0')
-        Caption = last_device_name;//"D1608";
+        Caption = last_device_id;
     else
         Caption = global_config.d1616_name;
 
