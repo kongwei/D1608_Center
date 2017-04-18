@@ -711,6 +711,8 @@ __fastcall TForm1::TForm1(TComponent* Owner)
     InitConfigMap();
     btnDspResetEQ->Click();
 
+    ApplyConfigToUI();
+
     SetPresetId(1);
     for (int i=0;i<PRESET_NUM;i++)
     {
@@ -2989,6 +2991,8 @@ void __fastcall TForm1::ApplyConfigToUI()
             input_dsp_name[i]->Caption = String(char('A'+i));
         else
             input_dsp_name[i]->Caption = dsp_name;
+
+        input_type_lbl[i]->Caption = InputGain2String(config_map.input_dsp[i].gain);
     }
 
     for (int i=0;i<REAL_OUTPUT_DSP_NUM;i++)
@@ -3011,6 +3015,8 @@ void __fastcall TForm1::ApplyConfigToUI()
             output_dsp_name[i]->Caption = IntToStr(i+1);
         else
             output_dsp_name[i]->Caption = dsp_name;
+
+        output_type_lbl[i]->Caption = OutputGain2String(config_map.output_dsp[i].gain);
     }
 
     // master
