@@ -897,18 +897,21 @@ void __fastcall TForm1::udpSLPUDPRead(TObject *Sender,
     String device_name = slp_pack.name;
     String device_id = slp_pack.id;
 
+    device_name = device_name + "-" + device_id;
+
     TListItem * item = NULL;
     // 查找是否列表中已经存在
     for (int i=0;i<lvDevice->Items->Count;i++)
     {
         TListItem * find_item = lvDevice->Items->Item[i];
-        String ip = find_item->SubItems->Strings[0];
-        if (ip == ip_address)
+        if (device_id == find_item->SubItems->Strings[2])
         {
             // 更新属性
+            find_item->Caption = device_name.UpperCase();
             find_item->Data = (void*)2;
             find_item->SubItems->Strings[0] = ip_address;
             find_item->SubItems->Strings[1] = ABinding->IP;
+            //find_item->SubItems->Strings[2] = device_id;
             item = find_item;
             break;
         }
@@ -921,27 +924,33 @@ void __fastcall TForm1::udpSLPUDPRead(TObject *Sender,
         item->Caption = device_name.UpperCase();
         item->SubItems->Add(ip_address);
         item->SubItems->Add(ABinding->IP);
+        item->SubItems->Add(device_id);
     }
 
-    if (last_select_device_ip == ip_address)
+    //if (lvDevice->Selected == NULL)
+    //{
+    //    item->Selected = true;
+    //}
+
+    if (device_id == "")
     {
-        item->Selected = true;
     }
-
-    if (lvDevice->Selected == NULL)
+    else
     {
-        item->Selected = true;
-    }
+        if ((last_device_id == "" || device_id == last_device_id) && !udpControl->Active)
+        {
+            // 连接第一个
+            file_dirty = false;
+            dst_ip = item->SubItems->Strings[0];
+            btnSelect->Click();
 
-    if (last_device_id == "" || device_id == last_device_id)
-    {
-        // 连接第一个
-        file_dirty = false;
-        cbAutoRefresh->Checked = false;
-        dst_ip = item->SubItems->Strings[0];
-        btnSelect->Click();
+            last_device_id = device_id;
+        }
 
-        last_device_id = device_id;
+        if (device_id == last_device_id)
+        {
+            item->Selected = true;
+        }
     }
 }                                         
 //---------------------------------------------------------------------------
@@ -999,6 +1008,9 @@ void __fastcall TForm1::btnSelectClick(TObject *Sender)
         }
     }
 
+    // TODO: 测试是否能够持续刷新，且不影响流程
+    //cbAutoRefresh->Checked = false;
+
     String broadcast_ip = selected->SubItems->Strings[1];
     // 初始化socket
     udpControl->Active = false;
@@ -1024,6 +1036,8 @@ void __fastcall TForm1::btnSelectClick(TObject *Sender)
     cbWatch->Down = true;
 
     keep_live_count = 0;
+
+    last_device_id = selected->SubItems->Strings[2];
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::tmSLPTimer(TObject *Sender)
@@ -1232,7 +1246,47 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
 
         //memo_debug->Lines->Add("Reply：" + CmdLog(cmd));
 
-        if (cmd.id == GetOffsetOfData(&config_map.op_code.WatchLevel))
+        // id == 1 表示全局配置
+        if (cmd.type == 1)
+        {
+            if (cmd.id == offsetof(GlobalConfig, d1616_name))
+            {
+                /*for (int i=0;i<lvDevice->Items->Count;i++)
+                {
+                    TListItem * find_item = lvDevice->Items->Item[i];
+                    if (device_id == find_item->SubItems->Strings[2])
+                    {
+                        // 更新属性
+                        find_item->Data = (void*)2;
+                        find_item->SubItems->Strings[0] = ip_address;
+                        find_item->SubItems->Strings[1] = ABinding->IP;
+                        //find_item->SubItems->Strings[2] = device_id;
+                        item = find_item;
+                        break;
+                    }
+                }*/
+            }
+            else if (cmd.id == GetOffsetOfData(&config_map.op_code.noop))
+            {
+                int preset_id = cmd.data.data_32;
+                if (preset_id != cur_preset_id)
+                {
+                    D1608PresetCmd preset_cmd;
+                    preset_cmd.preset = preset_id; // 读取preset
+                    // 从0页读取
+                    preset_cmd.store_page = 0;
+                    udpControl->SendBuffer(dst_ip, 905, &preset_cmd, sizeof(preset_cmd));
+                }
+
+                keep_live_count = 0;
+                //tsOperator->Caption = "操作(连接)";
+                shape_live->Show();
+                shape_link->Show();
+                shape_power->Show();
+            }
+        }
+        // id == 0 表示preset配置
+        else if (cmd.id == GetOffsetOfData(&config_map.op_code.WatchLevel))
         {
             // 音量输出
             MsgWatchHandle(cmd);
@@ -1385,24 +1439,6 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             lbl16mAa->Caption = IntToAbsSring((calc_data._16vac - calc_data._16va) / 0.5) + " ";
             lbl_16mAa->Caption = IntToAbsSring((calc_data._x16va - calc_data._x16vac) / 0.5) + " ";
             lbl48mAa->Caption = IntToAbsSring((calc_data._48va - calc_data._46vc) / 0.5) + " ";
-        }
-        else if (cmd.id == GetOffsetOfData(&config_map.op_code.noop))
-        {
-            int preset_id = cmd.data.data_32;
-            if (preset_id != cur_preset_id)
-            {
-                D1608PresetCmd preset_cmd;
-                preset_cmd.preset = preset_id; // 读取preset
-                // 从0页读取
-                preset_cmd.store_page = 0;
-                udpControl->SendBuffer(dst_ip, 905, &preset_cmd, sizeof(preset_cmd));
-            }
-
-            keep_live_count = 0;
-            //tsOperator->Caption = "操作(连接)";
-            shape_live->Show();
-            shape_link->Show();
-            shape_power->Show();
         }
         else
         {
@@ -1922,7 +1958,6 @@ void __fastcall TForm1::lvDeviceDblClick(TObject *Sender)
     TListItem * item = lvDevice->Selected;
     if (item != NULL)
     {
-        cbAutoRefresh->Checked = false;
         dst_ip = item->SubItems->Strings[0];
         btnSelect->Click();
     }
@@ -3284,7 +3319,7 @@ void __fastcall TForm1::UpdateCaption()
 
     if (udpControl->Active)
     {
-        Caption = Caption + " - " + dst_ip;
+        Caption = /*Caption + " - " +*/ dst_ip;
     }
 }
 //---------------------------------------------------------------------------
@@ -3967,8 +4002,8 @@ void __fastcall TForm1::cbCompAutoTimeClick(TObject *Sender)
     config_map.output_dsp[dsp_id-101].auto_time = check_box->Checked;
 
     D1608Cmd cmd;
-    cmd.id = GetOffsetOfData(&config_map.output_dsp[dsp_id-1].auto_time);
-    cmd.data.data_8 = config_map.output_dsp[dsp_id-1].auto_time;
+    cmd.id = GetOffsetOfData(&config_map.output_dsp[dsp_id-101].auto_time);
+    cmd.data.data_8 = config_map.output_dsp[dsp_id-101].auto_time;
     cmd.length = 1;
     SendCmd(cmd);
 
