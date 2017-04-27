@@ -60,7 +60,7 @@ extern "C"{
         char op[9];
         __int32 sfilelen;
     };
-    struct T_slp_pack
+    /*struct T_slp_pack
     {
         __int8 ip[4];         // IP地址
         __int8 id[10];        // 设备ID
@@ -73,7 +73,7 @@ extern "C"{
         __int8 mask[4];
         __int8 gateway[4];
         __int16 port;
-    };
+    };*/
 #pragma pack()
 
 //---------------------------------------------------------------------------
@@ -390,7 +390,6 @@ __published:	// IDE-managed Components
     TLabel *lbl_12mAa;
     TSpeedButton *tbGlobalDspName;
     TSpeedButton *btnDeviceName;
-    TLabel *Label42;
     TBevel *Bevel4;
     TBevel *Bevel5;
     TLabel *Label43;
@@ -432,9 +431,6 @@ __published:	// IDE-managed Components
     TPaintBox *PaintBox2;
     TBevel *Bevel8;
     TPaintBox *PaintBox3;
-    TLabel *Label44;
-    TLabel *Label45;
-    TLabel *Label46;
     TLabel *lblDeviceName;
     TLabel *lblDeviceInfo;
     TShape *shape_link;
@@ -490,6 +486,8 @@ __published:	// IDE-managed Components
     TBevel *Bevel10;
     TEdit *edtDeviceType;
     TEdit *edtBuildTime;
+    TRadioButton *rbStaticIpEnabled;
+    TRadioButton *rbDhcpEnabled;
     void __fastcall FormCreate(TObject *Sender);
     void __fastcall FormDestroy(TObject *Sender);
     void __fastcall btnRefreshClick(TObject *Sender);
@@ -641,6 +639,9 @@ __published:	// IDE-managed Components
     void __fastcall CSpinEdit2Change(TObject *Sender);
     void __fastcall btnPresetAutoSavedClick(TObject *Sender);
     void __fastcall cbCompAutoTimeClick(TObject *Sender);
+    void __fastcall rbStaticIpEnabledClick(TObject *Sender);
+    void __fastcall Label51Click(TObject *Sender);
+    void __fastcall Label42Click(TObject *Sender);
 
 private:
     // 已经加载版本文件
@@ -767,6 +768,8 @@ private:
     void SetIOChannelNum();
 
     void CloseDspDetail();
+
+    HWND hIpEdit;
 };
 //---------------------------------------------------------------------------
 extern PACKAGE TForm1 *Form1;

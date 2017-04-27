@@ -598,19 +598,32 @@ void __fastcall PaintAgent::OnCompMouseMove(TObject *Sender, TShiftState Shift,
 {                 
     if (is_comp_gain_selected)
     {
+        // 计算gain的最大值。收到另外两个系数影响 (threshold, ratio)
+        // ratio不能超出范围
+
         // 安装 Y 计算 Gain
         _filter_set.gain = CanvasY2Gain(Y) + 72;
         _filter_set.gain = max(_filter_set.gain, 0.0);
-        _filter_set.gain = min(_filter_set.gain, 24.0);
+        _filter_set.gain = min(_filter_set.gain, -_filter_set.threshold*(1-_filter_set.ratio));//24.0);
         _filter_set.UpdateCompGain();
         //paint_control_comp->Invalidate();
     }
     else if (is_comp_threshold_selected)
     {
+        // 计算gain的最大值。收到另外两个系数影响 (threshold, ratio)
+        // ratio不能超出范围
+
         // 安装 Y 计算 Gain
         _filter_set.threshold = CanvasX2Threshold(X);
         _filter_set.threshold = max(_filter_set.threshold, -32.0);
-        _filter_set.threshold = min(_filter_set.threshold, 0.0);
+        if (_filter_set.ratio == 1)
+        {
+            _filter_set.threshold = min(_filter_set.threshold, 0.0);
+        }
+        else
+        {
+            _filter_set.threshold = min(_filter_set.threshold, -_filter_set.gain / (1-_filter_set.ratio));//0.0);
+        }
         _filter_set.UpdateCompThreshold();
         //paint_control_comp->Invalidate();
     }

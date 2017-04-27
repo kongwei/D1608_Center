@@ -735,6 +735,22 @@ __fastcall TForm1::TForm1(TComponent* Owner)
 //---------------------------------------------------------------------------
 void __fastcall TForm1::FormCreate(TObject *Sender)
 {
+    TInitCommonControlsEx ICC;  
+    ICC.dwSize = sizeof(TInitCommonControlsEx);
+    ICC.dwICC  = ICC_INTERNET_CLASSES;
+    if(!InitCommonControlsEx(&ICC))
+    {
+        ShowMessage("IP地址控件失效");
+    }
+    hIpEdit = CreateWindow(WC_IPADDRESS,"",WS_CHILD|WS_VISIBLE,
+        edtIp->Left, edtIp->Top, edtIp->Width, edtIp->Height, edtIp->Parent->Handle,
+        0,HInstance,NULL);
+
+    //SetTextColor(GetDC(hIpEdit), edtIp->Font->Color);
+
+
+    SetWindowLong(rbDhcpEnabled->Handle, GWL_EXSTYLE, WS_EX_TRANSPARENT);
+
     pnlOperator->Show();
 
     SetWindowLong(edtPreset->Handle, GWL_STYLE, GetWindowLong(edtPreset->Handle, GWL_STYLE) | ES_CENTER);
@@ -3003,6 +3019,18 @@ void __fastcall TForm1::ApplyConfigToUI()
     for (int i=0;i<PRESET_NUM;i++)
         clbAvaliablePreset->Checked[i] = global_config.avaliable_preset[i];
 
+    struct in_addr in;
+    in.S_un.S_addr = global_config.static_ip_address;
+    //edtIp->Text = inet_ntoa(in);
+    SetWindowText(hIpEdit, inet_ntoa(in));
+
+    if (global_config.static_ip_address == 0)
+        rbDhcpEnabled->Checked = true;
+    else
+        rbStaticIpEnabled->Checked = true;
+        
+    EnableWindow(hIpEdit, rbStaticIpEnabled->Checked);
+
     // 修改界面
     for (int i=0;i<REAL_INPUT_DSP_NUM;i++)
     {
@@ -3392,7 +3420,24 @@ void __fastcall TForm1::btnSetIpClick(TObject *Sender)
     D1608Cmd cmd;
     cmd.type = 1;
     cmd.id = offsetof(GlobalConfig, static_ip_address);
-    cmd.data.data_32 = inet_addr(edtIp->Text.c_str());
+
+    if (rbStaticIpEnabled->Checked == false)
+    {
+        cmd.data.data_32 = 0;
+    }
+    else
+    {
+        char ip_text[100];
+        GetWindowText(hIpEdit, ip_text, 20);
+        unsigned long ip = inet_addr(ip_text);
+        if (ip == INADDR_NONE)
+        {
+            ShowMessage("IP地址无效，请重新输入");
+            return;
+        }
+        cmd.data.data_32 = ip;
+    }
+        
     cmd.length = 4;
     SendCmd(cmd);
 }
@@ -4181,6 +4226,14 @@ void __fastcall TForm1::PaintBox3Paint(TObject *Sender)
         Bevel10->Left,Bevel10->Top,Bevel10->Width,Bevel10->Height,
         bmp->Canvas->Handle, 0, 0, Bevel10->Width,Bevel10->Height, blend);
 
+    // 设置CheckBox的背景
+    // bmp->Canvas->Pixels[rbDhcpEnabled->Left+1][rbDhcpEnabled->Top+1];
+    rbDhcpEnabled->Color = bmp->Canvas->Brush->Color;
+    rbStaticIpEnabled->Color = bmp->Canvas->Brush->Color;
+    cbRunningTimer->Color = bmp->Canvas->Brush->Color;
+    cbRebootCount->Color = bmp->Canvas->Brush->Color;
+    cbLockedString->Color = bmp->Canvas->Brush->Color;
+
     delete bmp;
 }
 //---------------------------------------------------------------------------
@@ -4584,6 +4637,21 @@ void TForm1::CloseDspDetail()
         last_dsp_btn->Down =false;
         last_dsp_btn == NULL;
     }
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::rbStaticIpEnabledClick(TObject *Sender)
+{
+    EnableWindow(hIpEdit, rbStaticIpEnabled->Checked);
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::Label51Click(TObject *Sender)
+{
+    rbDhcpEnabled->Checked = true;
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::Label42Click(TObject *Sender)
+{
+    rbStaticIpEnabled->Checked = true;
 }
 //---------------------------------------------------------------------------
 
