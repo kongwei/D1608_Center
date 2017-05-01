@@ -418,7 +418,7 @@ static float Comp2CanvasY(double y)
 }
 static float Comp2CanvasX(double x)
 {
-    x = (x+72) * CHART_RATIO + LEFT_MARGIN;
+    x = (x+48) * CHART_RATIO + LEFT_MARGIN;
     // 保留1位小数
     x = Floor(10 * x);
     return x / 10;
@@ -430,7 +430,7 @@ static float CanvasY2Gain(double y)
 }
 static float CanvasX2Threshold(double x)
 {
-    x = (x - LEFT_MARGIN) / CHART_RATIO - 72;
+    x = (x - LEFT_MARGIN) / CHART_RATIO - 48;
     return x;
 }
 
@@ -438,7 +438,7 @@ void __fastcall PaintAgent::OnCompPaint(TObject * Sender)
 {
     //CHART_RATIO = (paint_control_comp->Width - RIGHT_MARGIN - RIGHT_MARGIN) / 72.0;
     // BAD: 依赖PEQ图
-    CHART_RATIO = (Gain2Canvas(-18) - Gain2Canvas(18)) / 72;
+    CHART_RATIO = (Gain2Canvas(-18) - Gain2Canvas(18)) / 48;
 
     TCanvas * canvas = paint_control_comp->Canvas;
     Gdiplus::Graphics gdiplus_g(canvas->Handle);
@@ -448,10 +448,10 @@ void __fastcall PaintAgent::OnCompPaint(TObject * Sender)
     gdiplus_g.Clear(BACKGROUND_COLOR);
 
     // 绘制网格
-    int left = Comp2CanvasX(-72);
+    int left = Comp2CanvasX(-48);
     int right = Comp2CanvasX(0);
     int top = Comp2CanvasY(0);
-    int bottom = Comp2CanvasY(-72);
+    int bottom = Comp2CanvasY(-48);
 
     Gdiplus::Font font(L"Arial", 8);
     SolidBrush brush(MAIN_GRID_COLOR);
@@ -473,11 +473,11 @@ void __fastcall PaintAgent::OnCompPaint(TObject * Sender)
     y = Comp2CanvasY(-42);  gdiplus_g.DrawLine(&pen, left-8, y, right, y);
     y = Comp2CanvasY(-48);  gdiplus_g.DrawLine(&bold_pen, left-8, y, right, y);
     p = PointF(left-LEFT_MARGIN, y-6); gdiplus_g.DrawString(L"-48dB", 5, &font, p, &brush);
-    y = Comp2CanvasY(-54);  gdiplus_g.DrawLine(&pen, left-8, y, right, y);
+    /*y = Comp2CanvasY(-54);  gdiplus_g.DrawLine(&pen, left-8, y, right, y);
     y = Comp2CanvasY(-60);  gdiplus_g.DrawLine(&pen, left-8, y, right, y);
     y = Comp2CanvasY(-66);  gdiplus_g.DrawLine(&pen, left-8, y, right, y);
     y = Comp2CanvasY(-72);  gdiplus_g.DrawLine(&bold_pen, left-8, y, right, y);
-    p = PointF(left-LEFT_MARGIN, y-6); gdiplus_g.DrawString(L"-72dB", 5, &font, p, &brush);
+    p = PointF(left-LEFT_MARGIN, y-6); gdiplus_g.DrawString(L"-72dB", 5, &font, p, &brush);*/
 
     int x;
     x = Comp2CanvasX(0); gdiplus_g.DrawLine(&bold_pen, x, top, x, bottom+5);
@@ -492,14 +492,14 @@ void __fastcall PaintAgent::OnCompPaint(TObject * Sender)
     x = Comp2CanvasX(-42); gdiplus_g.DrawLine(&pen, x, top, x, bottom+5);
     x = Comp2CanvasX(-48); gdiplus_g.DrawLine(&bold_pen, x, top, x, bottom+5);
     p = PointF(x-15, bottom+10); gdiplus_g.DrawString(L"-48dB", 5, &font, p, &brush);
-    x = Comp2CanvasX(-54); gdiplus_g.DrawLine(&pen, x, top, x, bottom);
+    /*x = Comp2CanvasX(-54); gdiplus_g.DrawLine(&pen, x, top, x, bottom);
     x = Comp2CanvasX(-60); gdiplus_g.DrawLine(&pen, x, top, x, bottom);
     x = Comp2CanvasX(-66); gdiplus_g.DrawLine(&pen, x, top, x, bottom+5);
     x = Comp2CanvasX(-72); gdiplus_g.DrawLine(&bold_pen, x, top, x, bottom+5);
-    p = PointF(x-15, bottom+10); gdiplus_g.DrawString(L"-72dB", 5, &font, p, &brush);
+    p = PointF(x-15, bottom+10); gdiplus_g.DrawString(L"-72dB", 5, &font, p, &brush);*/
 
     // 标准线
-    gdiplus_g.DrawLine(&pen, Comp2CanvasX(-72), Comp2CanvasY(-72), Comp2CanvasX(0), Comp2CanvasY(0));
+    gdiplus_g.DrawLine(&pen, Comp2CanvasX(-48), Comp2CanvasY(-48), Comp2CanvasX(0), Comp2CanvasY(0));
 
     
     // 根据comp参数进行绘制
@@ -510,7 +510,7 @@ void __fastcall PaintAgent::OnCompPaint(TObject * Sender)
     double gain = _filter_set.gain;
 
     // 计算3个点
-    Gdiplus::Point point_org(-72, -72+gain);
+    Gdiplus::Point point_org(-48, -48+gain);
     Gdiplus::Point point_threshold(threshold, threshold+gain);
     Gdiplus::Point point_end(0, threshold+(0-threshold)*ratio+gain);
 
@@ -548,7 +548,7 @@ void __fastcall PaintAgent::OnCompMouseDown(TObject *Sender,
     double gain = _filter_set.gain;
 
     // 计算3个点
-    Gdiplus::Point point_org(-72, -72+gain);
+    Gdiplus::Point point_org(-48, -48+gain);
     Gdiplus::Point point_threshold(threshold, threshold+gain);
     Gdiplus::Point point_end(0, threshold+(0-threshold)*ratio+gain);
 
@@ -602,7 +602,7 @@ void __fastcall PaintAgent::OnCompMouseMove(TObject *Sender, TShiftState Shift,
         // ratio不能超出范围
 
         // 安装 Y 计算 Gain
-        _filter_set.gain = CanvasY2Gain(Y) + 72;
+        _filter_set.gain = CanvasY2Gain(Y) + 48;
         _filter_set.gain = max(_filter_set.gain, 0.0);
         _filter_set.gain = min(_filter_set.gain, -_filter_set.threshold*(1-_filter_set.ratio));//24.0);
         _filter_set.UpdateCompGain();
@@ -629,6 +629,9 @@ void __fastcall PaintAgent::OnCompMouseMove(TObject *Sender, TShiftState Shift,
     }
     else if (is_comp_ratio_selected)
     {
+        // 计算gain的最大值。收到另外两个系数影响 (threshold, ratio)
+        // ratio不能超出范围
+
         // 安装 Y 计算 Gain
         if (_filter_set.threshold == 0)
         {
@@ -638,7 +641,7 @@ void __fastcall PaintAgent::OnCompMouseMove(TObject *Sender, TShiftState Shift,
         {
             _filter_set.ratio = 1 - (CanvasY2Gain(Y) - _filter_set.gain) / _filter_set.threshold;
             _filter_set.ratio = max(_filter_set.ratio, 0.0);
-            _filter_set.ratio = min(_filter_set.ratio, 1.0);
+            _filter_set.ratio = min(_filter_set.ratio, 1 + _filter_set.gain / _filter_set.threshold);
             _filter_set.UpdateCompRatio();
         }
         //paint_control_comp->Invalidate();
