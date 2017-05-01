@@ -1102,7 +1102,7 @@ void __fastcall TForm1::tmSLPTimer(TObject *Sender)
         try{
             udpSLP->Active = true;
             char search_flag[] = "rep";
-            udpSLP->SendBuffer("255.255.255.255", 888, search_flag, sizeof(search_flag));
+            udpSLP->SendBuffer("255.255.255.255", 666, search_flag, sizeof(search_flag));
         }
         catch(...)
         {
