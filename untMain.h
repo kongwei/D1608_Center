@@ -388,7 +388,6 @@ __published:	// IDE-managed Components
     TLabel *lbl8mAd;
     TLabel *lbl3_3mA;
     TLabel *lbl_12mAa;
-    TSpeedButton *tbGlobalDspName;
     TSpeedButton *btnDeviceName;
     TBevel *Bevel4;
     TBevel *Bevel5;
@@ -478,7 +477,6 @@ __published:	// IDE-managed Components
     TPanel *iAD_mnop;
     TPanel *iDA_5678;
     TPanel *iDA_13_16;
-    TSpeedButton *btnPresetAutoSaved;
     TCheckBox *cbCompAutoTime;
     TLabel *Label47;
     TListView *lvDevice;
@@ -488,6 +486,13 @@ __published:	// IDE-managed Components
     TEdit *edtBuildTime;
     TRadioButton *rbStaticIpEnabled;
     TRadioButton *rbDhcpEnabled;
+    TCheckBox *cbGlobalDspName;
+    TCheckBox *cbPresetAutoSaved;
+    TLabel *Label42;
+    TEdit *edtDeviceName;
+    TImage *Image1;
+    TSpeedButton *btnRebootDevice;
+    TLabel *Label44;
     void __fastcall FormCreate(TObject *Sender);
     void __fastcall FormDestroy(TObject *Sender);
     void __fastcall btnRefreshClick(TObject *Sender);
@@ -573,7 +578,6 @@ __published:	// IDE-managed Components
     void __fastcall StoreAsClick(TObject *Sender);
     void __fastcall RecallClick(TObject *Sender);
     void __fastcall btnSetIpClick(TObject *Sender);
-    void __fastcall tbGlobalDspNameClick(TObject *Sender);
     void __fastcall btnGetLogClick(TObject *Sender);
     void __fastcall btnGetDebugClick(TObject *Sender);
     void __fastcall lblPresetNameClick(TObject *Sender);
@@ -637,11 +641,13 @@ __published:	// IDE-managed Components
           TShiftState Shift);
     void __fastcall CSpinEdit1Change(TObject *Sender);
     void __fastcall CSpinEdit2Change(TObject *Sender);
-    void __fastcall btnPresetAutoSavedClick(TObject *Sender);
     void __fastcall cbCompAutoTimeClick(TObject *Sender);
     void __fastcall rbStaticIpEnabledClick(TObject *Sender);
     void __fastcall Label51Click(TObject *Sender);
     void __fastcall Label42Click(TObject *Sender);
+    void __fastcall cbGlobalDspNameClick(TObject *Sender);
+    void __fastcall cbPresetAutoSavedClick(TObject *Sender);
+    void __fastcall btnRebootDeviceClick(TObject *Sender);
 
 private:
     // 已经加载版本文件
@@ -769,6 +775,9 @@ private:
 
     void CloseDspDetail();
 
+private:
+    WNDPROC old_pnlSystem_proc;
+    static LRESULT new_pnlSystem_proc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp);
     HWND hIpEdit;
 };
 //---------------------------------------------------------------------------

@@ -733,6 +733,22 @@ __fastcall TForm1::TForm1(TComponent* Owner)
     keep_live_count = 0;
 }
 //---------------------------------------------------------------------------
+LRESULT TForm1::new_pnlSystem_proc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
+{
+    LRESULT r = CallWindowProc(Form1->old_pnlSystem_proc, hwnd, msg, wp, lp);
+
+    /*if ( msg == WM_CTLCOLOREDIT )
+    {
+        if (hwnd == Form1->hIpEdit)
+        {
+            HDC hDc = (HDC)wp;
+            SetTextColor(hDc, clAqua);
+            SetBkColor(hDc, 0x004A392C);
+        }
+    }*/
+    return r;
+}
+
 void __fastcall TForm1::FormCreate(TObject *Sender)
 {
     TInitCommonControlsEx ICC;  
@@ -746,10 +762,12 @@ void __fastcall TForm1::FormCreate(TObject *Sender)
         edtIp->Left, edtIp->Top, edtIp->Width, edtIp->Height, edtIp->Parent->Handle,
         0,HInstance,NULL);
 
-    //SetTextColor(GetDC(hIpEdit), edtIp->Font->Color);
+    old_pnlSystem_proc = (WNDPROC)GetWindowLong(hIpEdit, GWL_WNDPROC);
+    SetWindowLong(hIpEdit, GWL_WNDPROC, (long)new_pnlSystem_proc);
 
+    //old_pnlSystem_proc = pnlSystem->WindowProc;
+    //pnlSystem->WindowProc = new_pnlSystem_proc;
 
-    SetWindowLong(rbDhcpEnabled->Handle, GWL_EXSTYLE, WS_EX_TRANSPARENT);
 
     pnlOperator->Show();
 
@@ -910,24 +928,29 @@ void __fastcall TForm1::udpSLPUDPRead(TObject *Sender,
         ip_address.sprintf("%u.%u.%u.%u", (BYTE)slp_pack.ip[0], (BYTE)slp_pack.ip[1], (BYTE)slp_pack.ip[2], (BYTE)slp_pack.ip[3]);
     String mac;
         mac.sprintf("%02X:%02X:%02X:%02X:%02X:%02X", (BYTE)slp_pack.mac[0], (BYTE)slp_pack.mac[1], (BYTE)slp_pack.mac[2], (BYTE)slp_pack.mac[3], (BYTE)slp_pack.mac[4], (BYTE)slp_pack.mac[5]);
-    String device_name = slp_pack.name;
-    String device_id = slp_pack.id;
+    String display_device_name = slp_pack.name;
 
-    device_name = device_name + "-" + device_id;
+    if (display_device_name == "")
+    {
+        display_device_name = slp_pack.hardware_name;
+        display_device_name = display_device_name + "-" + slp_pack.id;
+    }
 
     TListItem * item = NULL;
     // 查找是否列表中已经存在
     for (int i=0;i<lvDevice->Items->Count;i++)
     {
         TListItem * find_item = lvDevice->Items->Item[i];
-        if (device_id == find_item->SubItems->Strings[2])
+        if (find_item->SubItems->Strings[2] == slp_pack.id)
         {
             // 更新属性
-            find_item->Caption = device_name.UpperCase();
+            find_item->Caption = display_device_name.UpperCase();
             find_item->Data = (void*)2;
             find_item->SubItems->Strings[0] = ip_address;
             find_item->SubItems->Strings[1] = ABinding->IP;
             //find_item->SubItems->Strings[2] = device_id;
+            find_item->SubItems->Strings[3] = slp_pack.name;
+            find_item->SubItems->Strings[4] = slp_pack.hardware_name;
             item = find_item;
             break;
         }
@@ -937,33 +960,30 @@ void __fastcall TForm1::udpSLPUDPRead(TObject *Sender,
     {
         item = lvDevice->Items->Add();
         item->Data = (void*)2;
-        item->Caption = device_name.UpperCase();
+        item->Caption = display_device_name.UpperCase();
         item->SubItems->Add(ip_address);
         item->SubItems->Add(ABinding->IP);
-        item->SubItems->Add(device_id);
+        item->SubItems->Add(slp_pack.id);
+        item->SubItems->Add(slp_pack.name);
+        item->SubItems->Add(slp_pack.hardware_name);
     }
 
-    //if (lvDevice->Selected == NULL)
-    //{
-    //    item->Selected = true;
-    //}
-
-    if (device_id == "")
+    if (slp_pack.id[0] == '\x0')
     {
     }
     else
     {
-        if ((last_device_id == "" || device_id == last_device_id) && !udpControl->Active)
+        if ((last_device_id == "" || last_device_id == slp_pack.id) && !udpControl->Active)
         {
             // 连接第一个
             file_dirty = false;
             dst_ip = item->SubItems->Strings[0];
             btnSelect->Click();
 
-            last_device_id = device_id;
+            last_device_id = slp_pack.id;
         }
 
-        if (device_id == last_device_id)
+        if (last_device_id == slp_pack.id)
         {
             item->Selected = true;
         }
@@ -1054,6 +1074,11 @@ void __fastcall TForm1::btnSelectClick(TObject *Sender)
     keep_live_count = 0;
 
     last_device_id = selected->SubItems->Strings[2];
+    // 显示名称
+    if (selected->SubItems->Strings[3] != "")
+        lblDeviceName->Caption = selected->SubItems->Strings[3];
+    else
+        lblDeviceName->Caption = selected->SubItems->Strings[4]+"-"+selected->SubItems->Strings[2];
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::tmSLPTimer(TObject *Sender)
@@ -1267,20 +1292,6 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
         {
             if (cmd.id == offsetof(GlobalConfig, d1616_name))
             {
-                /*for (int i=0;i<lvDevice->Items->Count;i++)
-                {
-                    TListItem * find_item = lvDevice->Items->Item[i];
-                    if (device_id == find_item->SubItems->Strings[2])
-                    {
-                        // 更新属性
-                        find_item->Data = (void*)2;
-                        find_item->SubItems->Strings[0] = ip_address;
-                        find_item->SubItems->Strings[1] = ABinding->IP;
-                        //find_item->SubItems->Strings[2] = device_id;
-                        item = find_item;
-                        break;
-                    }
-                }*/
             }
             else if (cmd.id == GetOffsetOfData(&config_map.op_code.noop))
             {
@@ -1576,6 +1587,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             // 显示版本信息
             edtDeviceType->Text = global_config.device_type;
             edtBuildTime->Text = global_config.build_time;
+            edtDeviceName->Text = global_config.d1616_name;
             //TDateTime d = edtBuildTime->Text;
 
             // 版本校验
@@ -1606,7 +1618,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             if (global_config.version >= offsetof(GlobalConfig, auto_saved))
             {
                 // 读取'自动保存'配置
-                btnPresetAutoSaved->Down = ((global_config.auto_saved == 1) || (global_config.auto_saved == 0xFF));
+                cbPresetAutoSaved->Checked = ((global_config.auto_saved == 1) || (global_config.auto_saved == 0xFF));
             }
         }
         else
@@ -2653,7 +2665,7 @@ void __fastcall TForm1::after_input_panel_dsp_numClick(TObject *Sender)
     }
     
     D1608Cmd cmd;
-    cmd.type = tbGlobalDspName->Down;
+    cmd.type = cbGlobalDspName->Checked;
     if (cmd.type)
     {
         cmd.id = offsetof(GlobalConfig, input_dsp_name[label->Tag]);
@@ -2686,7 +2698,7 @@ void __fastcall TForm1::after_output_panel_dsp_numClick(TObject *Sender)
     }
 
     D1608Cmd cmd;
-    cmd.type = tbGlobalDspName->Down;
+    cmd.type = cbGlobalDspName->Checked;
     if (cmd.type)
     {
         cmd.id = offsetof(GlobalConfig, output_dsp_name[label->Tag]);
@@ -3021,7 +3033,6 @@ void __fastcall TForm1::ApplyConfigToUI()
 
     struct in_addr in;
     in.S_un.S_addr = global_config.static_ip_address;
-    //edtIp->Text = inet_ntoa(in);
     SetWindowText(hIpEdit, inet_ntoa(in));
 
     if (global_config.static_ip_address == 0)
@@ -3046,7 +3057,7 @@ void __fastcall TForm1::ApplyConfigToUI()
         input_level_trackbar[i]->Position = config_map.input_dsp[i].level_a;
 
         const char *dsp_name;
-        if (tbGlobalDspName->Down)
+        if (cbGlobalDspName->Checked)
             dsp_name = global_config.input_dsp_name[i];
         else
             dsp_name = config_map.input_dsp[i].dsp_name;
@@ -3070,7 +3081,7 @@ void __fastcall TForm1::ApplyConfigToUI()
         output_level_trackbar[i]->Position = config_map.output_dsp[i].level_a;
 
         const char *dsp_name;
-        if (tbGlobalDspName->Down)
+        if (cbGlobalDspName->Checked)
             dsp_name = global_config.output_dsp_name[i];
         else
             dsp_name = config_map.output_dsp[i].dsp_name;
@@ -3331,23 +3342,17 @@ void __fastcall TForm1::SetFileDirty(bool dirty_flag)
 //---------------------------------------------------------------------------
 void __fastcall TForm1::UpdateCaption()
 {
-    if (global_config.d1616_name[0] == '\0')
-        Caption = last_device_id;
+    if (udpControl->Active)
+    {
+        Caption = dst_ip;
+    }
     else
-        Caption = global_config.d1616_name;
-
-    lblDeviceName->Caption = Caption;
-    lblDeviceName->Font->Name = "DigifaceWide";
-
-    Caption = Caption + " " + preset_lib_filename;
+    {
+        Caption = "";
+    }
     if (file_dirty)
     {
         Caption = Caption + "*";
-    }
-
-    if (udpControl->Active)
-    {
-        Caption = /*Caption + " - " +*/ dst_ip;
     }
 }
 //---------------------------------------------------------------------------
@@ -3442,11 +3447,6 @@ void __fastcall TForm1::btnSetIpClick(TObject *Sender)
     SendCmd(cmd);
 }
 //---------------------------------------------------------------------------
-void __fastcall TForm1::tbGlobalDspNameClick(TObject *Sender)
-{
-    ApplyConfigToUI();
-}
-//---------------------------------------------------------------------------
 void __fastcall TForm1::btnGetLogClick(TObject *Sender)
 {
     lvLog->Clear();
@@ -3474,8 +3474,7 @@ void __fastcall TForm1::lblPresetNameClick(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TForm1::btnDeviceNameClick(TObject *Sender)
 {
-    String d1616name = InputBox("修改名称", "", global_config.d1616_name);
-    strncpy(global_config.d1616_name, d1616name.c_str(), 16);
+    strncpy(global_config.d1616_name, edtDeviceName->Text.c_str(), 16);
 
     UpdateCaption();
 
@@ -4233,6 +4232,8 @@ void __fastcall TForm1::PaintBox3Paint(TObject *Sender)
     cbRunningTimer->Color = bmp->Canvas->Brush->Color;
     cbRebootCount->Color = bmp->Canvas->Brush->Color;
     cbLockedString->Color = bmp->Canvas->Brush->Color;
+    cbGlobalDspName->Color = bmp->Canvas->Brush->Color;
+    cbPresetAutoSaved->Color = bmp->Canvas->Brush->Color;
 
     delete bmp;
 }
@@ -4612,16 +4613,6 @@ void __fastcall TForm1::CSpinEdit2Change(TObject *Sender)
     SetIOChannelNum();
 }
 //---------------------------------------------------------------------------
-void __fastcall TForm1::btnPresetAutoSavedClick(TObject *Sender)
-{
-    D1608Cmd cmd;
-    cmd.type = 1;
-    cmd.id = offsetof(GlobalConfig, auto_saved);
-    cmd.data.data_8 = btnPresetAutoSaved->Down;
-    cmd.length = 1;
-    SendCmd(cmd);
-}
-//---------------------------------------------------------------------------
 void TForm1::CloseDspDetail()
 {
     pnlDspDetail->Hide();
@@ -4652,6 +4643,38 @@ void __fastcall TForm1::Label51Click(TObject *Sender)
 void __fastcall TForm1::Label42Click(TObject *Sender)
 {
     rbStaticIpEnabled->Checked = true;
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::cbGlobalDspNameClick(TObject *Sender)
+{
+    ApplyConfigToUI();
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::cbPresetAutoSavedClick(TObject *Sender)
+{
+    D1608Cmd cmd;
+    cmd.type = 1;
+    cmd.id = offsetof(GlobalConfig, auto_saved);
+    cmd.data.data_8 = cbPresetAutoSaved->Checked;
+    cmd.length = 1;
+    SendCmd(cmd);
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::btnRebootDeviceClick(TObject *Sender)
+{
+    if (Application->MessageBox("本操作会重启设备，确认重启吗？", "确认重启设备操作", MB_OKCANCEL|MB_ICONWARNING) != IDOK)
+    {
+        return;
+    }
+    else
+    {
+        D1608Cmd cmd;
+        cmd.type = 0;
+        cmd.id = offsetof(ConfigMap, op_code.reboot);
+        cmd.data.data_32 = 1;
+        cmd.length = 4;
+        SendCmd(cmd);
+    }
 }
 //---------------------------------------------------------------------------
 
