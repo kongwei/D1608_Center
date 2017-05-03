@@ -316,8 +316,6 @@ __published:	// IDE-managed Components
     TSpeedButton *btnKeyPasswordDown;
     TBevel *Bevel2;
     TBevel *Bevel3;
-    TSpeedButton *btnUnlockExt;
-    TSpeedButton *btnLeaveTheFactory;
     TPanel *Panel2;
     TTrackBar *tbRatio;
     TTrackBar *tbThreshold;
@@ -493,6 +491,16 @@ __published:	// IDE-managed Components
     TImage *Image1;
     TSpeedButton *btnRebootDevice;
     TLabel *Label44;
+    TPageControl *PageControl1;
+    TTabSheet *TabSheet1;
+    TTabSheet *TabSheet2;
+    TTabSheet *TabSheet3;
+    TTabSheet *TabSheet4;
+    TTabSheet *TabSheet5;
+    TTabSheet *TabSheet6;
+    TSpeedButton *btnUnlockExt;
+    TSpeedButton *btnLeaveTheFactory;
+    TLabel *lblDeviceRunningTime;
     void __fastcall FormCreate(TObject *Sender);
     void __fastcall FormDestroy(TObject *Sender);
     void __fastcall btnRefreshClick(TObject *Sender);

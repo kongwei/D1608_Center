@@ -529,7 +529,7 @@ void InitConfigMap()
 
         // Ñ¹Ëõ²ÎÊý
         config_map.output_dsp[i].ratio = 100;
-        config_map.output_dsp[i].threshold = 0;
+        config_map.output_dsp[i].threshold = -100;
         config_map.output_dsp[i].attack_time = 640;
         config_map.output_dsp[i].release_time = 10000;
         config_map.output_dsp[i].comp_gain = 0;

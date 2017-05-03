@@ -751,6 +751,15 @@ LRESULT TForm1::new_pnlSystem_proc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
 
 void __fastcall TForm1::FormCreate(TObject *Sender)
 {
+    // 移动6个panel
+    pnlOperator->Parent = this;
+    pnlMonitor->Parent = this;
+    pnlSystem->Parent = this;
+    pnlSearch->Parent = this;
+    pnlMist->Parent = this;
+    pnlComp1->Parent = this;
+    PageControl1->Hide();
+
     TInitCommonControlsEx ICC;  
     ICC.dwSize = sizeof(TInitCommonControlsEx);
     ICC.dwICC  = ICC_INTERNET_CLASSES;
@@ -932,7 +941,7 @@ void __fastcall TForm1::udpSLPUDPRead(TObject *Sender,
 
     if (display_device_name == "")
     {
-        display_device_name = slp_pack.hardware_name;
+        display_device_name = slp_pack.default_device_name;
         display_device_name = display_device_name + "-" + slp_pack.id;
     }
 
@@ -950,7 +959,7 @@ void __fastcall TForm1::udpSLPUDPRead(TObject *Sender,
             find_item->SubItems->Strings[1] = ABinding->IP;
             //find_item->SubItems->Strings[2] = device_id;
             find_item->SubItems->Strings[3] = slp_pack.name;
-            find_item->SubItems->Strings[4] = slp_pack.hardware_name;
+            find_item->SubItems->Strings[4] = slp_pack.default_device_name;
             item = find_item;
             break;
         }
@@ -965,7 +974,7 @@ void __fastcall TForm1::udpSLPUDPRead(TObject *Sender,
         item->SubItems->Add(ABinding->IP);
         item->SubItems->Add(slp_pack.id);
         item->SubItems->Add(slp_pack.name);
-        item->SubItems->Add(slp_pack.hardware_name);
+        item->SubItems->Add(slp_pack.default_device_name);
     }
 
     if (slp_pack.id[0] == '\x0')
@@ -1295,7 +1304,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             }
             else if (cmd.id == GetOffsetOfData(&config_map.op_code.noop))
             {
-                int preset_id = cmd.data.data_32;
+                int preset_id = cmd.data.data_32_array[0];
                 if (preset_id != cur_preset_id)
                 {
                     D1608PresetCmd preset_cmd;
@@ -1304,6 +1313,12 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
                     preset_cmd.store_page = 0;
                     udpControl->SendBuffer(dst_ip, 905, &preset_cmd, sizeof(preset_cmd));
                 }
+
+                // 显示时钟
+                int hour = (cmd.data.data_64_array[1] - global_config.adjust_running_time) / 3600000;
+                int minute = (cmd.data.data_64_array[1] - global_config.adjust_running_time) % 3600000;
+                minute = minute / 60000;
+                lblDeviceRunningTime->Caption = "设备运行时长  "+IntToStr(hour) + ":" + IntToStr(minute);
 
                 keep_live_count = 0;
                 //tsOperator->Caption = "操作(连接)";
@@ -2077,6 +2092,7 @@ void __fastcall TForm1::ToggleDSP(TObject *Sender)
 
         panel_agent->LoadPreset();
         PaintBox1->Refresh();
+        pbComp->Refresh();
     }
     else
     {
@@ -2383,7 +2399,7 @@ void __fastcall TForm1::btnDspResetEQClick(TObject *Sender)
     // 压缩参数
     edtCompRatio->Text = 1;
     edtCompRatio->OnKeyDown(edtCompRatio, enter_key, TShiftState());
-    edtCompThreshold->Text = 0;
+    edtCompThreshold->Text = -10;
     edtCompThreshold->OnKeyDown(edtCompThreshold, enter_key, TShiftState());
     edtCompAttackTime->Text = 64;
     edtCompAttackTime->OnKeyDown(edtCompAttackTime, enter_key, TShiftState());
