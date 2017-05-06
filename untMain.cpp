@@ -3549,6 +3549,8 @@ void __fastcall TForm1::clbAvaliablePresetClickCheck(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TForm1::btnSetLockClick(TObject *Sender)
 {
+    ActiveControl = NULL;
+
     D1608Cmd cmd;
     cmd.type = 1;
 
@@ -4754,6 +4756,11 @@ void __fastcall TForm1::tmDelayUpdateUITimer(TObject *Sender)
 {
     tmDelayUpdateUI->Enabled = false;
     ApplyConfigToUI();
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::btnClearDebugClick(TObject *Sender)
+{
+    lvDebug->Clear();
 }
 //---------------------------------------------------------------------------
 

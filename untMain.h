@@ -484,6 +484,7 @@ __published:	// IDE-managed Components
     TSpeedButton *btnSaveFlashToFile;
     TSpeedButton *btnLoadFileToFlash;
     TTimer *tmDelayUpdateUI;
+    TButton *btnClearDebug;
     void __fastcall FormCreate(TObject *Sender);
     void __fastcall FormDestroy(TObject *Sender);
     void __fastcall btnRefreshClick(TObject *Sender);
@@ -637,6 +638,7 @@ __published:	// IDE-managed Components
     void __fastcall btnSaveFlashToFileClick(TObject *Sender);
     void __fastcall btnLoadFileToFlashClick(TObject *Sender);
     void __fastcall tmDelayUpdateUITimer(TObject *Sender);
+    void __fastcall btnClearDebugClick(TObject *Sender);
 
 private:
     // 已经加载版本文件
