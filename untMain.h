@@ -80,13 +80,9 @@ extern "C"{
 class TForm1 : public TForm
 {
 __published:	// IDE-managed Components
-    TBevel *Bevel1;
-    TLabel *Label1;
     TMemo *mmLog;
     TButton *btnRefresh;
     TListBox *lbIplist;
-    TCheckBox *cbAutoRefresh;
-    TCSpinEdit *spInterval;
     TButton *btnSelect;
     TIdUDPServer *udpSLP;
     TTimer *tmSLP;
@@ -283,9 +279,6 @@ __published:	// IDE-managed Components
     TMenuItem *N62;
     TMenuItem *N72;
     TMenuItem *N82;
-    TToolBar *ToolBar1;
-    TToolButton *cbWatch;
-    TToolButton *divbase;
     TEdit *edtIp;
     TSpeedButton *btnSetIp;
     TValueListEditor *ValueListEditor1;
@@ -316,23 +309,6 @@ __published:	// IDE-managed Components
     TSpeedButton *btnKeyPasswordDown;
     TBevel *Bevel2;
     TBevel *Bevel3;
-    TPanel *Panel2;
-    TTrackBar *tbRatio;
-    TTrackBar *tbThreshold;
-    TTrackBar *tbRelease;
-    TTrackBar *tbAttack;
-    TLabel *Label20;
-    TLabel *Label21;
-    TLabel *Label23;
-    TLabel *Label25;
-    TLabel *Label27;
-    TLabel *Label32;
-    TLabel *Label33;
-    TButton *btnSetComp;
-    TEdit *edtThreshold;
-    TEdit *edtAttack;
-    TEdit *edtRelease;
-    TEdit *edtRatio;
     TEdit *edtInput;
     TLabel *Label26;
     TLabel *Label34;
@@ -422,7 +398,6 @@ __published:	// IDE-managed Components
     TPanel *pnlMonitor;
     TPanel *pnlSystem;
     TPanel *pnlMist;
-    TPanel *pnlComp1;
     TPanel *pnlSearch;
     TPanel *Panel3;
     TPaintBox *PaintBox2;
@@ -455,9 +430,6 @@ __published:	// IDE-managed Components
     TEdit *dsp_gain_edit;
     TEdit *dsp_delay_edit;
     TImage *imgWatchLevelBg;
-    TToolButton *ToolButton1;
-    TCSpinEdit *CSpinEdit1;
-    TCSpinEdit *CSpinEdit2;
     TPanel *Panel1;
     TPanel *iDsp1;
     TPanel *iDsp2;
@@ -497,10 +469,21 @@ __published:	// IDE-managed Components
     TTabSheet *TabSheet3;
     TTabSheet *TabSheet4;
     TTabSheet *TabSheet5;
-    TTabSheet *TabSheet6;
     TSpeedButton *btnUnlockExt;
     TSpeedButton *btnLeaveTheFactory;
     TLabel *lblDeviceRunningTime;
+    TLabel *Label1;
+    TLabel *Label20;
+    TLabel *Label21;
+    TSpeedButton *divbase;
+    TSpeedButton *cbWatch;
+    TComboBox *cbMenuKeyFunction;
+    TComboBox *cbUpKeyFunction;
+    TComboBox *cbDownKeyFunction;
+    TCheckBox *cbLockUpDownMenuKey;
+    TSpeedButton *btnSaveFlashToFile;
+    TSpeedButton *btnLoadFileToFlash;
+    TTimer *tmDelayUpdateUI;
     void __fastcall FormCreate(TObject *Sender);
     void __fastcall FormDestroy(TObject *Sender);
     void __fastcall btnRefreshClick(TObject *Sender);
@@ -608,13 +591,6 @@ __published:	// IDE-managed Components
     void __fastcall edtKeyPasswordKeyPress(TObject *Sender, char &Key);
     void __fastcall btnUnlockExtClick(TObject *Sender);
     void __fastcall btnLeaveTheFactoryClick(TObject *Sender);
-    void __fastcall tbRatioChange(TObject *Sender);
-    void __fastcall tbThresholdChange(TObject *Sender);
-    void __fastcall tbReleaseChange(TObject *Sender);
-    void __fastcall tbAttackChange(TObject *Sender);
-    void __fastcall btnSetCompClick(TObject *Sender);
-    void __fastcall edtRatioKeyDown(TObject *Sender, WORD &Key,
-          TShiftState Shift);
     void __fastcall btnInputCancelClick(TObject *Sender);
     void __fastcall btnInputOKClick(TObject *Sender);
     void __fastcall edtInputExit(TObject *Sender);
@@ -647,8 +623,6 @@ __published:	// IDE-managed Components
     void __fastcall dsp_delay_editExit(TObject *Sender);
     void __fastcall dsp_delay_editKeyDown(TObject *Sender, WORD &Key,
           TShiftState Shift);
-    void __fastcall CSpinEdit1Change(TObject *Sender);
-    void __fastcall CSpinEdit2Change(TObject *Sender);
     void __fastcall cbCompAutoTimeClick(TObject *Sender);
     void __fastcall rbStaticIpEnabledClick(TObject *Sender);
     void __fastcall Label51Click(TObject *Sender);
@@ -656,6 +630,13 @@ __published:	// IDE-managed Components
     void __fastcall cbGlobalDspNameClick(TObject *Sender);
     void __fastcall cbPresetAutoSavedClick(TObject *Sender);
     void __fastcall btnRebootDeviceClick(TObject *Sender);
+    void __fastcall cbMenuKeyFunctionChange(TObject *Sender);
+    void __fastcall cbUpKeyFunctionChange(TObject *Sender);
+    void __fastcall cbDownKeyFunctionChange(TObject *Sender);
+    void __fastcall cbLockUpDownMenuKeyClick(TObject *Sender);
+    void __fastcall btnSaveFlashToFileClick(TObject *Sender);
+    void __fastcall btnLoadFileToFlashClick(TObject *Sender);
+    void __fastcall tmDelayUpdateUITimer(TObject *Sender);
 
 private:
     // 已经加载版本文件

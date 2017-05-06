@@ -27,6 +27,13 @@ GlobalConfig global_config = {0};
 int REAL_INPUT_DSP_NUM = 16;
 int REAL_OUTPUT_DSP_NUM = 16;
 
+struct SmcConfig
+{
+    GlobalConfig global_config;
+    ConfigMap all_config_map[PRESET_NUM];
+};
+static SmcConfig smc_config;
+
 static bool on_loading = false;
 static String last_device_id;
 
@@ -757,7 +764,6 @@ void __fastcall TForm1::FormCreate(TObject *Sender)
     pnlSystem->Parent = this;
     pnlSearch->Parent = this;
     pnlMist->Parent = this;
-    pnlComp1->Parent = this;
     PageControl1->Hide();
 
     TInitCommonControlsEx ICC;  
@@ -886,7 +892,7 @@ void TForm1::SendCmd(D1608Cmd& cmd)
     {
         if (cmd.type == 0)
             last_cmd = cmd;
-        udpControl->SendBuffer(dst_ip, 2305, &cmd, sizeof(cmd));
+        udpControl->SendBuffer(dst_ip, UDP_PORT_CONTROL, &cmd, sizeof(cmd));
     }
 
     if (!on_loading)
@@ -1070,10 +1076,10 @@ void __fastcall TForm1::btnSelectClick(TObject *Sender)
     D1608PresetCmd preset_cmd;
     preset_cmd.preset = 1; // 从0页读取preset
     preset_cmd.store_page = 0;
-    udpControl->SendBuffer(dst_ip, 905, &preset_cmd, sizeof(preset_cmd));
+    udpControl->SendBuffer(dst_ip, UDP_PORT_READ_PRESET, &preset_cmd, sizeof(preset_cmd));
 
     preset_cmd.preset = 0; // 0表示读取global_config
-    udpControl->SendBuffer(dst_ip, 905, &preset_cmd, sizeof(preset_cmd));
+    udpControl->SendBuffer(dst_ip, UDP_PORT_READ_PRESET, &preset_cmd, sizeof(preset_cmd));
 
     pnlOperator->Show();
     pnlDspDetail->Hide();
@@ -1111,7 +1117,7 @@ void __fastcall TForm1::tmSLPTimer(TObject *Sender)
         try{
             udpSLP->Active = true;
             char search_flag[] = "rep";
-            udpSLP->SendBuffer("255.255.255.255", 666, search_flag, sizeof(search_flag));
+            udpSLP->SendBuffer("255.255.255.255", UDP_PORT_SLP, search_flag, sizeof(search_flag));
         }
         catch(...)
         {
@@ -1120,18 +1126,7 @@ void __fastcall TForm1::tmSLPTimer(TObject *Sender)
     }
     else
     {
-        // 自动刷新开关
-        if (cbAutoRefresh->Checked)
-        {
-            static int count = spInterval->Value;
-            count--;
-            if (count <= 0)
-            {
-                count = spInterval->Value;
-                // 重启刷新
-                btnRefresh->Click();
-            }
-        }
+        btnRefresh->Click();
     }
 
     tmSLP->Enabled = true;
@@ -1289,7 +1284,7 @@ String IntToAbsSring(int value)
 void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
       TIdSocketHandle *ABinding)
 {
-    if (ABinding->PeerPort == 2305)
+    if (ABinding->PeerPort == UDP_PORT_CONTROL)
     {
         D1608Cmd cmd;
         AData->ReadBuffer(&cmd, std::min(sizeof(cmd), AData->Size));
@@ -1311,7 +1306,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
                     preset_cmd.preset = preset_id; // 读取preset
                     // 从0页读取
                     preset_cmd.store_page = 0;
-                    udpControl->SendBuffer(dst_ip, 905, &preset_cmd, sizeof(preset_cmd));
+                    udpControl->SendBuffer(dst_ip, UDP_PORT_READ_PRESET, &preset_cmd, sizeof(preset_cmd));
                 }
 
                 // 显示时钟
@@ -1343,7 +1338,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             // 如果没有打开文件，则需要从下位机同步
             //if (preset_lib_filename == "")
             {
-                udpControl->SendBuffer(dst_ip, 905, &preset_cmd, sizeof(preset_cmd));
+                udpControl->SendBuffer(dst_ip, UDP_PORT_READ_PRESET, &preset_cmd, sizeof(preset_cmd));
             }
         }
         else if (cmd.id == GetOffsetOfData(&config_map.op_code.adc))
@@ -1494,7 +1489,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             }
         }
     }
-    else if (ABinding->PeerPort == 903)
+    else if (ABinding->PeerPort == UDP_PORT_READ_FLASH)
     {
         typedef struct
         {
@@ -1558,10 +1553,10 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
         if (buff.address+1024 < MAC_LIST_START_PAGE+MAC_LIST_SIZE)
         {
             buff.address += 1024;
-            udpControl->SendBuffer(dst_ip, 903, &buff, sizeof(buff));
+            udpControl->SendBuffer(dst_ip, UDP_PORT_READ_FLASH, &buff, sizeof(buff));
         }
     }
-    else if (ABinding->PeerPort == 904)
+    else if (ABinding->PeerPort == UDP_PORT_GET_DEBUG_INFO)
     {
         typedef struct
         {
@@ -1590,7 +1585,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             }
         }
     }
-    else if (ABinding->PeerPort == 905)
+    else if (ABinding->PeerPort == UDP_PORT_READ_PRESET)
     {
         D1608PresetCmd preset_cmd;
         AData->ReadBuffer(&preset_cmd, std::min(sizeof(preset_cmd), AData->Size));
@@ -1691,7 +1686,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             if (preset_cmd.store_page < 9)
             {
                 // next
-                udpControl->SendBuffer(dst_ip, 905, &preset_cmd, sizeof(preset_cmd));
+                udpControl->SendBuffer(dst_ip, UDP_PORT_READ_PRESET, &preset_cmd, sizeof(preset_cmd));
             }
             else
             {
@@ -1701,7 +1696,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             }
         }
     }
-    else if (ABinding->PeerPort == 907)
+    else if (ABinding->PeerPort == UDP_PORT_STORE_PRESET_PC2FLASH)
     {
         D1608PresetCmd preset_cmd;
         AData->ReadBuffer(&preset_cmd, std::min(sizeof(preset_cmd), AData->Size));
@@ -1757,7 +1752,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             }
             if (preset_cmd.store_page <= 8)
             {
-                udpControl->SendBuffer(dst_ip, 907, &preset_cmd, sizeof(preset_cmd));
+                udpControl->SendBuffer(dst_ip, UDP_PORT_STORE_PRESET_PC2FLASH, &preset_cmd, sizeof(preset_cmd));
             }
         }
     }
@@ -1857,9 +1852,6 @@ void __fastcall TForm1::tmWatchTimer(TObject *Sender)
         {
             UpdateWatchLevel(i, -49);
         }
-
-        // 重新启动自动刷新
-        cbAutoRefresh->Checked = true;
     }
 }
 //---------------------------------------------------------------------------
@@ -2362,7 +2354,7 @@ void __fastcall TForm1::M41DrawItem(TObject *Sender, TCanvas *ACanvas,
 void __fastcall TForm1::M41MeasureItem(TObject *Sender, TCanvas *ACanvas,
       int &Width, int &Height)
 {
-    Width = Label1->Width-19;
+    Width = 34;
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::btnDspResetEQClick(TObject *Sender)
@@ -2898,7 +2890,7 @@ void __fastcall TForm1::btnLoadPresetFromFileClick(TObject *Sender)
 
         if (udpControl->Active)
         {
-            udpControl->SendBuffer(dst_ip, 907, &preset_cmd, sizeof(preset_cmd));
+            udpControl->SendBuffer(dst_ip, UDP_PORT_STORE_PRESET_PC2FLASH, &preset_cmd, sizeof(preset_cmd));
         }
     }
 }
@@ -2997,7 +2989,7 @@ void __fastcall TForm1::LoadAllPresetClick(TObject *Sender)
             preset_cmd.store_page = 0;
             memcpy(preset_cmd.data, &config_map.input_dsp[0], sizeof(config_map.input_dsp[0])*4);
 
-            udpControl->SendBuffer(dst_ip, 907, &preset_cmd, sizeof(preset_cmd));
+            udpControl->SendBuffer(dst_ip, UDP_PORT_STORE_PRESET_PC2FLASH, &preset_cmd, sizeof(preset_cmd));
         }
     }
 }
@@ -3045,7 +3037,16 @@ void __fastcall TForm1::ApplyConfigToUI()
     lblPresetName->Caption = global_config.preset_name[cur_preset_id];
 
     for (int i=0;i<PRESET_NUM;i++)
+    {
         clbAvaliablePreset->Checked[i] = global_config.avaliable_preset[i];
+    }
+
+    cbLockUpDownMenuKey->Checked = global_config.lock_updownmenu;
+
+    cbMenuKeyFunction->ItemIndex = global_config.menu_key_function;
+    cbUpKeyFunction->ItemIndex = global_config.up_key_function;
+    cbDownKeyFunction->ItemIndex = global_config.down_key_function;
+
 
     struct in_addr in;
     in.S_un.S_addr = global_config.static_ip_address;
@@ -3055,7 +3056,7 @@ void __fastcall TForm1::ApplyConfigToUI()
         rbDhcpEnabled->Checked = true;
     else
         rbStaticIpEnabled->Checked = true;
-        
+
     EnableWindow(hIpEdit, rbStaticIpEnabled->Checked);
 
     // 修改界面
@@ -3405,19 +3406,20 @@ void __fastcall TForm1::StoreClick(TObject *Sender)
 {
     if (udpControl->Active)
     {
-        udpControl->SendBuffer(dst_ip, 906, "\xFF", 1);
+        udpControl->SendBuffer(dst_ip, UDP_PORT_STORE_PRESET_MEM2FLASH, "\xFF", 1);
     }
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::StoreAsClick(TObject *Sender)
 {
+    TMenuItem * menu = (TMenuItem*)Sender;
+    char preset_id = menu->Tag;
     if (udpControl->Active)
     {
-        TMenuItem * menu = (TMenuItem*)Sender;
-        char preset_id[2] = "\xff";
-        preset_id[0] = menu->Tag;
-        udpControl->SendBuffer(dst_ip, 906, preset_id, 1);
+        udpControl->SendBuffer(dst_ip, UDP_PORT_STORE_PRESET_MEM2FLASH, &preset_id, 1);
     }
+    // 更新上位机内存
+    all_config_map[preset_id-1] = config_map;
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::RecallClick(TObject *Sender)
@@ -3427,13 +3429,22 @@ void __fastcall TForm1::RecallClick(TObject *Sender)
     SetPresetId(menu->Tag);
     config_map = all_config_map[cur_preset_id];
 
-    ApplyConfigToUI();
     CloseDspDetail();
 
-    D1608Cmd cmd;
-    cmd.id = GetOffsetOfData(&config_map.op_code.switch_preset);
-    cmd.data.data_32 = menu->Tag;
-    SendCmd(cmd);
+    if (udpControl->Active)
+    {
+        D1608Cmd cmd;
+        cmd.id = GetOffsetOfData(&config_map.op_code.switch_preset);
+        cmd.data.data_32 = menu->Tag;
+        SendCmd(cmd);
+
+        // 延时5秒后强制从本地内存更新到界面
+        tmDelayUpdateUI->Enabled = true;
+    }
+    else
+    {
+        ApplyConfigToUI();
+    }
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::btnSetIpClick(TObject *Sender)
@@ -3467,13 +3478,13 @@ void __fastcall TForm1::btnGetLogClick(TObject *Sender)
 {
     lvLog->Clear();
     int log_address = 0x8000000+128*1024+10*5*2*1024;
-    udpControl->SendBuffer(dst_ip, 903, &log_address, 4+1024);
+    udpControl->SendBuffer(dst_ip, UDP_PORT_READ_FLASH, &log_address, 4+1024);
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::btnGetDebugClick(TObject *Sender)
 {
     char buf[1024] = {0};
-    udpControl->SendBuffer(dst_ip, 904, buf, 1024);
+    udpControl->SendBuffer(dst_ip, UDP_PORT_GET_DEBUG_INFO, buf, 1024);
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::lblPresetNameClick(TObject *Sender)
@@ -3693,51 +3704,6 @@ void __fastcall TForm1::btnLeaveTheFactoryClick(TObject *Sender)
     cmd.type = 1;
     cmd.id = offsetof(GlobalConfig, adjust_running_time);
     SendCmd(cmd);
-}
-//---------------------------------------------------------------------------
-void __fastcall TForm1::tbRatioChange(TObject *Sender)
-{
-    edtRatio->Text = tbRatio->Position/100.0;
-    btnSetComp->Click();
-}
-//---------------------------------------------------------------------------
-void __fastcall TForm1::tbThresholdChange(TObject *Sender)
-{
-    edtThreshold->Text = tbThreshold->Position / 10.0;
-    btnSetComp->Click();
-}
-//---------------------------------------------------------------------------
-void __fastcall TForm1::tbAttackChange(TObject *Sender)
-{
-    edtAttack->Text = tbAttack->Position / 10.0;
-    btnSetComp->Click();
-}
-//---------------------------------------------------------------------------
-void __fastcall TForm1::tbReleaseChange(TObject *Sender)
-{
-    edtRelease->Text = tbRelease->Position / 10.0;
-    btnSetComp->Click();
-}
-//---------------------------------------------------------------------------
-void __fastcall TForm1::btnSetCompClick(TObject *Sender)
-{
-    D1608Cmd cmd;
-    cmd.id = GetOffsetOfData(&config_map.op_code.comp);
-    cmd.data.data_32_array[0] = edtRatio->Text.ToDouble()*100;
-    cmd.data.data_32_array[1] = edtThreshold->Text.ToDouble()*10.0;
-    cmd.data.data_32_array[2] = edtAttack->Text.ToDouble()*10;
-    cmd.data.data_32_array[3] = edtRelease->Text.ToDouble()*10;
-    cmd.length = 16;
-    SendCmd(cmd);
-}
-//---------------------------------------------------------------------------
-void __fastcall TForm1::edtRatioKeyDown(TObject *Sender, WORD &Key,
-      TShiftState Shift)
-{
-    if (Key == VK_RETURN)
-    {
-        btnSetComp->Click();
-    }    
 }
 //---------------------------------------------------------------------------
 void TForm1::ShowInputPanel(TControl * Sender, TNotifyEvent event, String default_text)
@@ -4108,10 +4074,6 @@ void __fastcall TForm1::SpeedButtonNoFrame2MouseDown(TObject *Sender,
         pnlSystem->Show();
         pnlSystem->BringToFront();
         break;
-    case 3:
-        pnlComp1->Show();
-        pnlComp1->BringToFront();
-        break;
     case 4:
         pnlMist->Show();
         pnlMist->BringToFront();
@@ -4250,6 +4212,7 @@ void __fastcall TForm1::PaintBox3Paint(TObject *Sender)
     cbLockedString->Color = bmp->Canvas->Brush->Color;
     cbGlobalDspName->Color = bmp->Canvas->Brush->Color;
     cbPresetAutoSaved->Color = bmp->Canvas->Brush->Color;
+    cbLockUpDownMenuKey->Color = bmp->Canvas->Brush->Color;
 
     delete bmp;
 }
@@ -4617,18 +4580,6 @@ void TForm1::SetIOChannelNum()
     pnlmix_level_trackbar->OnChange(pnlmix_level_trackbar);
 }
 //---------------------------------------------------------------------------
-void __fastcall TForm1::CSpinEdit1Change(TObject *Sender)
-{
-    REAL_INPUT_DSP_NUM = CSpinEdit1->Value;
-    SetIOChannelNum();
-}
-//---------------------------------------------------------------------------
-void __fastcall TForm1::CSpinEdit2Change(TObject *Sender)
-{
-    REAL_OUTPUT_DSP_NUM = CSpinEdit2->Value;
-    SetIOChannelNum();
-}
-//---------------------------------------------------------------------------
 void TForm1::CloseDspDetail()
 {
     pnlDspDetail->Hide();
@@ -4691,6 +4642,118 @@ void __fastcall TForm1::btnRebootDeviceClick(TObject *Sender)
         cmd.length = 4;
         SendCmd(cmd);
     }
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::cbMenuKeyFunctionChange(TObject *Sender)
+{
+    D1608Cmd cmd;
+    cmd.type = 1;
+    cmd.id = offsetof(GlobalConfig, menu_key_function);
+    cmd.data.data_32 = cbMenuKeyFunction->ItemIndex;
+    cmd.length = 4;
+    SendCmd(cmd);
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::cbUpKeyFunctionChange(TObject *Sender)
+{
+    D1608Cmd cmd;
+    cmd.type = 1;
+    cmd.id = offsetof(GlobalConfig, up_key_function);
+    cmd.data.data_32 = cbUpKeyFunction->ItemIndex;
+    cmd.length = 4;
+    SendCmd(cmd);
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::cbDownKeyFunctionChange(TObject *Sender)
+{
+    D1608Cmd cmd;
+    cmd.type = 1;
+    cmd.id = offsetof(GlobalConfig, down_key_function);
+    cmd.data.data_32 = cbDownKeyFunction->ItemIndex;
+    cmd.length = 4;
+    SendCmd(cmd);
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::cbLockUpDownMenuKeyClick(TObject *Sender)
+{
+    D1608Cmd cmd;
+    cmd.type = 1;
+    cmd.id = offsetof(GlobalConfig, lock_updownmenu);
+    cmd.data.data_8 = cbLockUpDownMenuKey->Checked;
+    cmd.length = 1;
+    SendCmd(cmd);
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::btnSaveFlashToFileClick(TObject *Sender)
+{
+    SaveDialog1->Filter = "smc config file(*.smc)|*.smc";
+    if (SaveDialog1->Execute())
+    {
+        TFileStream * file = new TFileStream(SaveDialog1->FileName, fmCreate);
+        if (!file)
+        {
+            ShowMessage("打开文件失败");
+            return;
+        }
+
+        // 清除缓存数据
+        memset(&smc_config, 0, sizeof(smc_config));
+        // 复制数据(TODO: 从设备同步)
+        smc_config.global_config = global_config;
+        smc_config.all_config_map[0] = all_config_map[0];
+        smc_config.all_config_map[1] = all_config_map[0];
+        smc_config.all_config_map[2] = all_config_map[0];
+        smc_config.all_config_map[3] = all_config_map[0];
+        smc_config.all_config_map[4] = all_config_map[0];
+        smc_config.all_config_map[5] = all_config_map[0];
+        smc_config.all_config_map[6] = all_config_map[0];
+        smc_config.all_config_map[7] = all_config_map[0];
+
+
+
+        file->WriteBuffer(&smc_config, sizeof(smc_config));
+
+        delete file;
+    }
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::btnLoadFileToFlashClick(TObject *Sender)
+{
+    OpenDialog1->Filter = "smc config file(*.smc)|*.smc";
+    if (OpenDialog1->Execute())
+    {
+        memset(&smc_config, 0, sizeof(smc_config));
+
+        TFileStream * file = new TFileStream(OpenDialog1->FileName, fmOpenRead);
+        if (!file)
+        {
+            ShowMessage("打开文件失败");
+            return;
+        }
+
+        file->ReadBuffer(&smc_config, sizeof(smc_config));
+
+        delete file;
+
+
+        // Download To Device
+        D1608PresetCmd preset_cmd;
+        preset_cmd.preset = cur_preset_id;
+        preset_cmd.store_page = 0;
+        memcpy(preset_cmd.data, &config_map.input_dsp[0], sizeof(config_map.input_dsp[0])*4);
+
+        if (udpControl->Active)
+        {
+            udpControl->SendBuffer(dst_ip, UDP_PORT_STORE_PRESET_PC2FLASH, &preset_cmd, sizeof(preset_cmd));
+        }
+    }
+
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::tmDelayUpdateUITimer(TObject *Sender)
+{
+    tmDelayUpdateUI->Enabled = false;
+    ApplyConfigToUI();
 }
 //---------------------------------------------------------------------------
 
