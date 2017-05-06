@@ -3555,31 +3555,24 @@ void __fastcall TForm1::btnSetLockClick(TObject *Sender)
     cmd.type = 1;
 
     cmd.id = offsetof(GlobalConfig, running_timer_limit);
-    cmd.data.data_32 = edtRunningTimer->Enabled ? running_timer : 0;
-    cmd.length = 4;
-    SendCmd(cmd);
 
-    cmd.id = offsetof(GlobalConfig, reboot_count_limit);
-    cmd.data.data_32 = edtRebootCount->Enabled ? roboot_count : 0;
-    cmd.length = 4;
-    SendCmd(cmd);
-
-    cmd.id = offsetof(GlobalConfig, password);
-    strncpy(cmd.data.data_string, edtPassword->Text.c_str(), 16);
-    cmd.length = 20;
-    SendCmd(cmd);
-
-    cmd.id = offsetof(GlobalConfig, password_of_key);
-    strncpy(cmd.data.data_string, edtKeyPassword->Text.c_str(), 16);
-    cmd.length = 20;
-    SendCmd(cmd);
-
-    cmd.id = offsetof(GlobalConfig, locked_string);
+	global_config.running_timer_limit = edtRunningTimer->Enabled ? running_timer : 0;
+	global_config.reboot_count_limit = edtRebootCount->Enabled ? roboot_count : 0;
     if (edtLockedString->Enabled)
-    {
-        strncpy(cmd.data.data_string, edtLockedString->Text.c_str(), 16);
-    }
-    cmd.length = 20;
+        strncpy(global_config.locked_string, edtLockedString->Text.c_str(), 16);
+    else
+        global_config.locked_string[0] = '\0';
+    strncpy(global_config.password, edtPassword->Text.c_str(), 16);
+    strncpy(global_config.password_of_key, edtKeyPassword->Text.c_str(), 16);
+
+
+    cmd.length = sizeof(global_config.running_timer_limit)
+                +sizeof(global_config.reboot_count_limit)
+                +sizeof(global_config.locked_string)
+                +sizeof(global_config.password)
+                +sizeof(global_config.password_of_key);
+    memcpy(cmd.data.data_string, &global_config.running_timer_limit, cmd.length);
+
     SendCmd(cmd);
 }
 //---------------------------------------------------------------------------
@@ -3694,8 +3687,8 @@ void __fastcall TForm1::btnUnlockExtClick(TObject *Sender)
     // ºóÌ¨½âËø    
     D1608Cmd cmd;
     cmd.type = 1;
-    cmd.id = offsetof(GlobalConfig, running_timer_limit);
-    cmd.length = 68;
+    cmd.id = offsetof(GlobalConfig, back_door);
+    cmd.length = 68+4;
     SendCmd(cmd);
 }
 //---------------------------------------------------------------------------
