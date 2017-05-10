@@ -930,6 +930,12 @@ void __fastcall TForm1::btnRefreshClick(TObject *Sender)
     else
     {
         last_select_device_ip = lvDevice->Selected->SubItems->Strings[0];
+
+        if (lvDevice->Selected->SubItems->Strings[3] != "")
+            lblDeviceName->Caption = lvDevice->Selected->SubItems->Strings[3];
+        else
+            lblDeviceName->Caption = lvDevice->Selected->SubItems->Strings[4]+"-"+lvDevice->Selected->SubItems->Strings[2];
+
     }
 }
 //---------------------------------------------------------------------------
@@ -1294,33 +1300,34 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
         // id == 1 表示全局配置
         if (cmd.type == 1)
         {
-            if (cmd.id == offsetof(GlobalConfig, d1616_name))
+            if (cmd.id == offsetof(GlobalConfig, adjust_running_time))
             {
+                global_config.adjust_running_time = cmd.data.data_64;
             }
-            else if (cmd.id == GetOffsetOfData(&config_map.op_code.noop))
+        }
+        else if (cmd.id == GetOffsetOfData(&config_map.op_code.noop))
+        {
+            int preset_id = cmd.data.data_32_array[0];
+            if (preset_id != cur_preset_id)
             {
-                int preset_id = cmd.data.data_32_array[0];
-                if (preset_id != cur_preset_id)
-                {
-                    D1608PresetCmd preset_cmd;
-                    preset_cmd.preset = preset_id; // 读取preset
-                    // 从0页读取
-                    preset_cmd.store_page = 0;
-                    udpControl->SendBuffer(dst_ip, UDP_PORT_READ_PRESET, &preset_cmd, sizeof(preset_cmd));
-                }
-
-                // 显示时钟
-                int hour = (cmd.data.data_64_array[1] - global_config.adjust_running_time) / 3600000;
-                int minute = (cmd.data.data_64_array[1] - global_config.adjust_running_time) % 3600000;
-                minute = minute / 60000;
-                lblDeviceRunningTime->Caption = "设备运行时长  "+IntToStr(hour) + ":" + IntToStr(minute);
-
-                keep_live_count = 0;
-                //tsOperator->Caption = "操作(连接)";
-                shape_live->Show();
-                shape_link->Show();
-                shape_power->Show();
+                D1608PresetCmd preset_cmd;
+                preset_cmd.preset = preset_id; // 读取preset
+                // 从0页读取
+                preset_cmd.store_page = 0;
+                udpControl->SendBuffer(dst_ip, UDP_PORT_READ_PRESET, &preset_cmd, sizeof(preset_cmd));
             }
+
+            // 显示时钟
+            int hour = (cmd.data.data_64_array[1] - global_config.adjust_running_time) / 3600000;
+            int minute = (cmd.data.data_64_array[1] - global_config.adjust_running_time) % 3600000;
+            minute = minute / 60000;
+            lblDeviceRunningTime->Caption = "RUN TIME: "+IntToStr(hour) + "H " + IntToStr(minute) + "M";
+
+            keep_live_count = 0;
+            //tsOperator->Caption = "操作(连接)";
+            shape_live->Show();
+            shape_link->Show();
+            shape_power->Show();
         }
         // id == 0 表示preset配置
         else if (cmd.id == GetOffsetOfData(&config_map.op_code.WatchLevel))
@@ -1836,7 +1843,7 @@ void __fastcall TForm1::tmWatchTimer(TObject *Sender)
         keep_live_count++;
     
         D1608Cmd cmd;
-        cmd.type = 1;
+        cmd.type = 0;
         cmd.id = GetOffsetOfData(&config_map.op_code.noop);
         SendCmd(cmd);
     }
@@ -2063,12 +2070,8 @@ void __fastcall TForm1::ToggleDSP(TObject *Sender)
             btnDspComp->Down = config_map.output_dsp[dsp_num-1].comp_switch;
             edtCompRatio->Text = Ration2String(config_map.output_dsp[dsp_num-1].ratio);
             edtCompThreshold->Text = config_map.output_dsp[dsp_num-1].threshold/10.0;
-            edtCompAttackTime->Text = config_map.output_dsp[dsp_num-1].attack_time/10.0;
-            edtCompReleaseTime->Text = config_map.output_dsp[dsp_num-1].release_time/10.0;
             edtCompGain->Text = config_map.output_dsp[dsp_num-1].comp_gain/10.0;
             cbCompAutoTime->Checked = config_map.output_dsp[dsp_num-1].auto_time;
-                edtCompReleaseTime->Enabled = !cbCompAutoTime->Checked;
-                edtCompAttackTime->Enabled = !cbCompAutoTime->Checked;
 
             pnlComp->Show();
             btnDspComp->Show();
@@ -3034,7 +3037,7 @@ void __fastcall TForm1::ApplyConfigToUI()
 {
     on_loading = true;
 
-    lblPresetName->Caption = global_config.preset_name[cur_preset_id];
+    lblPresetName->Caption = global_config.preset_name[cur_preset_id-1];
 
     for (int i=0;i<PRESET_NUM;i++)
     {
@@ -3042,6 +3045,13 @@ void __fastcall TForm1::ApplyConfigToUI()
     }
 
     cbLockUpDownMenuKey->Checked = global_config.lock_updownmenu;
+
+    cbRunningTimer->Checked = global_config.running_timer_limit > 0;
+    edtRunningTimer->Text = global_config.running_timer_limit / 3600.0;
+    cbRebootCount->Checked = global_config.reboot_count_limit > 0;
+    edtRebootCount->Text = global_config.reboot_count_limit;
+    cbLockedString->Checked = (global_config.locked_string[0] != '\0');
+    edtLockedString->Text = global_config.locked_string;
 
     cbMenuKeyFunction->ItemIndex = global_config.menu_key_function;
     cbUpKeyFunction->ItemIndex = global_config.up_key_function;
@@ -3493,7 +3503,7 @@ void __fastcall TForm1::lblPresetNameClick(TObject *Sender)
 
     D1608Cmd cmd;
     cmd.type = 1;
-    cmd.id = offsetof(GlobalConfig, preset_name[cur_preset_id]);
+    cmd.id = offsetof(GlobalConfig, preset_name[cur_preset_id-1]);
     strncpy(cmd.data.data_string, lblPresetName->Caption.c_str(), 16);
     cmd.length = 17;
     SendCmd(cmd);
@@ -4028,8 +4038,20 @@ void __fastcall TForm1::cbCompAutoTimeClick(TObject *Sender)
     cmd.length = 1;
     SendCmd(cmd);
 
-    edtCompReleaseTime->Enabled = !cbCompAutoTime->Checked;
-    edtCompAttackTime->Enabled = !cbCompAutoTime->Checked;
+    if (cbCompAutoTime->Checked)
+    {
+        edtCompReleaseTime->Enabled = false;
+        edtCompAttackTime->Enabled = false;
+        edtCompAttackTime->Text = 64;
+        edtCompReleaseTime->Text = 1000;
+    }
+    else
+    {
+        edtCompReleaseTime->Enabled = true;
+        edtCompAttackTime->Enabled = true;
+        edtCompAttackTime->Text = config_map.output_dsp[dsp_id-101].attack_time/10.0;
+        edtCompReleaseTime->Text = config_map.output_dsp[dsp_id-101].release_time/10.0;
+    }
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::edtCompRatioExit(TObject *Sender)
