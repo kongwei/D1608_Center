@@ -485,7 +485,6 @@ __published:	// IDE-managed Components
     TSpeedButton *btnLoadFileToFlash;
     TTimer *tmDelayUpdateUI;
     TButton *btnClearDebug;
-    TPanel *Panel2;
     TActionList *ActionList1;
     TAction *s1;
     TAction *s2;
