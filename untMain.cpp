@@ -4612,13 +4612,13 @@ void TForm1::CloseDspDetail()
     if (last_out_num_btn != NULL)
     {
         last_out_num_btn->Down =false;
-        last_out_num_btn == NULL;
+        last_out_num_btn = NULL;
     }
 
     if (last_dsp_btn != NULL)
     {
         last_dsp_btn->Down =false;
-        last_dsp_btn == NULL;
+        last_dsp_btn = NULL;
     }
 }
 //---------------------------------------------------------------------------
