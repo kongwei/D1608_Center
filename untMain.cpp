@@ -1328,6 +1328,8 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             shape_live->Show();
             shape_link->Show();
             shape_power->Show();
+            lblDeviceName->Show();
+            lblDeviceInfo->Show();
         }
         // id == 0 表示preset配置
         else if (cmd.id == GetOffsetOfData(&config_map.op_code.WatchLevel))
@@ -1841,7 +1843,7 @@ void __fastcall TForm1::tmWatchTimer(TObject *Sender)
     if ((keep_live_count < 5) && udpControl->Active)
     {
         keep_live_count++;
-    
+
         D1608Cmd cmd;
         cmd.type = 0;
         cmd.id = GetOffsetOfData(&config_map.op_code.noop);
@@ -1854,6 +1856,8 @@ void __fastcall TForm1::tmWatchTimer(TObject *Sender)
         shape_live->Hide();
         shape_link->Hide();
         shape_power->Hide();
+        lblDeviceName->Hide();
+        lblDeviceInfo->Hide();
         // Level Meter归零
         for (int i=0;i<32;i++)
         {
@@ -3499,7 +3503,11 @@ void __fastcall TForm1::btnGetDebugClick(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TForm1::lblPresetNameClick(TObject *Sender)
 {
-    lblPresetName->Caption = InputBox("修改名称", "", lblPresetName->Caption);
+    String new_name = InputBox("修改名称", "", lblPresetName->Caption);
+    if (new_name == lblPresetName->Caption)
+        return;
+    else
+        lblPresetName->Caption = new_name;
 
     D1608Cmd cmd;
     cmd.type = 1;
