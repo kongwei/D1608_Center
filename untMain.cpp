@@ -906,7 +906,7 @@ void TForm1::SendCmd(D1608Cmd& cmd)
 //---------------------------------------------------------------------------
 void __fastcall TForm1::btnRefreshClick(TObject *Sender)
 {
-    AppendLog("刷新设备");
+    //AppendLog("刷新设备");
 
     // 删除上次已经未扫描到的项目
     for (int i=lvDevice->Items->Count-1;i>=0;i--)
@@ -1019,7 +1019,7 @@ void __fastcall TForm1::lvDeviceSelectItem(TObject *Sender,
         return;
     }
 
-    AppendLog("选择："+IntToStr(Item->Index+1)+" "+Item->SubItems->Strings[0]);
+    //AppendLog("选择："+IntToStr(Item->Index+1)+" "+Item->SubItems->Strings[0]);
 }
 //---------------------------------------------------------------------------
 void TForm1::AppendLog(String log)
@@ -1080,11 +1080,12 @@ void __fastcall TForm1::btnSelectClick(TObject *Sender)
     UpdateCaption();
 
     D1608PresetCmd preset_cmd;
-    preset_cmd.preset = 1; // 从0页读取preset
+    preset_cmd.preset = 1;
     preset_cmd.store_page = 0;
     udpControl->SendBuffer(dst_ip, UDP_PORT_READ_PRESET, &preset_cmd, sizeof(preset_cmd));
 
-    preset_cmd.preset = 0; // 0表示读取global_config
+    preset_cmd.preset = 0x80; // 0表示读取global_config
+    preset_cmd.store_page = 8;
     udpControl->SendBuffer(dst_ip, UDP_PORT_READ_PRESET, &preset_cmd, sizeof(preset_cmd));
 
     pnlOperator->Show();
@@ -1111,7 +1112,7 @@ void __fastcall TForm1::tmSLPTimer(TObject *Sender)
         local_broadcast_ip = lbIplist->Items->Strings[0];
         lbIplist->Items->Delete(0);
 
-        AppendLog("尝试侦听地址： " + local_broadcast_ip);
+        //AppendLog("尝试侦听地址： " + local_broadcast_ip);
 
         udpSLP->Active = false;
         udpSLP->Bindings->Clear();
@@ -1308,8 +1309,11 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
         else if (cmd.id == GetOffsetOfData(&config_map.op_code.noop))
         {
             int preset_id = cmd.data.data_32_array[0];
-            if (preset_id != cur_preset_id)
+            // TODO: preset_id 出现0
+            if (preset_id != cur_preset_id && preset_id!=0)
             {
+                cur_preset_id = preset_id;
+
                 D1608PresetCmd preset_cmd;
                 preset_cmd.preset = preset_id; // 读取preset
                 // 从0页读取
@@ -1318,10 +1322,27 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             }
 
             // 显示时钟
-            int hour = (cmd.data.data_64_array[1] - global_config.adjust_running_time) / 3600000;
-            int minute = (cmd.data.data_64_array[1] - global_config.adjust_running_time) % 3600000;
-            minute = minute / 60000;
+            long running_time = (cmd.data.data_64_array[1] - global_config.adjust_running_time) / 1000;    // 单位：秒
+            int hour = running_time / 3600;
+            int minute = running_time % 3600;
+            minute = minute / 60;
             lblDeviceRunningTime->Caption = "RUN TIME: "+IntToStr(hour) + "H " + IntToStr(minute) + "M";
+            if (cbRunningTimer->Checked)
+            {
+                int remain_time = global_config.running_timer_limit - running_time;
+                if (remain_time > 0)
+                {
+                    edtRemainTime->Text = FormatFloat("0.00", remain_time/3600.0);
+                }
+                else
+                {
+                    edtRemainTime->Text = "0";
+                }
+            }
+            else
+            {
+                edtRemainTime->Text = "--";
+            }
 
             keep_live_count = 0;
             //tsOperator->Caption = "操作(连接)";
@@ -1598,7 +1619,11 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
     {
         D1608PresetCmd preset_cmd;
         AData->ReadBuffer(&preset_cmd, std::min(sizeof(preset_cmd), AData->Size));
-        if (preset_cmd.preset == 0)
+
+        bool download_all_preset = preset_cmd.preset & 0x80;
+        int preset_id = preset_cmd.preset & 0x7F;
+
+        if ((preset_cmd.preset & 0x7F) == 0)
         {
             // global_config
             memcpy(&global_config, preset_cmd.data, sizeof(global_config));
@@ -1642,67 +1667,87 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
         }
         else
         {
+            AppendLog(IntToHex(preset_cmd.preset, 2) + "/" + IntToStr(preset_cmd.store_page));
+
+            ConfigMap * dest_config_map;
+            if (download_all_preset)
+            {
+                dest_config_map = &all_config_map[preset_id-1];
+            }
+            else
+            {
+                dest_config_map = &config_map;
+            }
+
             switch(preset_cmd.store_page)
             {
             case 0:
-                memcpy(&config_map.input_dsp[0], preset_cmd.data, sizeof(config_map.input_dsp[0])*4);
+                memcpy(&dest_config_map->input_dsp[0], preset_cmd.data, sizeof(config_map.input_dsp[0])*4);
                 break;
             case 1:
-                memcpy(&config_map.input_dsp[4], preset_cmd.data, sizeof(config_map.input_dsp[0])*4);
+                memcpy(&dest_config_map->input_dsp[4], preset_cmd.data, sizeof(config_map.input_dsp[0])*4);
                 break;
             case 2:
-                memcpy(&config_map.input_dsp[8], preset_cmd.data, sizeof(config_map.input_dsp[0])*4);
+                memcpy(&dest_config_map->input_dsp[8], preset_cmd.data, sizeof(config_map.input_dsp[0])*4);
                 break;
             case 3:
-                memcpy(&config_map.input_dsp[12],preset_cmd.data,  sizeof(config_map.input_dsp[0])*4);
+                memcpy(&dest_config_map->input_dsp[12],preset_cmd.data,  sizeof(config_map.input_dsp[0])*4);
                 break;
             case 4:
-                memcpy(&config_map.output_dsp[0],preset_cmd.data,  sizeof(config_map.output_dsp[0])*4);
+                memcpy(&dest_config_map->output_dsp[0],preset_cmd.data,  sizeof(config_map.output_dsp[0])*4);
                 break;
             case 5:
-                memcpy(&config_map.output_dsp[4],preset_cmd.data,  sizeof(config_map.output_dsp[0])*4);
+                memcpy(&dest_config_map->output_dsp[4],preset_cmd.data,  sizeof(config_map.output_dsp[0])*4);
                 break;
             case 6:
-                memcpy(&config_map.output_dsp[8],preset_cmd.data,  sizeof(config_map.output_dsp[0])*4);
+                memcpy(&dest_config_map->output_dsp[8],preset_cmd.data,  sizeof(config_map.output_dsp[0])*4);
                 break;
             case 7:
-                memcpy(&config_map.output_dsp[12], preset_cmd.data, sizeof(config_map.output_dsp[0])*4);
+                memcpy(&dest_config_map->output_dsp[12], preset_cmd.data, sizeof(config_map.output_dsp[0])*4);
                 break;
             case 8:
-                memcpy(&config_map.master_mix, preset_cmd.data,
+                memcpy(&dest_config_map->master_mix, preset_cmd.data,
                         sizeof(config_map.master_mix));
                 break;
             }
+        }
 
-            bool download_all_preset = preset_cmd.preset & 0x80;
-            int preset_id = preset_cmd.preset & 0x7F;
 
-            // 读取下一个preset
-            if (download_all_preset && (preset_id<8) && preset_cmd.store_page == 8)
+        // 读取下一个preset
+        if (download_all_preset)
+        {
+            if (preset_id<8 && preset_cmd.store_page == 8)
             {
                 preset_cmd.preset++;
                 preset_cmd.store_page = 0;
-
-                // 切换 config_map
-                all_config_map[preset_id] = config_map;
             }
             else
             {
                 preset_cmd.store_page++;
             }
-
-
-            if (preset_cmd.store_page < 9)
+        }
+        else
+        {
+            if (preset_cmd.store_page == 8)
             {
-                // next
-                udpControl->SendBuffer(dst_ip, UDP_PORT_READ_PRESET, &preset_cmd, sizeof(preset_cmd));
-            }
-            else
-            {
+                tmDelayUpdateUI->Enabled = false;
                 SetPresetId(preset_id);
                 ApplyConfigToUI();  // 子窗体的数据在加载时更新
                 CloseDspDetail();
+
+                preset_cmd.store_page++;
             }
+            else
+            {
+                preset_cmd.store_page++;
+            }
+        }
+
+
+        if (preset_cmd.store_page < 9)
+        {
+            // next
+            udpControl->SendBuffer(dst_ip, UDP_PORT_READ_PRESET, &preset_cmd, sizeof(preset_cmd));
         }
     }
     else if (ABinding->PeerPort == UDP_PORT_STORE_PRESET_PC2FLASH)
@@ -1710,59 +1755,73 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
         D1608PresetCmd preset_cmd;
         AData->ReadBuffer(&preset_cmd, std::min(sizeof(preset_cmd), AData->Size));
 
-        {
-            bool download_all_preset = preset_cmd.preset & 0x80;
-            int preset_id = preset_cmd.preset & 0x7F;
+        bool download_all_preset = preset_cmd.preset & 0x80;
+        int preset_id = preset_cmd.preset & 0x7F;
 
-            if (download_all_preset && (preset_id<8) && preset_cmd.store_page == 8)
+        if (download_all_preset)
+        {
+            if (preset_id<8 && preset_cmd.store_page == 8)
             {
                 preset_cmd.preset++;
+                preset_id++;
                 preset_cmd.store_page = 0;
-
-                // 切换 config_map
-                config_map = all_config_map[preset_id];
             }
             else
             {
                 preset_cmd.store_page++;
             }
+        }
+        else
+        {
+            preset_cmd.store_page++;
+        }
 
-            switch(preset_cmd.store_page)
-            {
-            case 0:
-                memcpy(preset_cmd.data, &config_map.input_dsp[0], sizeof(config_map.input_dsp[0])*4);
-                break;
-            case 1:
-                memcpy(preset_cmd.data, &config_map.input_dsp[4], sizeof(config_map.input_dsp[0])*4);
-                break;
-            case 2:
-                memcpy(preset_cmd.data, &config_map.input_dsp[8], sizeof(config_map.input_dsp[0])*4);
-                break;
-            case 3:
-                memcpy(preset_cmd.data, &config_map.input_dsp[12], sizeof(config_map.input_dsp[0])*4);
-                break;
-            case 4:
-                memcpy(preset_cmd.data, &config_map.output_dsp[0], sizeof(config_map.output_dsp[0])*4);
-                break;
-            case 5:
-                memcpy(preset_cmd.data, &config_map.output_dsp[4], sizeof(config_map.output_dsp[0])*4);
-                break;
-            case 6:
-                memcpy(preset_cmd.data, &config_map.output_dsp[8], sizeof(config_map.output_dsp[0])*4);
-                break;
-            case 7:
-                memcpy(preset_cmd.data, &config_map.output_dsp[12], sizeof(config_map.output_dsp[0])*4);
-                break;
-            case 8:
-                memcpy(preset_cmd.data, &config_map.master_mix,
-                        sizeof(config_map.master_mix));
-            default:
-                break;
-            }
-            if (preset_cmd.store_page <= 8)
-            {
-                udpControl->SendBuffer(dst_ip, UDP_PORT_STORE_PRESET_PC2FLASH, &preset_cmd, sizeof(preset_cmd));
-            }
+        ConfigMap * dest_config_map;
+        if (download_all_preset)
+        {
+            dest_config_map = &all_config_map[preset_id-1];
+        }
+        else
+        {
+            dest_config_map = &config_map;
+        }
+
+        switch(preset_cmd.store_page)
+        {
+        case 0:
+            memcpy(preset_cmd.data, &dest_config_map->input_dsp[0], sizeof(dest_config_map->input_dsp[0])*4);
+            break;
+        case 1:
+            memcpy(preset_cmd.data, &dest_config_map->input_dsp[4], sizeof(dest_config_map->input_dsp[0])*4);
+            break;
+        case 2:
+            memcpy(preset_cmd.data, &dest_config_map->input_dsp[8], sizeof(dest_config_map->input_dsp[0])*4);
+            break;
+        case 3:
+            memcpy(preset_cmd.data, &dest_config_map->input_dsp[12], sizeof(dest_config_map->input_dsp[0])*4);
+            break;
+        case 4:
+            memcpy(preset_cmd.data, &dest_config_map->output_dsp[0], sizeof(dest_config_map->output_dsp[0])*4);
+            break;
+        case 5:
+            memcpy(preset_cmd.data, &dest_config_map->output_dsp[4], sizeof(dest_config_map->output_dsp[0])*4);
+            break;
+        case 6:
+            memcpy(preset_cmd.data, &dest_config_map->output_dsp[8], sizeof(dest_config_map->output_dsp[0])*4);
+            break;
+        case 7:
+            memcpy(preset_cmd.data, &dest_config_map->output_dsp[12], sizeof(dest_config_map->output_dsp[0])*4);
+            break;
+        case 8:
+            memcpy(preset_cmd.data, &dest_config_map->master_mix,
+                    sizeof(dest_config_map->master_mix));
+        default:
+            break;
+        }
+
+        if (preset_cmd.store_page <= 8)
+        {
+            udpControl->SendBuffer(dst_ip, UDP_PORT_STORE_PRESET_PC2FLASH, &preset_cmd, sizeof(preset_cmd));
         }
     }
 }
@@ -2933,7 +2992,7 @@ void __fastcall TForm1::SaveAllPresetClick(TObject *Sender)
             return;
         }
 
-        all_config_map[cur_preset_id] = config_map;
+        all_config_map[cur_preset_id-1] = config_map;
         SetPresetLibFilename(SaveDialog1->FileName);
         SetFileDirty(false);
 
@@ -3439,9 +3498,8 @@ void __fastcall TForm1::StoreAsClick(TObject *Sender)
 void __fastcall TForm1::RecallClick(TObject *Sender)
 {
     TMenuItem * menu = (TMenuItem*)Sender;
-    all_config_map[cur_preset_id] = config_map;
+    all_config_map[cur_preset_id-1] = config_map;
     SetPresetId(menu->Tag);
-    config_map = all_config_map[cur_preset_id];
 
     CloseDspDetail();
 
@@ -3457,7 +3515,7 @@ void __fastcall TForm1::RecallClick(TObject *Sender)
     }
     else
     {
-        ApplyConfigToUI();
+       tmDelayUpdateUITimer(NULL);
     }
 }
 //---------------------------------------------------------------------------
@@ -3707,6 +3765,7 @@ void __fastcall TForm1::btnUnlockExtClick(TObject *Sender)
     cmd.type = 1;
     cmd.id = offsetof(GlobalConfig, back_door);
     cmd.length = 68+4;
+    memset(&cmd.data, 0, cmd.length);
     SendCmd(cmd);
 }
 //---------------------------------------------------------------------------
@@ -4723,16 +4782,17 @@ void __fastcall TForm1::btnSaveFlashToFileClick(TObject *Sender)
 
         // 清除缓存数据
         memset(&smc_config, 0, sizeof(smc_config));
+        global_config.active_preset_id = cur_preset_id;
         // 复制数据(TODO: 从设备同步)
         smc_config.global_config = global_config;
         smc_config.all_config_map[0] = all_config_map[0];
-        smc_config.all_config_map[1] = all_config_map[0];
-        smc_config.all_config_map[2] = all_config_map[0];
-        smc_config.all_config_map[3] = all_config_map[0];
-        smc_config.all_config_map[4] = all_config_map[0];
-        smc_config.all_config_map[5] = all_config_map[0];
-        smc_config.all_config_map[6] = all_config_map[0];
-        smc_config.all_config_map[7] = all_config_map[0];
+        smc_config.all_config_map[1] = all_config_map[1];
+        smc_config.all_config_map[2] = all_config_map[2];
+        smc_config.all_config_map[3] = all_config_map[3];
+        smc_config.all_config_map[4] = all_config_map[4];
+        smc_config.all_config_map[5] = all_config_map[5];
+        smc_config.all_config_map[6] = all_config_map[6];
+        smc_config.all_config_map[7] = all_config_map[7];
 
 
 
@@ -4761,11 +4821,13 @@ void __fastcall TForm1::btnLoadFileToFlashClick(TObject *Sender)
         delete file;
 
 
+        memcpy(all_config_map, &smc_config.all_config_map, sizeof(smc_config.all_config_map));
+
         // Download To Device
         D1608PresetCmd preset_cmd;
-        preset_cmd.preset = cur_preset_id;
-        preset_cmd.store_page = 0;
-        memcpy(preset_cmd.data, &config_map.input_dsp[0], sizeof(config_map.input_dsp[0])*4);
+        preset_cmd.preset = 0x80;
+        preset_cmd.store_page = 8;  // 使用8表示最后一页，TODO: 表达不是很清楚
+        memcpy(preset_cmd.data, &smc_config.global_config, sizeof(smc_config.global_config));
 
         if (udpControl->Active)
         {
@@ -4778,6 +4840,7 @@ void __fastcall TForm1::btnLoadFileToFlashClick(TObject *Sender)
 void __fastcall TForm1::tmDelayUpdateUITimer(TObject *Sender)
 {
     tmDelayUpdateUI->Enabled = false;
+    config_map = all_config_map[cur_preset_id-1];
     ApplyConfigToUI();
 }
 //---------------------------------------------------------------------------

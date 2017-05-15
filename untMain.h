@@ -504,6 +504,9 @@ __published:	// IDE-managed Components
     TAction *r8;
     TLabel *Label23;
     TLabel *Label25;
+    TLabel *Label27;
+    TEdit *edtRemainTime;
+    TImage *Image2;
     void __fastcall FormCreate(TObject *Sender);
     void __fastcall FormDestroy(TObject *Sender);
     void __fastcall btnRefreshClick(TObject *Sender);
