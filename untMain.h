@@ -256,10 +256,6 @@ __published:	// IDE-managed Components
     TMenuItem *SavePreset;
     TMenuItem *LoadPreset;
     TMenuItem *N1;
-    TMenuItem *SaveAllPreset;
-    TMenuItem *LoadAllPreset;
-    TMenuItem *SaveAllPresetAs;
-    TMenuItem *N2;
     TMenuItem *Store;
     TMenuItem *StoreAs;
     TMenuItem *N11;
@@ -586,10 +582,7 @@ __published:	// IDE-managed Components
     void __fastcall pnlmix_muteClick(TObject *Sender);
     void __fastcall btnSavePresetToFileClick(TObject *Sender);
     void __fastcall btnLoadPresetFromFileClick(TObject *Sender);
-    void __fastcall SaveAllPresetClick(TObject *Sender);
-    void __fastcall LoadAllPresetClick(TObject *Sender);
     void __fastcall FormCloseQuery(TObject *Sender, bool &CanClose);
-    void __fastcall SaveAllPresetAsClick(TObject *Sender);
     void __fastcall StoreClick(TObject *Sender);
     void __fastcall StoreAsClick(TObject *Sender);
     void __fastcall RecallClick(TObject *Sender);

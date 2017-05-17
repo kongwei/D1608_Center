@@ -1048,6 +1048,7 @@ void __fastcall TForm1::btnSelectClick(TObject *Sender)
     // 断开文件
     if (file_dirty)
     {
+        /* 暂时不考虑提示对话框
         int ret = Application->MessageBox("是否保存当前preset修改", "关闭确认", MB_YESNOCANCEL);
         if (ret == ID_CANCEL)
         {
@@ -1062,7 +1063,7 @@ void __fastcall TForm1::btnSelectClick(TObject *Sender)
                 return;
             }
         }
-        else
+        else*/
         {
             // 放弃
             preset_lib_filename = "";
@@ -3029,107 +3030,6 @@ void __fastcall TForm1::btnLoadPresetFromFileClick(TObject *Sender)
     }
 }
 //---------------------------------------------------------------------------
-void __fastcall TForm1::SaveAllPresetAsClick(TObject *Sender)
-{
-    SaveDialog1->Filter = "presetlib|*.presetlib";
-    if (SaveDialog1->Execute())
-    {
-        preset_lib_filename = SaveDialog1->FileName;
-        SaveAllPreset->Click();
-    }
-    else
-    {
-        return;
-    }
-}
-//---------------------------------------------------------------------------
-void __fastcall TForm1::SaveAllPresetClick(TObject *Sender)
-{
-    if (preset_lib_filename == "")
-    {
-        SaveAllPresetAs->Click();
-    }
-
-    if (preset_lib_filename != "")
-    {
-        // save config_map to file
-        TFileStream * file = new TFileStream(preset_lib_filename, fmCreate);
-        if (!file)
-        {
-            ShowMessage("打开文件失败");
-            return;
-        }
-
-        all_config_map[cur_preset_id-1] = config_map;
-        SetPresetLibFilename(SaveDialog1->FileName);
-        SetFileDirty(false);
-
-        file->WriteBuffer(&all_config_map, sizeof(all_config_map));
-
-        delete file;
-    }
-}
-//---------------------------------------------------------------------------
-void __fastcall TForm1::LoadAllPresetClick(TObject *Sender)
-{
-/*
-    OpenDialog1->Filter = "presetlib|*.presetlib";
-    if (OpenDialog1->Execute())
-    {
-        if (udpControl->Active)
-        {
-            // 选项： 同步到下位机 / 断开下位机
-            int syn_select = Application->MessageBox("请选择数据同步方式", "加载选项", MB_YESNOCANCEL);
-            if (syn_select == IDYES)
-            {
-                // 同步
-            }
-            else if (syn_select == IDNO)
-            {
-                udpControl->Active = false;
-            }
-            else
-            {
-                // 取消
-                return;
-            }
-        }
-
-        // save config_map to file
-        TFileStream * file = new TFileStream(OpenDialog1->FileName, fmOpenRead);
-        if (!file)
-        {
-            ShowMessage("打开文件失败");
-            return;
-        }
-
-        SetPresetLibFilename(OpenDialog1->FileName);
-        SetFileDirty(false);
-
-        file->ReadBuffer(&all_config_map, sizeof(all_config_map));
-
-        delete file;
-
-        config_map = all_config_map[0];
-        SetPresetId(1);
-
-        ApplyConfigToUI();
-        CloseDspDetail();
-
-        if (udpControl->Active)
-        {
-            // Download To Device
-            D1608PresetCmd preset_cmd;
-            preset_cmd.preset = 0x80;
-            preset_cmd.store_page = 0;
-            memcpy(preset_cmd.data, &config_map.input_dsp[0], sizeof(config_map.input_dsp[0])*4);
-
-            udpControl->SendBuffer(dst_ip, UDP_PORT_STORE_PRESET_PC2FLASH, &preset_cmd, sizeof(preset_cmd));
-        }
-    }
-*/
-}
-//---------------------------------------------------------------------------
 static String InputGain2String(int gain)
 {
     switch (gain)
@@ -3522,6 +3422,7 @@ void __fastcall TForm1::FormCloseQuery(TObject *Sender, bool &CanClose)
 {
     if (file_dirty)
     {
+        /* 暂时不考虑提示对话框
         int ret = Application->MessageBox("是否保存当前preset修改", "关闭确认", MB_YESNOCANCEL);
         if (ret == ID_CANCEL)
         {
@@ -3538,7 +3439,7 @@ void __fastcall TForm1::FormCloseQuery(TObject *Sender, bool &CanClose)
                 return;
             }
         }
-        else
+        else*/
         {
             return;
         }
