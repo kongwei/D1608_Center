@@ -472,75 +472,75 @@ String Coefficient::GetTypeName(int type_id)
     return "Parametric";
 }
 
-void InitConfigMap()
+void InitConfigMap(ConfigMap& tmp_config_map)
 {
 	int preset_freq[11] = {20, 50, 100, 200, 500, 1000, 2000, 5000, 7500, 10000, 20000};
 
-	memset(&config_map, 0,sizeof(config_map));
+	memset(&tmp_config_map, 0,sizeof(tmp_config_map));
 
 	for (int i=0;i<INPUT_DSP_NUM;i++)
 	{
-        config_map.input_dsp[i].eq_switch = 1;
-        config_map.input_dsp[i].gain = 7;
+        tmp_config_map.input_dsp[i].eq_switch = 1;
+        tmp_config_map.input_dsp[i].gain = 7;
 
 		for (int j=HP_FILTER;j<=LP_FILTER;j++)
 		{
-			config_map.input_dsp[i].filter[j-1].GAIN = 0;
-			config_map.input_dsp[i].filter[j-1].bypass = 0;
-			config_map.input_dsp[i].filter[j-1].FREQ = preset_freq[j-1] * 10;
-			config_map.input_dsp[i].filter[j-1].Q = 409;
+			tmp_config_map.input_dsp[i].filter[j-1].GAIN = 0;
+			tmp_config_map.input_dsp[i].filter[j-1].bypass = 0;
+			tmp_config_map.input_dsp[i].filter[j-1].FREQ = preset_freq[j-1] * 10;
+			tmp_config_map.input_dsp[i].filter[j-1].Q = 409;
 		}
 
-		config_map.input_dsp[i].filter[HP_FILTER-1].TYPE = 1201;	// HP
-			config_map.input_dsp[i].filter[HP_FILTER-1].bypass = 1;
-		config_map.input_dsp[i].filter[HP_FILTER].TYPE = 4;	// Low Shelf
+		tmp_config_map.input_dsp[i].filter[HP_FILTER-1].TYPE = 1201;	// HP
+			tmp_config_map.input_dsp[i].filter[HP_FILTER-1].bypass = 1;
+		tmp_config_map.input_dsp[i].filter[HP_FILTER].TYPE = 4;	// Low Shelf
 		for (int j=FIRST_FILTER+2;j<=LAST_FILTER-2;j++)
         {
-            config_map.input_dsp[i].filter[j-1].TYPE = 1;	// PEQ
+            tmp_config_map.input_dsp[i].filter[j-1].TYPE = 1;	// PEQ
         }
-		config_map.input_dsp[i].filter[LP_FILTER-2].TYPE = 3;	// High Shelf
-		config_map.input_dsp[i].filter[LP_FILTER-1].TYPE = 1211;	// LP
-			config_map.input_dsp[i].filter[LP_FILTER-1].bypass = 1;
+		tmp_config_map.input_dsp[i].filter[LP_FILTER-2].TYPE = 3;	// High Shelf
+		tmp_config_map.input_dsp[i].filter[LP_FILTER-1].TYPE = 1211;	// LP
+			tmp_config_map.input_dsp[i].filter[LP_FILTER-1].bypass = 1;
 	}
 
 	for (int i=0;i<OUTPUT_DSP_NUM;i++)
 	{
-        config_map.output_dsp[i].eq_switch = 1;
-        config_map.output_dsp[i].gain = 3;
+        tmp_config_map.output_dsp[i].eq_switch = 1;
+        tmp_config_map.output_dsp[i].gain = 3;
 
 		for (int j=HP_FILTER;j<=LP_FILTER;j++)
 		{
-			config_map.output_dsp[i].filter[j-1].GAIN = 0;
-			config_map.output_dsp[i].filter[j-1].bypass = 0;
-			config_map.output_dsp[i].filter[j-1].FREQ = preset_freq[j-1] * 10;
-			config_map.output_dsp[i].filter[j-1].Q = 409;
+			tmp_config_map.output_dsp[i].filter[j-1].GAIN = 0;
+			tmp_config_map.output_dsp[i].filter[j-1].bypass = 0;
+			tmp_config_map.output_dsp[i].filter[j-1].FREQ = preset_freq[j-1] * 10;
+			tmp_config_map.output_dsp[i].filter[j-1].Q = 409;
 		}
 
-		config_map.output_dsp[i].filter[HP_FILTER-1].TYPE = 1201;	// HP
-			config_map.output_dsp[i].filter[HP_FILTER-1].bypass = 1;
-		config_map.output_dsp[i].filter[HP_FILTER].TYPE = 4;	// Low Shelf
+		tmp_config_map.output_dsp[i].filter[HP_FILTER-1].TYPE = 1201;	// HP
+			tmp_config_map.output_dsp[i].filter[HP_FILTER-1].bypass = 1;
+		tmp_config_map.output_dsp[i].filter[HP_FILTER].TYPE = 4;	// Low Shelf
 		for (int j=FIRST_FILTER+2;j<=LAST_FILTER-2;j++)
         {
-            config_map.output_dsp[i].filter[j-1].TYPE = 1;	// PEQ
+            tmp_config_map.output_dsp[i].filter[j-1].TYPE = 1;	// PEQ
         }
-		config_map.output_dsp[i].filter[LP_FILTER-2].TYPE = 3;	// High Shelf
-		config_map.output_dsp[i].filter[LP_FILTER-1].TYPE = 1211;	// LP
-			config_map.output_dsp[i].filter[LP_FILTER-1].bypass = 1;
+		tmp_config_map.output_dsp[i].filter[LP_FILTER-2].TYPE = 3;	// High Shelf
+		tmp_config_map.output_dsp[i].filter[LP_FILTER-1].TYPE = 1211;	// LP
+			tmp_config_map.output_dsp[i].filter[LP_FILTER-1].bypass = 1;
 
         // 压缩参数
-        config_map.output_dsp[i].ratio = 100;
-        config_map.output_dsp[i].threshold = -100;
-        config_map.output_dsp[i].attack_time = 640;
-        config_map.output_dsp[i].release_time = 10000;
-        config_map.output_dsp[i].comp_gain = 0;
-        config_map.output_dsp[i].auto_time = 1;
+        tmp_config_map.output_dsp[i].ratio = 100;
+        tmp_config_map.output_dsp[i].threshold = -100;
+        tmp_config_map.output_dsp[i].attack_time = 640;
+        tmp_config_map.output_dsp[i].release_time = 10000;
+        tmp_config_map.output_dsp[i].comp_gain = 0;
+        tmp_config_map.output_dsp[i].auto_time = 1;
 	}
 
     // mix_mute
-    memset(&config_map.master_mix.mix_mute, 1, sizeof(config_map.master_mix.mix_mute));
+    memset(&tmp_config_map.master_mix.mix_mute, 1, sizeof(tmp_config_map.master_mix.mix_mute));
     for (int i=0;i<INPUT_DSP_NUM/*或者OUTPUT_DSP_NUM*/;i++)
     {
-        config_map.master_mix.mix_mute[i][i] = 0;
+        tmp_config_map.master_mix.mix_mute[i][i] = 0;
     }
 }
 

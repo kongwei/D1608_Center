@@ -4,6 +4,7 @@
 #pragma hdrstop
 
 #include "untFlashReader.h"
+#include "Coefficient.h"
 #include <string.h>
 //---------------------------------------------------------------------------
 
@@ -85,7 +86,7 @@ void LoadPresetById(int preset_id, ConfigMap& tmp_config_map, unsigned char* fla
 	Using_Page using_page;
 	GetUsingPage(&using_page, flash_dump_data);
 
-	//InitConfigMap(tmp_config_map);
+	InitConfigMap(tmp_config_map);
 	// input
 	if (using_page.preset_address[preset_id-1][0] != 0)
 		memcpy(&tmp_config_map.input_dsp[0],

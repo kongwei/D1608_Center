@@ -720,7 +720,7 @@ __fastcall TForm1::TForm1(TComponent* Owner)
     panel_agent->SetPanel(10, panelBand9, edtFreq9, edtQ9, edtGain9, cbType9, cbBypass9);
     panel_agent->SetPanel(11, panelBand10, edtFreq10, edtQ10, edtGain10, cbType10, cbBypass10);
 
-    InitConfigMap();
+    InitConfigMap(config_map);
     btnDspResetEQ->Click();
 
     ApplyConfigToUI();

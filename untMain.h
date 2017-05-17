@@ -477,8 +477,6 @@ __published:	// IDE-managed Components
     TComboBox *cbUpKeyFunction;
     TComboBox *cbDownKeyFunction;
     TCheckBox *cbLockUpDownMenuKey;
-    TSpeedButton *btnSaveFlashToFile;
-    TSpeedButton *btnLoadFileToFlash;
     TTimer *tmDelayUpdateUI;
     TButton *btnClearDebug;
     TActionList *ActionList1;
@@ -503,8 +501,10 @@ __published:	// IDE-managed Components
     TLabel *Label27;
     TEdit *edtRemainTime;
     TImage *Image2;
-    TProgressBar *pbBackup;
     TTimer *tmDelayBackup;
+    TSpeedButtonNoFrame *btnSaveFlashToFile;
+    TSpeedButtonNoFrame *btnLoadFileToFlash;
+    TProgressBar *pbBackup;
     void __fastcall FormCreate(TObject *Sender);
     void __fastcall FormDestroy(TObject *Sender);
     void __fastcall btnRefreshClick(TObject *Sender);

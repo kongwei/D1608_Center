@@ -6,6 +6,9 @@
 #include <math.h>
 #include <algorithm>
 #include <math.hpp>
+extern "C"{
+#include "../enc28j60_iap_app/inc/D1608Pack.h"
+}
 //---------------------------------------------------------------------------
 
 #define SAMPLE_FREQ 48000
@@ -883,6 +886,6 @@ private:
     static String GetTypeName(int type_id);
 };
 
-void InitConfigMap();
+void InitConfigMap(ConfigMap&);
 //---------------------------------------------------------------------------
 #endif
