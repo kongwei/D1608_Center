@@ -507,6 +507,8 @@ __published:	// IDE-managed Components
     TLabel *Label27;
     TEdit *edtRemainTime;
     TImage *Image2;
+    TProgressBar *pbBackup;
+    TTimer *tmDelayBackup;
     void __fastcall FormCreate(TObject *Sender);
     void __fastcall FormDestroy(TObject *Sender);
     void __fastcall btnRefreshClick(TObject *Sender);
@@ -661,6 +663,7 @@ __published:	// IDE-managed Components
     void __fastcall btnLoadFileToFlashClick(TObject *Sender);
     void __fastcall tmDelayUpdateUITimer(TObject *Sender);
     void __fastcall btnClearDebugClick(TObject *Sender);
+    void __fastcall tmDelayBackupTimer(TObject *Sender);
 
 private:
     // 已经加载版本文件
@@ -722,9 +725,9 @@ private:
 public:		// User declarations
     __fastcall TForm1(TComponent* Owner);
 
-    TPanel * watch_panel_inner[17+16];// TODO
+    TPanel * watch_panel_inner[17+16];
 
-    TSpeedButton* input_dsp_btn[17]; // TODO
+    TSpeedButton* input_dsp_btn[17];
     TLabel* input_type_lbl[17];
     TSpeedButton* input_eq_btn[17];
     TSpeedButton* input_comp_btn[17];
@@ -737,11 +740,11 @@ public:		// User declarations
     TAdvTrackBar* input_level_trackbar[17];
     TStaticText* input_dsp_name[17];
 
-    TSpeedButton* output_dsp_btn[16];  // TODO
+    TSpeedButton* output_dsp_btn[16];
     TLabel* output_type_lbl[16];
     TSpeedButton* output_eq_btn[16];
     TSpeedButton* output_comp_btn[16];
-    TSpeedButton* output_number_btn[16];  // TODO
+    TSpeedButton* output_number_btn[16];
     TSpeedButton* output_invert_btn[16];
     TSpeedButton* output_mute_btn[16];
     TEdit* output_level_edit[16];
@@ -792,6 +795,14 @@ private:
     WNDPROC old_pnlSystem_proc;
     static LRESULT new_pnlSystem_proc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp);
     HWND hIpEdit;
+private:
+    // 备份设备到文件流程专用
+    String save_device_to_file_filename;
+
+    int restor_delay_count;
+    int last_command;
+    D1608PresetCmd last_restore_package;
+    FlashRW_Data last_readflash_package;
 };
 //---------------------------------------------------------------------------
 extern PACKAGE TForm1 *Form1;

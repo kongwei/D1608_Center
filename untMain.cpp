@@ -4,6 +4,8 @@
 #pragma hdrstop
 
 #include "untMain.h"
+#include "untFlashReader.h"
+
 #include <winsock2.h>
 #include <algorithm>
 #include <stddef.h>
@@ -26,6 +28,9 @@ ConfigMap config_map;
 GlobalConfig global_config = {0};
 int REAL_INPUT_DSP_NUM = 16;
 int REAL_OUTPUT_DSP_NUM = 16;
+
+// 用于复制设备的flaah数据
+static char device_flash_dump[128*1024];
 
 struct SmcConfig
 {
@@ -1065,9 +1070,6 @@ void __fastcall TForm1::btnSelectClick(TObject *Sender)
         }
     }
 
-    // TODO: 测试是否能够持续刷新，且不影响流程
-    //cbAutoRefresh->Checked = false;
-
     String broadcast_ip = selected->SubItems->Strings[1];
     // 初始化socket
     udpControl->Active = false;
@@ -1309,8 +1311,13 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
         else if (cmd.id == GetOffsetOfData(&config_map.op_code.noop))
         {
             int preset_id = cmd.data.data_32_array[0];
-            // TODO: preset_id 出现0
-            if (preset_id != cur_preset_id && preset_id!=0)
+            if (preset_id<1 || preset_id>8)
+            {
+                // 收到的数据包异常
+                return;
+            }
+
+            if (preset_id != cur_preset_id)
             {
                 cur_preset_id = preset_id;
 
@@ -1519,7 +1526,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             }
         }
     }
-    else if (ABinding->PeerPort == UDP_PORT_READ_FLASH)
+    else if (ABinding->PeerPort == UDP_PORT_READ_LOG)
     {
         typedef struct
         {
@@ -1583,7 +1590,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
         if (buff.address+1024 < MAC_LIST_START_PAGE+MAC_LIST_SIZE)
         {
             buff.address += 1024;
-            udpControl->SendBuffer(dst_ip, UDP_PORT_READ_FLASH, &buff, sizeof(buff));
+            udpControl->SendBuffer(dst_ip, UDP_PORT_READ_LOG, &buff, sizeof(buff));
         }
     }
     else if (ABinding->PeerPort == UDP_PORT_GET_DEBUG_INFO)
@@ -1760,7 +1767,22 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
 
         if (download_all_preset)
         {
-            if (preset_id<8 && preset_cmd.store_page == 8)
+            if (preset_id==8 && preset_cmd.store_page == 8)
+            {
+                tmDelayBackup->Enabled = false;
+                last_command = 0;
+                pbBackup->Position = 100;
+                ::Sleep(1000);
+                pbBackup->Hide();
+                preset_cmd.preset++;
+
+                // 发送一个重新加载preset的指令
+                D1608Cmd cmd;
+                cmd.id = GetOffsetOfData(&config_map.op_code.switch_preset);
+                cmd.data.data_32 = smc_config.global_config.active_preset_id;
+                SendCmd(cmd);
+            }
+            else if (preset_id<8 && preset_cmd.store_page == 8)
             {
                 preset_cmd.preset++;
                 preset_id++;
@@ -1770,6 +1792,8 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             {
                 preset_cmd.store_page++;
             }
+
+            pbBackup->Position = (preset_id*9 + preset_cmd.store_page)*100/(8*9+9);
         }
         else
         {
@@ -1822,6 +1846,48 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
         if (preset_cmd.store_page <= 8)
         {
             udpControl->SendBuffer(dst_ip, UDP_PORT_STORE_PRESET_PC2FLASH, &preset_cmd, sizeof(preset_cmd));
+            last_restore_package = preset_cmd;
+            restor_delay_count = 15;
+        }
+    }
+    else if (ABinding->PeerPort == UDP_PORT_READ_FLASH)
+    {
+        FlashRW_Data buff;
+        AData->ReadBuffer(&buff, std::min(sizeof(buff), AData->Size));
+
+        if (buff.start_address >= PRESET_START_PAGE && buff.start_address < PRESET_START_PAGE+127*1024)
+        {
+            int offset = buff.start_address-PRESET_START_PAGE;
+            memcpy(device_flash_dump+offset, buff.data, sizeof(buff.data));
+
+            pbBackup->Position = offset*100/(128*1024);
+        }
+
+        // Next
+        if (buff.start_address <= buff.end_address - 1024)
+        {
+            buff.start_address = buff.start_address+1024;
+            udpControl->SendBuffer(dst_ip, UDP_PORT_READ_FLASH, &buff, sizeof(buff));
+
+            last_readflash_package = buff;
+            restor_delay_count = 15;
+        }
+        else
+        {
+            // 完成，写入文件
+            TFileStream * file = new TFileStream(save_device_to_file_filename, fmCreate);
+            if (!file)
+            {
+                ShowMessage("打开文件失败");
+                return;
+            }
+            file->WriteBuffer(device_flash_dump, sizeof(device_flash_dump));
+            pbBackup->Position = 100;
+            tmDelayBackup->Enabled = false;
+            last_command = 0;
+            ::Sleep(1000);
+            pbBackup->Hide();
+            delete file;
         }
     }
 }
@@ -2910,6 +2976,7 @@ void __fastcall TForm1::pnlmix_muteClick(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TForm1::btnSavePresetToFileClick(TObject *Sender)
 {
+/*
     // 保存到文件
     SaveDialog1->Filter = "preset|*.preset";
     if (SaveDialog1->Execute())
@@ -2926,6 +2993,7 @@ void __fastcall TForm1::btnSavePresetToFileClick(TObject *Sender)
 
         delete file;
     }
+*/
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::btnLoadPresetFromFileClick(TObject *Sender)
@@ -3004,6 +3072,7 @@ void __fastcall TForm1::SaveAllPresetClick(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TForm1::LoadAllPresetClick(TObject *Sender)
 {
+/*
     OpenDialog1->Filter = "presetlib|*.presetlib";
     if (OpenDialog1->Execute())
     {
@@ -3058,6 +3127,7 @@ void __fastcall TForm1::LoadAllPresetClick(TObject *Sender)
             udpControl->SendBuffer(dst_ip, UDP_PORT_STORE_PRESET_PC2FLASH, &preset_cmd, sizeof(preset_cmd));
         }
     }
+*/
 }
 //---------------------------------------------------------------------------
 static String InputGain2String(int gain)
@@ -3498,7 +3568,11 @@ void __fastcall TForm1::StoreAsClick(TObject *Sender)
 void __fastcall TForm1::RecallClick(TObject *Sender)
 {
     TMenuItem * menu = (TMenuItem*)Sender;
-    all_config_map[cur_preset_id-1] = config_map;
+
+    if (cbPresetAutoSaved->Checked)
+    {
+        all_config_map[cur_preset_id-1] = config_map;
+    }
     SetPresetId(menu->Tag);
 
     CloseDspDetail();
@@ -3550,7 +3624,7 @@ void __fastcall TForm1::btnGetLogClick(TObject *Sender)
 {
     lvLog->Clear();
     int log_address = 0x8000000+128*1024+10*5*2*1024;
-    udpControl->SendBuffer(dst_ip, UDP_PORT_READ_FLASH, &log_address, 4+1024);
+    udpControl->SendBuffer(dst_ip, UDP_PORT_READ_LOG, &log_address, 4+1024);
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::btnGetDebugClick(TObject *Sender)
@@ -4770,41 +4844,80 @@ void __fastcall TForm1::cbLockUpDownMenuKeyClick(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TForm1::btnSaveFlashToFileClick(TObject *Sender)
 {
-    SaveDialog1->Filter = "smc config file(*.smc)|*.smc";
+    if (last_command != 0)
+    {
+        ShowMessage("设备忙");
+        return;
+    }
+
+    if (!udpControl->Active)
+        SaveDialog1->Filter = "smc config file(*.smc)|*.smc";
+    else
+        SaveDialog1->Filter = "smc dump file(*.smcd)|*.smcd";
+
     if (SaveDialog1->Execute())
     {
-        TFileStream * file = new TFileStream(SaveDialog1->FileName, fmCreate);
-        if (!file)
+        if (ExtractFileExt(SaveDialog1->FileName) == ".smc")
         {
-            ShowMessage("打开文件失败");
-            return;
+            // 脱机，保存为逻辑preset，后缀smc
+            // 清除缓存数据
+            memset(&smc_config, 0, sizeof(smc_config));
+            global_config.active_preset_id = cur_preset_id;
+
+            smc_config.global_config = global_config;
+            smc_config.all_config_map[0] = all_config_map[0];
+            smc_config.all_config_map[1] = all_config_map[1];
+            smc_config.all_config_map[2] = all_config_map[2];
+            smc_config.all_config_map[3] = all_config_map[3];
+            smc_config.all_config_map[4] = all_config_map[4];
+            smc_config.all_config_map[5] = all_config_map[5];
+            smc_config.all_config_map[6] = all_config_map[6];
+            smc_config.all_config_map[7] = all_config_map[7];
+
+            // 完成，写入文件
+            TFileStream * file = new TFileStream(SaveDialog1->FileName, fmCreate);
+            if (!file)
+            {
+                ShowMessage("打开文件失败");
+                return;
+            }
+            file->WriteBuffer(&smc_config, sizeof(smc_config));
+            delete file;
         }
+        else
+        {
+            // 联机，保存为flash dump，后缀smcd
+            save_device_to_file_filename = SaveDialog1->FileName;
 
-        // 清除缓存数据
-        memset(&smc_config, 0, sizeof(smc_config));
-        global_config.active_preset_id = cur_preset_id;
-        // 复制数据(TODO: 从设备同步)
-        smc_config.global_config = global_config;
-        smc_config.all_config_map[0] = all_config_map[0];
-        smc_config.all_config_map[1] = all_config_map[1];
-        smc_config.all_config_map[2] = all_config_map[2];
-        smc_config.all_config_map[3] = all_config_map[3];
-        smc_config.all_config_map[4] = all_config_map[4];
-        smc_config.all_config_map[5] = all_config_map[5];
-        smc_config.all_config_map[6] = all_config_map[6];
-        smc_config.all_config_map[7] = all_config_map[7];
+            memset(device_flash_dump, 0, sizeof(device_flash_dump));
 
+            // 从设备把数据同步上来
+            FlashRW_Data buff;
+            //  每包2k数据
+            buff.start_address = PRESET_START_PAGE;
+            buff.end_address = 0x8000000+256*1024;
+            udpControl->SendBuffer(dst_ip, UDP_PORT_READ_FLASH, &buff, sizeof(buff));
 
+            last_command = UDP_PORT_READ_FLASH;
+            last_readflash_package = buff;
+            restor_delay_count = 15;
+            tmDelayBackup->Enabled = true;
 
-        file->WriteBuffer(&smc_config, sizeof(smc_config));
-
-        delete file;
+            pbBackup->Position = 0;
+            pbBackup->Show();
+        }
     }
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::btnLoadFileToFlashClick(TObject *Sender)
 {
-    OpenDialog1->Filter = "smc config file(*.smc)|*.smc";
+    if (last_command != 0)
+    {
+        ShowMessage("设备忙");
+        return;
+    }
+
+    OpenDialog1->Filter = "smc config file(*.smc;*.smcd)|*.smc;*.smcd";
     if (OpenDialog1->Execute())
     {
         memset(&smc_config, 0, sizeof(smc_config));
@@ -4816,25 +4929,62 @@ void __fastcall TForm1::btnLoadFileToFlashClick(TObject *Sender)
             return;
         }
 
-        file->ReadBuffer(&smc_config, sizeof(smc_config));
+        // 分析内存数据，形成global_config和presets (这里有两种情况，全flask dump和上位机脱机保存文件)
+        if (ExtractFileExt(OpenDialog1->FileName) == ".smc")
+        {
+            file->ReadBuffer(&smc_config, sizeof(smc_config));
+
+            memcpy(all_config_map, &smc_config.all_config_map, sizeof(smc_config.all_config_map));
+            global_config = smc_config.global_config;
+        }
+        else if (ExtractFileExt(OpenDialog1->FileName) == ".smcd")
+        {
+            file->ReadBuffer(&device_flash_dump, sizeof(device_flash_dump));
+            // 分析内存数据，形成global_config和presets
+            LoadGlobalConfig(smc_config.global_config, device_flash_dump);
+            for (int i=1;i<=8;i++)
+            {
+                LoadPresetById(i, smc_config.all_config_map[i-1], device_flash_dump);
+            }
+        }
+        else
+        {
+            // 文件格式错误
+            ShowMessage("文件格式错误");
+            delete file;
+            return;
+        }
 
         delete file;
 
-
-        memcpy(all_config_map, &smc_config.all_config_map, sizeof(smc_config.all_config_map));
-
-        // Download To Device
-        D1608PresetCmd preset_cmd;
-        preset_cmd.preset = 0x80;
-        preset_cmd.store_page = 8;  // 使用8表示最后一页，TODO: 表达不是很清楚
-        memcpy(preset_cmd.data, &smc_config.global_config, sizeof(smc_config.global_config));
-
-        if (udpControl->Active)
+        if (!udpControl->Active)
         {
+            // 脱机
+            SetPresetId(global_config.active_preset_id);
+            CloseDspDetail();
+            tmDelayUpdateUITimer(NULL);
+        }
+        else
+        {
+            // 联机
+            // Download To Device
+            D1608PresetCmd preset_cmd;
+            preset_cmd.preset = 0x80;
+            preset_cmd.store_page = 8;  // 使用8表示最后一页，TODO: 表达不是很清楚
+            memcpy(preset_cmd.data, &smc_config.global_config, sizeof(smc_config.global_config));
+            memcpy(all_config_map, &smc_config.all_config_map, sizeof(smc_config.all_config_map));
+
             udpControl->SendBuffer(dst_ip, UDP_PORT_STORE_PRESET_PC2FLASH, &preset_cmd, sizeof(preset_cmd));
+
+            last_command = UDP_PORT_STORE_PRESET_PC2FLASH;
+            last_restore_package = preset_cmd;
+            restor_delay_count = 15;
+            tmDelayBackup->Enabled = true;
+
+            pbBackup->Position = 0;
+            pbBackup->Show();
         }
     }
-
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::tmDelayUpdateUITimer(TObject *Sender)
@@ -4847,6 +4997,37 @@ void __fastcall TForm1::tmDelayUpdateUITimer(TObject *Sender)
 void __fastcall TForm1::btnClearDebugClick(TObject *Sender)
 {
     lvDebug->Clear();
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::tmDelayBackupTimer(TObject *Sender)
+{
+    if (restor_delay_count > 0)
+    {
+        restor_delay_count--;
+    }
+
+    if (restor_delay_count == 0)
+    {
+        // 超时，终止本次同步
+        last_command = 0;
+        ::Sleep(1000);
+        pbBackup->Hide();
+    }
+    else if ((restor_delay_count%5) == 1)
+    {
+        if (last_command == UDP_PORT_STORE_PRESET_PC2FLASH)
+        {
+            udpControl->SendBuffer(dst_ip, last_command, &last_restore_package, sizeof(last_restore_package));
+        }
+        else if (last_command == UDP_PORT_READ_FLASH)
+        {
+            udpControl->SendBuffer(dst_ip, last_command, &last_readflash_package, sizeof(last_readflash_package));
+        }
+
+        // 备份 恢复 流程使用的延时计时器
+        restor_delay_count = 5;
+        AppendLog("retry syn");
+    }
 }
 //---------------------------------------------------------------------------
 

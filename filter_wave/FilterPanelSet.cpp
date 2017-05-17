@@ -28,6 +28,18 @@ static double Str2Double(String str, double old_freq)
         return old_freq;
     }
 }
+static String GetFilterTypeSuffix(int band)
+{
+    switch(band)
+    {
+    case HP_FILTER:
+        return " High";
+    case LP_FILTER:
+        return " Low";
+    default:
+        return "";
+    }
+}
 
 void PanelAgent::SetPanel(int band, TPanel* panel, TEdit* edtFreq, TEdit* edtQ, TEdit* edtGain, TComboBox* cbType, TCheckBox* cbBypass)
 {
@@ -64,22 +76,42 @@ void PanelAgent::SetPanel(int band, TPanel* panel, TEdit* edtFreq, TEdit* edtQ, 
     _edtQ[band]->OnKeyDown = edtQKeyDown;
     _edtGain[band]->OnKeyDown = edtGainKeyDown;
 }
-TPanel* PanelAgent::GetPanel(int band)
+void PanelAgent::SetPanelEnabled(int band, bool value)
 {
-    return _panel[band];
+    if (_panel[band])
+    {
+        _panel[band]->Enabled = value;
+    }
 }
-TEdit* PanelAgent::GetFreqText(int band)
+void PanelAgent::SetFreqTextEnabled(int band, bool value)
 {
-    return _edtFreq[band];
+    if (_edtFreq[band])
+    {
+        _edtFreq[band]->Enabled = value;
+    }
 }
-TEdit* PanelAgent::GetQText(int band)
+void PanelAgent::SetQTextEnabled(int band, bool value)
 {
-    return _edtQ[band];
+    if (_edtQ[band])
+    {
+        _edtQ[band]->Enabled = value;
+    }
 }
-TEdit* PanelAgent::GetGainText(int band)
+void PanelAgent::SetGainTextEnabled(int band, bool value)
 {
-    return _edtGain[band];
+    if (_edtGain[band])
+    {
+        _edtGain[band]->Enabled = value;
+    }
 }
+void PanelAgent::SetGainTextValue(int band, String value)
+{
+    if (_edtGain[band])
+    {
+        _edtGain[band]->Text = value;
+    }
+}
+
 TComboBox* PanelAgent::GetType(int band)
 {
     return _cbType[band];
@@ -140,58 +172,45 @@ void PanelAgent::LoadPreset()
         _filter_set.gain = (config_map.output_dsp[dsp_id-101].comp_gain / 10.0);
     }
 }
-
+void PanelAgent::UpdateUIEnabled()
+{
+    // 原本是  FIRST_FILTER .. LAST_FILTER-2, LP_FILTER-1, LP_FILTER
+    for (int i=HP_FILTER;i<=LP_FILTER;i++)
+    {
+        bool band_forbidden = _filter_set.IsBandForbidden(i);
+        SetPanelEnabled(i, !band_forbidden);
+        SetFreqTextEnabled(i, !band_forbidden);
+        SetQTextEnabled(i, !band_forbidden);
+        SetGainTextEnabled(i, !band_forbidden);
+    }
+}
 void __fastcall PanelAgent::cbTypeChange(TObject *Sender)
 {
     int band = ((TControl*)Sender)->Parent->Tag;
     TComboBox * type_ccombobox = (TComboBox*)Sender;
     String type = type_ccombobox->Text;
 
-    if (type_ccombobox->Parent->Tag == HP_FILTER)
-    {
-        type = type + " High";
-    }
-    else if (type_ccombobox->Parent->Tag == LP_FILTER)
-    {
-        type = type + " Low";
-    }
+    type = type + GetFilterTypeSuffix(band);
 
     _filter_set.GetFilter(band)->SetType(type);
 
     if (!_filter_set.GetFilter(band)->IsGainEnabled())
     {
-        GetGainText(band)->Text = "0";
-        GetGainText(band)->Enabled = false;
+        SetGainTextValue(band, "0");
+        SetGainTextEnabled(band, false);
 
         _filter_set.GetFilter(band)->SetGain(0);
     }
     else
     {
-        GetGainText(band)->Text = _filter_set.GetFilter(band)->GetGain();
-        GetGainText(band)->Enabled = true;
+        SetGainTextValue(band, _filter_set.GetFilter(band)->GetGain());
+        SetGainTextEnabled(band, true);
     }
 
-    // TODO: 重复代码
-    for (int i=FIRST_FILTER;i<=LAST_FILTER-2;i++)
-    {
-        bool band_forbidden = _filter_set.IsBandForbidden(i);
-        GetPanel(i)->Enabled = !band_forbidden;
-        GetFreqText(i)->Enabled = !band_forbidden;
-        GetQText(i)->Enabled = !band_forbidden;
-        GetGainText(i)->Enabled = !band_forbidden;
-    }
-    for (int i=LP_FILTER-1;i<=LP_FILTER;i++)
-    {
-        bool band_forbidden = _filter_set.IsBandForbidden(i);
-        GetPanel(i)->Enabled = !band_forbidden;
-        GetFreqText(i)->Enabled = !band_forbidden;
-        GetQText(i)->Enabled = !band_forbidden;
-        GetGainText(i)->Enabled = !band_forbidden;
-    }
+    UpdateUIEnabled();
 
     SaveToConfigMap(band);
     _filter_set.RepaintPaint();
-//    edtGain->Text = _filter_set.GetFilter(band)->GetGain();
 }
 
 void __fastcall PanelAgent::cbBypassClick(TObject *Sender)
@@ -200,23 +219,7 @@ void __fastcall PanelAgent::cbBypassClick(TObject *Sender)
     TCheckBox * bypass_checkbox = (TCheckBox*)Sender;
     _filter_set.SetBypass(band, bypass_checkbox->Checked);
 
-    // TODO: 重复代码
-    for (int i=FIRST_FILTER;i<=LAST_FILTER-2;i++)
-    {
-        bool band_forbidden = _filter_set.IsBandForbidden(i);
-        GetPanel(i)->Enabled = !band_forbidden;
-        GetFreqText(i)->Enabled = !band_forbidden;
-        GetQText(i)->Enabled = !band_forbidden;
-        GetGainText(i)->Enabled = !band_forbidden;
-    }
-    for (int i=LP_FILTER-1;i<=LP_FILTER;i++)
-    {
-        bool band_forbidden = _filter_set.IsBandForbidden(i);
-        GetPanel(i)->Enabled = !band_forbidden;
-        GetFreqText(i)->Enabled = !band_forbidden;
-        GetQText(i)->Enabled = !band_forbidden;
-        GetGainText(i)->Enabled = !band_forbidden;
-    }
+    UpdateUIEnabled();
 
     SaveToConfigMap(band);
     _filter_set.RepaintPaint(band);
@@ -479,20 +482,9 @@ void PanelAgent::UpdateFreqQGain(int band)
     _edtGain[band]->Text = _filter_set.GetFilter(band)->GetGain();
     _cbBypass[band]->Checked = _filter_set.IsBypass(band);
 
-    String suffix = "";
-    // TODO: 有重复代码
-    if (band == HP_FILTER)
-    {
-        suffix = " High";
-    }
-    else if (band == LP_FILTER)
-    {
-        suffix = " Low";
-    }
-
     for (int i=0;i<_cbType[band]->Items->Count;i++)
     {
-        if (_cbType[band]->Items->Strings[i]+suffix == _filter_set.GetFilter(band)->GetType())
+        if (_cbType[band]->Items->Strings[i]+GetFilterTypeSuffix(band) == _filter_set.GetFilter(band)->GetType())
         {
             _cbType[band]->ItemIndex = i;
             break;

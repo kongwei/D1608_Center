@@ -5,7 +5,8 @@
     <VERSION value="BCB.06.00"/>
     <PROJECT value="iap_udp.exe"/>
     <OBJFILES value="tmp\iap_udp.obj tmp\untMain.obj tmp\Coefficient.obj tmp\FilterList.obj 
-      tmp\FilterPanelSet.obj tmp\SelectSort.obj tmp\WaveGraphic.obj"/>
+      tmp\FilterPanelSet.obj tmp\SelectSort.obj tmp\WaveGraphic.obj 
+      tmp\untFlashReader.obj"/>
     <RESFILES value="iap_udp.res tmp\mixbutton.res tmp\font.res"/>
     <IDLFILES value=""/>
     <IDLGENFILES value=""/>
@@ -34,13 +35,14 @@
     <USERDEFINES value="_DEBUG;STRICT"/>
     <SYSDEFINES value="NO_STRICT"/>
     <MAINSOURCE value="iap_udp.cpp"/>
-    <INCLUDEPATH value="font;$(BCB)\include;$(BCB)\Lib;$(BCB)\include\vcl;filter_wave;&quot;..\..\vcl component pack v6.0.2.0&quot;;..\..\new\CentCtrl;$(BCB)\Projects\Bpl"/>
+    <INCLUDEPATH value="&quot;C:\Program Files\Borland\CBuilder6\Projects&quot;;font;$(BCB)\include;$(BCB)\Lib;$(BCB)\include\vcl;filter_wave;&quot;..\..\vcl component pack v6.0.2.0&quot;;..\..\new\CentCtrl;$(BCB)\Projects\Bpl"/>
     <LIBPATH value="font;&quot;C:\Program Files\Borland\CBuilder6\Projects&quot;;$(BCB)\Projects\Lib;$(BCB)\lib\obj;$(BCB)\lib;filter_wave;..\..\new\CentCtrl;&quot;..\..\vcl component pack v6.0.2.0&quot;"/>
     <WARNINGS value="-w-par"/>
     <OTHERFILES value=""/>
   </MACROS>
   <OPTIONS>
-    <IDLCFLAGS value="-Ifont -I$(BCB)\include -I$(BCB)\Lib -I$(BCB)\include\vcl -Ifilter_wave 
+    <IDLCFLAGS value="-I&quot;C:\Program Files\Borland\CBuilder6\Projects&quot; -Ifont -I$(BCB)\include 
+      -I$(BCB)\Lib -I$(BCB)\include\vcl -Ifilter_wave 
       -I&quot;..\..\vcl component pack v6.0.2.0&quot; -I..\..\new\CentCtrl 
       -I$(BCB)\Projects\Bpl -src_suffix cpp -D_DEBUG -DSTRICT -boa"/>
     <CFLAG1 value="-Od -H=$(BCB)\lib\vcl60.csm -Hc -Vx -Ve -X- -r- -a8 -b- -k -y -v -vi- -c 
@@ -68,6 +70,7 @@
       <FILE FILENAME="filter_wave\WaveGraphic.cpp" FORMNAME="" UNITNAME="WaveGraphic.cpp" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
       <FILE FILENAME="mixbutton.rc" FORMNAME="" UNITNAME="mixbutton.rc" CONTAINERID="RCCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
       <FILE FILENAME="font\font.rc" FORMNAME="" UNITNAME="font.rc" CONTAINERID="RCCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="untFlashReader.cpp" FORMNAME="" UNITNAME="untFlashReader" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
   </FILELIST>
   <BUILDTOOLS>
   </BUILDTOOLS>

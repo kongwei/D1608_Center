@@ -27,10 +27,11 @@ public:
     }
 
     void SetPanel(int band, TPanel* panel, TEdit* edtFreq, TEdit* edtQ, TEdit* edtGain, TComboBox* cbType, TCheckBox* cbBypass);
-    TPanel* GetPanel(int band);
-    TEdit* GetFreqText(int band);
-    TEdit* GetQText(int band);
-    TEdit* GetGainText(int band);
+    void SetPanelEnabled(int band, bool value);
+    void SetFreqTextEnabled(int band, bool value);
+    void SetQTextEnabled(int band, bool value);
+    void SetGainTextEnabled(int band, bool value);
+    void SetGainTextValue(int band, String value);
     TComboBox* GetType(int band);
     TCheckBox* GetByPass(int band);
 
@@ -69,6 +70,9 @@ private:
     FilterSet& _filter_set;
 
     void SaveToConfigMap(int band);
+
+    // 根据滤波器类型和占用资源情况，设置界面可用(Enabled)属性
+    void UpdateUIEnabled();
 };
 
 #endif
