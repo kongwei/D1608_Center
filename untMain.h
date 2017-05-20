@@ -44,6 +44,7 @@
 extern "C"{
 #include "../enc28j60_iap_app/inc/D1608Pack.h"
 }
+#include "untFlashReader.h"
 
 #define UDP_PORT 65518
 #define TCP_PORT 15288
@@ -253,9 +254,6 @@ __published:	// IDE-managed Components
     TOpenDialog *OpenDialog1;
     TSaveDialog *SaveDialog1;
     TPopupMenu *PopupMenu3;
-    TMenuItem *SavePreset;
-    TMenuItem *LoadPreset;
-    TMenuItem *N1;
     TMenuItem *Store;
     TMenuItem *StoreAs;
     TMenuItem *N11;
@@ -505,6 +503,9 @@ __published:	// IDE-managed Components
     TSpeedButtonNoFrame *btnSaveFlashToFile;
     TSpeedButtonNoFrame *btnLoadFileToFlash;
     TProgressBar *pbBackup;
+    TPopupMenu *pmPresetSaveLoad;
+    TMenuItem *SavePresetAs;
+    TMenuItem *LoadPreset;
     void __fastcall FormCreate(TObject *Sender);
     void __fastcall FormDestroy(TObject *Sender);
     void __fastcall btnRefreshClick(TObject *Sender);
@@ -657,6 +658,9 @@ __published:	// IDE-managed Components
     void __fastcall tmDelayUpdateUITimer(TObject *Sender);
     void __fastcall btnClearDebugClick(TObject *Sender);
     void __fastcall tmDelayBackupTimer(TObject *Sender);
+    void __fastcall pmPresetSaveLoadPopup(TObject *Sender);
+    void __fastcall clbAvaliablePresetMouseDown(TObject *Sender,
+          TMouseButton Button, TShiftState Shift, int X, int Y);
 
 private:
     // 已经加载版本文件
@@ -793,9 +797,7 @@ private:
     String save_device_to_file_filename;
 
     int restor_delay_count;
-    int last_command;
-    D1608PresetCmd last_restore_package;
-    FlashRW_Data last_readflash_package;
+    vector<TPackage> package_list;
 };
 //---------------------------------------------------------------------------
 extern PACKAGE TForm1 *Form1;

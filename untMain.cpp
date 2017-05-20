@@ -1763,118 +1763,67 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
         D1608PresetCmd preset_cmd;
         AData->ReadBuffer(&preset_cmd, std::min(sizeof(preset_cmd), AData->Size));
 
-        bool download_all_preset = preset_cmd.preset & 0x80;
-        int preset_id = preset_cmd.preset & 0x7F;
+        // 校验一下
+        TPackage package = package_list.back();
+        if (package.udp_port != ABinding->PeerPort)
+            return;
+        if (package.data_size != AData->Size)
+            return;
+        if (memcmp(package.data, &preset_cmd, package.data_size) != 0)
+            return;
 
-        if (download_all_preset)
+        package_list.pop_back();
+
+        if (package_list.empty())
         {
-            if (preset_id==8 && preset_cmd.store_page == 8)
-            {
-                tmDelayBackup->Enabled = false;
-                last_command = 0;
-                pbBackup->Position = 100;
-                ::Sleep(1000);
-                pbBackup->Hide();
-                preset_cmd.preset++;
+            tmDelayBackup->Enabled = false;
+            pbBackup->Position = 100;
+            ::Sleep(1000);
+            pbBackup->Hide();
 
-                // 发送一个重新加载preset的指令
-                D1608Cmd cmd;
-                cmd.id = GetOffsetOfData(&config_map.op_code.switch_preset);
-                cmd.data.data_32 = smc_config.global_config.active_preset_id;
-                SendCmd(cmd);
-            }
-            else if (preset_id<8 && preset_cmd.store_page == 8)
-            {
-                preset_cmd.preset++;
-                preset_id++;
-                preset_cmd.store_page = 0;
-            }
-            else
-            {
-                preset_cmd.store_page++;
-            }
-
-            pbBackup->Position = (preset_id*9 + preset_cmd.store_page)*100/(8*9+9);
+            // 发送一个重新加载preset的指令
+            D1608Cmd cmd;
+            cmd.id = GetOffsetOfData(&config_map.op_code.switch_preset);
+            cmd.data.data_32 = smc_config.global_config.active_preset_id;
+            SendCmd(cmd);
         }
         else
         {
-            preset_cmd.store_page++;
-        }
+            package = package_list.back();
+            udpControl->SendBuffer(dst_ip, package.udp_port, package.data, package.data_size);
 
-        ConfigMap * dest_config_map;
-        if (download_all_preset)
-        {
-            dest_config_map = &all_config_map[preset_id-1];
-        }
-        else
-        {
-            dest_config_map = &config_map;
-        }
-
-        switch(preset_cmd.store_page)
-        {
-        case 0:
-            memcpy(preset_cmd.data, &dest_config_map->input_dsp[0], sizeof(dest_config_map->input_dsp[0])*4);
-            break;
-        case 1:
-            memcpy(preset_cmd.data, &dest_config_map->input_dsp[4], sizeof(dest_config_map->input_dsp[0])*4);
-            break;
-        case 2:
-            memcpy(preset_cmd.data, &dest_config_map->input_dsp[8], sizeof(dest_config_map->input_dsp[0])*4);
-            break;
-        case 3:
-            memcpy(preset_cmd.data, &dest_config_map->input_dsp[12], sizeof(dest_config_map->input_dsp[0])*4);
-            break;
-        case 4:
-            memcpy(preset_cmd.data, &dest_config_map->output_dsp[0], sizeof(dest_config_map->output_dsp[0])*4);
-            break;
-        case 5:
-            memcpy(preset_cmd.data, &dest_config_map->output_dsp[4], sizeof(dest_config_map->output_dsp[0])*4);
-            break;
-        case 6:
-            memcpy(preset_cmd.data, &dest_config_map->output_dsp[8], sizeof(dest_config_map->output_dsp[0])*4);
-            break;
-        case 7:
-            memcpy(preset_cmd.data, &dest_config_map->output_dsp[12], sizeof(dest_config_map->output_dsp[0])*4);
-            break;
-        case 8:
-            memcpy(preset_cmd.data, &dest_config_map->master_mix,
-                    sizeof(dest_config_map->master_mix));
-        default:
-            break;
-        }
-
-        if (preset_cmd.store_page <= 8)
-        {
-            udpControl->SendBuffer(dst_ip, UDP_PORT_STORE_PRESET_PC2FLASH, &preset_cmd, sizeof(preset_cmd));
-            last_restore_package = preset_cmd;
+            pbBackup->Position = pbBackup->Max - package_list.size();
             restor_delay_count = 15;
         }
     }
     else if (ABinding->PeerPort == UDP_PORT_READ_FLASH)
     {
-        FlashRW_Data buff;
-        AData->ReadBuffer(&buff, std::min(sizeof(buff), AData->Size));
+        FlashRW_Data flash_rw;
+        AData->ReadBuffer(&flash_rw, std::min(sizeof(flash_rw), AData->Size));
 
-        if (buff.start_address >= PRESET_START_PAGE && buff.start_address < PRESET_START_PAGE+127*1024)
+        // 校验一下
+        TPackage package = package_list.back();
+        if (package.udp_port != ABinding->PeerPort)
+            return;
+        if (package.data_size != AData->Size)
+            return;
+
+        FlashRW_Data * send_flash_rw_cmd = (FlashRW_Data*)package.data;
+        if (send_flash_rw_cmd->start_address != flash_rw.start_address)
+            return;
+
+        int offset = flash_rw.start_address-PRESET_START_PAGE;
+        memcpy(device_flash_dump+offset, flash_rw.data, sizeof(flash_rw.data));
+
+        package_list.pop_back();
+
+        if (package_list.empty())
         {
-            int offset = buff.start_address-PRESET_START_PAGE;
-            memcpy(device_flash_dump+offset, buff.data, sizeof(buff.data));
+            tmDelayBackup->Enabled = false;
+            pbBackup->Position = 100;
+            ::Sleep(1000);
+            pbBackup->Hide();
 
-            pbBackup->Position = offset*100/(128*1024);
-        }
-
-        // Next
-        if (buff.start_address <= buff.end_address - 1024)
-        {
-            buff.start_address = buff.start_address+1024;
-            udpControl->SendBuffer(dst_ip, UDP_PORT_READ_FLASH, &buff, sizeof(buff));
-
-            last_readflash_package = buff;
-            restor_delay_count = 15;
-        }
-        else
-        {
             // 完成，写入文件
             TFileStream * file = new TFileStream(save_device_to_file_filename, fmCreate);
             if (!file)
@@ -1885,10 +1834,17 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             file->WriteBuffer(device_flash_dump, sizeof(device_flash_dump));
             pbBackup->Position = 100;
             tmDelayBackup->Enabled = false;
-            last_command = 0;
             ::Sleep(1000);
             pbBackup->Hide();
             delete file;
+        }
+        else
+        {
+            package = package_list.back();
+            udpControl->SendBuffer(dst_ip, package.udp_port, package.data, package.data_size);
+
+            pbBackup->Position = pbBackup->Max - package_list.size();
+            restor_delay_count = 15;
         }
     }
 }
@@ -2977,7 +2933,6 @@ void __fastcall TForm1::pnlmix_muteClick(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TForm1::btnSavePresetToFileClick(TObject *Sender)
 {
-/*
     // 保存到文件
     SaveDialog1->Filter = "preset|*.preset";
     if (SaveDialog1->Execute())
@@ -2994,7 +2949,6 @@ void __fastcall TForm1::btnSavePresetToFileClick(TObject *Sender)
 
         delete file;
     }
-*/
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::btnLoadPresetFromFileClick(TObject *Sender)
@@ -4745,7 +4699,7 @@ void __fastcall TForm1::cbLockUpDownMenuKeyClick(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TForm1::btnSaveFlashToFileClick(TObject *Sender)
 {
-    if (last_command != 0)
+    if (package_list.size() != 0)
     {
         ShowMessage("设备忙");
         return;
@@ -4792,18 +4746,33 @@ void __fastcall TForm1::btnSaveFlashToFileClick(TObject *Sender)
 
             memset(device_flash_dump, 0, sizeof(device_flash_dump));
 
-            // 从设备把数据同步上来
-            FlashRW_Data buff;
-            //  每包2k数据
-            buff.start_address = PRESET_START_PAGE;
-            buff.end_address = 0x8000000+256*1024;
-            udpControl->SendBuffer(dst_ip, UDP_PORT_READ_FLASH, &buff, sizeof(buff));
+            for (int address=PRESET_START_PAGE;address<0x8000000+256*1024;address+=1024)
+            {
+                // 从设备把数据同步上来
+                FlashRW_Data flash_rw;
+                //  每包2k数据
+                flash_rw.start_address = address;
+                flash_rw.end_address = 0x8000000+256*1024;
 
-            last_command = UDP_PORT_READ_FLASH;
-            last_readflash_package = buff;
+                TPackage package;
+                memcpy(package.data, &flash_rw, sizeof(flash_rw));
+                package.udp_port = UDP_PORT_READ_FLASH;
+                package.data_size = sizeof(flash_rw);
+
+                package_list.push_back(package);
+            }
+
+            std::reverse(package_list.begin(), package_list.end());
+
+            TPackage package = package_list.back();
+            udpControl->SendBuffer(dst_ip, package.udp_port, package.data, package.data_size);
+
+            //last_command = UDP_PORT_READ_FLASH;
+            //last_readflash_package = buff;
             restor_delay_count = 15;
             tmDelayBackup->Enabled = true;
 
+            pbBackup->Max = package_list.size();
             pbBackup->Position = 0;
             pbBackup->Show();
         }
@@ -4812,7 +4781,7 @@ void __fastcall TForm1::btnSaveFlashToFileClick(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TForm1::btnLoadFileToFlashClick(TObject *Sender)
 {
-    if (last_command != 0)
+    if (package_list.size() != 0)
     {
         ShowMessage("设备忙");
         return;
@@ -4861,6 +4830,9 @@ void __fastcall TForm1::btnLoadFileToFlashClick(TObject *Sender)
         if (!udpControl->Active)
         {
             // 脱机
+            global_config = smc_config.global_config;
+            memcpy(&all_config_map, &smc_config.all_config_map, sizeof(all_config_map));
+
             SetPresetId(global_config.active_preset_id);
             CloseDspDetail();
             tmDelayUpdateUITimer(NULL);
@@ -4869,19 +4841,83 @@ void __fastcall TForm1::btnLoadFileToFlashClick(TObject *Sender)
         {
             // 联机
             // Download To Device
-            D1608PresetCmd preset_cmd;
-            preset_cmd.preset = 0x80;
-            preset_cmd.store_page = 8;  // 使用8表示最后一页，TODO: 表达不是很清楚
-            memcpy(preset_cmd.data, &smc_config.global_config, sizeof(smc_config.global_config));
-            memcpy(all_config_map, &smc_config.all_config_map, sizeof(smc_config.all_config_map));
+            // 准备好所有报文
+            //  global_config数据
+            {
+                D1608PresetCmd preset_cmd;
+                preset_cmd.preset = 0x80;
+                preset_cmd.store_page = 8;  // 使用8表示最后一页，TODO: 表达不是很清楚
+                memcpy(preset_cmd.data, &smc_config.global_config, sizeof(smc_config.global_config));
 
-            udpControl->SendBuffer(dst_ip, UDP_PORT_STORE_PRESET_PC2FLASH, &preset_cmd, sizeof(preset_cmd));
+                TPackage package;
+                memcpy(package.data, &preset_cmd, sizeof(preset_cmd));
+                package.udp_port = UDP_PORT_STORE_PRESET_PC2FLASH;
+                package.data_size = sizeof(preset_cmd);
 
-            last_command = UDP_PORT_STORE_PRESET_PC2FLASH;
-            last_restore_package = preset_cmd;
+                package_list.push_back(package);
+            }
+            // 写入所有的preset数据
+            for (int i=0;i<8;i++)
+            {
+                if (smc_config.global_config.avaliable_preset[i] == 1)
+                {
+                    D1608PresetCmd preset_cmd;
+                    preset_cmd.preset = 0x80+i+1;
+                    for (int store_page=0;store_page<9;store_page++)
+                    {
+                        preset_cmd.store_page = store_page;
+                        switch(preset_cmd.store_page)
+                        {
+                        case 0:
+                            memcpy(preset_cmd.data, &smc_config.all_config_map[i].input_dsp[0], sizeof(InputConfigMap)*4);
+                            break;
+                        case 1:
+                            memcpy(preset_cmd.data, &smc_config.all_config_map[i].input_dsp[4], sizeof(InputConfigMap)*4);
+                            break;
+                        case 2:
+                            memcpy(preset_cmd.data, &smc_config.all_config_map[i].input_dsp[8], sizeof(InputConfigMap)*4);
+                            break;
+                        case 3:
+                            memcpy(preset_cmd.data, &smc_config.all_config_map[i].input_dsp[12], sizeof(InputConfigMap)*4);
+                            break;
+                        case 4:
+                            memcpy(preset_cmd.data, &smc_config.all_config_map[i].output_dsp[0], sizeof(OutputConfigMap)*4);
+                            break;
+                        case 5:
+                            memcpy(preset_cmd.data, &smc_config.all_config_map[i].output_dsp[4], sizeof(OutputConfigMap)*4);
+                            break;
+                        case 6:
+                            memcpy(preset_cmd.data, &smc_config.all_config_map[i].output_dsp[8], sizeof(OutputConfigMap)*4);
+                            break;
+                        case 7:
+                            memcpy(preset_cmd.data, &smc_config.all_config_map[i].output_dsp[12], sizeof(OutputConfigMap)*4);
+                            break;
+                        case 8:
+                            memcpy(preset_cmd.data, &smc_config.all_config_map[i].master_mix,
+                                    sizeof(MasterMixConfigMap));
+                        }
+
+                        TPackage package;
+                        memcpy(package.data, &preset_cmd, sizeof(preset_cmd));
+                        package.udp_port = UDP_PORT_STORE_PRESET_PC2FLASH;
+                        package.data_size = sizeof(preset_cmd);
+
+                        package_list.push_back(package);
+                    }
+                }
+            }
+
+            std::reverse(package_list.begin(), package_list.end());
+
+            TPackage package = package_list.back();
+            udpControl->SendBuffer(dst_ip, package.udp_port, package.data, package.data_size);
+
+            //last_command = UDP_PORT_STORE_PRESET_PC2FLASH;
+            //last_restore_package = preset_cmd;
             restor_delay_count = 15;
             tmDelayBackup->Enabled = true;
 
+            pbBackup->Max = package_list.size();
             pbBackup->Position = 0;
             pbBackup->Show();
         }
@@ -4910,24 +4946,51 @@ void __fastcall TForm1::tmDelayBackupTimer(TObject *Sender)
     if (restor_delay_count == 0)
     {
         // 超时，终止本次同步
-        last_command = 0;
+        package_list.clear();
         ::Sleep(1000);
         pbBackup->Hide();
     }
     else if ((restor_delay_count%5) == 1)
     {
-        if (last_command == UDP_PORT_STORE_PRESET_PC2FLASH)
+        TPackage package = package_list.back();
+        udpControl->SendBuffer(dst_ip, package.udp_port, package.data, package.data_size);
+        /*if (last_command == UDP_PORT_STORE_PRESET_PC2FLASH)
         {
             udpControl->SendBuffer(dst_ip, last_command, &last_restore_package, sizeof(last_restore_package));
         }
         else if (last_command == UDP_PORT_READ_FLASH)
         {
             udpControl->SendBuffer(dst_ip, last_command, &last_readflash_package, sizeof(last_readflash_package));
-        }
+        }*/
 
         // 备份 恢复 流程使用的延时计时器
-        restor_delay_count = 5;
         AppendLog("retry syn");
+    }
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::pmPresetSaveLoadPopup(TObject *Sender)
+{
+    if (clbAvaliablePreset->ItemIndex != -1)
+    {
+        String select_item_text = clbAvaliablePreset->Items->Strings[clbAvaliablePreset->ItemIndex];
+        SavePresetAs->Caption = "Save " + select_item_text + " to file...";
+        LoadPreset->Caption = "Load " + select_item_text + " from file...";
+    }
+    else
+    {
+        //pmPresetSaveLoad->
+    }
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::clbAvaliablePresetMouseDown(TObject *Sender,
+      TMouseButton Button, TShiftState Shift, int X, int Y)
+{
+    TPoint popup_point(X, Y);
+    clbAvaliablePreset->ItemIndex = clbAvaliablePreset->ItemAtPos(popup_point, true);
+    if (clbAvaliablePreset->ItemIndex != -1)
+    {
+        popup_point = clbAvaliablePreset->ClientToScreen(popup_point);
+        pmPresetSaveLoad->Popup(popup_point.x, popup_point.y);
     }
 }
 //---------------------------------------------------------------------------
