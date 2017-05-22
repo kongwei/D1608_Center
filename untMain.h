@@ -506,6 +506,7 @@ __published:	// IDE-managed Components
     TPopupMenu *pmPresetSaveLoad;
     TMenuItem *SavePresetAs;
     TMenuItem *LoadPreset;
+    TSpeedButton *btnResetAllConfig;
     void __fastcall FormCreate(TObject *Sender);
     void __fastcall FormDestroy(TObject *Sender);
     void __fastcall btnRefreshClick(TObject *Sender);
@@ -661,6 +662,7 @@ __published:	// IDE-managed Components
     void __fastcall pmPresetSaveLoadPopup(TObject *Sender);
     void __fastcall clbAvaliablePresetMouseDown(TObject *Sender,
           TMouseButton Button, TShiftState Shift, int X, int Y);
+    void __fastcall btnResetAllConfigClick(TObject *Sender);
 
 private:
     // 已经加载版本文件

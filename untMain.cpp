@@ -1322,6 +1322,10 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             {
                 global_config.adjust_running_time = cmd.data.data_64;
             }
+            else
+            {
+                memcpy(((char*)&global_config)+cmd.id, &cmd.data, cmd.length);
+            }
         }
         else if (cmd.id == GetOffsetOfData(&config_map.op_code.noop))
         {
@@ -1681,6 +1685,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
 
                 SetIOChannelNum();
             }
+            cbGlobalDspName->Checked = ((global_config.is_global_name == 1) || (global_config.is_global_name == 0xFF));
             if (global_config.version >= offsetof(GlobalConfig, auto_saved))
             {
                 // 读取'自动保存'配置
@@ -4725,6 +4730,13 @@ void __fastcall TForm1::Label42Click(TObject *Sender)
 void __fastcall TForm1::cbGlobalDspNameClick(TObject *Sender)
 {
     ApplyConfigToUI();
+
+    D1608Cmd cmd;
+    cmd.type = 1;
+    cmd.id = offsetof(GlobalConfig, is_global_name);
+    cmd.data.data_32 = cbGlobalDspName->Checked;
+    cmd.length = 4;
+    SendCmd(cmd);
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::cbPresetAutoSavedClick(TObject *Sender)
@@ -4748,7 +4760,7 @@ void __fastcall TForm1::btnRebootDeviceClick(TObject *Sender)
         D1608Cmd cmd;
         cmd.type = 0;
         cmd.id = offsetof(ConfigMap, op_code.reboot);
-        cmd.data.data_32 = 1;
+        cmd.data.data_32 = 0;
         cmd.length = 4;
         SendCmd(cmd);
     }
@@ -5070,4 +5082,22 @@ void __fastcall TForm1::clbAvaliablePresetMouseDown(TObject *Sender,
     }
 }
 //---------------------------------------------------------------------------
+void __fastcall TForm1::btnResetAllConfigClick(TObject *Sender)
+{
+    if (Application->MessageBox("本操作会恢复出厂设置，确认操作吗？", "确认恢复出厂设置操作", MB_OKCANCEL|MB_ICONWARNING) != IDOK)
+    {
+        return;
+    }
+    else
+    {
+        D1608Cmd cmd;
+        cmd.type = 0;
+        cmd.id = offsetof(ConfigMap, op_code.reboot);
+        cmd.data.data_32 = 2;
+        cmd.length = 4;
+        SendCmd(cmd);
+    }
+}
+//---------------------------------------------------------------------------
+
 
