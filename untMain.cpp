@@ -1732,6 +1732,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
         {
             if (preset_id == cur_preset_id)
                 config_map = all_config_map[cur_preset_id-1];
+            tmDelayUpdateUITimer(NULL);
             ApplyConfigToUI();
             CloseDspDetail();
         }
