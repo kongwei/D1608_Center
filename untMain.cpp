@@ -723,6 +723,7 @@ __fastcall TForm1::TForm1(TComponent* Owner)
 
     InitConfigMap(config_map);
     btnDspResetEQ->Click();
+    ResetLHFilter();
 
     ApplyConfigToUI();
 
