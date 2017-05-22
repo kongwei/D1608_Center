@@ -30,12 +30,13 @@ int REAL_INPUT_DSP_NUM = 16;
 int REAL_OUTPUT_DSP_NUM = 16;
 
 // 用于复制设备的flaah数据
-static char device_flash_dump[128*1024];
-
 struct SmcConfig
 {
     GlobalConfig global_config;
+    char pad1[2048-sizeof(GlobalConfig)];
     ConfigMap all_config_map[PRESET_NUM];
+    char pad2[80*1024-sizeof(ConfigMap)*PRESET_NUM];
+    char device_flash_dump[128*1024];
 };
 static SmcConfig smc_config;
 
@@ -1333,8 +1334,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
 
             if (preset_id != cur_preset_id)
             {
-                cur_preset_id = preset_id;
-
+                SetPresetId(preset_id);
                 StartReadOnePackage(0xFF);
             }
 
@@ -1377,6 +1377,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
         }
         else if (cmd.id == GetOffsetOfData(&config_map.op_code.switch_preset))
         {
+            SetPresetId(cmd.data.data_32);
             StartReadOnePackage(0xFF);
         }
         else if (cmd.id == GetOffsetOfData(&config_map.op_code.adc))
@@ -1762,7 +1763,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
         if (package_list.empty())
         {
             tmDelayBackup->Enabled = false;
-            pbBackup->Position = 100;
+            pbBackup->Position = pbBackup->Max;
             ::Sleep(1000);
             pbBackup->Hide();
 
@@ -1808,14 +1809,14 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             return;
 
         int offset = flash_rw.start_address-PRESET_START_PAGE;
-        memcpy(device_flash_dump+offset, flash_rw.data, sizeof(flash_rw.data));
+        memcpy(smc_config.device_flash_dump+offset, flash_rw.data, sizeof(flash_rw.data));
 
         package_list.pop_back();
 
         if (package_list.empty())
         {
             tmDelayBackup->Enabled = false;
-            pbBackup->Position = 100;
+            pbBackup->Position = pbBackup->Max;
             ::Sleep(1000);
             pbBackup->Hide();
 
@@ -1826,8 +1827,16 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
                 ShowMessage("打开文件失败");
                 return;
             }
-            file->WriteBuffer(device_flash_dump, sizeof(device_flash_dump));
-            pbBackup->Position = 100;
+
+            // 转换成普通的8个preset数据
+            LoadGlobalConfig(smc_config.global_config, smc_config.device_flash_dump);
+            for (int i=1;i<=8;i++)
+            {
+                LoadPresetById(i, smc_config.all_config_map[i-1], smc_config.device_flash_dump);
+            }
+            file->WriteBuffer(&smc_config, sizeof(smc_config));
+
+            pbBackup->Position = pbBackup->Max;
             tmDelayBackup->Enabled = false;
             ::Sleep(1000);
             pbBackup->Hide();
@@ -4780,14 +4789,11 @@ void __fastcall TForm1::btnSaveFlashToFileClick(TObject *Sender)
         return;
     }
 
-    if (!udpControl->Active)
-        SaveDialog1->Filter = "smc config file(*.smc)|*.smc";
-    else
-        SaveDialog1->Filter = "smc dump file(*.smcd)|*.smcd";
+    SaveDialog1->Filter = "smc config file(*.smc)|*.smc";
 
     if (SaveDialog1->Execute())
     {
-        if (ExtractFileExt(SaveDialog1->FileName) == ".smc")
+        if (!udpControl->Active)
         {
             // 脱机，保存为逻辑preset，后缀smc
             // 清除缓存数据
@@ -4816,10 +4822,10 @@ void __fastcall TForm1::btnSaveFlashToFileClick(TObject *Sender)
         }
         else
         {
-            // 联机，保存为flash dump，后缀smcd
+            // 联机，保存为flash dump，读取完毕后转换成smc
             save_device_to_file_filename = SaveDialog1->FileName;
 
-            memset(device_flash_dump, 0, sizeof(device_flash_dump));
+            memset(smc_config.device_flash_dump, 0, sizeof(smc_config.device_flash_dump));
 
             for (int address=PRESET_START_PAGE;address<0x8000000+256*1024;address+=1024)
             {
@@ -4862,7 +4868,7 @@ void __fastcall TForm1::btnLoadFileToFlashClick(TObject *Sender)
         return;
     }
 
-    OpenDialog1->Filter = "smc config file(*.smc;*.smcd)|*.smc;*.smcd";
+    OpenDialog1->Filter = "smc config file(*.smc)|*.smc";
     if (OpenDialog1->Execute())
     {
         memset(&smc_config, 0, sizeof(smc_config));
@@ -4874,31 +4880,10 @@ void __fastcall TForm1::btnLoadFileToFlashClick(TObject *Sender)
             return;
         }
 
-        // 分析内存数据，形成global_config和presets (这里有两种情况，全flask dump和上位机脱机保存文件)
-        if (ExtractFileExt(OpenDialog1->FileName) == ".smc")
-        {
-            file->ReadBuffer(&smc_config, sizeof(smc_config));
+        file->ReadBuffer(&smc_config, sizeof(smc_config));
 
-            memcpy(all_config_map, &smc_config.all_config_map, sizeof(smc_config.all_config_map));
-            global_config = smc_config.global_config;
-        }
-        else if (ExtractFileExt(OpenDialog1->FileName) == ".smcd")
-        {
-            file->ReadBuffer(&device_flash_dump, sizeof(device_flash_dump));
-            // 分析内存数据，形成global_config和presets
-            LoadGlobalConfig(smc_config.global_config, device_flash_dump);
-            for (int i=1;i<=8;i++)
-            {
-                LoadPresetById(i, smc_config.all_config_map[i-1], device_flash_dump);
-            }
-        }
-        else
-        {
-            // 文件格式错误
-            ShowMessage("文件格式错误");
-            delete file;
-            return;
-        }
+        memcpy(all_config_map, &smc_config.all_config_map, sizeof(smc_config.all_config_map));
+        global_config = smc_config.global_config;
 
         delete file;
 
