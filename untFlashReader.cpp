@@ -14,7 +14,7 @@
 
 #define CONFIG_ID 500
 
-#define PRESET_SIZE (10*5*2*1024)
+#define PRESET_SIZE (94*1024)
 
 typedef struct
 {

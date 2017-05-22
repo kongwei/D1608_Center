@@ -1740,7 +1740,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             package = read_one_preset_package_list.back();
             udpControl->SendBuffer(dst_ip, package.udp_port, package.data, package.data_size);
 
-            pbBackup->Position = pbBackup->Max - read_one_preset_package_list.size();
+            //pbBackup->Position = pbBackup->Max - read_one_preset_package_list.size();
             restor_delay_count = 15;
         }
     }
@@ -3062,8 +3062,8 @@ void __fastcall TForm1::btnLoadPresetFromFileClick(TObject *Sender)
             tmDelayBackup->Enabled = true;
 
             pbBackup->Max = package_list.size();
-            pbBackup->Position = 0;
-            pbBackup->Show();
+            //pbBackup->Position = 0;
+            //pbBackup->Show();
         }
     }
 }
