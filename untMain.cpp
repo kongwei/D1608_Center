@@ -1082,14 +1082,27 @@ void __fastcall TForm1::btnSelectClick(TObject *Sender)
 
     UpdateCaption();
 
-    D1608PresetCmd preset_cmd;
-    preset_cmd.preset = 1;
-    preset_cmd.store_page = 0;
-    udpControl->SendBuffer(dst_ip, UDP_PORT_READ_PRESET, &preset_cmd, sizeof(preset_cmd));
 
-    preset_cmd.preset = 0x80; // 0表示读取global_config
-    preset_cmd.store_page = 8;
-    udpControl->SendBuffer(dst_ip, UDP_PORT_READ_PRESET, &preset_cmd, sizeof(preset_cmd));
+    TPackage package;
+    package.udp_port = UDP_PORT_READ_PRESET;
+
+    D1608PresetCmd preset_cmd;
+
+    preset_cmd.preset = 0xFF; // 读取global_preset前config
+    preset_cmd.store_page = 0;
+    memcpy(package.data, &preset_cmd, sizeof(preset_cmd));
+    package.data_size = sizeof(preset_cmd);
+    read_one_preset_package_list.push_back(package);
+
+    preset_cmd.preset = 0; // 读取global_config
+    preset_cmd.store_page = 0;
+    memcpy(package.data, &preset_cmd, sizeof(preset_cmd));
+    package.data_size = sizeof(preset_cmd);
+    read_one_preset_package_list.push_back(package);
+
+    udpControl->SendBuffer(dst_ip, package.udp_port, package.data, package.data_size);
+
+
 
     pnlOperator->Show();
     pnlDspDetail->Hide();
@@ -1322,11 +1335,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             {
                 cur_preset_id = preset_id;
 
-                D1608PresetCmd preset_cmd;
-                preset_cmd.preset = preset_id; // 读取preset
-                // 从0页读取
-                preset_cmd.store_page = 0;
-                udpControl->SendBuffer(dst_ip, UDP_PORT_READ_PRESET, &preset_cmd, sizeof(preset_cmd));
+                StartReadOnePackage(0xFF);
             }
 
             // 显示时钟
@@ -1368,16 +1377,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
         }
         else if (cmd.id == GetOffsetOfData(&config_map.op_code.switch_preset))
         {
-            D1608PresetCmd preset_cmd;
-            preset_cmd.preset = cur_preset_id;
-            // 从0页读取
-            preset_cmd.store_page = 0;
-
-            // 如果没有打开文件，则需要从下位机同步
-            //if (preset_lib_filename == "")
-            {
-                udpControl->SendBuffer(dst_ip, UDP_PORT_READ_PRESET, &preset_cmd, sizeof(preset_cmd));
-            }
+            StartReadOnePackage(0xFF);
         }
         else if (cmd.id == GetOffsetOfData(&config_map.op_code.adc))
         {
@@ -1628,10 +1628,23 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
         D1608PresetCmd preset_cmd;
         AData->ReadBuffer(&preset_cmd, std::min(sizeof(preset_cmd), AData->Size));
 
-        bool download_all_preset = preset_cmd.preset & 0x80;
-        int preset_id = preset_cmd.preset & 0x7F;
+        // 校验一下
+        TPackage package = read_one_preset_package_list.back();
+        if (package.udp_port != ABinding->PeerPort)
+            return;
+        if (package.data_size != AData->Size)
+            return;
 
-        if ((preset_cmd.preset & 0x7F) == 0)
+        D1608PresetCmd * send_preset_cmd = (D1608PresetCmd*)package.data;
+        if (send_preset_cmd->preset != preset_cmd.preset || send_preset_cmd->store_page != preset_cmd.store_page)
+            return;
+
+        int preset_id = preset_cmd.preset;
+        if (preset_id == 0xFF)
+            preset_id = cur_preset_id;
+
+        // 保存
+        if ((preset_id & 0x7F) == 0)
         {
             // global_config
             memcpy(&global_config, preset_cmd.data, sizeof(global_config));
@@ -1677,15 +1690,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
         {
             AppendLog(IntToHex(preset_cmd.preset, 2) + "/" + IntToStr(preset_cmd.store_page));
 
-            ConfigMap * dest_config_map;
-            if (download_all_preset)
-            {
-                dest_config_map = &all_config_map[preset_id-1];
-            }
-            else
-            {
-                dest_config_map = &config_map;
-            }
+            ConfigMap * dest_config_map = &all_config_map[preset_id-1];
 
             switch(preset_cmd.store_page)
             {
@@ -1720,42 +1725,22 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             }
         }
 
+        read_one_preset_package_list.pop_back();
 
-        // 读取下一个preset
-        if (download_all_preset)
+        if (read_one_preset_package_list.empty())
         {
-            if (preset_id<8 && preset_cmd.store_page == 8)
-            {
-                preset_cmd.preset++;
-                preset_cmd.store_page = 0;
-            }
-            else
-            {
-                preset_cmd.store_page++;
-            }
+            if (preset_id == cur_preset_id)
+                config_map = all_config_map[cur_preset_id-1];
+            ApplyConfigToUI();
+            CloseDspDetail();
         }
         else
         {
-            if (preset_cmd.store_page == 8)
-            {
-                tmDelayUpdateUI->Enabled = false;
-                SetPresetId(preset_id);
-                ApplyConfigToUI();  // 子窗体的数据在加载时更新
-                CloseDspDetail();
+            package = read_one_preset_package_list.back();
+            udpControl->SendBuffer(dst_ip, package.udp_port, package.data, package.data_size);
 
-                preset_cmd.store_page++;
-            }
-            else
-            {
-                preset_cmd.store_page++;
-            }
-        }
-
-
-        if (preset_cmd.store_page < 9)
-        {
-            // next
-            udpControl->SendBuffer(dst_ip, UDP_PORT_READ_PRESET, &preset_cmd, sizeof(preset_cmd));
+            pbBackup->Position = pbBackup->Max - read_one_preset_package_list.size();
+            restor_delay_count = 15;
         }
     }
     else if (ABinding->PeerPort == UDP_PORT_STORE_PRESET_PC2FLASH)
@@ -1782,10 +1767,20 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             pbBackup->Hide();
 
             // 发送一个重新加载preset的指令
-            D1608Cmd cmd;
-            cmd.id = GetOffsetOfData(&config_map.op_code.switch_preset);
-            cmd.data.data_32 = smc_config.global_config.active_preset_id;
-            SendCmd(cmd);
+            if (preset_cmd.preset & 0x80)
+            {
+                D1608Cmd cmd;
+                cmd.id = GetOffsetOfData(&config_map.op_code.switch_preset);
+                cmd.data.data_32 = smc_config.global_config.active_preset_id;
+                SendCmd(cmd);
+            }
+            else if (cur_preset_id == clbAvaliablePreset->ItemIndex+1)
+            {
+                D1608Cmd cmd;
+                cmd.id = GetOffsetOfData(&config_map.op_code.switch_preset);
+                cmd.data.data_32 = cur_preset_id;
+                SendCmd(cmd);
+            }
         }
         else
         {
@@ -2953,6 +2948,17 @@ void __fastcall TForm1::btnSavePresetToFileClick(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TForm1::btnLoadPresetFromFileClick(TObject *Sender)
 {
+    int select_preset_id = clbAvaliablePreset->ItemIndex + 1;
+    if (select_preset_id == 0)
+    {
+        return;
+    }
+    if (package_list.size() != 0)
+    {
+        ShowMessage("设备忙");
+        return;
+    }
+
     OpenDialog1->Filter = "preset|*.preset";
     if (OpenDialog1->Execute())
     {
@@ -2964,22 +2970,91 @@ void __fastcall TForm1::btnLoadPresetFromFileClick(TObject *Sender)
             return;
         }
 
-        file->ReadBuffer(&config_map, sizeof(config_map));
+        file->ReadBuffer(&smc_config.all_config_map[select_preset_id-1], sizeof(config_map));
 
         delete file;
 
-        ApplyConfigToUI();
-        CloseDspDetail();
+        ///ApplyConfigToUI();
+        ///CloseDspDetail();
 
-        // Download To Device
-        D1608PresetCmd preset_cmd;
-        preset_cmd.preset = cur_preset_id;
-        preset_cmd.store_page = 0;
-        memcpy(preset_cmd.data, &config_map.input_dsp[0], sizeof(config_map.input_dsp[0])*4);
-
-        if (udpControl->Active)
+        if (!udpControl->Active)
         {
-            udpControl->SendBuffer(dst_ip, UDP_PORT_STORE_PRESET_PC2FLASH, &preset_cmd, sizeof(preset_cmd));
+            // 脱机
+            all_config_map[select_preset_id-1] = smc_config.all_config_map[select_preset_id-1];
+            // TODO: 是否更新当前界面？
+            if (cur_preset_id == select_preset_id)
+            {
+                CloseDspDetail();
+                tmDelayUpdateUITimer(NULL);
+            }
+        }
+        else
+        {
+            // 联机
+            clbAvaliablePreset->Checked[select_preset_id-1] = true;
+            clbAvaliablePresetClickCheck(NULL);
+
+            // Download To Device
+            // 写入所有的preset数据
+            D1608PresetCmd preset_cmd;
+            preset_cmd.preset = select_preset_id;
+
+            for (int i=select_preset_id-1;i<=select_preset_id-1;i++)
+            for (int store_page=0;store_page<9;store_page++)
+            {
+                preset_cmd.store_page = store_page;
+                switch(preset_cmd.store_page)
+                {
+                case 0:
+                    memcpy(preset_cmd.data, &smc_config.all_config_map[i].input_dsp[0], sizeof(InputConfigMap)*4);
+                    break;
+                case 1:
+                    memcpy(preset_cmd.data, &smc_config.all_config_map[i].input_dsp[4], sizeof(InputConfigMap)*4);
+                    break;
+                case 2:
+                    memcpy(preset_cmd.data, &smc_config.all_config_map[i].input_dsp[8], sizeof(InputConfigMap)*4);
+                    break;
+                case 3:
+                    memcpy(preset_cmd.data, &smc_config.all_config_map[i].input_dsp[12], sizeof(InputConfigMap)*4);
+                    break;
+                case 4:
+                    memcpy(preset_cmd.data, &smc_config.all_config_map[i].output_dsp[0], sizeof(OutputConfigMap)*4);
+                    break;
+                case 5:
+                    memcpy(preset_cmd.data, &smc_config.all_config_map[i].output_dsp[4], sizeof(OutputConfigMap)*4);
+                    break;
+                case 6:
+                    memcpy(preset_cmd.data, &smc_config.all_config_map[i].output_dsp[8], sizeof(OutputConfigMap)*4);
+                    break;
+                case 7:
+                    memcpy(preset_cmd.data, &smc_config.all_config_map[i].output_dsp[12], sizeof(OutputConfigMap)*4);
+                    break;
+                case 8:
+                    memcpy(preset_cmd.data, &smc_config.all_config_map[i].master_mix,
+                            sizeof(MasterMixConfigMap));
+                }
+
+                TPackage package;
+                memcpy(package.data, &preset_cmd, sizeof(preset_cmd));
+                package.udp_port = UDP_PORT_STORE_PRESET_PC2FLASH;
+                package.data_size = sizeof(preset_cmd);
+
+                package_list.push_back(package);
+            }
+
+            std::reverse(package_list.begin(), package_list.end());
+
+            TPackage package = package_list.back();
+            udpControl->SendBuffer(dst_ip, package.udp_port, package.data, package.data_size);
+
+            //last_command = UDP_PORT_STORE_PRESET_PC2FLASH;
+            //last_restore_package = preset_cmd;
+            restor_delay_count = 15;
+            tmDelayBackup->Enabled = true;
+
+            pbBackup->Max = package_list.size();
+            pbBackup->Position = 0;
+            pbBackup->Show();
         }
     }
 }
@@ -4985,12 +5060,15 @@ void __fastcall TForm1::pmPresetSaveLoadPopup(TObject *Sender)
 void __fastcall TForm1::clbAvaliablePresetMouseDown(TObject *Sender,
       TMouseButton Button, TShiftState Shift, int X, int Y)
 {
-    TPoint popup_point(X, Y);
-    clbAvaliablePreset->ItemIndex = clbAvaliablePreset->ItemAtPos(popup_point, true);
-    if (clbAvaliablePreset->ItemIndex != -1)
+    if (Button == mbRight)
     {
-        popup_point = clbAvaliablePreset->ClientToScreen(popup_point);
-        pmPresetSaveLoad->Popup(popup_point.x, popup_point.y);
+        TPoint popup_point(X, Y);
+        clbAvaliablePreset->ItemIndex = clbAvaliablePreset->ItemAtPos(popup_point, true);
+        if (clbAvaliablePreset->ItemIndex != -1)
+        {
+            popup_point = clbAvaliablePreset->ClientToScreen(popup_point);
+            pmPresetSaveLoad->Popup(popup_point.x, popup_point.y);
+        }
     }
 }
 //---------------------------------------------------------------------------

@@ -798,6 +798,31 @@ private:
 
     int restor_delay_count;
     vector<TPackage> package_list;
+
+    vector<TPackage> read_one_preset_package_list;
+    void StartReadOnePackage(int preset_id)
+    {
+        read_one_preset_package_list.clear();
+        for (int store_page=0;store_page<9;store_page++)
+        {
+            D1608PresetCmd preset_cmd;
+            preset_cmd.preset = preset_id; // ¶ÁÈ¡preset
+            // ´Ó0Ò³¶ÁÈ¡
+            preset_cmd.store_page = store_page;
+
+            TPackage package;
+            package.udp_port = UDP_PORT_READ_PRESET;
+            memcpy(package.data, &preset_cmd, sizeof(preset_cmd));
+            package.data_size = sizeof(preset_cmd);
+
+            read_one_preset_package_list.push_back(package);
+        }
+
+        reverse(read_one_preset_package_list.begin(), read_one_preset_package_list.end());
+
+        TPackage package = read_one_preset_package_list.back();
+        udpControl->SendBuffer(dst_ip, package.udp_port, package.data, package.data_size);
+    }
 };
 //---------------------------------------------------------------------------
 extern PACKAGE TForm1 *Form1;
