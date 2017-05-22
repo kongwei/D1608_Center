@@ -3641,6 +3641,13 @@ void __fastcall TForm1::btnSetLockClick(TObject *Sender)
 {
     ActiveControl = NULL;
 
+    if (edtPassword->Text=="")
+    {
+        ShowMessage("必须设置解锁密码");
+        return;
+    }
+
+
     D1608Cmd cmd;
     cmd.type = 1;
 
@@ -3648,6 +3655,11 @@ void __fastcall TForm1::btnSetLockClick(TObject *Sender)
 
 	global_config.running_timer_limit = edtRunningTimer->Enabled ? running_timer : 0;
 	global_config.reboot_count_limit = edtRebootCount->Enabled ? roboot_count : 0;
+    if ((global_config.running_timer_limit==0) && (global_config.reboot_count_limit==0))
+    {
+        ShowMessage("至少设置一个限制条件");
+        return;
+    }
     if (edtLockedString->Enabled)
         strncpy(global_config.locked_string, edtLockedString->Text.c_str(), 16);
     else
