@@ -4772,7 +4772,7 @@ void __fastcall TForm1::cbMenuKeyFunctionChange(TObject *Sender)
     D1608Cmd cmd;
     cmd.type = 1;
     cmd.id = offsetof(GlobalConfig, menu_key_function);
-    cmd.data.data_32 = cbMenuKeyFunction->ItemIndex;
+    cmd.data.data_32 = cbMenuKeyFunction->ItemIndex+1;
     cmd.length = 4;
     SendCmd(cmd);
 }
@@ -4782,7 +4782,7 @@ void __fastcall TForm1::cbUpKeyFunctionChange(TObject *Sender)
     D1608Cmd cmd;
     cmd.type = 1;
     cmd.id = offsetof(GlobalConfig, up_key_function);
-    cmd.data.data_32 = cbUpKeyFunction->ItemIndex;
+    cmd.data.data_32 = cbUpKeyFunction->ItemIndex+1;
     cmd.length = 4;
     SendCmd(cmd);
 }
@@ -4792,7 +4792,7 @@ void __fastcall TForm1::cbDownKeyFunctionChange(TObject *Sender)
     D1608Cmd cmd;
     cmd.type = 1;
     cmd.id = offsetof(GlobalConfig, down_key_function);
-    cmd.data.data_32 = cbDownKeyFunction->ItemIndex;
+    cmd.data.data_32 = cbDownKeyFunction->ItemIndex+1;
     cmd.length = 4;
     SendCmd(cmd);
 }
