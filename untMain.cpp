@@ -2170,8 +2170,16 @@ void __fastcall TForm1::ToggleDSP(TObject *Sender)
             edtCompGain->Text = config_map.output_dsp[dsp_num-1].comp_gain/10.0;
             cbCompAutoTime->Checked = config_map.output_dsp[dsp_num-1].auto_time;
 
-            pnlComp->Show();
-            btnDspComp->Show();
+            if (edtDeviceType->Text!="" && edtDeviceType->Text[1] == 'S')
+            {
+                pnlComp->Show();
+                btnDspComp->Show();
+            }
+            else
+            {
+                pnlComp->Hide();
+                btnDspComp->Hide();
+            }
 
             btnDspEq->Down = config_map.output_dsp[dsp_num-1].eq_switch;
         }
