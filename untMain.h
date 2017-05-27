@@ -507,6 +507,7 @@ __published:	// IDE-managed Components
     TMenuItem *SavePresetAs;
     TMenuItem *LoadPreset;
     TSpeedButton *btnResetAllConfig;
+    TImage *Image3;
     void __fastcall FormCreate(TObject *Sender);
     void __fastcall FormDestroy(TObject *Sender);
     void __fastcall btnRefreshClick(TObject *Sender);
