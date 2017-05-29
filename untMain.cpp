@@ -3639,6 +3639,7 @@ void __fastcall TForm1::StoreAsClick(TObject *Sender)
     }
     // 更新上位机内存
     all_config_map[preset_id-1] = config_map;
+    global_config.avaliable_preset[preset_id-1] = 1;
     clbAvaliablePreset->Checked[preset_id-1] = true;
 }
 //---------------------------------------------------------------------------
@@ -3650,6 +3651,7 @@ void __fastcall TForm1::RecallClick(TObject *Sender)
     {
         all_config_map[cur_preset_id-1] = config_map;
     }
+    global_config.avaliable_preset[menu->Tag-1] = 1;
     clbAvaliablePreset->Checked[menu->Tag-1] = true;
     SetPresetId(menu->Tag);
 
