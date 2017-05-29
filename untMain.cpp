@@ -763,8 +763,98 @@ LRESULT TForm1::new_pnlSystem_proc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
     return r;
 }
 
+void TForm1::ShowLockConfigArea()
+{
+    Label27              ->Hide();
+    Image2               ->Hide();
+    Label32              ->Hide();
+    Image4               ->Hide();
+    Image5               ->Hide();
+    Label33              ->Hide();
+    Label24              ->Hide();
+    imgSystemBg3         ->Hide();
+    btnUnlock            ->Hide();
+    edtRemainTime        ->Hide();
+    edtRemainRebootCount ->Hide();
+    edtLockedString1     ->Hide();
+    edtUnlockPassword    ->Hide();
+
+    Label19              ->Show();
+    Label22              ->Show();
+    imgSystemBg4         ->Show();
+    imgSystemBg5         ->Show();
+    imgSystemBg6         ->Show();
+    imgSystemBg7         ->Show();
+    imgSystemBg1         ->Show();
+    btnKeyPasswordUp     ->Show();
+    btnKeyPasswordDown   ->Show();
+    btnSetLock           ->Show();
+    edtRebootCount       ->Show();
+    edtRunningTimer      ->Show();
+    cbLockedString       ->Show();
+    cbRebootCount        ->Show();
+    cbRunningTimer       ->Show();
+    edtLockedString      ->Show();
+    edtKeyPassword       ->Show();
+    edtPassword          ->Show();
+}
+void TForm1::HideLockConfigArea()
+{
+    Label27              ->Show();
+    Image2               ->Show();
+    Label32              ->Show();
+    Image4               ->Show();
+    Image5               ->Show();
+    Label33              ->Show();
+    Label24              ->Show();
+    imgSystemBg3         ->Show();
+    btnUnlock            ->Show();
+    edtRemainTime        ->Show();
+    edtRemainRebootCount ->Show();
+    edtLockedString1     ->Show();
+    edtUnlockPassword    ->Show();
+
+    Label19              ->Hide();
+    Label22              ->Hide();
+    imgSystemBg4         ->Hide();
+    imgSystemBg5         ->Hide();
+    imgSystemBg6         ->Hide();
+    imgSystemBg7         ->Hide();
+    imgSystemBg1         ->Hide();
+    btnKeyPasswordUp     ->Hide();
+    btnKeyPasswordDown   ->Hide();
+    btnSetLock           ->Hide();
+    edtRebootCount       ->Hide();
+    edtRunningTimer      ->Hide();
+    cbLockedString       ->Hide();
+    cbRebootCount        ->Hide();
+    cbRunningTimer       ->Hide();
+    edtLockedString      ->Hide();
+    edtKeyPassword       ->Hide();
+    edtPassword          ->Hide();
+}
 void __fastcall TForm1::FormCreate(TObject *Sender)
 {
+    // 设置页的界面调整
+    Label19             ->Top = Label19             ->Top - 246;
+    Label22             ->Top = Label22             ->Top - 246;
+    imgSystemBg4        ->Top = imgSystemBg4        ->Top - 246;
+    imgSystemBg5        ->Top = imgSystemBg5        ->Top - 246;
+    imgSystemBg6        ->Top = imgSystemBg6        ->Top - 246;
+    imgSystemBg7        ->Top = imgSystemBg7        ->Top - 246;
+    imgSystemBg1        ->Top = imgSystemBg1        ->Top - 246;
+    btnKeyPasswordUp    ->Top = btnKeyPasswordUp    ->Top - 246;
+    btnKeyPasswordDown  ->Top = btnKeyPasswordDown  ->Top - 246;
+    btnSetLock          ->Top = btnSetLock          ->Top - 246;
+    edtRebootCount      ->Top = edtRebootCount      ->Top - 246;
+    edtRunningTimer     ->Top = edtRunningTimer     ->Top - 246;
+    cbLockedString      ->Top = cbLockedString      ->Top - 246;
+    cbRebootCount       ->Top = cbRebootCount       ->Top - 246;
+    cbRunningTimer      ->Top = cbRunningTimer      ->Top - 246;
+    edtLockedString     ->Top = edtLockedString     ->Top - 246;
+    edtKeyPassword      ->Top = edtKeyPassword      ->Top - 246;
+    edtPassword         ->Top = edtPassword         ->Top - 246;
+
     // 移动6个panel
     pnlOperator->Parent = this;
     pnlMonitor->Parent = this;
@@ -1323,10 +1413,23 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             {
                 global_config.adjust_running_time = cmd.data.data_64;
             }
-            else
+            else if (cmd.id == offsetof(GlobalConfig, unlock_string))
             {
-                memcpy(((char*)&global_config)+cmd.id, &cmd.data, cmd.length);
+                // 重新获取数据
+                TPackage package;
+                package.udp_port = UDP_PORT_READ_PRESET;
+
+                D1608PresetCmd preset_cmd;
+                preset_cmd.preset = 0; // 读取global_config
+                preset_cmd.store_page = 0;
+                memcpy(package.data, &preset_cmd, sizeof(preset_cmd));
+                package.data_size = sizeof(preset_cmd);
+                read_one_preset_package_list.push_back(package);
+
+                udpControl->SendBuffer(dst_ip, package.udp_port, package.data, package.data_size);
             }
+
+            ApplyConfigToUI();
         }
         else if (cmd.id == GetOffsetOfData(&config_map.op_code.noop))
         {
@@ -1365,6 +1468,24 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             {
                 edtRemainTime->Text = "--";
             }
+
+            if (cbRebootCount->Checked)
+            {
+                int remain_count = global_config.reboot_count_limit - (global_config.reboot_count - global_config.adjust_reboot_count);
+                if (remain_count > 0)
+                {
+                    edtRemainRebootCount->Text = remain_count;
+                }
+                else
+                {
+                    edtRemainRebootCount->Text = "0";
+                }
+            }
+            else
+            {
+                edtRemainRebootCount->Text = "--";
+            }
+            edtLockedString1->Text = global_config.locked_string;
 
             keep_live_count = 0;
             //tsOperator->Caption = "操作(连接)";
@@ -3122,17 +3243,28 @@ void __fastcall TForm1::ApplyConfigToUI()
 
     cbLockUpDownMenuKey->Checked = global_config.lock_updownmenu;
 
-    cbRunningTimer->Checked = global_config.running_timer_limit > 0;
-    edtRunningTimer->Text = global_config.running_timer_limit / 3600.0;
-    cbRebootCount->Checked = global_config.reboot_count_limit > 0;
-    edtRebootCount->Text = global_config.reboot_count_limit;
-    cbLockedString->Checked = (global_config.locked_string[0] != '\0');
-    edtLockedString->Text = global_config.locked_string;
+    {
+        // 加密区域
+        if ((global_config.reboot_count_limit != 0) || (global_config.running_timer_limit != 0))
+        {
+            HideLockConfigArea();
+        }
+        else
+        {
+            ShowLockConfigArea();
+        }
 
-    cbMenuKeyFunction->ItemIndex = global_config.menu_key_function;
-    cbUpKeyFunction->ItemIndex = global_config.up_key_function;
-    cbDownKeyFunction->ItemIndex = global_config.down_key_function;
+        cbRunningTimer->Checked = global_config.running_timer_limit > 0;
+        edtRunningTimer->Text = global_config.running_timer_limit / 3600.0;
+        cbRebootCount->Checked = global_config.reboot_count_limit > 0;
+        edtRebootCount->Text = global_config.reboot_count_limit;
+        cbLockedString->Checked = (global_config.locked_string[0] != '\0');
+        edtLockedString->Text = global_config.locked_string;
+    }
 
+    cbMenuKeyFunction->ItemIndex = global_config.menu_key_function?global_config.menu_key_function-1:0;
+    cbUpKeyFunction->ItemIndex = global_config.up_key_function?global_config.up_key_function-1:1;
+    cbDownKeyFunction->ItemIndex = global_config.down_key_function?global_config.down_key_function-1:2;
 
     struct in_addr in;
     in.S_un.S_addr = global_config.static_ip_address;
