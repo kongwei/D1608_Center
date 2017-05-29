@@ -5234,5 +5234,15 @@ void __fastcall TForm1::btnResetAllConfigClick(TObject *Sender)
     }
 }
 //---------------------------------------------------------------------------
-
+void __fastcall TForm1::lblDeviceNameDblClick(TObject *Sender)
+{
+    // ÉÁ¶¯ÆÁÄ»
+    D1608Cmd cmd;
+    cmd.type = 0;
+    cmd.id = offsetof(ConfigMap, op_code.flash_oled);
+    cmd.data.data_32 = 20;
+    cmd.length = 4;
+    SendCmd(cmd);
+}
+//---------------------------------------------------------------------------
 

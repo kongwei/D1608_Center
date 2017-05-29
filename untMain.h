@@ -670,6 +670,7 @@ __published:	// IDE-managed Components
     void __fastcall clbAvaliablePresetMouseDown(TObject *Sender,
           TMouseButton Button, TShiftState Shift, int X, int Y);
     void __fastcall btnResetAllConfigClick(TObject *Sender);
+    void __fastcall lblDeviceNameDblClick(TObject *Sender);
 
 private:
     // 已经加载版本文件
