@@ -1409,11 +1409,11 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
         // id == 1 表示全局配置
         if (cmd.type == 1)
         {
-            if (cmd.id == offsetof(GlobalConfig, adjust_running_time))
+            /*if (cmd.id == offsetof(GlobalConfig, adjust_running_time))
             {
                 global_config.adjust_running_time = cmd.data.data_64;
             }
-            else if (cmd.id == offsetof(GlobalConfig, unlock_string))
+            else if (cmd.id == offsetof(GlobalConfig, unlock_string))*/
             {
                 // 重新获取数据
                 TPackage package;
