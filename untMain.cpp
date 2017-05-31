@@ -4661,7 +4661,7 @@ static void MoveOutputPanel(int panel_id, TForm1 * form)
 
     form->output_dsp_btn[panel_id-1]->Visible = (panel_id <= REAL_OUTPUT_DSP_NUM);
     form->output_eq_btn[panel_id-1]->Visible = (panel_id <= REAL_OUTPUT_DSP_NUM);
-    form->output_comp_btn[panel_id-1]->Visible = (panel_id <= REAL_OUTPUT_DSP_NUM);
+    form->output_comp_btn[panel_id-1]->Visible = (panel_id <= REAL_OUTPUT_DSP_NUM) && (global_config.device_type[0] == 'S');
     form->output_invert_btn[panel_id-1]->Visible = (panel_id <= REAL_OUTPUT_DSP_NUM);
     form->output_mute_btn[panel_id-1]->Visible = (panel_id <= REAL_OUTPUT_DSP_NUM);
     form->output_number_btn[panel_id-1]->Visible = (panel_id <= REAL_OUTPUT_DSP_NUM);
@@ -4804,6 +4804,7 @@ void TForm1::SetIOChannelNum()
             imgOutputTemplate->Canvas->Handle, 0, 0, PANEL_WIDTH,imgOutputTemplate->Height, blend);
     }
 
+    output_comp_btn[0]->Visible = (global_config.device_type[0] == 'S');
     for (int i=2;i<=OUTPUT_DSP_NUM;i++)
     {
         MoveOutputPanel(i, this);
@@ -5254,6 +5255,27 @@ void __fastcall TForm1::lblDeviceNameDblClick(TObject *Sender)
     cmd.data.data_32 = 20;
     cmd.length = 4;
     SendCmd(cmd);
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::btnResetKeyFunctionClick(TObject *Sender)
+{
+    if (cbMenuKeyFunction->ItemIndex != 0)
+    {
+        cbMenuKeyFunction->ItemIndex = 0;
+        cbMenuKeyFunction->OnChange(NULL);
+    }
+
+    if (cbUpKeyFunction->ItemIndex != 1)
+    {
+        cbUpKeyFunction->ItemIndex = 1;
+        cbUpKeyFunction->OnChange(NULL);
+    }
+
+    if (cbDownKeyFunction->ItemIndex != 2)
+    {
+        cbDownKeyFunction->ItemIndex = 2;
+        cbDownKeyFunction->OnChange(NULL);
+    }
 }
 //---------------------------------------------------------------------------
 
