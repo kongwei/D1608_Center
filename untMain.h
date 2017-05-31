@@ -514,6 +514,7 @@ __published:	// IDE-managed Components
     TEdit *edtUnlockPassword;
     TImage *imgSystemBg3;
     TSpeedButton *btnUnlock;
+    TEdit *edtStartBuildTime;
     void __fastcall FormCreate(TObject *Sender);
     void __fastcall FormDestroy(TObject *Sender);
     void __fastcall btnRefreshClick(TObject *Sender);

@@ -1778,9 +1778,20 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             UpdateCaption();
             // 显示版本信息
             edtDeviceType->Text = global_config.device_type;
+            edtStartBuildTime->Text = global_config.start_build_time;
             edtBuildTime->Text = global_config.build_time;
             edtDeviceName->Text = global_config.d1616_name;
             //TDateTime d = edtBuildTime->Text;
+
+            // 显示preset名称
+            clbAvaliablePreset->Items->Strings[0] = global_config.preset_name[0][0] ? global_config.preset_name[0] : "PRESET1";
+            clbAvaliablePreset->Items->Strings[1] = global_config.preset_name[1][0] ? global_config.preset_name[1] : "PRESET2";
+            clbAvaliablePreset->Items->Strings[2] = global_config.preset_name[2][0] ? global_config.preset_name[2] : "PRESET3";
+            clbAvaliablePreset->Items->Strings[3] = global_config.preset_name[3][0] ? global_config.preset_name[3] : "PRESET4";
+            clbAvaliablePreset->Items->Strings[4] = global_config.preset_name[4][0] ? global_config.preset_name[4] : "PRESET5";
+            clbAvaliablePreset->Items->Strings[5] = global_config.preset_name[5][0] ? global_config.preset_name[5] : "PRESET6";
+            clbAvaliablePreset->Items->Strings[6] = global_config.preset_name[6][0] ? global_config.preset_name[6] : "PRESET7";
+            clbAvaliablePreset->Items->Strings[7] = global_config.preset_name[7][0] ? global_config.preset_name[7] : "PRESET8";
 
             // 版本校验
             if (global_config.version >= offsetof(GlobalConfig, ad_da_card))
