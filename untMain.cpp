@@ -2273,8 +2273,9 @@ void __fastcall TForm1::ToggleDSP(TObject *Sender)
             pbComp->Hide();
 
             // 隐藏COMP界面
-            pnlComp->Hide();
-            btnDspComp->Hide();
+            pnlComp->Enabled = false;
+            pnlComp->Color = clGray;
+            btnDspComp->Enabled = false;
 
             btnDspEq->Down = config_map.input_dsp[dsp_num-1].eq_switch;
         }
@@ -2291,9 +2292,18 @@ void __fastcall TForm1::ToggleDSP(TObject *Sender)
             btnPhanton->Hide();
 
             // 调整PaintBox1的尺寸
-            PaintBox1->Left = 248;
-            PaintBox1->Width = 521;
-            pbComp->Show();
+            if (edtDeviceType->Text!="" && edtDeviceType->Text[1] == 'S')
+            {
+                PaintBox1->Left = 248;
+                PaintBox1->Width = 521;
+                pbComp->Show();
+            }
+            else
+            {
+                PaintBox1->Left = 8;
+                PaintBox1->Width = 761;
+                pbComp->Hide();
+            }
 
             // COMP
             btnDspComp->Down = config_map.output_dsp[dsp_num-1].comp_switch;
@@ -2304,13 +2314,15 @@ void __fastcall TForm1::ToggleDSP(TObject *Sender)
 
             if (edtDeviceType->Text!="" && edtDeviceType->Text[1] == 'S')
             {
-                pnlComp->Show();
-                btnDspComp->Show();
+                pnlComp->Enabled = true;
+                pnlComp->Color = TColor(0x0082DDE7);
+                btnDspComp->Enabled = true;
             }
             else
             {
-                pnlComp->Hide();
-                btnDspComp->Hide();
+                pnlComp->Enabled = false;
+                pnlComp->Color = clGray;
+                btnDspComp->Enabled = false;
             }
 
             btnDspEq->Down = config_map.output_dsp[dsp_num-1].eq_switch;
@@ -4661,7 +4673,7 @@ static void MoveOutputPanel(int panel_id, TForm1 * form)
 
     form->output_dsp_btn[panel_id-1]->Visible = (panel_id <= REAL_OUTPUT_DSP_NUM);
     form->output_eq_btn[panel_id-1]->Visible = (panel_id <= REAL_OUTPUT_DSP_NUM);
-    form->output_comp_btn[panel_id-1]->Visible = (panel_id <= REAL_OUTPUT_DSP_NUM) && (global_config.device_type[0] == 'S');
+    form->output_comp_btn[panel_id-1]->Enabled = (panel_id <= REAL_OUTPUT_DSP_NUM) && (global_config.device_type[0] == 'S');
     form->output_invert_btn[panel_id-1]->Visible = (panel_id <= REAL_OUTPUT_DSP_NUM);
     form->output_mute_btn[panel_id-1]->Visible = (panel_id <= REAL_OUTPUT_DSP_NUM);
     form->output_number_btn[panel_id-1]->Visible = (panel_id <= REAL_OUTPUT_DSP_NUM);
@@ -4804,7 +4816,7 @@ void TForm1::SetIOChannelNum()
             imgOutputTemplate->Canvas->Handle, 0, 0, PANEL_WIDTH,imgOutputTemplate->Height, blend);
     }
 
-    output_comp_btn[0]->Visible = (global_config.device_type[0] == 'S');
+    output_comp_btn[0]->Enabled = (global_config.device_type[0] == 'S');
     for (int i=2;i<=OUTPUT_DSP_NUM;i++)
     {
         MoveOutputPanel(i, this);
