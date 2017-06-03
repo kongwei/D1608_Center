@@ -1690,7 +1690,32 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
                                   + IntToStr(min)+":"
                                   + IntToStr(sec)+"."
                                   + IntToStr(ms);
-                    item->SubItems->Add(buff.event[i].event_id);
+
+                    switch (buff.event[i].event_id)
+                    {
+                    case EVENT_POWER_OFF:
+                        item->SubItems->Add("关闭电源");
+                        break;
+                    case EVENT_SYSTEM_LIMIT:
+                        item->SubItems->Add("达到运行次数或时间限制");
+                        break;
+                    case EVENT_SAVE_PRESET:
+                        item->SubItems->Add("保存Preset");
+                        break;
+                    case EVENT_POWER_SAVE_OK:
+                        item->SubItems->Add("关机存盘成功");
+                        break;
+                    case EVENT_INPUT_OVERFLOW:
+                        item->SubItems->Add("input通道音量溢出");
+                        break;
+                    case EVENT_OUTPUT_OVERFLOW:
+                        item->SubItems->Add("output通道音量溢出");
+                        break;
+                    default:
+                        item->SubItems->Add(buff.event[i].event_id);
+                        break;
+                    }
+
                     item->SubItems->Add(buff.event[i].event_data);
                 }
             }
