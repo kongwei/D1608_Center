@@ -1180,11 +1180,12 @@ void __fastcall TForm1::btnSelectClick(TObject *Sender)
 
     D1608PresetCmd preset_cmd;
 
-    preset_cmd.preset = 0xFF; // 读取global_preset前config
+    /*preset_cmd.preset = 0xFF; // 读取当前config
     preset_cmd.store_page = 0;
     memcpy(package.data, &preset_cmd, sizeof(preset_cmd));
     package.data_size = sizeof(preset_cmd);
-    read_one_preset_package_list.push_back(package);
+    read_one_preset_package_list.push_back(package);*/
+    StartReadOnePackage(0xFF);
 
     preset_cmd.preset = 0; // 读取global_config
     preset_cmd.store_page = 0;
