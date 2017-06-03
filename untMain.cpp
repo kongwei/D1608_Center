@@ -2831,16 +2831,16 @@ void __fastcall TForm1::WatchPaint(TObject *Sender)
     pb_watch->Canvas->Brush->Color = clLime;
     pb_watch->Canvas->FillRect(r);
 
-    if (level > 0)
+    if (level > 17)
     {
-        r.bottom = 24-0+1;
+        r.bottom = 24-17+1;
         pb_watch->Canvas->Brush->Color = clYellow;
         pb_watch->Canvas->FillRect(r);
     }
 
-    if (level > 12)
+    if (level > 21)
     {
-        r.bottom = 24-12+1;
+        r.bottom = 24-21+1;
         pb_watch->Canvas->Brush->Color = clRed;
         pb_watch->Canvas->FillRect(r);
     }
@@ -2868,16 +2868,16 @@ void __fastcall TForm1::WatchPaint(TObject *Sender)
         pb_watch->Canvas->Brush->Color = clLime;
         pb_watch->Canvas->FillRect(r);
 
-        if (comp_level > 0)
+        if (comp_level > 17)
         {
-            r.bottom = 24-0+1;
+            r.bottom = 24-17+1;
             pb_watch->Canvas->Brush->Color = clYellow;
             pb_watch->Canvas->FillRect(r);
         }
 
-        if (comp_level > 12)
+        if (comp_level > 21)
         {
-            r.bottom = 24-12+1;
+            r.bottom = 24-21+1;
             pb_watch->Canvas->Brush->Color = clRed;
             pb_watch->Canvas->FillRect(r);
         }
