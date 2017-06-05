@@ -516,6 +516,7 @@ __published:	// IDE-managed Components
     TSpeedButton *btnUnlock;
     TEdit *edtStartBuildTime;
     TSpeedButton *btnResetKeyFunction;
+    TSpeedButton *btnClearAllPreset;
     void __fastcall FormCreate(TObject *Sender);
     void __fastcall FormDestroy(TObject *Sender);
     void __fastcall btnRefreshClick(TObject *Sender);
@@ -674,6 +675,7 @@ __published:	// IDE-managed Components
     void __fastcall btnResetAllConfigClick(TObject *Sender);
     void __fastcall lblDeviceNameDblClick(TObject *Sender);
     void __fastcall btnResetKeyFunctionClick(TObject *Sender);
+    void __fastcall btnClearAllPresetClick(TObject *Sender);
 
 private:
     // 已经加载版本文件

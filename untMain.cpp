@@ -5316,4 +5316,21 @@ void __fastcall TForm1::btnResetKeyFunctionClick(TObject *Sender)
     }
 }
 //---------------------------------------------------------------------------
+void __fastcall TForm1::btnClearAllPresetClick(TObject *Sender)
+{
+    if (Application->MessageBox("本操作会清除所有PRESET，确认操作吗？", "确认清除所有PRESET操作", MB_OKCANCEL|MB_ICONWARNING) != IDOK)
+    {
+        return;
+    }
+    else
+    {
+        D1608Cmd cmd;
+        cmd.type = 0;
+        cmd.id = offsetof(ConfigMap, op_code.reboot);
+        cmd.data.data_32 = 1;
+        cmd.length = 4;
+        SendCmd(cmd);
+    }
+}
+//---------------------------------------------------------------------------
 
