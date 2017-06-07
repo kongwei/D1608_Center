@@ -137,8 +137,9 @@ void FilterSet::RepaintPaint(int band)
         tmp = GetFilterGain(band)*10;
         cmd.data.data_filter.GAIN = tmp;
 
-        tmp = GetFilter(band)->GetQ()*100; 
-        cmd.data.data_filter.Q = tmp;
+        // TODO: 1940»á±ä³É1939£¿
+        tmp = GetFilter(band)->GetQ()*1000; 
+        cmd.data.data_filter.Q = ((int)tmp)/10;
 
         tmp = IsBypass(band) ? 1 : 0;  
         cmd.data.data_filter.bypass = tmp;
