@@ -1681,7 +1681,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             {
                 if (buff.event[i].timer != 0xFFFFFFFF)
                 {
-                    TListItem * item = lvLog->Items->Add();
+                    TListItem * item = lvLog->Items->Insert(0);
 
                     int ms = buff.event[i].timer % 10;  buff.event[i].timer /= 10;
                     int sec = buff.event[i].timer % 60; buff.event[i].timer /= 60;
@@ -1761,7 +1761,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
         {
             if (log_data[i].timer != 0)
             {
-                TListItem * item = lvDebug->Items->Add();
+                TListItem * item = lvDebug->Items->Insert(0);
 
                 int ms = log_data[i].timer % 1000;  log_data[i].timer /= 1000;
                 int sec = log_data[i].timer % 60; log_data[i].timer /= 60;
