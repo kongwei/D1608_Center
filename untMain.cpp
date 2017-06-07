@@ -1809,6 +1809,8 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             edtDeviceName->Text = global_config.d1616_name;
             //TDateTime d = edtBuildTime->Text;
 
+            lblPresetFileName->Caption = global_config.import_filename;
+
             // 显示preset名称
             clbAvaliablePreset->Items->Strings[0] = global_config.preset_name[0][0] ? global_config.preset_name[0] : "PRESET1";
             clbAvaliablePreset->Items->Strings[1] = global_config.preset_name[1][0] ? global_config.preset_name[1] : "PRESET2";
@@ -5090,6 +5092,8 @@ void __fastcall TForm1::btnLoadFileToFlashClick(TObject *Sender)
         }
 
         file->ReadBuffer(&smc_config, sizeof(smc_config));
+        // 替换文件名
+        strncpy(smc_config.global_config.import_filename, ExtractFileName(OpenDialog1->FileName).c_str(), 9);
 
         memcpy(all_config_map, &smc_config.all_config_map, sizeof(smc_config.all_config_map));
         global_config = smc_config.global_config;

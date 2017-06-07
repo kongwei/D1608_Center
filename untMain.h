@@ -517,6 +517,7 @@ __published:	// IDE-managed Components
     TEdit *edtStartBuildTime;
     TSpeedButton *btnResetKeyFunction;
     TSpeedButton *btnClearAllPreset;
+    TLabel *lblPresetFileName;
     void __fastcall FormCreate(TObject *Sender);
     void __fastcall FormDestroy(TObject *Sender);
     void __fastcall btnRefreshClick(TObject *Sender);
