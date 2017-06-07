@@ -2935,11 +2935,9 @@ void __fastcall TForm1::after_input_panel_dsp_numClick(TObject *Sender)
     {
         return;
     }
-    else
-    {
-        label->Caption = edtInput->Text;
-    }
-    
+
+    label->Caption = edtInput->Text;
+
     D1608Cmd cmd;
     cmd.type = cbGlobalDspName->Checked;
     if (cmd.type)
@@ -4009,6 +4007,7 @@ void TForm1::ShowInputPanel(TControl * Sender, TNotifyEvent event, String defaul
     edtInput->Text = default_text;
     edtInput->BringToFront();
     edtInput->Show();
+    edtInput->MaxLength = 6;
     edtInput->SetFocus();
     edtInput->SelectAll();
 }
