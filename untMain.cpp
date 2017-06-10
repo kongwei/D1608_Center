@@ -1107,10 +1107,11 @@ void __fastcall TForm1::udpSLPUDPRead(TObject *Sender,
         {
             if ((last_device_id == "") || (last_device_id == slp_pack.id) || ( Now() > startup_time+10.0/3600/24 ))
             {
-                // 连接第一个 或者 匹配ID 或者 5秒钟没有找到原先的设备
+                // 连接第一个 或者 匹配ID 或者 5秒钟 或者 没有找到原先的设备
                 //file_dirty = false;
                 item->Selected = true;
                 btnSelectClick(NULL);
+                startup_time = startup_time + 100000;
             }
         }
     }
@@ -2602,11 +2603,11 @@ void __fastcall TForm1::MenuItem3Click(TObject *Sender)
     }
     else if (popup_label->Caption == "22dBu")
     {
-        cmd.data.data_8 = 2;
+        cmd.data.data_8 = 5;
     }
     else if (popup_label->Caption == "24dBu")
     {
-        cmd.data.data_8 = 1;
+        cmd.data.data_8 = 6;
     }
     SendCmd(cmd);
 
@@ -3252,15 +3253,11 @@ static String InputGain2String(int gain)
 {
     switch (gain)
     {
-    case 0:
-        return "MIC";
-    case 1:
-        return "MIC(0)";
-    case 5:
-        return "400mv";
-    case 6:
-        return "10dBv";
     case 3:
+        return "MIC";
+    case 5:
+        return "10dBv";
+    case 6:
         return "22dBu";
     case 7:
         return "24dBu";
@@ -3268,17 +3265,16 @@ static String InputGain2String(int gain)
 
     return "ERROR";
 }
+
 static String OutputGain2String(int gain)
 {
     switch (gain)
     {
     case 7:
-        return "200mv";
-    case 3:
         return "10dBv";
-    case 1:
+    case 2:
         return "22dBu";
-    case 0:
+    case 1:
         return "24dBu";
     }
 

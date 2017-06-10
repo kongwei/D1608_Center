@@ -506,7 +506,7 @@ void InitConfigMap(ConfigMap& tmp_config_map)
 	for (int i=0;i<OUTPUT_DSP_NUM;i++)
 	{
         tmp_config_map.output_dsp[i].eq_switch = 1;
-        tmp_config_map.output_dsp[i].gain = 3;
+        tmp_config_map.output_dsp[i].gain = 7;
 
 		for (int j=HP_FILTER;j<=LP_FILTER;j++)
 		{
