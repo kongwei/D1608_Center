@@ -1825,6 +1825,10 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             edtDeviceName->Text = global_config.d1616_name;
             //TDateTime d = edtBuildTime->Text;
 
+            M11->Visible = (global_config.device_type[0] == 'S');
+            N22dBu1->Visible = (global_config.device_type[0] == 'S');
+            MenuItem5->Visible = (global_config.device_type[0] == 'S');
+
             lblPresetFileName->Caption = global_config.import_filename;
 
             // ÏÔÊ¾presetÃû³Æ
@@ -4701,6 +4705,7 @@ static void MoveOutputPanel(int panel_id, TForm1 * form)
 
     form->output_dsp_btn[panel_id-1]->Visible = (panel_id <= REAL_OUTPUT_DSP_NUM);
     form->output_eq_btn[panel_id-1]->Visible = (panel_id <= REAL_OUTPUT_DSP_NUM);
+    form->output_comp_btn[panel_id-1]->Visible = (panel_id <= REAL_OUTPUT_DSP_NUM);
     form->output_comp_btn[panel_id-1]->Enabled = (panel_id <= REAL_OUTPUT_DSP_NUM) && (global_config.device_type[0] == 'S');
     form->output_invert_btn[panel_id-1]->Visible = (panel_id <= REAL_OUTPUT_DSP_NUM);
     form->output_mute_btn[panel_id-1]->Visible = (panel_id <= REAL_OUTPUT_DSP_NUM);
