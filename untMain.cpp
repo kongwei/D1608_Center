@@ -48,6 +48,8 @@ static Word enter_key = VK_RETURN;
 //static char head[] = "\x53\x65\x74\x50\x61\x72\x61\x00\x00\x00\x4D\x41\x54\x31\x36\x31\x30\x43\x6F\x6E\x66\x69\x67\x44\x61\x74\x61\x00\x00\x00";
 static BLENDFUNCTION blend = {AC_SRC_OVER, 0, 200, 0};
 
+static TTime startup_time;
+
 unsigned int GetOffsetOfData(void * p_data)
 {
     static char * p_config_map = (char*)&config_map;
@@ -453,6 +455,8 @@ static void CreatePnlMix(int panel_id, TForm1 * form)
 __fastcall TForm1::TForm1(TComponent* Owner)
     : TForm(Owner)
 {
+    startup_time = Now();
+
     // 参数处理
     on_loading = true;
 
@@ -1101,16 +1105,10 @@ void __fastcall TForm1::udpSLPUDPRead(TObject *Sender,
     {
         if (!udpControl->Active)
         {
-            if (last_device_id == "")
+            if ((last_device_id == "") || (last_device_id == slp_pack.id) || ( Now() > startup_time+10.0/3600/24 ))
             {
-                // 连接第一个
+                // 连接第一个 或者 匹配ID 或者 5秒钟没有找到原先的设备
                 //file_dirty = false;
-                item->Selected = true;
-                btnSelectClick(NULL);
-            }
-
-            if (last_device_id == slp_pack.id)
-            {
                 item->Selected = true;
                 btnSelectClick(NULL);
             }
@@ -2569,23 +2567,15 @@ void __fastcall TForm1::M41Click(TObject *Sender)
     cmd.length = 1;
     if (popup_label->Caption == "MIC")
     {
-        cmd.data.data_8 = 0;
-    }
-    else if (popup_label->Caption == "MIC(0)")
-    {
-        cmd.data.data_8 = 1;
-    }
-    else if (popup_label->Caption == "400mv")
-    {
-        cmd.data.data_8 = 5;
+        cmd.data.data_8 = 3;
     }
     else if (popup_label->Caption == "10dBv")
     {
-        cmd.data.data_8 = 6;
+        cmd.data.data_8 = 5;
     }
     else if (popup_label->Caption == "22dBu")
     {
-        cmd.data.data_8 = 3;
+        cmd.data.data_8 = 6;
     }
     else if (popup_label->Caption == "24dBu")
     {
@@ -2606,21 +2596,17 @@ void __fastcall TForm1::MenuItem3Click(TObject *Sender)
     D1608Cmd cmd;
     cmd.id = GetOffsetOfData(&config_map.output_dsp[dsp_num-1].gain);
     cmd.length = 1;
-    if (popup_label->Caption == "200mv")
+    if (popup_label->Caption == "10dBv")
     {
         cmd.data.data_8 = 7;
     }
-    else if (popup_label->Caption == "10dBv")
-    {
-        cmd.data.data_8 = 3;
-    }
     else if (popup_label->Caption == "22dBu")
     {
-        cmd.data.data_8 = 1;
+        cmd.data.data_8 = 2;
     }
     else if (popup_label->Caption == "24dBu")
     {
-        cmd.data.data_8 = 0;
+        cmd.data.data_8 = 1;
     }
     SendCmd(cmd);
 
