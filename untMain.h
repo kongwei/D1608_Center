@@ -240,8 +240,6 @@ __published:	// IDE-managed Components
     TEdit *edtGain10;
     TMemo *mmCoeff;
     TAdvTrackBar *dsp_gain_trackbar;
-    TAdvTrackBar *p_output_inner_level;
-    TAdvTrackBar *p_input_inner_level;
     TPaintBox *pb_watch;
     TPanel *pnlMix;
     TImage *pnlmix_background;
@@ -518,6 +516,9 @@ __published:	// IDE-managed Components
     TSpeedButton *btnResetKeyFunction;
     TSpeedButton *btnClearAllPreset;
     TLabel *lblPresetFileName;
+    TImage *Image6;
+    TImage *img_input_gain_trackbar;
+    TImage *img_output_gain_trackbar;
     void __fastcall FormCreate(TObject *Sender);
     void __fastcall FormDestroy(TObject *Sender);
     void __fastcall btnRefreshClick(TObject *Sender);

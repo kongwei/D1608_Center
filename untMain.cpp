@@ -2301,9 +2301,10 @@ void __fastcall TForm1::ToggleDSP(TObject *Sender)
 
         if (btn->Tag < 100)
         {
-            dsp_gain_trackbar->BackGround = p_input_inner_level->BackGround;
-            dsp_gain_trackbar->Max = p_input_inner_level->Max;
-            dsp_gain_trackbar->Min = p_input_inner_level->Min;
+            img_input_gain_trackbar->Show();
+            img_output_gain_trackbar->Hide();
+            dsp_gain_trackbar->Max = 240;
+            dsp_gain_trackbar->Min = -300;
             lblDSPInfo->Caption = "Input Channel " + IntToStr(btn->Tag) + " DSP Setup";
             pnlDspDetail->Left = input_panel_bkground->Left;
 
@@ -2326,9 +2327,10 @@ void __fastcall TForm1::ToggleDSP(TObject *Sender)
         }
         else
         {
-            dsp_gain_trackbar->BackGround = p_output_inner_level->BackGround;
-            dsp_gain_trackbar->Max = p_output_inner_level->Max;
-            dsp_gain_trackbar->Min = p_output_inner_level->Min;
+            img_input_gain_trackbar->Hide();
+            img_output_gain_trackbar->Show();
+            dsp_gain_trackbar->Max = 120;
+            dsp_gain_trackbar->Min = -300;
             lblDSPInfo->Caption = "Output Channel " + IntToStr(btn->Tag-100) + " DSP Setup";
             pnlDspDetail->Left = output_panel_bkground->Left + output_panel_bkground->Width - pnlDspDetail->Width;
 
