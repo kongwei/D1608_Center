@@ -147,7 +147,6 @@ int GetLocalIpList(TStrings * IpList)
     }
     __finally
     {
-        //WSACleanup();
         return result;
     }
 }
@@ -745,6 +744,11 @@ __fastcall TForm1::TForm1(TComponent* Owner)
 
     // 私有变量初始化
     keep_live_count = 0;
+
+    // 读取配置
+    TIniFile * ini_file = new TIniFile(ExtractFilePath(Application->ExeName) + "iap.ini");
+    last_device_id = ini_file->ReadString("connection", "last_id", "");
+    delete ini_file;
 }
 //---------------------------------------------------------------------------
 LRESULT TForm1::new_pnlSystem_proc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
@@ -1020,19 +1024,23 @@ void __fastcall TForm1::btnRefreshClick(TObject *Sender)
 
     GetLocalIpList(lbIplist->Items);
 
-    if (lvDevice->Selected == NULL)
-    {
-        last_select_device_ip = "";
-    }
-    else
-    {
-        last_select_device_ip = lvDevice->Selected->SubItems->Strings[0];
 
+    for (int i=0;i<lvDevice->Items->Count;i++)
+    {
+        TListItem * find_item = lvDevice->Items->Item[i];
+        if (find_item->SubItems->Strings[2] == last_device_id)
+        {
+            find_item->Selected = true;
+            break;
+        }
+    }
+
+    if (lvDevice->Selected != NULL)
+    {
         if (lvDevice->Selected->SubItems->Strings[3] != "")
             lblDeviceName->Caption = lvDevice->Selected->SubItems->Strings[3];
         else
             lblDeviceName->Caption = lvDevice->Selected->SubItems->Strings[4]+"-"+lvDevice->Selected->SubItems->Strings[2];
-
     }
 }
 //---------------------------------------------------------------------------
@@ -1091,19 +1099,21 @@ void __fastcall TForm1::udpSLPUDPRead(TObject *Sender,
     }
     else
     {
-        if ((last_device_id == "" || last_device_id == slp_pack.id) && !udpControl->Active)
+        if (!udpControl->Active)
         {
-            // 连接第一个
-            file_dirty = false;
-            dst_ip = item->SubItems->Strings[0];
-            btnSelect->Click();
+            if (last_device_id == "")
+            {
+                // 连接第一个
+                //file_dirty = false;
+                item->Selected = true;
+                btnSelectClick(NULL);
+            }
 
-            last_device_id = slp_pack.id;
-        }
-
-        if (last_device_id == slp_pack.id)
-        {
-            item->Selected = true;
+            if (last_device_id == slp_pack.id)
+            {
+                item->Selected = true;
+                btnSelectClick(NULL);
+            }
         }
     }
 }                                         
@@ -1163,7 +1173,9 @@ void __fastcall TForm1::btnSelectClick(TObject *Sender)
         }
     }
 
+    dst_ip = selected->SubItems->Strings[0];
     String broadcast_ip = selected->SubItems->Strings[1];
+
     // 初始化socket
     udpControl->Active = false;
     udpControl->Bindings->Clear();
@@ -1205,6 +1217,11 @@ void __fastcall TForm1::btnSelectClick(TObject *Sender)
     keep_live_count = 0;
 
     last_device_id = selected->SubItems->Strings[2];
+    // 记录在配置文件里
+    TIniFile * ini_file = new TIniFile(ExtractFilePath(Application->ExeName) + "iap.ini");
+    ini_file->WriteString("connection", "last_id", last_device_id);
+    delete ini_file;
+
     // 显示名称
     if (selected->SubItems->Strings[3] != "")
         lblDeviceName->Caption = selected->SubItems->Strings[3];
