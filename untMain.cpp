@@ -3272,9 +3272,9 @@ static String OutputGain2String(int gain)
     {
     case 7:
         return "10dBv";
-    case 2:
+    case 5:
         return "22dBu";
-    case 1:
+    case 6:
         return "24dBu";
     }
 
