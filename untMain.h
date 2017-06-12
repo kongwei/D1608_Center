@@ -113,10 +113,10 @@ __published:	// IDE-managed Components
     TStaticText *master_panel_dsp_num;
     TLabel *input_type;
     TPopupMenu *PopupMenu1;
-    TMenuItem *M11;
+    TMenuItem *iMIC;
     TMenuItem *M21;
     TMenuItem *M31;
-    TMenuItem *M41;
+    TMenuItem *i10dBv;
     TSpeedButtonNoFrame *input_panel_noise_btn;
     TSpeedButtonNoFrame *input_panel_mute_btn;
     TEdit *input_panel_level_edit;
@@ -220,13 +220,13 @@ __published:	// IDE-managed Components
     TEdit *edtQ0;
     TCheckBox *cbBypass0;
     TSpeedButton *btnDspResetEQ;
-    TMenuItem *N22dBu1;
-    TMenuItem *N24dBu1;
+    TMenuItem *i22dBu;
+    TMenuItem *i24dBu;
     TPopupMenu *PopupMenu2;
     TMenuItem *MenuItem3;
-    TMenuItem *MenuItem4;
-    TMenuItem *MenuItem5;
-    TMenuItem *MenuItem6;
+    TMenuItem *o10dBv;
+    TMenuItem *o22dBu;
+    TMenuItem *o24dBu;
     TCheckBox *cbBypass1;
     TEdit *edtQ1;
     TEdit *edtGain1;
@@ -562,10 +562,10 @@ __published:	// IDE-managed Components
           int WheelDelta, TPoint &MousePos, bool &Handled);
     void __fastcall input_typeMouseDown(TObject *Sender,
           TMouseButton Button, TShiftState Shift, int X, int Y);
-    void __fastcall M41Click(TObject *Sender);
-    void __fastcall M41DrawItem(TObject *Sender, TCanvas *ACanvas,
+    void __fastcall i10dBvClick(TObject *Sender);
+    void __fastcall i10dBvDrawItem(TObject *Sender, TCanvas *ACanvas,
           TRect &ARect, bool Selected);
-    void __fastcall M41MeasureItem(TObject *Sender, TCanvas *ACanvas,
+    void __fastcall i10dBvMeasureItem(TObject *Sender, TCanvas *ACanvas,
           int &Width, int &Height);
     void __fastcall btnDspResetEQClick(TObject *Sender);
     void __fastcall MenuItem3Click(TObject *Sender);

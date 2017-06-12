@@ -85,6 +85,101 @@ CompConfig attack_config = {1, 20000, 640, 10, 3};
 CompConfig release_config = {10, 50000, 10000, 10, 3};
 CompConfig gain_config = {0, 240, 0, 10, 3};
 
+// 版本配置表
+struct VersionFunction
+{
+    char name[100];
+    //48V
+    bool is_48v;
+    //增益切换
+    char gain_function[200];
+    //压缩
+    bool is_comp;
+    //进
+    int input_channel_count;
+    //出
+    int output_channel_count;
+    //电压检测
+    bool is_vote_check;
+    //有没有OLED
+    bool is_oled;
+    //DSP数量
+    int dsp_count;
+    //输入PEQ数
+    int input_peq_count;
+    //输出PEQ数
+    int output_peq_count;
+    //输入延时
+    int input_delay;
+    //输出延时
+    int output_delay;
+};
+
+static VersionFunction version_function_list[] =
+{
+    {"C4D",  false, "i24dBu|o24dBu",                                  false,  4,  4,  false, false, 0, 6, 6, 160, 160},
+    {"C4H",  false, "i24dBu|o24dBu",                                  false,  4,  8,  false, false, 0, 6, 6, 160, 160},
+    {"C4L",  false, "i24dBu|o24dBu",                                  false,  4,  12, false, false, 0, 6, 6, 160, 160},
+    {"C4P",  false, "i24dBu|o24dBu",                                  false,  4,  16, false, false, 0, 6, 6, 160, 160},
+    {"C8D",  false, "i24dBu|o24dBu",                                  false,  8,  4,  false, false, 0, 6, 6, 160, 160},
+    {"C8H",  false, "i24dBu|o24dBu",                                  false,  8,  8,  false, false, 0, 6, 6, 160, 160},
+    {"C8L",  false, "i24dBu|o24dBu",                                  false,  8,  12, false, false, 0, 6, 6, 160, 160},
+    {"C8P",  false, "i24dBu|o24dBu",                                  false,  8,  16, false, false, 0, 6, 6, 160, 160},
+    {"C12D", false, "i24dBu|o24dBu",                                  false,  12, 4,  false, false, 0, 6, 6, 160, 160},
+    {"C12H", false, "i24dBu|o24dBu",                                  false,  12, 8,  false, false, 0, 6, 6, 160, 160},
+    {"C12L", false, "i24dBu|o24dBu",                                  false,  12, 12, false, false, 0, 6, 6, 160, 160},
+    {"C12P", false, "i24dBu|o24dBu",                                  false,  12, 16, false, false, 0, 6, 6, 160, 160},
+    {"C16D", false, "i24dBu|o24dBu",                                  false,  16, 4,  false, false, 0, 6, 6, 160, 160},
+    {"C16H", false, "i24dBu|o24dBu",                                  false,  16, 8,  false, false, 0, 6, 6, 160, 160},
+    {"C16L", false, "i24dBu|o24dBu",                                  false,  16, 12, false, false, 0, 6, 6, 160, 160},
+    {"C16P", false, "i24dBu|o24dBu",                                  false,  16, 16, false, false, 0, 6, 6, 160, 160},
+    {"M4D",  false, "i10dBv|i24dBu|o10dBv|o24dBu",                    false,  4,  4,  false, true,  0, 7, 7, 320, 320},
+    {"M4H",  false, "i10dBv|i24dBu|o10dBv|o24dBu",                    false,  4,  8,  false, true,  0, 7, 7, 320, 320},
+    {"M4L",  false, "i10dBv|i24dBu|o10dBv|o24dBu",                    false,  4,  12, false, true,  0, 7, 7, 320, 320},
+    {"M4P",  false, "i10dBv|i24dBu|o10dBv|o24dBu",                    false,  4,  16, false, true,  0, 7, 7, 320, 320},
+    {"M8D",  false, "i10dBv|i24dBu|o10dBv|o24dBu",                    false,  8,  4,  false, true,  0, 7, 7, 320, 320},
+    {"M8H",  false, "i10dBv|i24dBu|o10dBv|o24dBu",                    false,  8,  8,  false, true,  0, 7, 7, 320, 320},
+    {"M8L",  false, "i10dBv|i24dBu|o10dBv|o24dBu",                    false,  8,  12, false, true,  0, 7, 7, 320, 320},
+    {"M8P",  false, "i10dBv|i24dBu|o10dBv|o24dBu",                    false,  8,  16, false, true,  0, 7, 7, 320, 320},
+    {"M12D", false, "i10dBv|i24dBu|o10dBv|o24dBu",                    false,  12, 4,  false, true,  0, 7, 7, 320, 320},
+    {"M12H", false, "i10dBv|i24dBu|o10dBv|o24dBu",                    false,  12, 8,  false, true,  0, 7, 7, 320, 320},
+    {"M12L", false, "i10dBv|i24dBu|o10dBv|o24dBu",                    false,  12, 12, false, true,  0, 7, 7, 320, 320},
+    {"M12P", false, "i10dBv|i24dBu|o10dBv|o24dBu",                    false,  12, 16, false, true,  0, 7, 7, 320, 320},
+    {"M16D", false, "i10dBv|i24dBu|o10dBv|o24dBu",                    false,  16, 4,  false, true,  0, 7, 7, 320, 320},
+    {"M16H", false, "i10dBv|i24dBu|o10dBv|o24dBu",                    false,  16, 8,  false, true,  0, 7, 7, 320, 320},
+    {"M16L", false, "i10dBv|i24dBu|o10dBv|o24dBu",                    false,  16, 12, false, true,  0, 7, 7, 320, 320},
+    {"M16P", false, "i10dBv|i24dBu|o10dBv|o24dBu",                    false,  16, 16, false, true,  0, 7, 7, 320, 320},
+    {"S4D",  true,  "iMIC|i10dBv|i22dBu|i24dBu|o10dBv|o22dBu|o24dBu", true,   4,  4,  true,  true,  0, 7, 7, 320, 320},
+    {"S4H",  true,  "iMIC|i10dBv|i22dBu|i24dBu|o10dBv|o22dBu|o24dBu", true,   4,  8,  true,  true,  0, 7, 7, 320, 320},
+    {"S4L",  true,  "iMIC|i10dBv|i22dBu|i24dBu|o10dBv|o22dBu|o24dBu", true,   4,  12, true,  true,  0, 7, 7, 320, 320},
+    {"S4P",  true,  "iMIC|i10dBv|i22dBu|i24dBu|o10dBv|o22dBu|o24dBu", true,   4,  16, true,  true,  0, 7, 7, 320, 320},
+    {"S8D",  true,  "iMIC|i10dBv|i22dBu|i24dBu|o10dBv|o22dBu|o24dBu", true,   8,  4,  true,  true,  0, 7, 7, 320, 320},
+    {"S8H",  true,  "iMIC|i10dBv|i22dBu|i24dBu|o10dBv|o22dBu|o24dBu", true,   8,  8,  true,  true,  0, 7, 7, 320, 320},
+    {"S8L",  true,  "iMIC|i10dBv|i22dBu|i24dBu|o10dBv|o22dBu|o24dBu", true,   8,  12, true,  true,  0, 7, 7, 320, 320},
+    {"S8P",  true,  "iMIC|i10dBv|i22dBu|i24dBu|o10dBv|o22dBu|o24dBu", true,   8,  16, true,  true,  0, 7, 7, 320, 320},
+    {"S12D", true,  "iMIC|i10dBv|i22dBu|i24dBu|o10dBv|o22dBu|o24dBu", true,   12, 4,  true,  true,  0, 7, 7, 320, 320},
+    {"S12H", true,  "iMIC|i10dBv|i22dBu|i24dBu|o10dBv|o22dBu|o24dBu", true,   12, 8,  true,  true,  0, 7, 7, 320, 320},
+    {"S12L", true,  "iMIC|i10dBv|i22dBu|i24dBu|o10dBv|o22dBu|o24dBu", true,   12, 12, true,  true,  0, 7, 7, 320, 320},
+    {"S12P", true,  "iMIC|i10dBv|i22dBu|i24dBu|o10dBv|o22dBu|o24dBu", true,   12, 16, true,  true,  0, 7, 7, 320, 320},
+    {"S16D", true,  "iMIC|i10dBv|i22dBu|i24dBu|o10dBv|o22dBu|o24dBu", true,   16, 4,  true,  true,  0, 7, 7, 320, 320},
+    {"S16H", true,  "iMIC|i10dBv|i22dBu|i24dBu|o10dBv|o22dBu|o24dBu", true,   16, 8,  true,  true,  0, 7, 7, 320, 320},
+    {"S16L", true,  "iMIC|i10dBv|i22dBu|i24dBu|o10dBv|o22dBu|o24dBu", true,   16, 12, true,  true,  0, 7, 7, 320, 320},
+    {"S16P", true,  "iMIC|i10dBv|i22dBu|i24dBu|o10dBv|o22dBu|o24dBu", true,   16, 16, true,  true,  0, 7, 7, 320, 320},
+    {"",     false, "iMIC|i10dBv|i22dBu|i24dBu|o10dBv|o22dBu|o24dBu", true,   16, 16, false, false, 0, 7, 7, 320, 320},
+};
+static VersionFunction GetVersionConfig(String name)
+{
+    int i=0;
+    while (String(version_function_list[i].name) != "")
+    {
+        if (String(version_function_list[i].name) == name)
+            break;
+        i++;
+    }
+    return version_function_list[i];
+}
+
+
 String Ration2String(double ratio)
 {
     if (ratio == 0)
@@ -1562,7 +1657,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             calc_data._48va  = CalcVot1(true_data->_48va, 4.75, 75);                                
             calc_data._46va  = CalcVot1(true_data->_46va, 4.75, 75);                                
             calc_data._5va   = CalcVot1(true_data-> _5va, 6.81, 6.81);                                
-            calc_data._x12va = CalcVot2(true_data->_12va, true_data->_x12va, 4.75, 14.7, 10, 14.7); 
+            calc_data._x12va = CalcVot2(true_data->_12va, true_data->_x12va, 4.75, 14.7, 10, 14.7);
             calc_data._12va  = CalcVot1(true_data->_12va, 4.75, 14.7);                              
             calc_data._16va  = CalcVot1(true_data->_16va, 3.32, 20);                                
             calc_data._16vac = CalcVot1(true_data->_16vac, 3.32, 20);                                
@@ -1586,7 +1681,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             calc_data._8vdc  = CalcVot1(true_data->_8vdc, 4.75, 10);                                
             calc_data._8vac  = CalcVot1(true_data->_8vac, 4.75, 10);                                
             calc_data._8va   = CalcVot1(true_data->_8va, 4.75, 10);                                
-            calc_data._x16vac= CalcVot2(true_data->_16vac, true_data->_x16vac, 3.32, 20, 14.7, 20);   
+            calc_data._x16vac= CalcVot2(true_data->_16vac, true_data->_x16vac, 3.32, 20, 14.7, 20);
             calc_data._x16va = CalcVot2(true_data->_16va, true_data->_x16va, 3.32, 20, 14.7, 20);   
             calc_data._46vc  = CalcVot1(true_data->_46vc, 4.75, 75); 
             calc_data._48va  = CalcVot1(true_data->_48va, 4.75, 75);                                
@@ -1825,9 +1920,14 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             edtDeviceName->Text = global_config.d1616_name;
             //TDateTime d = edtBuildTime->Text;
 
-            M11->Visible = (global_config.device_type[0] == 'S');
-            N22dBu1->Visible = (global_config.device_type[0] == 'S');
-            MenuItem5->Visible = (global_config.device_type[0] == 'S');
+            String gain_set = GetVersionConfig(global_config.device_type).gain_function;
+            iMIC->Visible = (gain_set.Pos("iMIC")!=0);
+            i10dBv->Visible = (gain_set.Pos("i10dBv")!=0);
+            i22dBu->Visible = (gain_set.Pos("i22dBu")!=0);
+            i24dBu->Visible = (gain_set.Pos("i24dBu")!=0);
+            o10dBv->Visible = (gain_set.Pos("o10dBv")!=0);
+            o22dBu->Visible = (gain_set.Pos("o22dBu")!=0);
+            o24dBu->Visible = (gain_set.Pos("o24dBu")!=0);
 
             lblPresetFileName->Caption = global_config.import_filename;
 
@@ -1852,7 +1952,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
                     iDsp[i]->Caption = (global_config.yss920[i]?"920":"X");
                 }
 
-                REAL_INPUT_DSP_NUM = 0;
+                /*REAL_INPUT_DSP_NUM = 0;
                 for (int i=0;i<4;i++)
                     REAL_INPUT_DSP_NUM += global_config.ad_da_card[i];
                 if (REAL_INPUT_DSP_NUM == 0)
@@ -1862,7 +1962,10 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
                 for (int i=4;i<8;i++)
                     REAL_OUTPUT_DSP_NUM += global_config.ad_da_card[i];
                 if (REAL_OUTPUT_DSP_NUM == 0)
-                    REAL_OUTPUT_DSP_NUM = 16;
+                    REAL_OUTPUT_DSP_NUM = 16;*/
+
+                REAL_INPUT_DSP_NUM = GetVersionConfig(edtDeviceType->Text).input_channel_count;
+                REAL_OUTPUT_DSP_NUM = GetVersionConfig(edtDeviceType->Text).output_channel_count;
 
                 SetIOChannelNum();
             }
@@ -2342,7 +2445,7 @@ void __fastcall TForm1::ToggleDSP(TObject *Sender)
             btnPhanton->Hide();
 
             // 调整PaintBox1的尺寸
-            if (edtDeviceType->Text!="" && edtDeviceType->Text[1] == 'S')
+            if (GetVersionConfig(edtDeviceType->Text).is_comp)
             {
                 PaintBox1->Left = 248;
                 PaintBox1->Width = 521;
@@ -2362,7 +2465,7 @@ void __fastcall TForm1::ToggleDSP(TObject *Sender)
             edtCompGain->Text = config_map.output_dsp[dsp_num-1].comp_gain/10.0;
             cbCompAutoTime->Checked = config_map.output_dsp[dsp_num-1].auto_time;
 
-            if (edtDeviceType->Text!="" && edtDeviceType->Text[1] == 'S')
+            if (GetVersionConfig(edtDeviceType->Text).is_comp)
             {
                 pnlComp->Enabled = true;
                 pnlComp->Color = TColor(0x0082DDE7);
@@ -2560,7 +2663,7 @@ void __fastcall TForm1::input_typeMouseDown(TObject *Sender,
     }
 }
 //---------------------------------------------------------------------------
-void __fastcall TForm1::M41Click(TObject *Sender)
+void __fastcall TForm1::i10dBvClick(TObject *Sender)
 {
     // 输入菜单
     TLabel * popup_label = (TLabel*)PopupMenu1->PopupComponent;
@@ -2618,7 +2721,7 @@ void __fastcall TForm1::MenuItem3Click(TObject *Sender)
     config_map.output_dsp[dsp_num-1].gain = cmd.data.data_8;
 }
 //---------------------------------------------------------------------------
-void __fastcall TForm1::M41DrawItem(TObject *Sender, TCanvas *ACanvas,
+void __fastcall TForm1::i10dBvDrawItem(TObject *Sender, TCanvas *ACanvas,
       TRect &ARect, bool Selected)
 {
     ACanvas->Font->Name = "MS Sans Serif";
@@ -2641,7 +2744,7 @@ void __fastcall TForm1::M41DrawItem(TObject *Sender, TCanvas *ACanvas,
     ACanvas->TextRect(ARect, left, top, ((TMenuItem*)Sender)->Caption);
 }
 //---------------------------------------------------------------------------
-void __fastcall TForm1::M41MeasureItem(TObject *Sender, TCanvas *ACanvas,
+void __fastcall TForm1::i10dBvMeasureItem(TObject *Sender, TCanvas *ACanvas,
       int &Width, int &Height)
 {
     Width = 34;
@@ -4706,7 +4809,6 @@ static void MoveOutputPanel(int panel_id, TForm1 * form)
     form->output_dsp_btn[panel_id-1]->Visible = (panel_id <= REAL_OUTPUT_DSP_NUM);
     form->output_eq_btn[panel_id-1]->Visible = (panel_id <= REAL_OUTPUT_DSP_NUM);
     form->output_comp_btn[panel_id-1]->Visible = (panel_id <= REAL_OUTPUT_DSP_NUM);
-    form->output_comp_btn[panel_id-1]->Enabled = (panel_id <= REAL_OUTPUT_DSP_NUM) && (global_config.device_type[0] == 'S');
     form->output_invert_btn[panel_id-1]->Visible = (panel_id <= REAL_OUTPUT_DSP_NUM);
     form->output_mute_btn[panel_id-1]->Visible = (panel_id <= REAL_OUTPUT_DSP_NUM);
     form->output_number_btn[panel_id-1]->Visible = (panel_id <= REAL_OUTPUT_DSP_NUM);
@@ -4849,10 +4951,13 @@ void TForm1::SetIOChannelNum()
             imgOutputTemplate->Canvas->Handle, 0, 0, PANEL_WIDTH,imgOutputTemplate->Height, blend);
     }
 
-    output_comp_btn[0]->Enabled = (global_config.device_type[0] == 'S');
     for (int i=2;i<=OUTPUT_DSP_NUM;i++)
     {
         MoveOutputPanel(i, this);
+    }
+    for (int i=1;i<=OUTPUT_DSP_NUM;i++)
+    {
+        output_comp_btn[i-1]->Enabled = (GetVersionConfig(edtDeviceType->Text).is_comp);
     }
     for (int i=1;i<=OUTPUT_DSP_NUM;i++)
     {
