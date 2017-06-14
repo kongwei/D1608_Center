@@ -311,7 +311,7 @@ __published:	// IDE-managed Components
     TLabel *lbl16Va;
     TLabel *lbl_16Va;
     TLabel *lbl8Va;
-    TLabel *lbl48Va;
+    TLabel *lbl46Va;
     TLabel *Label48;
     TLabel *Label49;
     TLabel *lbl5mAd;
@@ -319,7 +319,7 @@ __published:	// IDE-managed Components
     TLabel *lbl16mAa;
     TLabel *lbl_16mAa;
     TLabel *lbl8mAa;
-    TLabel *lbl48mAa;
+    TLabel *lbl46mAa;
     TSpeedButton *lbl2_5;
     TSpeedButton *SpeedButton8;
     TSpeedButton *SpeedButton9;
@@ -365,7 +365,7 @@ __published:	// IDE-managed Components
     TCGauge *cg_12Va;
     TCGauge *cg16Va;
     TCGauge *cg_16Va;
-    TCGauge *cg48Va;
+    TCGauge *cg46Va;
     TShape *shape_active_adc;
     TTimer *tmLed;
     TShape *shape_live;

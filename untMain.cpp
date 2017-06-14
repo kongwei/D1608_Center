@@ -1039,7 +1039,7 @@ void __fastcall TForm1::FormCreate(TObject *Sender)
 
     // 设置最大最小值
     cg2_5V->MaxValue = 250+150;
-    //cg3_3V->Progress = "-- ";
+    cg3_3V->MaxValue = 330+150;
     cg3_3Vd->MaxValue = 330+150;
     cg5Va->MaxValue = 500+150;
     cg5Vd->MaxValue = 500+150;
@@ -1049,10 +1049,10 @@ void __fastcall TForm1::FormCreate(TObject *Sender)
     cg_12Va->MaxValue = 1200+150;
     cg16Va->MaxValue = 1600+150;
     cg_16Va->MaxValue = 1600+150;
-    cg48Va->MaxValue = 4800+150;
+    cg46Va->MaxValue = 4800+150;
 
     cg2_5V->MinValue = 250-150;
-    //cg3_3V->Progress = "-- ";
+    cg3_3V->MinValue = 330-150;
     cg3_3Vd->MinValue = 330-150;
     cg5Va->MinValue = 500-150;
     cg5Vd->MinValue = 500-150;
@@ -1062,7 +1062,7 @@ void __fastcall TForm1::FormCreate(TObject *Sender)
     cg_12Va->MinValue = 1200-150;
     cg16Va->MinValue = 1600-150;
     cg_16Va->MinValue = 1600-150;
-    cg48Va->MinValue = 4800-150;
+    cg46Va->MinValue = 4800-150;
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::FormDestroy(TObject *Sender)
@@ -1633,6 +1633,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
                 ValueListEditor1->Cells[1][i+1] = cmd.data.data_16_array[i];
             }
 
+            int org_base = cmd.data.data_16_array[1];
             ADC_Data * true_data = (ADC_Data *)data;
 
             ADC_Data calc_data;
@@ -1694,7 +1695,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
 
             //====================================================================
             lbl2_5V->Caption = String::FormatFloat("0.00 ", calc_data._2_5v / 100.0);
-            lbl3_3V->Caption = "-- ";
+            lbl3_3V->Caption = String::FormatFloat("0.00 ", (4096.0/org_base)*2.5);
             lbl3_3Vd->Caption = String::FormatFloat("0.00 ", (calc_data._2_5v+75) / 100.0);
             lbl5Va->Caption = String::FormatFloat("0.00 ", calc_data._5va / 100.0);
             lbl5Vd->Caption = String::FormatFloat("0.00 ", calc_data._5vd / 100.0);
@@ -1704,11 +1705,11 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             lbl_12Va->Caption = String::FormatFloat("0.00 ", calc_data._x12va / 100.0);
             lbl16Va->Caption = String::FormatFloat("0.00 ", calc_data._16va / 100.0);
             lbl_16Va->Caption = String::FormatFloat("0.00 ", calc_data._x16va / 100.0);
-            lbl48Va->Caption = String::FormatFloat("0.00 ", calc_data._48va / 100.0);
+            lbl46Va->Caption = String::FormatFloat("0.00 ", calc_data._46va / 100.0);
 
             //====================================================================
             cg2_5V->Progress = calc_data._2_5v;
-            //cg3_3V->Progress = "-- ";
+            cg3_3V->Progress = (4096.0/org_base)*250;
             cg3_3Vd->Progress = (calc_data._2_5v+75);
             cg5Va->Progress = calc_data._5va;
             cg5Vd->Progress = calc_data._5vd;
@@ -1718,7 +1719,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             cg_12Va->Progress = calc_data._x12va + 2400;
             cg16Va->Progress = calc_data._16va;
             cg_16Va->Progress = calc_data._x16va + 3200;
-            cg48Va->Progress = calc_data._48va;
+            cg46Va->Progress = calc_data._46va;
 
             // 补充到曲线图
             if (active_adc != NULL)
@@ -1752,7 +1753,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             lbl_12mAa->Caption = IntToAbsSring((calc_data._x16va - calc_data._x16vac) / 0.5) + " ";            // -16Va
             lbl16mAa->Caption = IntToAbsSring((calc_data._16vac - calc_data._16va) / 0.5) + " ";
             lbl_16mAa->Caption = IntToAbsSring((calc_data._x16va - calc_data._x16vac) / 0.5) + " ";
-            lbl48mAa->Caption = IntToAbsSring((calc_data._48va - calc_data._46vc) / 0.5) + " ";
+            lbl46mAa->Caption = IntToAbsSring((calc_data._48va - calc_data._46vc) / 0.5) + " ";
         }
         else
         {
