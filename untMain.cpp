@@ -2022,7 +2022,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
         {
             if (preset_id == cur_preset_id)
                 config_map = all_config_map[cur_preset_id-1];
-            tmDelayUpdateUITimer(NULL);
+            tmDelayUpdateUI->Enabled = false;
             ApplyConfigToUI();
             CloseDspDetail();
         }
@@ -3059,10 +3059,12 @@ void __fastcall TForm1::after_input_panel_dsp_numClick(TObject *Sender)
     if (cmd.type)
     {
         cmd.id = offsetof(GlobalConfig, input_dsp_name[label->Tag]);
+        strncpy(global_config.input_dsp_name[label->Tag], label->Caption.c_str(), 6);
     }
     else
     {
         cmd.id = GetOffsetOfData(&config_map.input_dsp[label->Tag].dsp_name);
+        strncpy(config_map.input_dsp[label->Tag].dsp_name, label->Caption.c_str(), 6);
     }
     strncpy(cmd.data.data_string, label->Caption.c_str(), 6);
     cmd.length = 7;
@@ -3092,10 +3094,12 @@ void __fastcall TForm1::after_output_panel_dsp_numClick(TObject *Sender)
     if (cmd.type)
     {
         cmd.id = offsetof(GlobalConfig, output_dsp_name[label->Tag]);
+        strncpy(global_config.output_dsp_name[label->Tag], label->Caption.c_str(), 6);
     }
     else
     {
         cmd.id = GetOffsetOfData(&config_map.output_dsp[label->Tag].dsp_name);
+        strncpy(config_map.output_dsp[label->Tag].dsp_name, label->Caption.c_str(), 6);
     }
 
     strncpy(cmd.data.data_string, label->Caption.c_str(), 6);
