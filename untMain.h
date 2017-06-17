@@ -574,7 +574,6 @@ __published:	// IDE-managed Components
     void __fastcall output_panel_level_editKeyDown(TObject *Sender,
           WORD &Key, TShiftState Shift);
     void __fastcall input_panel_level_editExit(TObject *Sender);
-    void __fastcall output_panel_level_editExit(TObject *Sender);
     void __fastcall io_panel_trackbarKeyDown(TObject *Sender, WORD &Key,
           TShiftState Shift);
     void __fastcall WatchPaint(TObject *Sender);
@@ -583,14 +582,12 @@ __published:	// IDE-managed Components
     void __fastcall output_panel_dsp_numClick(TObject *Sender);
     void __fastcall input_panel_trackbarEnter(TObject *Sender);
     void __fastcall input_panel_trackbarExit(TObject *Sender);
-    void __fastcall master_panel_level_editExit(TObject *Sender);
     void __fastcall master_panel_level_editKeyDown(TObject *Sender,
           WORD &Key, TShiftState Shift);
     void __fastcall FormClick(TObject *Sender);
     void __fastcall FormMouseDown(TObject *Sender, TMouseButton Button,
           TShiftState Shift, int X, int Y);
     void __fastcall pnlmix_level_trackbarChange(TObject *Sender);
-    void __fastcall pnlmix_level_editExit(TObject *Sender);
     void __fastcall pnlmix_level_editKeyDown(TObject *Sender, WORD &Key,
           TShiftState Shift);
     void __fastcall pnlmix_muteClick(TObject *Sender);
@@ -639,8 +636,6 @@ __published:	// IDE-managed Components
           TShiftState Shift);
     void __fastcall edtCompGainKeyDown(TObject *Sender, WORD &Key,
           TShiftState Shift);
-    void __fastcall edtCompRatioExit(TObject *Sender);
-    void __fastcall edtCompRatioClick(TObject *Sender);
     void __fastcall lbl5VdClick(TObject *Sender);
     void __fastcall tmLedTimer(TObject *Sender);
     void __fastcall PaintBox2Paint(TObject *Sender);
@@ -648,11 +643,9 @@ __published:	// IDE-managed Components
           TMouseButton Button, TShiftState Shift, int X, int Y);
     void __fastcall PaintBox3Paint(TObject *Sender);
     void __fastcall PaintBox4Paint(TObject *Sender);
-    void __fastcall dsp_gain_editExit(TObject *Sender);
     void __fastcall dsp_gain_editKeyDown(TObject *Sender, WORD &Key,
           TShiftState Shift);
     void __fastcall dsp_delay_trackbarChange(TObject *Sender);
-    void __fastcall dsp_delay_editExit(TObject *Sender);
     void __fastcall dsp_delay_editKeyDown(TObject *Sender, WORD &Key,
           TShiftState Shift);
     void __fastcall cbCompAutoTimeClick(TObject *Sender);

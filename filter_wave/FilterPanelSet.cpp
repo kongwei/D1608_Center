@@ -237,10 +237,8 @@ void __fastcall PanelAgent::edtSelectAllOnClick(TObject *Sender)
 void __fastcall PanelAgent::edtSelectAllOnExit(TObject *Sender)
 {
     TEdit * edtControl = (TEdit*)Sender;
-    WORD Key = VK_ESCAPE;
-    TShiftState Shift;
-    edtControl->OnKeyDown(edtControl, Key, Shift);
-
+    WORD Key = VK_RETURN;
+    edtControl->OnKeyDown(edtControl, Key, TShiftState());
     edtControl->OnClick = edtSelectAllOnClick;
 }
 void __fastcall PanelAgent::OnPanelEnter(TObject *Sender)
