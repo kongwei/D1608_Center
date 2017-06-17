@@ -1970,17 +1970,9 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
                     iDsp[i]->Caption = (global_config.yss920[i]?"920":"X");
                 }
 
-                /*REAL_INPUT_DSP_NUM = 0;
-                for (int i=0;i<4;i++)
-                    REAL_INPUT_DSP_NUM += global_config.ad_da_card[i];
-                if (REAL_INPUT_DSP_NUM == 0)
-                    REAL_INPUT_DSP_NUM = 16;
-
-                REAL_OUTPUT_DSP_NUM = 0;
-                for (int i=4;i<8;i++)
-                    REAL_OUTPUT_DSP_NUM += global_config.ad_da_card[i];
-                if (REAL_OUTPUT_DSP_NUM == 0)
-                    REAL_OUTPUT_DSP_NUM = 16;*/
+                TPanel* iAdDa[8] = {iAD_abcd, iAD_efgh, iAD_ijkl, iAD_mnop, iDA_1234, iDA_5678, iDA_9_12, iDA_13_16};
+                for (int i=0;i<8;i++)
+                    iAdDa[i]->Caption = global_config.ad_da_card[i];
 
                 REAL_INPUT_DSP_NUM = GetVersionConfig(edtDeviceType->Text).input_channel_count;
                 REAL_OUTPUT_DSP_NUM = GetVersionConfig(edtDeviceType->Text).output_channel_count;
