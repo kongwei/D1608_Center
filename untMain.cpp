@@ -1521,9 +1521,9 @@ int CalcVot2(unsigned __int16 true_data1, unsigned __int16 true_data2, float ra,
 {
     return ((true_data2 * (rc+rd) / rc) - (true_data1 * (rd/rc) * (ra+rb) / ra))  / 10;
 }
-String IntToAbsSring(int value)
+String IntOrZeroSring(int value)
 {
-    return String(abs(value));
+    return String((value>0?value:0));
 }
 void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
       TIdSocketHandle *ABinding)
@@ -1758,17 +1758,17 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
 
             //====================================================================
             lbl2_5mA->Caption = "-- ";
-            lbl3_3mA->Caption = IntToAbsSring((int)((calc_data._8va - calc_data._8vdc) / 0.27 * 0.1)) + " ";   //8Vd * 0.10
-            lbl3_3mAd->Caption = IntToAbsSring((int)((calc_data._8va - calc_data._8vdc) / 0.27 * 0.85)) + " "; //8Vd * 0.85
-            lbl5mAa->Caption = IntToAbsSring((int)((calc_data._8va - calc_data._8vac) / 0.27)) + " ";          // 8Va
-            lbl5mAd->Caption = IntToAbsSring((int)((calc_data._8va - calc_data._8vdc) / 0.27 * 0.05)) + " ";   // 8Vd * 0.05
-            lbl8mAa->Caption = IntToAbsSring((int)((calc_data._8va - calc_data._8vac) / 0.27)) + " ";
-            lbl8mAd->Caption = IntToAbsSring((int)((calc_data._8va - calc_data._8vdc) / 0.27)) + " ";
-            lbl12mAa->Caption = IntToAbsSring((calc_data._16vac - calc_data._16va) / 0.5) + " ";               // 16Va
-            lbl_12mAa->Caption = IntToAbsSring((calc_data._x16va - calc_data._x16vac) / 0.5) + " ";            // -16Va
-            lbl16mAa->Caption = IntToAbsSring((calc_data._16vac - calc_data._16va) / 0.5) + " ";
-            lbl_16mAa->Caption = IntToAbsSring((calc_data._x16va - calc_data._x16vac) / 0.5) + " ";
-            lbl46mAa->Caption = IntToAbsSring((calc_data._48va - calc_data._46vc) / 0.5) + " ";
+            lbl3_3mA->Caption = IntOrZeroSring((int)((calc_data._8va - calc_data._8vdc) / 0.27 * 0.1)) + " ";   //8Vd * 0.10
+            lbl3_3mAd->Caption = IntOrZeroSring((int)((calc_data._8va - calc_data._8vdc) / 0.27 * 0.85)) + " "; //8Vd * 0.85
+            lbl5mAa->Caption = IntOrZeroSring((int)((calc_data._8va - calc_data._8vac) / 0.27)) + " ";          // 8Va
+            lbl5mAd->Caption = IntOrZeroSring((int)((calc_data._8va - calc_data._8vdc) / 0.27 * 0.05)) + " ";   // 8Vd * 0.05
+            lbl8mAa->Caption = IntOrZeroSring((int)((calc_data._8va - calc_data._8vac) / 0.27)) + " ";
+            lbl8mAd->Caption = IntOrZeroSring((int)((calc_data._8va - calc_data._8vdc) / 0.27)) + " ";
+            lbl12mAa->Caption = IntOrZeroSring((calc_data._16vac - calc_data._16va) / 0.5) + " ";               // 16Va
+            lbl_12mAa->Caption = IntOrZeroSring((calc_data._x16va - calc_data._x16vac) / 0.5) + " ";            // -16Va
+            lbl16mAa->Caption = IntOrZeroSring((calc_data._16vac - calc_data._16va) / 0.5) + " ";
+            lbl_16mAa->Caption = IntOrZeroSring((calc_data._x16va - calc_data._x16vac) / 0.5) + " ";
+            lbl46mAa->Caption = IntOrZeroSring((calc_data._48va - calc_data._46vc) / 0.5) + " ";
         }
         else
         {
