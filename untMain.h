@@ -809,6 +809,9 @@ private:
     WNDPROC old_pnlSystem_proc;
     static LRESULT new_pnlSystem_proc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp);
     HWND hIpEdit;
+
+    String local_mac_list;
+    bool is_inner_pc;
 private:
     // 备份设备到文件流程专用
     String save_device_to_file_filename;

@@ -29,6 +29,10 @@ GlobalConfig global_config = {0};
 int REAL_INPUT_DSP_NUM = 16;
 int REAL_OUTPUT_DSP_NUM = 16;
 
+
+extern String GetMacList();
+
+
 // 用于复制设备的flaah数据
 struct SmcConfig
 {
@@ -116,7 +120,7 @@ struct VersionFunction
 };
 
 static VersionFunction version_function_list[] =
-{
+{   //name   48v    gain  增益                                        压缩    I   O   电压   OLED DSP i/o PEQ i/o delay
     {"C4D",  false, "i24dBu|o24dBu",                                  false,  4,  4,  false, false, 0, 6, 6, 160, 160},
     {"C4H",  false, "i24dBu|o24dBu",                                  false,  4,  8,  false, false, 0, 6, 6, 160, 160},
     {"C4L",  false, "i24dBu|o24dBu",                                  false,  4,  12, false, false, 0, 6, 6, 160, 160},
@@ -983,6 +987,19 @@ void __fastcall TForm1::FormCreate(TObject *Sender)
     //old_pnlSystem_proc = pnlSystem->WindowProc;
     //pnlSystem->WindowProc = new_pnlSystem_proc;
 
+    local_mac_list = GetMacList();
+
+    // 是否调试PC
+    String inner_mac[1] = {"10-0B-A9-2F-55-90"};
+    is_inner_pc = false;
+    for (int i=0;i<1;i++)
+    {
+        if (local_mac_list.Pos(inner_mac[i]) > 0)
+        {
+            is_inner_pc = true;
+            break;
+        }
+    }
 
     pnlOperator->Show();
 
@@ -4488,12 +4505,18 @@ void __fastcall TForm1::SpeedButtonNoFrame2MouseDown(TObject *Sender,
         pnlSystem->BringToFront();
         break;
     case 4:
-        pnlMist->Show();
-        pnlMist->BringToFront();
+        if (is_inner_pc)
+        {
+            pnlMist->Show();
+            pnlMist->BringToFront();
+        }
         break;
     case 5:
-        pnlSearch->Show();
-        pnlSearch->BringToFront();
+        if (is_inner_pc)
+        {
+            pnlSearch->Show();
+            pnlSearch->BringToFront();
+        }
         break;
     }
 }

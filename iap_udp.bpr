@@ -6,7 +6,7 @@
     <PROJECT value="iap_udp.exe"/>
     <OBJFILES value="tmp\iap_udp.obj tmp\untMain.obj tmp\Coefficient.obj tmp\FilterList.obj 
       tmp\FilterPanelSet.obj tmp\SelectSort.obj tmp\WaveGraphic.obj 
-      tmp\untFlashReader.obj"/>
+      tmp\untFlashReader.obj tmp\untNetwork.obj"/>
     <RESFILES value="iap_udp.res tmp\mixbutton.res tmp\font.res"/>
     <IDLFILES value=""/>
     <IDLGENFILES value=""/>
@@ -71,6 +71,7 @@
       <FILE FILENAME="mixbutton.rc" FORMNAME="" UNITNAME="mixbutton.rc" CONTAINERID="RCCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
       <FILE FILENAME="font\font.rc" FORMNAME="" UNITNAME="font.rc" CONTAINERID="RCCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
       <FILE FILENAME="untFlashReader.cpp" FORMNAME="" UNITNAME="untFlashReader" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="untNetwork.cpp" FORMNAME="" UNITNAME="untNetwork" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
   </FILELIST>
   <BUILDTOOLS>
   </BUILDTOOLS>
