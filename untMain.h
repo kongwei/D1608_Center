@@ -798,6 +798,8 @@ private:
     // 电压检测标准值
     float line_value;
     TLabel* active_adc;
+    float up_line_value;
+    float down_line_value;
 
     D1608Cmd last_cmd;
 

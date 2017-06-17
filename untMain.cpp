@@ -1055,31 +1055,31 @@ void __fastcall TForm1::FormCreate(TObject *Sender)
     pnlMix->BringToFront();
 
     // 设置最大最小值
-    cg2_5V->MaxValue = 250+150;
-    cg3_3V->MaxValue = 330+150;
-    cg3_3Vd->MaxValue = 330+150;
-    cg5Va->MaxValue = 500+150;
-    cg5Vd->MaxValue = 500+150;
-    cg8Va->MaxValue = 800+150;
-    cg8Vd->MaxValue = 800+150;
-    cg12Va->MaxValue = 1200+150;
-    cg_12Va->MaxValue = 1200+150;
-    cg16Va->MaxValue = 1600+150;
-    cg_16Va->MaxValue = 1600+150;
-    cg46Va->MaxValue = 4800+150;
+    cg2_5V->MaxValue = 250+75;
+    cg3_3V->MaxValue = 330+75;
+    cg3_3Vd->MaxValue = 330+75;
+    cg5Va->MaxValue = 500+75;
+    cg5Vd->MaxValue = 500+75;
+    cg8Va->MaxValue = 800+75;
+    cg8Vd->MaxValue = 800+75;
+    cg12Va->MaxValue = 1200+75;
+    cg_12Va->MaxValue = 1200+75;
+    cg16Va->MaxValue = 1600+75;
+    cg_16Va->MaxValue = 1600+75;
+    cg46Va->MaxValue = 4800+75;
 
-    cg2_5V->MinValue = 250-150;
-    cg3_3V->MinValue = 330-150;
-    cg3_3Vd->MinValue = 330-150;
-    cg5Va->MinValue = 500-150;
-    cg5Vd->MinValue = 500-150;
-    cg8Va->MinValue = 800-150;
-    cg8Vd->MinValue = 800-150;
-    cg12Va->MinValue = 1200-150;
-    cg_12Va->MinValue = 1200-150;
-    cg16Va->MinValue = 1600-150;
-    cg_16Va->MinValue = 1600-150;
-    cg46Va->MinValue = 4800-150;
+    cg2_5V->MinValue = 250-75;
+    cg3_3V->MinValue = 330-75;
+    cg3_3Vd->MinValue = 330-75;
+    cg5Va->MinValue = 500-75;
+    cg5Vd->MinValue = 500-75;
+    cg8Va->MinValue = 800-75;
+    cg8Vd->MinValue = 800-75;
+    cg12Va->MinValue = 1200-75;
+    cg_12Va->MinValue = 1200-75;
+    cg16Va->MinValue = 1600-75;
+    cg_16Va->MinValue = 1600-75;
+    cg46Va->MinValue = 4800-75;
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::FormDestroy(TObject *Sender)
@@ -1746,10 +1746,8 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
 
                     Series1->Add(value, "", clLime);
 
-                    //lineUpLimit->Add(line_value*1.5, "e", clRed);
-                    //lineDownLimit->Add(line_value*0.5, "b", clRed);
-                    lineUpLimit->Add(line_value+1.5, "e", clRed);
-                    lineDownLimit->Add(line_value-1.5, "b", clRed);
+                    lineUpLimit->Add(up_line_value, "e", clRed);
+                    lineDownLimit->Add(down_line_value, "b", clRed);
 
                     Chart1->BottomAxis->Scroll(1, false);
                 }
@@ -1931,14 +1929,22 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             // global_config
             memcpy(&global_config, preset_cmd.data, sizeof(global_config));
             UpdateCaption();
+
+            char * device_type = global_config.device_type;
+            if (global_config.device_type[0] == '*')
+            {
+                edtDeviceType->Color = clRed;
+                device_type = global_config.device_type+1;
+            }
+
             // 显示版本信息
-            edtDeviceType->Text = global_config.device_type;
+            edtDeviceType->Text = device_type;
             edtStartBuildTime->Text = global_config.start_build_time;
             edtBuildTime->Text = global_config.build_time;
             edtDeviceName->Text = global_config.d1616_name;
             //TDateTime d = edtBuildTime->Text;
 
-            String gain_set = GetVersionConfig(global_config.device_type).gain_function;
+            String gain_set = GetVersionConfig(device_type).gain_function;
             iMIC->Visible = (gain_set.Pos("iMIC")!=0);
             i10dBv->Visible = (gain_set.Pos("i10dBv")!=0);
             i22dBu->Visible = (gain_set.Pos("i22dBu")!=0);
@@ -4527,16 +4533,16 @@ void __fastcall TForm1::lbl5VdClick(TObject *Sender)
     lineDownLimit->Clear();
     Chart1->BottomAxis->SetMinMax(0, 100);
 
-    // 纵坐标范围设定为+-3V
-    Chart1->LeftAxis->SetMinMax(line_value-3, line_value+3);
+    // 纵坐标范围设定为+-1V
+    Chart1->LeftAxis->SetMinMax(line_value*1.1, line_value*0.9);
 
+    up_line_value = line_value*1.05;
+    down_line_value = line_value*0.95;
 
     for (int i=0;i<100;i++)
     {
-        //lineUpLimit->AddXY(i, line_value*1.5, "e", clRed);
-        //lineDownLimit->AddXY(i,   line_value*0.5, "b", clRed);
-        lineUpLimit->AddXY(i,   line_value+1.5, "e", clRed);
-        lineDownLimit->AddXY(i, line_value-1.5, "b", clRed);
+        lineUpLimit->AddXY(i, up_line_value, "e", clRed);
+        lineDownLimit->AddXY(i, down_line_value, "b", clRed);
         Series1->AddNull("");
     }
 
