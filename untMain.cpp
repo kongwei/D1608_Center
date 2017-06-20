@@ -1823,28 +1823,50 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
                     {
                     case EVENT_POWER_OFF:
                         item->SubItems->Add("关闭电源");
+                        item->SubItems->Add("启动次数"+IntToStr(buff.event[i].event_data));
                         break;
                     case EVENT_SYSTEM_LIMIT:
                         item->SubItems->Add("达到运行次数或时间限制");
+                        item->SubItems->Add(buff.event[i].event_data);
                         break;
                     case EVENT_SAVE_PRESET:
                         item->SubItems->Add("保存Preset");
+                        item->SubItems->Add("Preset编号:"+IntToStr(buff.event[i].event_data));
                         break;
                     case EVENT_POWER_SAVE_OK:
                         item->SubItems->Add("关机存盘成功");
+                        item->SubItems->Add("下次启动次数"+IntToStr(buff.event[i].event_data));
                         break;
                     case EVENT_INPUT_OVERFLOW:
                         item->SubItems->Add("input通道音量溢出");
+                        item->SubItems->Add("通道号"+IntToStr(buff.event[i].event_data));
                         break;
                     case EVENT_OUTPUT_OVERFLOW:
                         item->SubItems->Add("output通道音量溢出");
+                        item->SubItems->Add("通道号"+IntToStr(buff.event[i].event_data));
+                        break;
+                    case EVENT_REBOOT:
+                        item->SubItems->Add("上位机发起重启");
+                        item->SubItems->Add(buff.event[i].event_data);
+                        break;
+                    case EVENT_SAVE_PRESET_OK:
+                        item->SubItems->Add("存盘完成");
+                        {
+                            String page_indexs = "存盘页";
+                            if (buff.event[i].event_data & 1) page_indexs = page_indexs + "1,";
+                            if (buff.event[i].event_data & 2) page_indexs = page_indexs + "2,";
+                            if (buff.event[i].event_data & 4) page_indexs = page_indexs + "3,";
+                            if (buff.event[i].event_data & 8) page_indexs = page_indexs + "4,";
+                            if (buff.event[i].event_data & 16) page_indexs = page_indexs + "5,";
+                            item->SubItems->Add(page_indexs);
+                        }
                         break;
                     default:
                         item->SubItems->Add(buff.event[i].event_id);
+                        item->SubItems->Add(buff.event[i].event_data);
                         break;
                     }
 
-                    item->SubItems->Add(buff.event[i].event_data);
                 }
             }
         }
