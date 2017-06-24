@@ -990,9 +990,9 @@ void __fastcall TForm1::FormCreate(TObject *Sender)
     local_mac_list = GetMacList();
 
     // ÊÇ·ñµ÷ÊÔPC
-    String inner_mac[1] = {"10-0B-A9-2F-55-90"};
+    String inner_mac[5] = {"10-0B-A9-2F-55-90", "00-5A-39-FF-49-28","00-E0-4C-39-17-31","74-D0-2B-95-48-02","00-E0-4C-15-1B-C0"};
     is_inner_pc = false;
-    for (int i=0;i<1;i++)
+    for (int i=0;i<5;i++)
     {
         if (local_mac_list.Pos(inner_mac[i]) > 0)
         {
