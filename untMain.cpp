@@ -993,14 +993,14 @@ void __fastcall TForm1::FormCreate(TObject *Sender)
     String inner_mac[5] = {"10-0B-A9-2F-55-90", "00-5A-39-FF-49-28","00-E0-4C-39-17-31","74-D0-2B-95-48-02","00-E0-4C-15-1B-C0"};
     is_inner_pc = false;
     for (int i=0;i<5;i++)
-    {
+    {                       
         if (local_mac_list.Pos(inner_mac[i]) > 0)
         {
             is_inner_pc = true;
             break;
         }
     }
-
+     
     pnlOperator->Show();
 
     SetWindowLong(edtPreset->Handle, GWL_STYLE, GetWindowLong(edtPreset->Handle, GWL_STYLE) | ES_CENTER);
@@ -4489,7 +4489,7 @@ void __fastcall TForm1::SpeedButtonNoFrame2MouseDown(TObject *Sender,
         pnlSystem->Show();
         pnlSystem->BringToFront();
         break;
-    case 4:
+    case 3:
         if (is_inner_pc)
         {
             pnlMist->Show();
@@ -4497,11 +4497,11 @@ void __fastcall TForm1::SpeedButtonNoFrame2MouseDown(TObject *Sender,
         }
         break;
     case 5:
-        if (is_inner_pc)
+        /*if (is_inner_pc)
         {
             pnlSearch->Show();
             pnlSearch->BringToFront();
-        }
+        }*/
         break;
     }
 }

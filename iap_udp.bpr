@@ -83,7 +83,7 @@ AutoIncBuild=1
 MajorVer=1
 MinorVer=1
 Release=0
-Build=1
+Build=2
 Debug=0
 PreRelease=0
 Special=0
@@ -95,7 +95,7 @@ CodePage=936
 [Version Info Keys]
 CompanyName=
 FileDescription=
-FileVersion=1.1.0.1
+FileVersion=1.1.0.2
 InternalName=
 LegalCopyright=
 LegalTrademarks=
@@ -105,15 +105,16 @@ ProductVersion=1.0.0.0
 Comments=
 
 [HistoryLists\hlIncludePath]
-Count=8
-Item0=font;$(BCB)\include;$(BCB)\Lib;$(BCB)\include\vcl;filter_wave;..\..\vcl component pack v6.0.2.0;..\..\new\CentCtrl;$(BCB)\Projects\Bpl
-Item1=$(BCB)\include;$(BCB)\Lib;$(BCB)\include\vcl;filter_wave;..\..\vcl component pack v6.0.2.0;..\..\new\CentCtrl;$(BCB)\Projects\Bpl
-Item2=C:\Program Files\Borland\CBuilder6\Projects;$(BCB)\include;$(BCB)\Lib;$(BCB)\include\vcl;filter_wave;..\..\vcl component pack v6.0.2.0;..\..\new\CentCtrl
-Item3=..\..\别人的代码;ci;..\..\new\CentCtrl;$(BCB)\Lib;..\..\vcl component pack v6.0.2.0;filter_wave;..\..\CSP_850_A\版本上传上位机（iap_version）\iap_version;C:\Program Files\Borland\CBuilder6\Projects;F:\神州II号\iap_version;$(BCB)\include;$(BCB)\include\vcl
-Item4=..\..\别人的代码;ci\;ci;..\..\new\CentCtrl;$(BCB)\Lib;..\..\vcl component pack v6.0.2.0;filter_wave;..\..\CSP_850_A\版本上传上位机（iap_version）\iap_version;C:\Program Files\Borland\CBuilder6\Projects;F:\神州II号\iap_version;$(BCB)\include;$(BCB)\include\vcl
-Item5=ci\;..\..\new\CentCtrl;$(BCB)\Lib;..\..\vcl component pack v6.0.2.0;filter_wave;..\..\CSP_850_A\版本上传上位机（iap_version）\iap_version;C:\Program Files\Borland\CBuilder6\Projects;F:\神州II号\iap_version;$(BCB)\include;$(BCB)\include\vcl
-Item6=..\..\new\CentCtrl;$(BCB)\Lib;..\..\vcl component pack v6.0.2.0;filter_wave;..\..\CSP_850_A\版本上传上位机（iap_version）\iap_version;C:\Program Files\Borland\CBuilder6\Projects;F:\神州II号\iap_version;$(BCB)\include;$(BCB)\include\vcl
-Item7=filter_wave;..\..\CSP_850_A\版本上传上位机（iap_version）\iap_version;C:\Program Files\Borland\CBuilder6\Projects;F:\神州II号\iap_version;$(BCB)\include;$(BCB)\include\vcl
+Count=9
+Item0=C:\Program Files\Borland\CBuilder6\Projects;font;$(BCB)\include;$(BCB)\Lib;$(BCB)\include\vcl;filter_wave;..\..\vcl component pack v6.0.2.0;..\..\new\CentCtrl;$(BCB)\Projects\Bpl
+Item1=font;$(BCB)\include;$(BCB)\Lib;$(BCB)\include\vcl;filter_wave;..\..\vcl component pack v6.0.2.0;..\..\new\CentCtrl;$(BCB)\Projects\Bpl
+Item2=$(BCB)\include;$(BCB)\Lib;$(BCB)\include\vcl;filter_wave;..\..\vcl component pack v6.0.2.0;..\..\new\CentCtrl;$(BCB)\Projects\Bpl
+Item3=C:\Program Files\Borland\CBuilder6\Projects;$(BCB)\include;$(BCB)\Lib;$(BCB)\include\vcl;filter_wave;..\..\vcl component pack v6.0.2.0;..\..\new\CentCtrl
+Item4=..\..\别人的代码;ci;..\..\new\CentCtrl;$(BCB)\Lib;..\..\vcl component pack v6.0.2.0;filter_wave;..\..\CSP_850_A\版本上传上位机（iap_version）\iap_version;C:\Program Files\Borland\CBuilder6\Projects;F:\神州II号\iap_version;$(BCB)\include;$(BCB)\include\vcl
+Item5=..\..\别人的代码;ci\;ci;..\..\new\CentCtrl;$(BCB)\Lib;..\..\vcl component pack v6.0.2.0;filter_wave;..\..\CSP_850_A\版本上传上位机（iap_version）\iap_version;C:\Program Files\Borland\CBuilder6\Projects;F:\神州II号\iap_version;$(BCB)\include;$(BCB)\include\vcl
+Item6=ci\;..\..\new\CentCtrl;$(BCB)\Lib;..\..\vcl component pack v6.0.2.0;filter_wave;..\..\CSP_850_A\版本上传上位机（iap_version）\iap_version;C:\Program Files\Borland\CBuilder6\Projects;F:\神州II号\iap_version;$(BCB)\include;$(BCB)\include\vcl
+Item7=..\..\new\CentCtrl;$(BCB)\Lib;..\..\vcl component pack v6.0.2.0;filter_wave;..\..\CSP_850_A\版本上传上位机（iap_version）\iap_version;C:\Program Files\Borland\CBuilder6\Projects;F:\神州II号\iap_version;$(BCB)\include;$(BCB)\include\vcl
+Item8=filter_wave;..\..\CSP_850_A\版本上传上位机（iap_version）\iap_version;C:\Program Files\Borland\CBuilder6\Projects;F:\神州II号\iap_version;$(BCB)\include;$(BCB)\include\vcl
 
 [HistoryLists\hlLibraryPath]
 Count=7
