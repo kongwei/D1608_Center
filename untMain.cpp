@@ -5149,6 +5149,15 @@ void __fastcall TForm1::btnSaveFlashToFileClick(TObject *Sender)
             // 联机，保存为flash dump，读取完毕后转换成smc
             save_device_to_file_filename = SaveDialog1->FileName;
 
+            // 替换文件名
+            D1608Cmd cmd;
+            cmd.type = 1;
+            cmd.id = offsetof(GlobalConfig, import_filename);
+            cmd.data.data_string[0] = 's';
+            strncpy(cmd.data.data_string+1, ExtractFileName(SaveDialog1->FileName).c_str(), 8);
+            cmd.length = 10;
+            SendCmd(cmd);
+
             memset(smc_config.device_flash_dump, 0, sizeof(smc_config.device_flash_dump));
 
             for (int address=PRESET_START_PAGE;address<0x8000000+256*1024;address+=1024)
@@ -5206,7 +5215,8 @@ void __fastcall TForm1::btnLoadFileToFlashClick(TObject *Sender)
 
         file->ReadBuffer(&smc_config, sizeof(smc_config));
         // 替换文件名
-        strncpy(smc_config.global_config.import_filename, ExtractFileName(OpenDialog1->FileName).c_str(), 9);
+        smc_config.global_config.import_filename[0] = 'l';
+        strncpy(smc_config.global_config.import_filename+1, ExtractFileName(OpenDialog1->FileName).c_str(), 8);
 
         memcpy(all_config_map, &smc_config.all_config_map, sizeof(smc_config.all_config_map));
         global_config = smc_config.global_config;
