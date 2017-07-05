@@ -1792,7 +1792,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
         else
         {
             // 如果是当前调节的数据，需要忽略
-            if (last_cmd.id != cmd.id || !paint_agent->IsMouseDown())
+            if (last_cmd.id != cmd.id /*|| !paint_agent->IsMouseDown()*/)
             {
                 memo_debug->Lines->Add("Reply：" + CmdLog(cmd));
 
