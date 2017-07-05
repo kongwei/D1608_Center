@@ -3804,7 +3804,7 @@ void __fastcall TForm1::StoreClick(TObject *Sender)
 {
     if (udpControl->Active)
     {
-        udpControl->SendBuffer(dst_ip, UDP_PORT_STORE_PRESET_MEM2FLASH, "\xFF", 1);
+        udpControl->SendBuffer(dst_ip, UDP_PORT_STORE_PRESET_MEM2FLASH, "\100"/*"\xFF"*/, 1);
     }
 }
 //---------------------------------------------------------------------------
@@ -5146,6 +5146,8 @@ void __fastcall TForm1::btnSaveFlashToFileClick(TObject *Sender)
         }
         else
         {
+            StoreClick(Sender);
+
             // 联机，保存为flash dump，读取完毕后转换成smc
             save_device_to_file_filename = SaveDialog1->FileName;
 
