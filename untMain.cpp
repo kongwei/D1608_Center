@@ -1575,6 +1575,11 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
                 StartReadOnePackage(0xFF);
             }
 
+            if (cmd.data.data_64_array[2] != 0)
+            {
+                //ShowLockConfigArea();
+            }
+
             // 显示时钟
             long running_time = (cmd.data.data_64_array[1] - global_config.adjust_running_time) / 1000;    // 单位：秒
             int hour = running_time / 3600;
@@ -4011,6 +4016,15 @@ void __fastcall TForm1::btnUnlockClick(TObject *Sender)
 void __fastcall TForm1::edtKeyPasswordKeyDown(TObject *Sender, WORD &Key,
       TShiftState Shift)
 {
+    if (Key == VK_UP)
+    {
+        btnKeyPasswordUp->Click();
+    }
+    if (Key == VK_DOWN)
+    {
+        btnKeyPasswordDown->Click();
+    }
+
     if ((Key == VK_BACK) || (Key == VK_LEFT) || (Key == VK_RIGHT) || (Key == VK_DELETE))
     {
     }
@@ -5461,4 +5475,5 @@ void __fastcall TForm1::btnClearAllPresetClick(TObject *Sender)
     }
 }
 //---------------------------------------------------------------------------
+
 
