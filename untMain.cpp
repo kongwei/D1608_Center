@@ -1000,6 +1000,13 @@ void __fastcall TForm1::FormCreate(TObject *Sender)
             break;
         }
     }
+
+    if (is_inner_pc)
+    {
+        edtDeviceType->Show();
+        edtStartBuildTime->Show();
+        edtBuildTime->Show();
+    }
      
     pnlOperator->Show();
 
@@ -1109,7 +1116,14 @@ void TForm1::SendCmd(D1608Cmd& cmd)
     {
         if (cmd.type == 0)
             last_cmd = cmd;
-        udpControl->SendBuffer(dst_ip, UDP_PORT_CONTROL, &cmd, sizeof(cmd));
+        try
+        {
+            udpControl->SendBuffer(dst_ip, UDP_PORT_CONTROL, &cmd, sizeof(cmd));
+        }
+        catch(...)
+        {
+            udpControl->Active = false;
+        }
     }
 
     if (!on_loading)
