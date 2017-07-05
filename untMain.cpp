@@ -563,8 +563,8 @@ __fastcall TForm1::TForm1(TComponent* Owner)
     //y=GetSystemMetrics(SM_CYSCREEN)
 
     // 调整尺寸
-    Width = 1800;//1366;
-    Height = 780;//798;
+    Width = 1664;//1366;
+    Height = 768;//798;
 
     for (int i=0;i<32;i++)
     {
@@ -575,7 +575,7 @@ __fastcall TForm1::TForm1(TComponent* Owner)
     pnlOperator->Width = REAL_INPUT_DSP_NUM * PANEL_WIDTH + imgPresetBg->Width + REAL_OUTPUT_DSP_NUM * PANEL_WIDTH;
     pnlOperator->Width = Math::Max(pnlOperator->Width, Width-16);
         HorzScrollBar->Visible = (pnlOperator->Width > Width);
-    pnlOperator->Height = 798;//-(728-584);
+    pnlOperator->Height = 650;//-(728-584);
     pnlOperator->Top = pnlHeader->Height;
 
     pnlMix->Width = REAL_INPUT_DSP_NUM * PANEL_WIDTH;                               
@@ -2504,7 +2504,7 @@ void __fastcall TForm1::ToggleDSP(TObject *Sender)
             // 调整PaintBox1的尺寸
             if (GetVersionConfig(edtDeviceType->Text).is_comp)
             {
-                PaintBox1->Left = 248;
+                PaintBox1->Left = 216;
                 PaintBox1->Width = 521;
                 pbComp->Show();
             }
