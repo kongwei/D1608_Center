@@ -2478,9 +2478,9 @@ void __fastcall TForm1::ToggleDSP(TObject *Sender)
 
             // 调整PaintBox1的尺寸
             PaintBox1->Left = 8;
-            PaintBox1->Width = 761;
+            PaintBox1->Width = 753;
             pbComp->Hide();
-
+            
             // 隐藏COMP界面
             pnlComp->Enabled = false;
             pnlComp->Color = clGray;
@@ -2505,13 +2505,13 @@ void __fastcall TForm1::ToggleDSP(TObject *Sender)
             if (GetVersionConfig(edtDeviceType->Text).is_comp)
             {
                 PaintBox1->Left = 216;
-                PaintBox1->Width = 521;
+                PaintBox1->Width = 545;
                 pbComp->Show();
             }
             else
             {
                 PaintBox1->Left = 8;
-                PaintBox1->Width = 761;
+                PaintBox1->Width = 753;
                 pbComp->Hide();
             }
 
