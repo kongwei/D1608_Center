@@ -519,6 +519,7 @@ __published:	// IDE-managed Components
     TImage *Image6;
     TImage *img_input_gain_trackbar;
     TImage *img_output_gain_trackbar;
+    TTimer *tmDelaySendCmd;
     void __fastcall FormCreate(TObject *Sender);
     void __fastcall FormDestroy(TObject *Sender);
     void __fastcall btnRefreshClick(TObject *Sender);
@@ -671,6 +672,7 @@ __published:	// IDE-managed Components
     void __fastcall lblDeviceNameDblClick(TObject *Sender);
     void __fastcall btnResetKeyFunctionClick(TObject *Sender);
     void __fastcall btnClearAllPresetClick(TObject *Sender);
+    void __fastcall tmDelaySendCmdTimer(TObject *Sender);
 
 private:
     // 已经加载版本文件
@@ -705,7 +707,12 @@ private:
     // 部分刷新界面的函数
     void OnFeedbackData(unsigned int cmd_id, int length);
 public:
+    int sendcmd_delay_count;
+    vector<TPackage> sendcmd_list;
+
     void SendCmd(D1608Cmd& cmd);
+    void SendCmd2(D1608Cmd& cmd);
+    void ProcessSendCmdAck(D1608Cmd& cmd, TStream *AData, TIdSocketHandle *ABinding);
 //----------------------------------
 private:
     PanelAgent* panel_agent;

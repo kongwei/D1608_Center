@@ -1098,7 +1098,7 @@ void __fastcall TForm1::FormDestroy(TObject *Sender)
     }
 }
 //---------------------------------------------------------------------------
-void TForm1::SendCmd(D1608Cmd& cmd)
+void TForm1::SendCmd2(D1608Cmd& cmd)
 {
     unsigned __int8 * p = (unsigned __int8*)&cmd;
     edtDebug->Text = "";
@@ -1114,8 +1114,6 @@ void TForm1::SendCmd(D1608Cmd& cmd)
     }
     else
     {
-        if (cmd.type == 0)
-            last_cmd = cmd;
         try
         {
             udpControl->SendBuffer(dst_ip, UDP_PORT_CONTROL, &cmd, sizeof(cmd));
@@ -1132,6 +1130,47 @@ void TForm1::SendCmd(D1608Cmd& cmd)
         {
             SetFileDirty(true);
         }
+    }
+}
+void TForm1::SendCmd(D1608Cmd& cmd)
+{
+    if (!udpControl->Active)
+        return;
+
+    // 需要发送的命令id是否在队列中
+    if (sendcmd_list.size() > 1)
+    {
+        for (vector<TPackage>::iterator iter=sendcmd_list.begin();
+            iter+1!=sendcmd_list.end();
+            iter++)
+        {
+            D1608Cmd * package_sendcmd = (D1608Cmd*)iter->data;
+            if (package_sendcmd->id == cmd.id)
+            {
+                memcpy(&package_sendcmd->data, &cmd.data, cmd.length);
+                return;
+            }
+        }
+    }
+
+    TPackage package;
+    package.udp_port = UDP_PORT_CONTROL;
+    memcpy(package.data, &cmd, sizeof(cmd));
+    package.data_size = sizeof(cmd);
+
+    reverse(sendcmd_list.begin(), sendcmd_list.end());
+    sendcmd_list.push_back(package);
+    reverse(sendcmd_list.begin(), sendcmd_list.end());
+
+    int sendcmd_list_length = sendcmd_list.size();
+    // 保存在队列中
+    if (sendcmd_list_length == 1)
+    {
+        if (cmd.type == 0)
+            last_cmd = cmd;
+
+        SendCmd2(cmd);
+        sendcmd_delay_count = 15;
     }
 }
 //---------------------------------------------------------------------------
@@ -1794,11 +1833,12 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             // 如果是当前调节的数据，需要忽略
             if (last_cmd.id != cmd.id /*|| !paint_agent->IsMouseDown()*/)
             {
-                memo_debug->Lines->Add("Reply：" + CmdLog(cmd));
+                memo_debug->Lines->Add("last_cmd id:"+IntToStr(last_cmd.id)+"Reply：" + CmdLog(cmd));
 
                 memcpy(((char*)(&config_map))+cmd.id, (char*)&cmd.data, cmd.length);
                 OnFeedbackData(cmd.id, cmd.length);
             }
+            ProcessSendCmdAck(cmd, AData, ABinding);
         }
     }
     else if (ABinding->PeerPort == UDP_PORT_READ_LOG)
@@ -2200,6 +2240,34 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
     }
 }
 //---------------------------------------------------------------------------
+void TForm1::ProcessSendCmdAck(D1608Cmd& cmd, TStream *AData, TIdSocketHandle *ABinding)
+{
+    if (sendcmd_list.size() == 0)
+        return;
+
+    TPackage package = sendcmd_list.back();
+
+    if (package.udp_port != ABinding->PeerPort)
+        return;
+    if (package.data_size != AData->Size)
+        return;
+
+    D1608Cmd* package_cmd = (D1608Cmd*)package.data;
+    if (cmd.id != package_cmd->id)
+        return;
+    if (cmd.length != package_cmd->length)
+        return;
+    if (cmd.type != package_cmd->type)
+        return;
+    if (memcmp(&cmd.data, &package_cmd->data, cmd.length) == 0)
+    {
+        sendcmd_list.pop_back();
+        package = sendcmd_list.back();
+        udpControl->SendBuffer(dst_ip, package.udp_port, package.data, package.data_size);
+        sendcmd_delay_count = 15;
+    }
+}
+//---------------------------------------------------------------------------
 void TForm1::MsgWatchHandle(const D1608Cmd& cmd)
 {
     for (int i=0;i<32;i++)
@@ -2259,10 +2327,10 @@ void __fastcall TForm1::tmWatchTimer(TObject *Sender)
     {
         D1608Cmd cmd;
         cmd.id = GetOffsetOfData(&config_map.op_code.WatchLevel);
-        SendCmd(cmd);
+        SendCmd2(cmd);
 
         cmd.id = GetOffsetOfData(&config_map.op_code.adc);
-        SendCmd(cmd);
+        SendCmd2(cmd);
     }
     else
     {
@@ -2280,11 +2348,12 @@ void __fastcall TForm1::tmWatchTimer(TObject *Sender)
         D1608Cmd cmd;
         cmd.type = 0;
         cmd.id = GetOffsetOfData(&config_map.op_code.noop);
-        SendCmd(cmd);
+        SendCmd2(cmd);
     }
     else
     {
         udpControl->Active = false;
+        sendcmd_list.empty();
         //tsOperator->Caption = "操作(断开)";
         shape_live->Hide();
         shape_link->Hide();
@@ -4016,7 +4085,6 @@ void __fastcall TForm1::btnSetLockClick(TObject *Sender)
     SendCmd(cmd);
 }
 //---------------------------------------------------------------------------
-
 void __fastcall TForm1::btnUnlockClick(TObject *Sender)
 {
     D1608Cmd cmd;
@@ -4380,7 +4448,6 @@ void __fastcall TForm1::edtCompAttackTimeKeyDown(TObject *Sender,
     }
 }
 //---------------------------------------------------------------------------
-
 void __fastcall TForm1::edtCompReleaseTimeKeyDown(TObject *Sender,
       WORD &Key, TShiftState Shift)
 {
@@ -5489,5 +5556,29 @@ void __fastcall TForm1::btnClearAllPresetClick(TObject *Sender)
     }
 }
 //---------------------------------------------------------------------------
+void __fastcall TForm1::tmDelaySendCmdTimer(TObject *Sender)
+{
+    if (sendcmd_list.size() == 0)
+        return;
+        
+    if (sendcmd_delay_count > 0)
+    {
+        sendcmd_delay_count--;
+    }
 
+    if (sendcmd_delay_count == 0)
+    {
+        // 超时，终止本次同步
+        sendcmd_list.clear();
+    }
+    else if ((sendcmd_delay_count%5) == 1)
+    {
+        TPackage package = sendcmd_list.back();
+        udpControl->SendBuffer(dst_ip, package.udp_port, package.data, package.data_size);
+
+        // 备份 恢复 流程使用的延时计时器
+        AppendLog("retry sendcmd");
+    }
+}
+//---------------------------------------------------------------------------
 
