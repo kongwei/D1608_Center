@@ -1183,7 +1183,7 @@ void TForm1::SendCmd(D1608Cmd& cmd)
 
         memo_debug->Lines->Add("发出消息:"+IntToStr(cmd.id));
         SendCmd2(cmd);
-        sendcmd_delay_count = 15;
+        sendcmd_delay_count = 5;
     }
 }
 //---------------------------------------------------------------------------
@@ -2282,7 +2282,7 @@ void TForm1::ProcessSendCmdAck(D1608Cmd& cmd, TStream *AData, TIdSocketHandle *A
         sendcmd_list.pop_back();
         package = sendcmd_list.back();
         udpControl->SendBuffer(dst_ip, package.udp_port, package.data, package.data_size);
-        sendcmd_delay_count = 15;
+        sendcmd_delay_count = 5;
     }
 }
 //---------------------------------------------------------------------------
@@ -5589,7 +5589,7 @@ void __fastcall TForm1::tmDelaySendCmdTimer(TObject *Sender)
         // 超时，终止本次同步
         sendcmd_list.clear();
     }
-    else if ((sendcmd_delay_count%5) == 1)
+    else //if ((sendcmd_delay_count%5) == 1)
     {
         TPackage package = sendcmd_list.back();
         udpControl->SendBuffer(dst_ip, package.udp_port, package.data, package.data_size);
