@@ -520,6 +520,7 @@ __published:	// IDE-managed Components
     TImage *img_input_gain_trackbar;
     TImage *img_output_gain_trackbar;
     TTimer *tmDelaySendCmd;
+    TEdit *edtCmdId;
     void __fastcall FormCreate(TObject *Sender);
     void __fastcall FormDestroy(TObject *Sender);
     void __fastcall btnRefreshClick(TObject *Sender);

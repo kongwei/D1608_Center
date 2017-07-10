@@ -970,7 +970,7 @@ void __fastcall TForm1::FormCreate(TObject *Sender)
     pnlMist->Parent = this;
     PageControl1->Hide();
 
-    TInitCommonControlsEx ICC;  
+    TInitCommonControlsEx ICC;
     ICC.dwSize = sizeof(TInitCommonControlsEx);
     ICC.dwICC  = ICC_INTERNET_CLASSES;
     if(!InitCommonControlsEx(&ICC))
@@ -1003,6 +1003,7 @@ void __fastcall TForm1::FormCreate(TObject *Sender)
 
     if (is_inner_pc)
     {
+        edtCmdId->Show();
         edtDeviceType->Show();
         edtStartBuildTime->Show();
         edtBuildTime->Show();
@@ -1041,7 +1042,7 @@ void __fastcall TForm1::FormCreate(TObject *Sender)
     if (FileExists("iap.log"))
     {
         try{
-            log_file = new TFileStream("iap.log", fmOpenWrite);
+            log_file = new TFileStream("iap.log", fmOpenWrite|fmShareDenyWrite);
             log_file->Seek(0, soFromEnd);
         }
         catch(...)
@@ -1134,8 +1135,18 @@ void TForm1::SendCmd2(D1608Cmd& cmd)
 }
 void TForm1::SendCmd(D1608Cmd& cmd)
 {
+    edtCmdId->Text = cmd.id;
+
     if (!udpControl->Active)
+    {
+        edtCmdId->Text = edtCmdId->Text + "*";
         return;
+    }
+
+    if (on_loading)
+    {
+        return;
+    }
 
     // 需要发送的命令id是否在队列中
     if (sendcmd_list.size() > 1)
@@ -1147,6 +1158,7 @@ void TForm1::SendCmd(D1608Cmd& cmd)
             D1608Cmd * package_sendcmd = (D1608Cmd*)iter->data;
             if (package_sendcmd->id == cmd.id)
             {
+                memo_debug->Lines->Add("消息积压:"+IntToStr(cmd.id));
                 memcpy(&package_sendcmd->data, &cmd.data, cmd.length);
                 return;
             }
@@ -1169,6 +1181,7 @@ void TForm1::SendCmd(D1608Cmd& cmd)
         if (cmd.type == 0)
             last_cmd = cmd;
 
+        memo_debug->Lines->Add("发出消息:"+IntToStr(cmd.id));
         SendCmd2(cmd);
         sendcmd_delay_count = 15;
     }
@@ -1340,6 +1353,7 @@ void __fastcall TForm1::btnSelectClick(TObject *Sender)
     dst_ip = selected->SubItems->Strings[0];
     String broadcast_ip = selected->SubItems->Strings[1];
 
+    sendcmd_list.empty();
     // 初始化socket
     udpControl->Active = false;
     udpControl->Bindings->Clear();
@@ -2256,11 +2270,15 @@ void TForm1::ProcessSendCmdAck(D1608Cmd& cmd, TStream *AData, TIdSocketHandle *A
     if (cmd.id != package_cmd->id)
         return;
     if (cmd.length != package_cmd->length)
-        return;
+    {
+        memo_debug->Lines->Add("消息长度不匹配");
+        //return;
+    }
     if (cmd.type != package_cmd->type)
         return;
-    if (memcmp(&cmd.data, &package_cmd->data, cmd.length) == 0)
+    if (memcmp(&cmd.data, &package_cmd->data, package_cmd->length) == 0)
     {
+        memo_debug->Lines->Add("消息匹配");
         sendcmd_list.pop_back();
         package = sendcmd_list.back();
         udpControl->SendBuffer(dst_ip, package.udp_port, package.data, package.data_size);
@@ -3964,7 +3982,7 @@ void __fastcall TForm1::btnSetIpClick(TObject *Sender)
     }
         
     cmd.length = 4;
-    SendCmd(cmd);
+    SendCmd2(cmd);
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::btnGetLogClick(TObject *Sender)
@@ -4007,7 +4025,7 @@ void __fastcall TForm1::btnDeviceNameClick(TObject *Sender)
     cmd.id = offsetof(GlobalConfig, d1616_name);
     strncpy(cmd.data.data_string, global_config.d1616_name, 16);
     cmd.length = 17;
-    SendCmd(cmd);
+    SendCmd2(cmd);
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::clbAvaliablePresetClickCheck(TObject *Sender)
@@ -4041,7 +4059,7 @@ void __fastcall TForm1::clbAvaliablePresetClickCheck(TObject *Sender)
         cmd.data.data_string[i] = clbAvaliablePreset->Checked[i];
     }
     cmd.length = 8;
-    SendCmd(cmd);
+    SendCmd2(cmd);
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::btnSetLockClick(TObject *Sender)
@@ -4092,7 +4110,7 @@ void __fastcall TForm1::btnUnlockClick(TObject *Sender)
     cmd.id = offsetof(GlobalConfig, unlock_string);
     strncpy(cmd.data.data_string, edtUnlockPassword->Text.c_str(), 16);
     cmd.length = 20;
-    SendCmd(cmd);
+    SendCmd2(cmd);
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::edtKeyPasswordKeyDown(TObject *Sender, WORD &Key,
@@ -5130,7 +5148,7 @@ void __fastcall TForm1::cbGlobalDspNameClick(TObject *Sender)
     cmd.id = offsetof(GlobalConfig, is_global_name);
     cmd.data.data_32 = cbGlobalDspName->Checked;
     cmd.length = 4;
-    SendCmd(cmd);
+    SendCmd2(cmd);
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::cbPresetAutoSavedClick(TObject *Sender)
@@ -5156,7 +5174,7 @@ void __fastcall TForm1::btnRebootDeviceClick(TObject *Sender)
         cmd.id = offsetof(ConfigMap, op_code.reboot);
         cmd.data.data_32 = 0;
         cmd.length = 4;
-        SendCmd(cmd);
+        SendCmd2(cmd);
     }
 }
 //---------------------------------------------------------------------------
@@ -5167,7 +5185,7 @@ void __fastcall TForm1::cbMenuKeyFunctionChange(TObject *Sender)
     cmd.id = offsetof(GlobalConfig, menu_key_function);
     cmd.data.data_32 = cbMenuKeyFunction->ItemIndex+1;
     cmd.length = 4;
-    SendCmd(cmd);
+    SendCmd2(cmd);
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::cbUpKeyFunctionChange(TObject *Sender)
@@ -5177,7 +5195,7 @@ void __fastcall TForm1::cbUpKeyFunctionChange(TObject *Sender)
     cmd.id = offsetof(GlobalConfig, up_key_function);
     cmd.data.data_32 = cbUpKeyFunction->ItemIndex+1;
     cmd.length = 4;
-    SendCmd(cmd);
+    SendCmd2(cmd);
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::cbDownKeyFunctionChange(TObject *Sender)
@@ -5187,7 +5205,7 @@ void __fastcall TForm1::cbDownKeyFunctionChange(TObject *Sender)
     cmd.id = offsetof(GlobalConfig, down_key_function);
     cmd.data.data_32 = cbDownKeyFunction->ItemIndex+1;
     cmd.length = 4;
-    SendCmd(cmd);
+    SendCmd2(cmd);
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::cbLockUpDownMenuKeyClick(TObject *Sender)
@@ -5197,7 +5215,7 @@ void __fastcall TForm1::cbLockUpDownMenuKeyClick(TObject *Sender)
     cmd.id = offsetof(GlobalConfig, lock_updownmenu);
     cmd.data.data_8 = cbLockUpDownMenuKey->Checked;
     cmd.length = 1;
-    SendCmd(cmd);
+    SendCmd2(cmd);
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::btnSaveFlashToFileClick(TObject *Sender)
@@ -5457,7 +5475,7 @@ void __fastcall TForm1::tmDelayBackupTimer(TObject *Sender)
         }*/
 
         // 备份 恢复 流程使用的延时计时器
-        AppendLog("retry syn");
+        memo_debug->Lines->Add("retry syn");
     }
 }
 //---------------------------------------------------------------------------
@@ -5503,7 +5521,7 @@ void __fastcall TForm1::btnResetAllConfigClick(TObject *Sender)
         cmd.id = offsetof(ConfigMap, op_code.reboot);
         cmd.data.data_32 = 2;
         cmd.length = 4;
-        SendCmd(cmd);
+        SendCmd2(cmd);
     }
 }
 //---------------------------------------------------------------------------
@@ -5552,7 +5570,7 @@ void __fastcall TForm1::btnClearAllPresetClick(TObject *Sender)
         cmd.id = offsetof(ConfigMap, op_code.reboot);
         cmd.data.data_32 = 1;
         cmd.length = 4;
-        SendCmd(cmd);
+        SendCmd2(cmd);
     }
 }
 //---------------------------------------------------------------------------
@@ -5577,7 +5595,7 @@ void __fastcall TForm1::tmDelaySendCmdTimer(TObject *Sender)
         udpControl->SendBuffer(dst_ip, package.udp_port, package.data, package.data_size);
 
         // 备份 恢复 流程使用的延时计时器
-        AppendLog("retry sendcmd");
+        memo_debug->Lines->Add("retry sendcmd");
     }
 }
 //---------------------------------------------------------------------------
