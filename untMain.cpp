@@ -2819,19 +2819,19 @@ void __fastcall TForm1::i10dBvClick(TObject *Sender)
     cmd.length = 1;
     if (popup_label->Caption == "MIC")
     {
-        cmd.data.data_8 = 3;
+        cmd.data.data_8 = INPUT_GAIN_MIC;
     }
     else if (popup_label->Caption == "10dBv")
     {
-        cmd.data.data_8 = 5;
+        cmd.data.data_8 = INPUT_GAIN_10dBv;
     }
     else if (popup_label->Caption == "22dBu")
     {
-        cmd.data.data_8 = 6;
+        cmd.data.data_8 = INPUT_GAIN_22dBu;
     }
     else if (popup_label->Caption == "24dBu")
     {
-        cmd.data.data_8 = 7;
+        cmd.data.data_8 = INPUT_GAIN_24dBu;
     }
     SendCmd(cmd);
 
@@ -2850,15 +2850,15 @@ void __fastcall TForm1::MenuItem3Click(TObject *Sender)
     cmd.length = 1;
     if (popup_label->Caption == "10dBv")
     {
-        cmd.data.data_8 = 7;
+        cmd.data.data_8 = OUTPUT_GAIN_10dBv;
     }
     else if (popup_label->Caption == "22dBu")
     {
-        cmd.data.data_8 = 5;
+        cmd.data.data_8 = OUTPUT_GAIN_22dBu;
     }
     else if (popup_label->Caption == "24dBu")
     {
-        cmd.data.data_8 = 6;
+        cmd.data.data_8 = OUTPUT_GAIN_24dBu;
     }
     SendCmd(cmd);
 
