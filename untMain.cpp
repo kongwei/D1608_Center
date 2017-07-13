@@ -1178,7 +1178,7 @@ void TForm1::SendCmd(D1608Cmd& cmd)
     // 保存在队列中
     if (sendcmd_list_length == 1)
     {
-        if (cmd.type == 0)
+        if (cmd.type == CMD_TYPE_PRESET)
             last_cmd = cmd;
 
         memo_debug->Lines->Add("发出消息:"+IntToStr(cmd.id));
@@ -1603,7 +1603,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
         //memo_debug->Lines->Add("Reply：" + CmdLog(cmd));
 
         // id == 1 表示全局配置
-        if (cmd.type == 1)
+        if (cmd.type == CMD_TYPE_GLOBAL)
         {
             /*if (cmd.id == offsetof(GlobalConfig, adjust_running_time))
             {
@@ -1625,7 +1625,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
                 udpControl->SendBuffer(dst_ip, package.udp_port, package.data, package.data_size);
             }
 
-            ApplyConfigToUI();
+            //ApplyConfigToUI();
         }
         else if (cmd.id == GetOffsetOfData(&config_map.op_code.noop))
         {
@@ -2364,7 +2364,7 @@ void __fastcall TForm1::tmWatchTimer(TObject *Sender)
         keep_live_count++;
 
         D1608Cmd cmd;
-        cmd.type = 0;
+        cmd.type = CMD_TYPE_PRESET;
         cmd.id = GetOffsetOfData(&config_map.op_code.noop);
         SendCmd2(cmd);
     }
@@ -3186,7 +3186,7 @@ void __fastcall TForm1::after_input_panel_dsp_numClick(TObject *Sender)
 
     D1608Cmd cmd;
     cmd.type = cbGlobalDspName->Checked;
-    if (cmd.type)
+    if (cmd.type == CMD_TYPE_GLOBAL)
     {
         cmd.id = offsetof(GlobalConfig, input_dsp_name[label->Tag]);
         strncpy(global_config.input_dsp_name[label->Tag], label->Caption.c_str(), 6);
@@ -3221,7 +3221,7 @@ void __fastcall TForm1::after_output_panel_dsp_numClick(TObject *Sender)
 
     D1608Cmd cmd;
     cmd.type = cbGlobalDspName->Checked;
-    if (cmd.type)
+    if (cmd.type == CMD_TYPE_GLOBAL)
     {
         cmd.id = offsetof(GlobalConfig, output_dsp_name[label->Tag]);
         strncpy(global_config.output_dsp_name[label->Tag], label->Caption.c_str(), 6);
@@ -3961,7 +3961,7 @@ void __fastcall TForm1::RecallClick(TObject *Sender)
 void __fastcall TForm1::btnSetIpClick(TObject *Sender)
 {
     D1608Cmd cmd;
-    cmd.type = 1;
+    cmd.type = CMD_TYPE_GLOBAL;
     cmd.id = offsetof(GlobalConfig, static_ip_address);
 
     if (rbStaticIpEnabled->Checked == false)
@@ -4007,7 +4007,7 @@ void __fastcall TForm1::lblPresetNameClick(TObject *Sender)
         lblPresetName->Caption = new_name;
 
     D1608Cmd cmd;
-    cmd.type = 1;
+    cmd.type = CMD_TYPE_GLOBAL;
     cmd.id = offsetof(GlobalConfig, preset_name[cur_preset_id-1]);
     strncpy(cmd.data.data_string, lblPresetName->Caption.c_str(), 16);
     cmd.length = 17;
@@ -4021,7 +4021,7 @@ void __fastcall TForm1::btnDeviceNameClick(TObject *Sender)
     UpdateCaption();
 
     D1608Cmd cmd;
-    cmd.type = 1;
+    cmd.type = CMD_TYPE_GLOBAL;
     cmd.id = offsetof(GlobalConfig, d1616_name);
     strncpy(cmd.data.data_string, global_config.d1616_name, 16);
     cmd.length = 17;
@@ -4051,7 +4051,7 @@ void __fastcall TForm1::clbAvaliablePresetClickCheck(TObject *Sender)
     }
 
     D1608Cmd cmd;
-    cmd.type = 1;
+    cmd.type = CMD_TYPE_GLOBAL;
     cmd.id = offsetof(GlobalConfig, avaliable_preset);
     for (int i=0;i<PRESET_NUM;i++)
     {
@@ -4074,7 +4074,7 @@ void __fastcall TForm1::btnSetLockClick(TObject *Sender)
 
 
     D1608Cmd cmd;
-    cmd.type = 1;
+    cmd.type = CMD_TYPE_GLOBAL;
 
     cmd.id = offsetof(GlobalConfig, running_timer_limit);
 
@@ -4106,7 +4106,7 @@ void __fastcall TForm1::btnSetLockClick(TObject *Sender)
 void __fastcall TForm1::btnUnlockClick(TObject *Sender)
 {
     D1608Cmd cmd;
-    cmd.type = 1;
+    cmd.type = CMD_TYPE_GLOBAL;
     cmd.id = offsetof(GlobalConfig, unlock_string);
     strncpy(cmd.data.data_string, edtUnlockPassword->Text.c_str(), 16);
     cmd.length = 20;
@@ -4221,7 +4221,7 @@ void __fastcall TForm1::btnUnlockExtClick(TObject *Sender)
 {
     // 后台解锁    
     D1608Cmd cmd;
-    cmd.type = 1;
+    cmd.type = CMD_TYPE_GLOBAL;
     cmd.id = offsetof(GlobalConfig, back_door);
     cmd.length = 68+4;
     memset(&cmd.data, 0, cmd.length);
@@ -4232,7 +4232,7 @@ void __fastcall TForm1::btnLeaveTheFactoryClick(TObject *Sender)
 {
     // 出厂    
     D1608Cmd cmd;
-    cmd.type = 1;
+    cmd.type = CMD_TYPE_GLOBAL;
     cmd.id = offsetof(GlobalConfig, adjust_running_time);
     SendCmd(cmd);
 }
@@ -5144,7 +5144,7 @@ void __fastcall TForm1::cbGlobalDspNameClick(TObject *Sender)
     ApplyConfigToUI();
 
     D1608Cmd cmd;
-    cmd.type = 1;
+    cmd.type = CMD_TYPE_GLOBAL;
     cmd.id = offsetof(GlobalConfig, is_global_name);
     cmd.data.data_32 = cbGlobalDspName->Checked;
     cmd.length = 4;
@@ -5154,7 +5154,7 @@ void __fastcall TForm1::cbGlobalDspNameClick(TObject *Sender)
 void __fastcall TForm1::cbPresetAutoSavedClick(TObject *Sender)
 {
     D1608Cmd cmd;
-    cmd.type = 1;
+    cmd.type = CMD_TYPE_GLOBAL;
     cmd.id = offsetof(GlobalConfig, auto_saved);
     cmd.data.data_8 = cbPresetAutoSaved->Checked;
     cmd.length = 1;
@@ -5170,7 +5170,7 @@ void __fastcall TForm1::btnRebootDeviceClick(TObject *Sender)
     else
     {
         D1608Cmd cmd;
-        cmd.type = 0;
+        cmd.type = CMD_TYPE_PRESET;
         cmd.id = offsetof(ConfigMap, op_code.reboot);
         cmd.data.data_32 = 0;
         cmd.length = 4;
@@ -5181,7 +5181,7 @@ void __fastcall TForm1::btnRebootDeviceClick(TObject *Sender)
 void __fastcall TForm1::cbMenuKeyFunctionChange(TObject *Sender)
 {
     D1608Cmd cmd;
-    cmd.type = 1;
+    cmd.type = CMD_TYPE_GLOBAL;
     cmd.id = offsetof(GlobalConfig, menu_key_function);
     cmd.data.data_32 = cbMenuKeyFunction->ItemIndex+1;
     cmd.length = 4;
@@ -5191,7 +5191,7 @@ void __fastcall TForm1::cbMenuKeyFunctionChange(TObject *Sender)
 void __fastcall TForm1::cbUpKeyFunctionChange(TObject *Sender)
 {
     D1608Cmd cmd;
-    cmd.type = 1;
+    cmd.type = CMD_TYPE_GLOBAL;
     cmd.id = offsetof(GlobalConfig, up_key_function);
     cmd.data.data_32 = cbUpKeyFunction->ItemIndex+1;
     cmd.length = 4;
@@ -5201,7 +5201,7 @@ void __fastcall TForm1::cbUpKeyFunctionChange(TObject *Sender)
 void __fastcall TForm1::cbDownKeyFunctionChange(TObject *Sender)
 {
     D1608Cmd cmd;
-    cmd.type = 1;
+    cmd.type = CMD_TYPE_GLOBAL;
     cmd.id = offsetof(GlobalConfig, down_key_function);
     cmd.data.data_32 = cbDownKeyFunction->ItemIndex+1;
     cmd.length = 4;
@@ -5211,7 +5211,7 @@ void __fastcall TForm1::cbDownKeyFunctionChange(TObject *Sender)
 void __fastcall TForm1::cbLockUpDownMenuKeyClick(TObject *Sender)
 {
     D1608Cmd cmd;
-    cmd.type = 1;
+    cmd.type = CMD_TYPE_GLOBAL;
     cmd.id = offsetof(GlobalConfig, lock_updownmenu);
     cmd.data.data_8 = cbLockUpDownMenuKey->Checked;
     cmd.length = 1;
@@ -5266,7 +5266,7 @@ void __fastcall TForm1::btnSaveFlashToFileClick(TObject *Sender)
 
             // 替换文件名
             D1608Cmd cmd;
-            cmd.type = 1;
+            cmd.type = CMD_TYPE_GLOBAL;
             cmd.id = offsetof(GlobalConfig, import_filename);
             cmd.data.data_string[0] = 's';
             strncpy(cmd.data.data_string+1, ExtractFileName(SaveDialog1->FileName).c_str(), 8);
@@ -5517,7 +5517,7 @@ void __fastcall TForm1::btnResetAllConfigClick(TObject *Sender)
     else
     {
         D1608Cmd cmd;
-        cmd.type = 0;
+        cmd.type = CMD_TYPE_PRESET;
         cmd.id = offsetof(ConfigMap, op_code.reboot);
         cmd.data.data_32 = 2;
         cmd.length = 4;
@@ -5529,7 +5529,7 @@ void __fastcall TForm1::lblDeviceNameDblClick(TObject *Sender)
 {
     // 闪动屏幕
     D1608Cmd cmd;
-    cmd.type = 0;
+    cmd.type = CMD_TYPE_PRESET;
     cmd.id = offsetof(ConfigMap, op_code.flash_oled);
     cmd.data.data_32 = 20;
     cmd.length = 4;
@@ -5566,7 +5566,7 @@ void __fastcall TForm1::btnClearAllPresetClick(TObject *Sender)
     else
     {
         D1608Cmd cmd;
-        cmd.type = 0;
+        cmd.type = CMD_TYPE_PRESET;
         cmd.id = offsetof(ConfigMap, op_code.reboot);
         cmd.data.data_32 = 1;
         cmd.length = 4;
