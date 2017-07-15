@@ -521,6 +521,7 @@ __published:	// IDE-managed Components
     TImage *img_output_gain_trackbar;
     TTimer *tmDelaySendCmd;
     TEdit *edtCmdId;
+    TButton *btnSaveLog;
     void __fastcall FormCreate(TObject *Sender);
     void __fastcall FormDestroy(TObject *Sender);
     void __fastcall btnRefreshClick(TObject *Sender);
@@ -674,6 +675,7 @@ __published:	// IDE-managed Components
     void __fastcall btnResetKeyFunctionClick(TObject *Sender);
     void __fastcall btnClearAllPresetClick(TObject *Sender);
     void __fastcall tmDelaySendCmdTimer(TObject *Sender);
+    void __fastcall btnSaveLogClick(TObject *Sender);
 
 private:
     // 已经加载版本文件
@@ -785,6 +787,8 @@ public:
     TPaintBox * pb_watch_list[32];
 
 private:
+    String device_cpuid;
+
     long running_timer;
     int roboot_count;
 

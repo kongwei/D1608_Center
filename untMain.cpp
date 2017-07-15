@@ -1237,11 +1237,17 @@ void __fastcall TForm1::udpSLPUDPRead(TObject *Sender,
     String mac;
         mac.sprintf("%02X:%02X:%02X:%02X:%02X:%02X", (BYTE)slp_pack.mac[0], (BYTE)slp_pack.mac[1], (BYTE)slp_pack.mac[2], (BYTE)slp_pack.mac[3], (BYTE)slp_pack.mac[4], (BYTE)slp_pack.mac[5]);
     String display_device_name = slp_pack.name;
-
     if (display_device_name == "")
     {
         display_device_name = slp_pack.default_device_name;
         display_device_name = display_device_name + "-" + slp_pack.id;
+    }
+
+    String cpu_id;
+    unsigned char * px = (unsigned char*)slp_pack.cpu_id;
+    for (int i=0;i<12;i++)
+    {
+        cpu_id = cpu_id + IntToHex(px[i], 2);
     }
 
     TListItem * item = NULL;
@@ -1259,6 +1265,7 @@ void __fastcall TForm1::udpSLPUDPRead(TObject *Sender,
             //find_item->SubItems->Strings[2] = device_id;
             find_item->SubItems->Strings[3] = slp_pack.name;
             find_item->SubItems->Strings[4] = slp_pack.default_device_name;
+            find_item->SubItems->Strings[5] = cpu_id;
             item = find_item;
             break;
         }
@@ -1274,6 +1281,7 @@ void __fastcall TForm1::udpSLPUDPRead(TObject *Sender,
         item->SubItems->Add(slp_pack.id);
         item->SubItems->Add(slp_pack.name);
         item->SubItems->Add(slp_pack.default_device_name);
+        item->SubItems->Add(cpu_id);
     }
 
     if (slp_pack.id[0] == '\x0')
@@ -1352,6 +1360,7 @@ void __fastcall TForm1::btnSelectClick(TObject *Sender)
 
     dst_ip = selected->SubItems->Strings[0];
     String broadcast_ip = selected->SubItems->Strings[1];
+    device_cpuid = selected->SubItems->Strings[5];
 
     sendcmd_list.empty();
     // 初始化socket
@@ -1427,7 +1436,15 @@ void __fastcall TForm1::tmSLPTimer(TObject *Sender)
 
         try{
             udpSLP->Active = true;
-            char search_flag[] = "rep";
+            char *search_flag;
+            if (is_inner_pc)
+            {
+                search_flag = "ver info";
+            }
+            else
+            {
+                search_flag = "rep";
+            }
             udpSLP->SendBuffer("255.255.255.255", UDP_PORT_SLP, search_flag, sizeof(search_flag));
         }
         catch(...)
@@ -5597,6 +5614,23 @@ void __fastcall TForm1::tmDelaySendCmdTimer(TObject *Sender)
         // 备份 恢复 流程使用的延时计时器
         memo_debug->Lines->Add("retry sendcmd");
     }
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::btnSaveLogClick(TObject *Sender)
+{
+    TStrings * log_strs = new TStringList();
+
+    for (int i=0;i<lvLog->Items->Count;i++)
+    {
+        String line = lvLog->Items->Item[i]->Caption;
+        line = line + "\t" + lvLog->Items->Item[i]->SubItems->Strings[0];
+        line = line + "\t" + lvLog->Items->Item[i]->SubItems->Strings[1];
+        log_strs->Add(line);
+    }
+    String path = ExtractFilePath(Application->ExeName);
+    log_strs->SaveToFile(path+device_cpuid+".log");
+
+    delete log_strs;
 }
 //---------------------------------------------------------------------------
 
