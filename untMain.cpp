@@ -1178,9 +1178,6 @@ void TForm1::SendCmd(D1608Cmd& cmd)
     // 保存在队列中
     if (sendcmd_list_length == 1)
     {
-        if (cmd.type == CMD_TYPE_PRESET)
-            last_cmd = cmd;
-
         memo_debug->Lines->Add("发出消息:"+IntToStr(cmd.id));
         SendCmd2(cmd);
         sendcmd_delay_count = 15;
@@ -1862,14 +1859,13 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
         else
         {
             // 如果是当前调节的数据，需要忽略
-            if (last_cmd.id != cmd.id /*|| !paint_agent->IsMouseDown()*/)
+            if (!ProcessSendCmdAck(cmd, AData, ABinding))//(last_cmd.id != cmd.id /*|| !paint_agent->IsMouseDown()*/)
             {
-                memo_debug->Lines->Add("last_cmd id:"+IntToStr(last_cmd.id)+"Reply：" + CmdLog(cmd));
+                memo_debug->Lines->Add("Reply：" + CmdLog(cmd));
 
                 memcpy(((char*)(&config_map))+cmd.id, (char*)&cmd.data, cmd.length);
                 OnFeedbackData(cmd.id, cmd.length);
             }
-            ProcessSendCmdAck(cmd, AData, ABinding);
         }
     }
     else if (ABinding->PeerPort == UDP_PORT_READ_LOG)
@@ -2271,36 +2267,40 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
     }
 }
 //---------------------------------------------------------------------------
-void TForm1::ProcessSendCmdAck(D1608Cmd& cmd, TStream *AData, TIdSocketHandle *ABinding)
+bool TForm1::ProcessSendCmdAck(D1608Cmd& cmd, TStream *AData, TIdSocketHandle *ABinding)
 {
     if (sendcmd_list.size() == 0)
-        return;
+        return false;
 
     TPackage package = sendcmd_list.back();
 
     if (package.udp_port != ABinding->PeerPort)
-        return;
+        return false;
     if (package.data_size != AData->Size)
-        return;
+        return false;
 
     D1608Cmd* package_cmd = (D1608Cmd*)package.data;
     if (cmd.id != package_cmd->id)
-        return;
+        return false;
     if (cmd.length != package_cmd->length)
     {
         memo_debug->Lines->Add("消息长度不匹配");
         //return;
     }
     if (cmd.type != package_cmd->type)
-        return;
+        return false;
     if (memcmp(&cmd.data, &package_cmd->data, package_cmd->length) == 0)
     {
         memo_debug->Lines->Add("消息匹配");
         sendcmd_list.pop_back();
-        package = sendcmd_list.back();
-        udpControl->SendBuffer(dst_ip, package.udp_port, package.data, package.data_size);
-        sendcmd_delay_count = 15;
+        if (sendcmd_list.size() > 0)
+        {
+            package = sendcmd_list.back();
+            udpControl->SendBuffer(dst_ip, package.udp_port, package.data, package.data_size);
+            sendcmd_delay_count = 15;
+        }
     }
+    return true;
 }
 //---------------------------------------------------------------------------
 void TForm1::MsgWatchHandle(const D1608Cmd& cmd)

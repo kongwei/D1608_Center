@@ -715,7 +715,7 @@ public:
 
     void SendCmd(D1608Cmd& cmd);
     void SendCmd2(D1608Cmd& cmd);
-    void ProcessSendCmdAck(D1608Cmd& cmd, TStream *AData, TIdSocketHandle *ABinding);
+    bool ProcessSendCmdAck(D1608Cmd& cmd, TStream *AData, TIdSocketHandle *ABinding);
 //----------------------------------
 private:
     PanelAgent* panel_agent;
@@ -805,8 +805,6 @@ private:
     TLabel* active_adc;
     float up_line_value;
     float down_line_value;
-
-    D1608Cmd last_cmd;
 
     void SetIOChannelNum();
 
