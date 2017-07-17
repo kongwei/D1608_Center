@@ -773,6 +773,10 @@ public:		// User declarations
     TAdvTrackBar* mix_level_trackbar[17];
 
 private:
+    VoteParam default_vote_param;
+    void CalcAllVote(ADC_Data & adc_data);
+    void ProcessVote(D1608Cmd & cmd);
+private:
     void UpdateWatchLevel(int i, int value, int comp_value=-100)
     {
         level_meter[i][0] = value;

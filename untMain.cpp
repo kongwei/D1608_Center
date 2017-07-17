@@ -556,6 +556,36 @@ __fastcall TForm1::TForm1(TComponent* Owner)
 {
     startup_time = Now();
 
+    // 电阻默认参数
+    default_vote_param._5vd_up = 6.81;
+    default_vote_param._5vd_down = 6.81;
+    default_vote_param._8vdc_up = 10;
+    default_vote_param._8vdc_down = 4.75;
+    default_vote_param._8vac_up = 10;
+    default_vote_param._8vac_down = 4.75;
+    default_vote_param._8va_up = 10;
+    default_vote_param._8va_down = 4.75;
+    default_vote_param._16vac_up = 20;
+    default_vote_param._16vac_down = 3.32;
+    default_vote_param._x16vac_up = 14.7;
+    default_vote_param._x16vac_down = 20;
+    default_vote_param._x16va_up = 14.7;
+    default_vote_param._x16va_down = 20;
+    default_vote_param._46vc_up = 75;
+    default_vote_param._46vc_down = 4.75;
+    default_vote_param._48va_up = 75;
+    default_vote_param._48va_down = 4.75;
+    default_vote_param._46va_up = 75;
+    default_vote_param._46va_down = 4.75;
+    default_vote_param._5va_up = 6.81;
+    default_vote_param._5va_down = 6.81;
+    default_vote_param._12va_up = 14.7;
+    default_vote_param._12va_down = 4.75;
+    default_vote_param._x12va_up = 10;
+    default_vote_param._x12va_down = 14.7;
+    default_vote_param._16va_up = 20;
+    default_vote_param._16va_down = 3.32;
+
     // 参数处理
     on_loading = true;
 
@@ -1594,13 +1624,13 @@ void __fastcall TForm1::ToogleEQ(TObject *Sender)
     config_map.input_dsp[dsp_id-1].eq_switch = btn->Down;
 }
 //---------------------------------------------------------------------------
-int CalcVot1(unsigned __int16 true_data1, float ra, float rb)
+int CalcVot1(unsigned __int16 true_data1, float rdown, float r_up)
 {
-    return true_data1 * (ra+rb) / ra / 10;
+    return true_data1 * (rdown+r_up) / rdown / 10;
 }
-int CalcVot2(unsigned __int16 true_data1, unsigned __int16 true_data2, float ra, float rb, float rc, float rd)
+int CalcVot2(unsigned __int16 true_data1, unsigned __int16 true_data2, float r2_down, float r2_up, float r1_up, float r1_down)
 {
-    return ((true_data2 * (rc+rd) / rc) - (true_data1 * (rd/rc) * (ra+rb) / ra))  / 10;
+    return ((true_data2 * (r1_up+r1_down) / r1_up) - (true_data1 * (r1_down/r1_up) * (r2_down+r2_up) / r2_down))  / 10;
 }
 String IntOrZeroSring(int value)
 {
@@ -1723,138 +1753,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
         }
         else if (cmd.id == GetOffsetOfData(&config_map.op_code.adc))
         {
-            __int16 data[16];
-
-            // 计算检测到的电压 3.3v ~ 4096
-            for (int i=0; i<ADC_NUM; i++)
-            {
-                data[i] = cmd.data.data_16_array[i] * 2500 / cmd.data.data_16_array[1];
-            }
-
-            for (int i=0; i<ADC_NUM; i++)
-            {
-                ValueListEditor1->Cells[1][i+1] = cmd.data.data_16_array[i];
-            }
-
-            int org_base = cmd.data.data_16_array[1];
-            ADC_Data * true_data = (ADC_Data *)data;
-
-            ADC_Data calc_data;
-
-            // 正电压检测：
-            //      ra = 4
-            //      rb = 5v 3 / 8v 10 / 12v 15 / 16v 20 / 48v 75
-            // 负电压检测
-            //      ra rb 同正电压
-            //      -5v  rc=4  rd=15
-            //      -12v rc=10 rd=15
-            //      -16v rc=15 rd=20
-            calc_data._2_5v  = true_data->_2_5v / 10;
-            calc_data.base   = 2500 / 10;
-            calc_data._5vd   = CalcVot1(true_data->_5vd, 6.81,  6.81);                             
-            calc_data._8vdc  = CalcVot1(true_data->_8vdc, 4.75, 10);                                
-            calc_data._8vac  = CalcVot1(true_data->_8vac, 4.75, 10);                                
-            calc_data._8va   = CalcVot1(true_data->_8va, 4.75, 10);                                
-            calc_data._x16vac= CalcVot2(true_data->_16vac, true_data->_x16vac, 3.32, 20, 14.7, 20);   
-            calc_data._x16va = CalcVot2(true_data->_16va, true_data->_x16va, 3.32, 20, 14.7, 20);   
-            calc_data._46vc  = CalcVot1(true_data->_46vc, 4.75, 75); 
-            calc_data._48va  = CalcVot1(true_data->_48va, 4.75, 75);                                
-            calc_data._46va  = CalcVot1(true_data->_46va, 4.75, 75);                                
-            calc_data._5va   = CalcVot1(true_data-> _5va, 6.81, 6.81);                                
-            calc_data._x12va = CalcVot2(true_data->_12va, true_data->_x12va, 4.75, 14.7, 10, 14.7);
-            calc_data._12va  = CalcVot1(true_data->_12va, 4.75, 14.7);                              
-            calc_data._16va  = CalcVot1(true_data->_16va, 3.32, 20);                                
-            calc_data._16vac = CalcVot1(true_data->_16vac, 3.32, 20);                                
-
-            __int16 * xcalc_data = (__int16 *)&calc_data;
-            for (int i=0; i<ADC_NUM; i++)
-            {
-                double vot = xcalc_data[i] / 100.0f;
-                ValueListEditor2->Cells[1][i+1] = FloatToStr(vot);
-            }
-
-            lblDiff->Caption = calc_data._8vdc-calc_data._8va;
-
-            ValueListEditor2->Cells[1][18] = (int)((calc_data._8va - calc_data._8vac) / 0.27);
-            ValueListEditor2->Cells[1][19] = (calc_data._48va - calc_data._46vc) / 0.5;
-            ValueListEditor2->Cells[1][20] = (calc_data._16va - calc_data._16vac) / 0.5;
-            ValueListEditor2->Cells[1][21] = (calc_data._x16vac - calc_data._x16va) / 0.5;
-
-            // 输出界面
-            calc_data._5vd   = CalcVot1(true_data->_5vd, 6.81,  6.81);                             
-            calc_data._8vdc  = CalcVot1(true_data->_8vdc, 4.75, 10);                                
-            calc_data._8vac  = CalcVot1(true_data->_8vac, 4.75, 10);                                
-            calc_data._8va   = CalcVot1(true_data->_8va, 4.75, 10);                                
-            calc_data._x16vac= CalcVot2(true_data->_16vac, true_data->_x16vac, 3.32, 20, 14.7, 20);
-            calc_data._x16va = CalcVot2(true_data->_16va, true_data->_x16va, 3.32, 20, 14.7, 20);   
-            calc_data._46vc  = CalcVot1(true_data->_46vc, 4.75, 75); 
-            calc_data._48va  = CalcVot1(true_data->_48va, 4.75, 75);                                
-            calc_data._46va  = CalcVot1(true_data->_46va, 4.75, 75);                                
-            calc_data._5va   = CalcVot1(true_data-> _5va, 6.81, 6.81);
-            calc_data._x12va = CalcVot2(true_data->_12va, true_data->_x12va, 4.75, 14.7, 10, 14.7); 
-            calc_data._12va  = CalcVot1(true_data->_12va, 4.75, 14.7);                              
-            calc_data._16va  = CalcVot1(true_data->_16va, 3.32, 20);                                
-            calc_data._16vac = CalcVot1(true_data->_16vac, 3.32, 20);                                
-
-            //====================================================================
-            lbl2_5V->Caption = String::FormatFloat("0.00 ", calc_data._2_5v / 100.0);
-            lbl3_3V->Caption = String::FormatFloat("0.00 ", (4096.0/org_base)*2.5);
-            lbl3_3Vd->Caption = String::FormatFloat("0.00 ", (calc_data._2_5v+75) / 100.0);
-            lbl5Va->Caption = String::FormatFloat("0.00 ", calc_data._5va / 100.0);
-            lbl5Vd->Caption = String::FormatFloat("0.00 ", calc_data._5vd / 100.0);
-            lbl8Va->Caption = String::FormatFloat("0.00 ", calc_data._8va / 100.0);
-            lbl8Vd->Caption = String::FormatFloat("0.00 ", calc_data._8vdc / 100.0);
-            lbl12Va->Caption = String::FormatFloat("0.00 ", calc_data._12va / 100.0);
-            lbl_12Va->Caption = String::FormatFloat("0.00 ", calc_data._x12va / 100.0);
-            lbl16Va->Caption = String::FormatFloat("0.00 ", calc_data._16va / 100.0);
-            lbl_16Va->Caption = String::FormatFloat("0.00 ", calc_data._x16va / 100.0);
-            lbl46Va->Caption = String::FormatFloat("0.00 ", calc_data._46va / 100.0);
-
-            //====================================================================
-            cg2_5V->Progress = calc_data._2_5v;
-            cg3_3V->Progress = (4096.0/org_base)*250;
-            cg3_3Vd->Progress = (calc_data._2_5v+75);
-            cg5Va->Progress = calc_data._5va;
-            cg5Vd->Progress = calc_data._5vd;
-            cg8Va->Progress = calc_data._8va;
-            cg8Vd->Progress = calc_data._8vdc;
-            cg12Va->Progress = calc_data._12va;
-            cg_12Va->Progress = calc_data._x12va + 2400;
-            cg16Va->Progress = calc_data._16va;
-            cg_16Va->Progress = calc_data._x16va + 3200;
-            cg46Va->Progress = calc_data._46va;
-
-            // 补充到曲线图
-            if (active_adc != NULL)
-            {
-                try {
-                    double value = active_adc->Caption.ToDouble();
-
-                    Series1->Add(value, "", clLime);
-
-                    lineUpLimit->Add(up_line_value, "e", clRed);
-                    lineDownLimit->Add(down_line_value, "b", clRed);
-
-                    Chart1->BottomAxis->Scroll(1, false);
-                }
-                catch(...)
-                {
-                }
-            }
-
-            //====================================================================
-            lbl2_5mA->Caption = "-- ";
-            lbl3_3mA->Caption = IntOrZeroSring((int)((calc_data._8va - calc_data._8vdc) / 0.27 * 0.1)) + " ";   //8Vd * 0.10
-            lbl3_3mAd->Caption = IntOrZeroSring((int)((calc_data._8va - calc_data._8vdc) / 0.27 * 0.85)) + " "; //8Vd * 0.85
-            lbl5mAa->Caption = IntOrZeroSring((int)((calc_data._8va - calc_data._8vac) / 0.27)) + " ";          // 8Va
-            lbl5mAd->Caption = IntOrZeroSring((int)((calc_data._8va - calc_data._8vdc) / 0.27 * 0.05)) + " ";   // 8Vd * 0.05
-            lbl8mAa->Caption = IntOrZeroSring((int)((calc_data._8va - calc_data._8vac) / 0.27)) + " ";
-            lbl8mAd->Caption = IntOrZeroSring((int)((calc_data._8va - calc_data._8vdc) / 0.27)) + " ";
-            lbl12mAa->Caption = IntOrZeroSring((calc_data._16vac - calc_data._16va) / 0.5) + " ";               // 16Va
-            lbl_12mAa->Caption = IntOrZeroSring((calc_data._x16va - calc_data._x16vac) / 0.5) + " ";            // -16Va
-            lbl16mAa->Caption = IntOrZeroSring((calc_data._16vac - calc_data._16va) / 0.5) + " ";
-            lbl_16mAa->Caption = IntOrZeroSring((calc_data._x16va - calc_data._x16vac) / 0.5) + " ";
-            lbl46mAa->Caption = IntOrZeroSring((calc_data._48va - calc_data._46vc) / 0.5) + " ";
+            ProcessVote(cmd);
         }
         else
         {
@@ -2265,6 +2164,137 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             restor_delay_count = 15;
         }
     }
+}
+//---------------------------------------------------------------------------
+void TForm1::CalcAllVote(ADC_Data & adc_data)
+{
+    VoteParam vote_param;
+    if (global_config.vote_param._5vd_up != 0)
+        vote_param = global_config.vote_param;
+    else
+        vote_param = default_vote_param;
+
+    adc_data._5vd   = CalcVot1(adc_data._5vd  , vote_param._5vd_down,    vote_param._5vd_up);
+    adc_data._8vdc  = CalcVot1(adc_data._8vdc , vote_param._8vdc_down,   vote_param._8vdc_up);
+    adc_data._8vac  = CalcVot1(adc_data._8vac , vote_param._8vac_down,   vote_param._8vac_up);
+    adc_data._8va   = CalcVot1(adc_data._8va  , vote_param._8va_down,    vote_param._8va_up);
+    adc_data._46vc  = CalcVot1(adc_data._46vc , vote_param._46vc_down,   vote_param._46vc_up);
+    adc_data._48va  = CalcVot1(adc_data._48va , vote_param._48va_down,   vote_param._48va_up);
+    adc_data._46va  = CalcVot1(adc_data._46va , vote_param._46va_down,   vote_param._46va_up);
+    adc_data._5va   = CalcVot1(adc_data. _5va , vote_param. _5va_down,   vote_param. _5va_up);
+    adc_data._12va  = CalcVot1(adc_data._12va , vote_param._12va_down,   vote_param._12va_up);
+    adc_data._16va  = CalcVot1(adc_data._16va , vote_param._16va_down,   vote_param._16va_up);
+    adc_data._16vac = CalcVot1(adc_data._16vac, vote_param._16vac_down,  vote_param._16vac_up);
+    adc_data._x16vac= CalcVot2(adc_data._16vac, adc_data._x16vac, vote_param._x16vac_down,  vote_param._x16vac_up, vote_param._16vac_up, vote_param._16vac_down);
+    adc_data._x16va = CalcVot2(adc_data._16va , adc_data._x16va , vote_param._x16va_down,   vote_param._x16va_up,  vote_param._16va_up,  vote_param._16va_down);
+    adc_data._x12va = CalcVot2(adc_data._12va , adc_data._x12va , vote_param._x12va_down,   vote_param._x12va_up,  vote_param._12va_up,  vote_param._12va_down);
+}
+void TForm1::ProcessVote(D1608Cmd & cmd)
+{
+    __int16 data[16];
+
+    // 计算检测到的电压 3.3v ~ 4096
+    for (int i=0; i<ADC_NUM; i++)
+    {
+        data[i] = cmd.data.data_16_array[i] * 2500 / cmd.data.data_16_array[1];
+    }
+
+    for (int i=0; i<ADC_NUM; i++)
+    {
+        ValueListEditor1->Cells[1][i+1] = cmd.data.data_16_array[i];
+    }
+
+    int org_base = cmd.data.data_16_array[1];
+    ADC_Data * true_data = (ADC_Data *)data;
+
+    ADC_Data calc_data;
+
+    // 正电压检测：
+    //      ra = 4
+    //      rb = 5v 3 / 8v 10 / 12v 15 / 16v 20 / 48v 75
+    // 负电压检测
+    //      ra rb 同正电压
+    //      -5v  rc=4  rd=15
+    //      -12v rc=10 rd=15
+    //      -16v rc=15 rd=20
+    calc_data = *true_data;
+    calc_data._2_5v  = true_data->_2_5v / 10;
+    calc_data.base   = 2500 / 10;
+    CalcAllVote(calc_data);
+
+    __int16 * xcalc_data = (__int16 *)&calc_data;
+    for (int i=0; i<ADC_NUM; i++)
+    {
+        double vot = xcalc_data[i] / 100.0f;
+        ValueListEditor2->Cells[1][i+1] = FloatToStr(vot);
+    }
+
+    lblDiff->Caption = calc_data._8vdc-calc_data._8va;
+
+    ValueListEditor2->Cells[1][18] = (int)((calc_data._8va - calc_data._8vac) / 0.27);
+    ValueListEditor2->Cells[1][19] = (calc_data._48va - calc_data._46vc) / 0.5;
+    ValueListEditor2->Cells[1][20] = (calc_data._16va - calc_data._16vac) / 0.5;
+    ValueListEditor2->Cells[1][21] = (calc_data._x16vac - calc_data._x16va) / 0.5;
+
+    //====================================================================
+    lbl2_5V->Caption = String::FormatFloat("0.00 ", calc_data._2_5v / 100.0);
+    lbl3_3V->Caption = String::FormatFloat("0.00 ", (4096.0/org_base)*2.5);
+    lbl3_3Vd->Caption = String::FormatFloat("0.00 ", (calc_data._2_5v+75) / 100.0);
+    lbl5Va->Caption = String::FormatFloat("0.00 ", calc_data._5va / 100.0);
+    lbl5Vd->Caption = String::FormatFloat("0.00 ", calc_data._5vd / 100.0);
+    lbl8Va->Caption = String::FormatFloat("0.00 ", calc_data._8va / 100.0);
+    lbl8Vd->Caption = String::FormatFloat("0.00 ", calc_data._8vdc / 100.0);
+    lbl12Va->Caption = String::FormatFloat("0.00 ", calc_data._12va / 100.0);
+    lbl_12Va->Caption = String::FormatFloat("0.00 ", calc_data._x12va / 100.0);
+    lbl16Va->Caption = String::FormatFloat("0.00 ", calc_data._16va / 100.0);
+    lbl_16Va->Caption = String::FormatFloat("0.00 ", calc_data._x16va / 100.0);
+    lbl46Va->Caption = String::FormatFloat("0.00 ", calc_data._46va / 100.0);
+
+    //====================================================================
+    cg2_5V->Progress = calc_data._2_5v;
+    cg3_3V->Progress = (4096.0/org_base)*250;
+    cg3_3Vd->Progress = (calc_data._2_5v+75);
+    cg5Va->Progress = calc_data._5va;
+    cg5Vd->Progress = calc_data._5vd;
+    cg8Va->Progress = calc_data._8va;
+    cg8Vd->Progress = calc_data._8vdc;
+    cg12Va->Progress = calc_data._12va;
+    cg_12Va->Progress = calc_data._x12va + 2400;
+    cg16Va->Progress = calc_data._16va;
+    cg_16Va->Progress = calc_data._x16va + 3200;
+    cg46Va->Progress = calc_data._46va;
+
+    // 补充到曲线图
+    if (active_adc != NULL)
+    {
+        try {
+            double value = active_adc->Caption.ToDouble();
+
+            Series1->Add(value, "", clLime);
+
+            lineUpLimit->Add(up_line_value, "e", clRed);
+            lineDownLimit->Add(down_line_value, "b", clRed);
+
+            Chart1->BottomAxis->Scroll(1, false);
+        }
+        catch(...)
+        {
+        }
+    }
+
+    //====================================================================
+    lbl2_5mA->Caption = "-- ";
+    lbl3_3mA->Caption = IntOrZeroSring((int)((calc_data._8va - calc_data._8vdc) / 0.27 * 0.1)) + " ";   //8Vd * 0.10
+    lbl3_3mAd->Caption = IntOrZeroSring((int)((calc_data._8va - calc_data._8vdc) / 0.27 * 0.85)) + " "; //8Vd * 0.85
+    lbl5mAa->Caption = IntOrZeroSring((int)((calc_data._8va - calc_data._8vac) / 0.27)) + " ";          // 8Va
+    lbl5mAd->Caption = IntOrZeroSring((int)((calc_data._8va - calc_data._8vdc) / 0.27 * 0.05)) + " ";   // 8Vd * 0.05
+    lbl8mAa->Caption = IntOrZeroSring((int)((calc_data._8va - calc_data._8vac) / 0.27)) + " ";
+    lbl8mAd->Caption = IntOrZeroSring((int)((calc_data._8va - calc_data._8vdc) / 0.27)) + " ";
+    lbl12mAa->Caption = IntOrZeroSring((calc_data._16vac - calc_data._16va) / 0.5) + " ";               // 16Va
+    lbl_12mAa->Caption = IntOrZeroSring((calc_data._x16va - calc_data._x16vac) / 0.5) + " ";            // -16Va
+    lbl16mAa->Caption = IntOrZeroSring((calc_data._16vac - calc_data._16va) / 0.5) + " ";
+    lbl_16mAa->Caption = IntOrZeroSring((calc_data._x16va - calc_data._x16vac) / 0.5) + " ";
+    lbl46mAa->Caption = IntOrZeroSring((calc_data._48va - calc_data._46vc) / 0.5) + " ";
 }
 //---------------------------------------------------------------------------
 bool TForm1::ProcessSendCmdAck(D1608Cmd& cmd, TStream *AData, TIdSocketHandle *ABinding)
