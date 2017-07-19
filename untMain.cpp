@@ -2089,14 +2089,14 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
                 D1608Cmd cmd;
                 cmd.id = GetOffsetOfData(&config_map.op_code.switch_preset);
                 cmd.data.data_32 = smc_config.global_config.active_preset_id;
-                SendCmd(cmd);
+                SendCmd2(cmd);
             }
             else if (cur_preset_id == clbAvaliablePreset->ItemIndex+1)
             {
                 D1608Cmd cmd;
                 cmd.id = GetOffsetOfData(&config_map.op_code.switch_preset);
                 cmd.data.data_32 = cur_preset_id;
-                SendCmd(cmd);
+                SendCmd2(cmd);
             }
         }
         else
@@ -4005,7 +4005,7 @@ void __fastcall TForm1::RecallClick(TObject *Sender)
         D1608Cmd cmd;
         cmd.id = GetOffsetOfData(&config_map.op_code.switch_preset);
         cmd.data.data_32 = menu->Tag;
-        SendCmd(cmd);
+        SendCmd2(cmd);
 
         // 延时5秒后强制从本地内存更新到界面
         tmDelayUpdateUI->Enabled = true;
