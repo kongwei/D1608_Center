@@ -4,6 +4,7 @@
 #pragma hdrstop
 
 #include "untMain.h"
+#include "untSetMAC.h"
 #include "untFlashReader.h"
 
 #include <winsock2.h>
@@ -5680,7 +5681,13 @@ void __fastcall TForm1::edtMACMouseDown(TObject *Sender,
 {
     if (Button == mbMiddle && Shift.Contains(ssCtrl))
     {
-        String mac_address = InputBox("修改MAC地址", "请输入MAC地址 xx:xx:xx:xx:xx:xx", edtMAC->Text);
+        frmSetMAC->edtFix->Text = edtMAC->Text.SubString(1, 8);
+        frmSetMAC->edtVar->Text = edtMAC->Text.SubString(10, 8);
+        if (frmSetMAC->ShowModal() == mrCancel)
+            return;
+
+        String mac_address = frmSetMAC->edtFix->Text+":"+frmSetMAC->edtVar->Text;
+
         // 解析MAC地址
         unsigned char mac_array[6]={0,0,0,0,0,0};
         TStrings * mac_split = new TStringList;
