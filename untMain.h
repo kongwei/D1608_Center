@@ -522,6 +522,7 @@ __published:	// IDE-managed Components
     TTimer *tmDelaySendCmd;
     TEdit *edtCmdId;
     TButton *btnSaveLog;
+    TEdit *edtMAC;
     void __fastcall FormCreate(TObject *Sender);
     void __fastcall FormDestroy(TObject *Sender);
     void __fastcall btnRefreshClick(TObject *Sender);
@@ -676,6 +677,8 @@ __published:	// IDE-managed Components
     void __fastcall btnClearAllPresetClick(TObject *Sender);
     void __fastcall tmDelaySendCmdTimer(TObject *Sender);
     void __fastcall btnSaveLogClick(TObject *Sender);
+    void __fastcall edtMACMouseDown(TObject *Sender, TMouseButton Button,
+          TShiftState Shift, int X, int Y);
 
 private:
     // 已经加载版本文件

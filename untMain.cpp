@@ -1293,6 +1293,8 @@ void __fastcall TForm1::udpSLPUDPRead(TObject *Sender,
             find_item->SubItems->Strings[3] = slp_pack.name;
             find_item->SubItems->Strings[4] = slp_pack.default_device_name;
             find_item->SubItems->Strings[5] = cpu_id;
+            find_item->SubItems->Strings[6] = mac;
+
             item = find_item;
             break;
         }
@@ -1309,6 +1311,7 @@ void __fastcall TForm1::udpSLPUDPRead(TObject *Sender,
         item->SubItems->Add(slp_pack.name);
         item->SubItems->Add(slp_pack.default_device_name);
         item->SubItems->Add(cpu_id);
+        item->SubItems->Add(mac);
     }
 
     if (slp_pack.id[0] == '\x0')
@@ -1421,8 +1424,6 @@ void __fastcall TForm1::btnSelectClick(TObject *Sender)
 
     udpControl->SendBuffer(dst_ip, package.udp_port, package.data, package.data_size);
 
-
-
     pnlOperator->Show();
     pnlDspDetail->Hide();
     pnlMix->Hide();
@@ -1441,6 +1442,8 @@ void __fastcall TForm1::btnSelectClick(TObject *Sender)
         lblDeviceName->Caption = selected->SubItems->Strings[3];
     else
         lblDeviceName->Caption = selected->SubItems->Strings[4]+"-"+selected->SubItems->Strings[2];
+
+    edtMAC->Text = selected->SubItems->Strings[6];
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::tmSLPTimer(TObject *Sender)
@@ -3567,6 +3570,14 @@ void __fastcall TForm1::ApplyConfigToUI()
     on_loading = true;
 
     lblPresetName->Caption = global_config.preset_name[cur_preset_id-1];
+    /*edtMAC->Text.sprintf("%02X:%02X:%02X:%02X:%02X:%02X",
+                        global_config.mac_address[0],
+                        global_config.mac_address[1],
+                        global_config.mac_address[2],
+                        global_config.mac_address[3],
+                        global_config.mac_address[4],
+                        global_config.mac_address[5]);
+    */
 
     for (int i=0;i<PRESET_NUM;i++)
     {
@@ -5661,6 +5672,45 @@ void __fastcall TForm1::btnSaveLogClick(TObject *Sender)
     log_strs->SaveToFile(path+device_cpuid+".log");
 
     delete log_strs;
+}
+//---------------------------------------------------------------------------
+
+void __fastcall TForm1::edtMACMouseDown(TObject *Sender,
+      TMouseButton Button, TShiftState Shift, int X, int Y)
+{
+    if (Button == mbMiddle && Shift.Contains(ssCtrl))
+    {
+        String mac_address = InputBox("修改MAC地址", "请输入MAC地址 xx:xx:xx:xx:xx:xx", edtMAC->Text);
+        // 解析MAC地址
+        unsigned char mac_array[6]={0,0,0,0,0,0};
+        TStrings * mac_split = new TStringList;
+        mac_split->Delimiter = ':';
+        mac_split->DelimitedText = mac_address;
+        if (mac_split->Count == 6)
+        {
+            mac_array[0] = ("0x"+mac_split->Strings[0]).ToIntDef(0);
+            mac_array[1] = ("0x"+mac_split->Strings[1]).ToIntDef(0);
+            mac_array[2] = ("0x"+mac_split->Strings[2]).ToIntDef(0);
+            mac_array[3] = ("0x"+mac_split->Strings[3]).ToIntDef(0);
+            mac_array[4] = ("0x"+mac_split->Strings[4]).ToIntDef(0);
+            mac_array[5] = ("0x"+mac_split->Strings[5]).ToIntDef(0);
+        }
+        delete mac_split;
+
+        if (memcmp(mac_array, "\0\0\0\0\0\0", 6)==0)
+        {
+            ShowMessage("输入错误");
+        }
+        else
+        {
+            D1608Cmd cmd;
+            cmd.type = CMD_TYPE_GLOBAL;
+            cmd.id = offsetof(GlobalConfig, mac_address);
+            memcpy(cmd.data.data_string, mac_array, sizeof(mac_array));
+            cmd.length = 6;
+            SendCmd2(cmd);
+        }
+    }
 }
 //---------------------------------------------------------------------------
 
