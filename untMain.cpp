@@ -1250,7 +1250,11 @@ void __fastcall TForm1::btnRefreshClick(TObject *Sender)
         if (lvDevice->Selected->SubItems->Strings[3] != "")
             lblDeviceName->Caption = lvDevice->Selected->SubItems->Strings[3];
         else
+        {
             lblDeviceName->Caption = lvDevice->Selected->SubItems->Strings[4]+"-"+lvDevice->Selected->SubItems->Strings[2];
+            if (lblDeviceName->Caption.Length() > 16)
+                lblDeviceName->Caption = lvDevice->Selected->SubItems->Strings[4];
+        }
     }
 }
 //---------------------------------------------------------------------------
@@ -1442,7 +1446,11 @@ void __fastcall TForm1::btnSelectClick(TObject *Sender)
     if (selected->SubItems->Strings[3] != "")
         lblDeviceName->Caption = selected->SubItems->Strings[3];
     else
-        lblDeviceName->Caption = selected->SubItems->Strings[4]+"-"+selected->SubItems->Strings[2];
+    {
+        lblDeviceName->Caption = lvDevice->Selected->SubItems->Strings[4]+"-"+lvDevice->Selected->SubItems->Strings[2];
+        if (lblDeviceName->Caption.Length() > 16)
+            lblDeviceName->Caption = lvDevice->Selected->SubItems->Strings[4];
+    }
 
     edtMAC->Text = selected->SubItems->Strings[6];
 }
