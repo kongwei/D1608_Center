@@ -5687,7 +5687,7 @@ void __fastcall TForm1::btnSaveLogClick(TObject *Sender)
 void __fastcall TForm1::edtMACMouseDown(TObject *Sender,
       TMouseButton Button, TShiftState Shift, int X, int Y)
 {
-    if (Button == mbMiddle && Shift.Contains(ssCtrl))
+    if (Button == mbRight && Shift.Contains(ssCtrl))
     {
         frmSetMAC->edtFix->Text = edtMAC->Text.SubString(1, 8);
         frmSetMAC->edtVar->Text = edtMAC->Text.SubString(10, 8);
