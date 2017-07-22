@@ -1272,7 +1272,7 @@ void __fastcall TForm1::udpSLPUDPRead(TObject *Sender,
     if (display_device_name == "")
     {
         display_device_name = slp_pack.default_device_name;
-        display_device_name = display_device_name + "-" + slp_pack.id;
+        display_device_name = display_device_name + "-" + slp_pack.sn;
     }
 
     String cpu_id;
@@ -1299,6 +1299,7 @@ void __fastcall TForm1::udpSLPUDPRead(TObject *Sender,
             find_item->SubItems->Strings[4] = slp_pack.default_device_name;
             find_item->SubItems->Strings[5] = cpu_id;
             find_item->SubItems->Strings[6] = mac;
+            find_item->SubItems->Strings[7] = slp_pack.sn;
 
             item = find_item;
             break;
@@ -1317,6 +1318,7 @@ void __fastcall TForm1::udpSLPUDPRead(TObject *Sender,
         item->SubItems->Add(slp_pack.default_device_name);
         item->SubItems->Add(cpu_id);
         item->SubItems->Add(mac);
+        item->SubItems->Add(slp_pack.sn);
     }
 
     if (slp_pack.id[0] == '\x0')
