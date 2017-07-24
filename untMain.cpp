@@ -1040,6 +1040,9 @@ void __fastcall TForm1::FormCreate(TObject *Sender)
         edtBuildTime->Show();
         edtDesktopAppBuildTime->Show();
         edtDesktopAppBuildTime->Text = __DATE__ " " __TIME__;
+
+        btnUnlockExt->Show();
+        btnLeaveTheFactory->Show();
     }
      
     pnlOperator->Show();

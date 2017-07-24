@@ -439,8 +439,6 @@ __published:	// IDE-managed Components
     TTabSheet *TabSheet3;
     TTabSheet *TabSheet4;
     TTabSheet *TabSheet5;
-    TSpeedButton *btnUnlockExt;
-    TSpeedButton *btnLeaveTheFactory;
     TLabel *lblDeviceRunningTime;
     TLabel *Label1;
     TLabel *Label20;
@@ -524,6 +522,8 @@ __published:	// IDE-managed Components
     TButton *btnSaveLog;
     TEdit *edtMAC;
     TEdit *edtDesktopAppBuildTime;
+    TSpeedButton *btnUnlockExt;
+    TSpeedButton *btnLeaveTheFactory;
     void __fastcall FormCreate(TObject *Sender);
     void __fastcall FormDestroy(TObject *Sender);
     void __fastcall btnRefreshClick(TObject *Sender);
