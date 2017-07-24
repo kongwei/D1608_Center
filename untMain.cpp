@@ -1038,6 +1038,8 @@ void __fastcall TForm1::FormCreate(TObject *Sender)
         edtDeviceType->Show();
         edtStartBuildTime->Show();
         edtBuildTime->Show();
+        edtDesktopAppBuildTime->Show();
+        edtDesktopAppBuildTime->Text = __DATE__ " " __TIME__;
     }
      
     pnlOperator->Show();

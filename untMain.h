@@ -523,6 +523,7 @@ __published:	// IDE-managed Components
     TEdit *edtCmdId;
     TButton *btnSaveLog;
     TEdit *edtMAC;
+    TEdit *edtDesktopAppBuildTime;
     void __fastcall FormCreate(TObject *Sender);
     void __fastcall FormDestroy(TObject *Sender);
     void __fastcall btnRefreshClick(TObject *Sender);
