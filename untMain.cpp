@@ -1037,9 +1037,6 @@ void __fastcall TForm1::FormCreate(TObject *Sender)
         edtCmdId->Show();
         edtDeviceType->Show();
         edtStartBuildTime->Show();
-        edtBuildTime->Show();
-        edtDesktopAppBuildTime->Show();
-        edtDesktopAppBuildTime->Text = __DATE__ " " __TIME__;
 
         btnUnlockExt->Show();
         btnLeaveTheFactory->Show();
@@ -1965,8 +1962,8 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
 
             // 显示版本信息
             edtDeviceType->Text = device_type;
-            edtStartBuildTime->Text = global_config.start_build_time;
-            edtBuildTime->Text = global_config.build_time;
+            edtStartBuildTime->Text = String("")+global_config.start_build_time+"\t"+global_config.build_time+"\t"+__DATE__ " " __TIME__;
+            //edtBuildTime->Text = global_config.build_time;
             edtDeviceName->Text = global_config.d1616_name;
             //TDateTime d = edtBuildTime->Text;
 
@@ -5733,6 +5730,12 @@ void __fastcall TForm1::edtMACMouseDown(TObject *Sender,
             SendCmd2(cmd);
         }
     }
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::edtDeviceTypeExit(TObject *Sender)
+{
+    TEdit * edt = (TEdit*)Sender;
+    edt->OnClick = input_panel_level_editClick;
 }
 //---------------------------------------------------------------------------
 

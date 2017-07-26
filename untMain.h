@@ -423,7 +423,6 @@ __published:	// IDE-managed Components
     TLabel *Label50;
     TBevel *Bevel10;
     TEdit *edtDeviceType;
-    TEdit *edtBuildTime;
     TRadioButton *rbStaticIpEnabled;
     TRadioButton *rbDhcpEnabled;
     TCheckBox *cbGlobalDspName;
@@ -520,10 +519,10 @@ __published:	// IDE-managed Components
     TTimer *tmDelaySendCmd;
     TEdit *edtCmdId;
     TButton *btnSaveLog;
-    TEdit *edtMAC;
-    TEdit *edtDesktopAppBuildTime;
     TSpeedButton *btnUnlockExt;
     TSpeedButton *btnLeaveTheFactory;
+    TEdit *edtMAC;
+    TImage *Image7;
     void __fastcall FormCreate(TObject *Sender);
     void __fastcall FormDestroy(TObject *Sender);
     void __fastcall btnRefreshClick(TObject *Sender);
@@ -680,6 +679,7 @@ __published:	// IDE-managed Components
     void __fastcall btnSaveLogClick(TObject *Sender);
     void __fastcall edtMACMouseDown(TObject *Sender, TMouseButton Button,
           TShiftState Shift, int X, int Y);
+    void __fastcall edtDeviceTypeExit(TObject *Sender);
 
 private:
     // 已经加载版本文件
