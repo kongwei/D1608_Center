@@ -1849,6 +1849,10 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
                         item->SubItems->Add("output通道音量溢出");
                         item->SubItems->Add("通道号"+IntToStr(buff.event[i].event_data));
                         break;
+                    case EVENT_WRITE_FLASH_ERROR:
+                        item->SubItems->Add("写flash失败");
+                        item->SubItems->Add("地址:0x"+IntToHex(buff.event[i].event_data * 2048, 8));
+                        break;
                     case EVENT_REBOOT:
                         item->SubItems->Add("上位机发起重启");
                         item->SubItems->Add(buff.event[i].event_data);
@@ -1864,6 +1868,45 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
                             if (buff.event[i].event_data & 16) page_indexs = page_indexs + "5,";
                             item->SubItems->Add(page_indexs);
                         }
+                        break;
+                    case EVENT_CHECK_MD5_FAIL:
+                        item->SubItems->Add("激活码错误");
+                        item->SubItems->Add("");
+                        break;
+                    case EVENT_28J60_REINIT_ERROR:
+                        item->SubItems->Add("ENC28J60初始化失败");
+                        item->SubItems->Add("失败次数:"+IntToStr(buff.event[i].event_data));
+                        break;
+                    case EVENT_MAC_ADDRESS_OVERFLOW:
+                        item->SubItems->Add("MAC地址日志满");
+                        item->SubItems->Add("");
+                        break;
+                    case EVENT_NO_KEY:
+                        item->SubItems->Add("RSA校验失败");
+                        item->SubItems->Add("");
+                        break;
+                    case EVENT_DSP_NOT_MATCH_ERROR:
+                        item->SubItems->Add("YSS920与配置不符");
+                        if (buff.event[i].event_data > 0x80)
+                            item->SubItems->Add("缺少:"+IntToStr(buff.event[i].event_data-0x80));
+                        else
+                            item->SubItems->Add("多出:"+IntToStr(buff.event[i].event_data));
+                        break;
+                    case EVENT_LED_NUM_ERR:
+                        item->SubItems->Add("LED控制芯片错误");
+                        item->SubItems->Add(buff.event[i].event_data);
+                        break;
+                    case EVENT_FILENAME_CHANGED:
+                        item->SubItems->Add("导入/导出配置");
+                        item->SubItems->Add("");
+                        break;
+                    case EVENT_SET_MAC_ADDRESS:
+                        item->SubItems->Add("设置了MAC地址");
+                        item->SubItems->Add(IntToHex(buff.event[i].event_data, 6));
+                        break;
+                    case EVENT_ADDA_ERROR:
+                        item->SubItems->Add("AD/DA数量与配置不符");
+                        item->SubItems->Add("AD:"+IntToStr(buff.event[i].event_data/32)+"/DA:"+IntToStr(buff.event[i].event_data%32));
                         break;
                     default:
                         item->SubItems->Add(buff.event[i].event_id);
