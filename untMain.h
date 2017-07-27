@@ -524,6 +524,9 @@ __published:	// IDE-managed Components
     TEdit *edtMAC;
     TImage *Image7;
     TPanel *iLed;
+    TMenuItem *N1;
+    TMenuItem *Copy1;
+    TMenuItem *Paste1;
     void __fastcall FormCreate(TObject *Sender);
     void __fastcall FormDestroy(TObject *Sender);
     void __fastcall btnRefreshClick(TObject *Sender);
@@ -681,6 +684,9 @@ __published:	// IDE-managed Components
     void __fastcall edtMACMouseDown(TObject *Sender, TMouseButton Button,
           TShiftState Shift, int X, int Y);
     void __fastcall edtDeviceTypeExit(TObject *Sender);
+    void __fastcall PopupMenu3Popup(TObject *Sender);
+    void __fastcall Copy1Click(TObject *Sender);
+    void __fastcall Paste1Click(TObject *Sender);
 
 private:
     // 已经加载版本文件

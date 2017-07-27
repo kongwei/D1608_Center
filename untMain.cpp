@@ -30,9 +30,7 @@ GlobalConfig global_config = {0};
 int REAL_INPUT_DSP_NUM = 16;
 int REAL_OUTPUT_DSP_NUM = 16;
 
-
 extern String GetMacList();
-
 
 // 用于复制设备的flaah数据
 struct SmcConfig
@@ -44,16 +42,21 @@ struct SmcConfig
     char device_flash_dump[128*1024];
 };
 static SmcConfig smc_config;
-
 static bool on_loading = false;
 static String last_device_id;
-
 static Word enter_key = VK_RETURN;
-
 //static char head[] = "\x53\x65\x74\x50\x61\x72\x61\x00\x00\x00\x4D\x41\x54\x31\x36\x31\x30\x43\x6F\x6E\x66\x69\x67\x44\x61\x74\x61\x00\x00\x00";
 static BLENDFUNCTION blend = {AC_SRC_OVER, 0, 200, 0};
-
 static TTime startup_time;
+
+enum CHANEL_TYPE {ctNone, ctInput, ctOutput};
+struct Channel
+{
+     CHANEL_TYPE channel_type;
+     int channel_id;// 1-16
+};
+static Channel copied_channel = {ctNone, 0};
+static Channel selected_channel = {ctNone, 0};
 
 unsigned int GetOffsetOfData(void * p_data)
 {
@@ -5738,6 +5741,80 @@ void __fastcall TForm1::edtDeviceTypeExit(TObject *Sender)
 {
     TEdit * edt = (TEdit*)Sender;
     edt->OnClick = input_panel_level_editClick;
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::PopupMenu3Popup(TObject *Sender)
+{
+    TPoint xy = pnlOperator->ScreenToClient(PopupMenu3->PopupPoint);
+    // 是否input
+    if (xy.x >= input_panel_trackbar->Left && xy.x <= input_panel_trackbar->Left+REAL_INPUT_DSP_NUM*PANEL_WIDTH)
+    {
+        int input_dsp_id = (xy.x - input_panel_trackbar->Left) / PANEL_WIDTH + 1;
+        if (input_dsp_id >= 1 && input_dsp_id <= REAL_INPUT_DSP_NUM)
+        {
+            selected_channel.channel_type = ctInput;
+            selected_channel.channel_id = input_dsp_id;
+
+            Copy1->Caption = "Copy Channel Input " + IntToStr(input_dsp_id);
+            Copy1->Enabled = true;
+            Copy1->Tag = input_dsp_id;
+        }
+    }
+    else if (xy.x >= output_panel_trackbar->Left && xy.x <= output_panel_trackbar->Left+REAL_OUTPUT_DSP_NUM*PANEL_WIDTH)
+    {
+        // 是否output
+        int output_dsp_id = (xy.x - output_panel_trackbar->Left) / PANEL_WIDTH + 1;
+        if (output_dsp_id >= 1 && output_dsp_id <= REAL_OUTPUT_DSP_NUM)
+        {
+            selected_channel.channel_type = ctOutput;
+            selected_channel.channel_id = output_dsp_id;
+
+            Copy1->Caption = "Copy Channel Output " + IntToStr(output_dsp_id);
+            Copy1->Enabled = true;
+        }
+    }
+    else
+    {
+        selected_channel.channel_type = ctNone;
+        selected_channel.channel_id = 0;
+
+        Copy1->Caption = "Copy";
+        Copy1->Enabled = false;
+    }
+
+    Paste1->Enabled = (selected_channel.channel_type != ctNone)
+                   && (selected_channel.channel_type == copied_channel.channel_type)
+                   && (selected_channel.channel_id != copied_channel.channel_id);
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::Copy1Click(TObject *Sender)
+{
+    copied_channel = selected_channel;
+    selected_channel.channel_type = ctNone;
+    selected_channel.channel_id = 0;
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::Paste1Click(TObject *Sender)
+{
+    Paste1->Enabled = (selected_channel.channel_type != ctNone)
+                   && (selected_channel.channel_type == copied_channel.channel_type)
+                   && (selected_channel.channel_id != copied_channel.channel_id);
+
+    // 考虑做成界面运动
+    if (Paste1->Enabled)
+    {
+        ShowMessage("Copy channel "+IntToStr(copied_channel.channel_id)+" to channel "+IntToStr(selected_channel.channel_id));
+        if (selected_channel.channel_type == ctInput)
+        {
+            config_map.input_dsp[selected_channel.channel_id-1] = config_map.input_dsp[copied_channel.channel_id-1];
+            ApplyConfigToUI();
+        }
+        else if (selected_channel.channel_type == ctOutput)
+        {
+            config_map.output_dsp[selected_channel.channel_id-1] = config_map.output_dsp[copied_channel.channel_id-1];
+            ApplyConfigToUI();
+        }
+    }
 }
 //---------------------------------------------------------------------------
 
