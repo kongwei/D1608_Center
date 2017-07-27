@@ -2003,6 +2003,8 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
                 for (int i=0;i<8;i++)
                     iAdDa[i]->Caption = global_config.ad_da_card[i];
 
+                iLed->Caption = global_config.led_control_count;
+
                 REAL_INPUT_DSP_NUM = GetVersionConfig(edtDeviceType->Text).input_channel_count;
                 REAL_OUTPUT_DSP_NUM = GetVersionConfig(edtDeviceType->Text).output_channel_count;
 

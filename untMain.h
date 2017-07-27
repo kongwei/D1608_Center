@@ -523,6 +523,7 @@ __published:	// IDE-managed Components
     TSpeedButton *btnLeaveTheFactory;
     TEdit *edtMAC;
     TImage *Image7;
+    TPanel *iLed;
     void __fastcall FormCreate(TObject *Sender);
     void __fastcall FormDestroy(TObject *Sender);
     void __fastcall btnRefreshClick(TObject *Sender);
