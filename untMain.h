@@ -687,6 +687,7 @@ __published:	// IDE-managed Components
     void __fastcall PopupMenu3Popup(TObject *Sender);
     void __fastcall Copy1Click(TObject *Sender);
     void __fastcall Paste1Click(TObject *Sender);
+    void __fastcall FormResize(TObject *Sender);
 
 private:
     // 已经加载版本文件
@@ -880,6 +881,8 @@ private:
 
     void ShowLockConfigArea();
     void HideLockConfigArea();
+private:
+    bool nees_resize;
 };
 //---------------------------------------------------------------------------
 extern PACKAGE TForm1 *Form1;

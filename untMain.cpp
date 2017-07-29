@@ -2495,6 +2495,13 @@ void __fastcall TForm1::tmWatchTimer(TObject *Sender)
             UpdateWatchLevel(i, -49);
         }
     }
+
+    // ¼ì²âresizeÊÂ¼þ
+    if (nees_resize)
+    {
+        SetIOChannelNum();
+        nees_resize = false;
+    }
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::ToogleOutputMute(TObject *Sender)
@@ -5858,6 +5865,11 @@ void __fastcall TForm1::Paste1Click(TObject *Sender)
             ApplyConfigToUI();
         }
     }
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::FormResize(TObject *Sender)
+{
+    nees_resize = true;
 }
 //---------------------------------------------------------------------------
 
