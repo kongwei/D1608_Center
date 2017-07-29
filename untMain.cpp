@@ -1427,6 +1427,8 @@ void __fastcall TForm1::btnSelectClick(TObject *Sender)
     package.data_size = sizeof(preset_cmd);
     read_one_preset_package_list.push_back(package);*/
     StartReadOnePackage(0xFF);
+    restor_delay_count = 15;
+    tmDelayBackup->Enabled = true;
 
     preset_cmd.preset = 0; // 读取global_config
     preset_cmd.store_page = 0;
@@ -1703,6 +1705,8 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             {
                 SetPresetId(preset_id);
                 StartReadOnePackage(0xFF);
+                restor_delay_count = 15;
+                tmDelayBackup->Enabled = true;
             }
 
             if (cmd.data.data_64_array[2] != 0)
@@ -1715,7 +1719,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             int hour = running_time / 3600;
             int minute = running_time % 3600;
             minute = minute / 60;
-            lblDeviceRunningTime->Caption = "RUN TIME: "+IntToStr(hour) + "H " + IntToStr(minute) + "M";
+            lblDeviceRunningTime->Caption = IntToStr(hour) + "时：" + IntToStr(minute) + "分";
             if (cbRunningTimer->Checked)
             {
                 int remain_time = global_config.running_timer_limit - running_time;
@@ -1769,6 +1773,8 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
         {
             SetPresetId(cmd.data.data_32);
             StartReadOnePackage(0xFF);
+            restor_delay_count = 15;
+            tmDelayBackup->Enabled = true;
         }
         else if (cmd.id == GetOffsetOfData(&config_map.op_code.adc))
         {
@@ -2111,6 +2117,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             tmDelayUpdateUI->Enabled = false;
             ApplyConfigToUI();
             CloseDspDetail();
+            memo_debug->Lines->Add("同步完成");
         }
         else
         {
@@ -2119,6 +2126,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
 
             //pbBackup->Position = pbBackup->Max - read_one_preset_package_list.size();
             restor_delay_count = 15;
+            tmDelayBackup->Enabled = true;
         }
     }
     else if (ABinding->PeerPort == UDP_PORT_STORE_PRESET_PC2FLASH)
@@ -2139,7 +2147,6 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
 
         if (package_list.empty())
         {
-            tmDelayBackup->Enabled = false;
             pbBackup->Position = pbBackup->Max;
             ::Sleep(1000);
             pbBackup->Hide();
@@ -2149,14 +2156,16 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             {
                 D1608Cmd cmd;
                 cmd.id = GetOffsetOfData(&config_map.op_code.switch_preset);
-                cmd.data.data_32 = smc_config.global_config.active_preset_id;
+                cmd.data.data_32_array[0] = smc_config.global_config.active_preset_id;
+                cmd.data.data_32_array[1] = 1;
                 SendCmd2(cmd);
             }
             else if (cur_preset_id == clbAvaliablePreset->ItemIndex+1)
             {
                 D1608Cmd cmd;
                 cmd.id = GetOffsetOfData(&config_map.op_code.switch_preset);
-                cmd.data.data_32 = cur_preset_id;
+                cmd.data.data_32_array[0] = cur_preset_id;
+                cmd.data.data_32_array[1] = 1;
                 SendCmd2(cmd);
             }
         }
@@ -2167,6 +2176,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
 
             pbBackup->Position = pbBackup->Max - package_list.size();
             restor_delay_count = 15;
+            tmDelayBackup->Enabled = true;
         }
     }
     else if (ABinding->PeerPort == UDP_PORT_READ_FLASH)
@@ -2192,7 +2202,6 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
 
         if (package_list.empty())
         {
-            tmDelayBackup->Enabled = false;
             pbBackup->Position = pbBackup->Max;
             ::Sleep(1000);
             pbBackup->Hide();
@@ -2214,7 +2223,6 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             file->WriteBuffer(&smc_config, sizeof(smc_config));
 
             pbBackup->Position = pbBackup->Max;
-            tmDelayBackup->Enabled = false;
             ::Sleep(1000);
             pbBackup->Hide();
             delete file;
@@ -2226,6 +2234,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
 
             pbBackup->Position = pbBackup->Max - package_list.size();
             restor_delay_count = 15;
+            tmDelayBackup->Enabled = true;
         }
     }
 }
@@ -5589,19 +5598,27 @@ void __fastcall TForm1::tmDelayBackupTimer(TObject *Sender)
     }
     else if ((restor_delay_count%5) == 1)
     {
-        TPackage package = package_list.back();
-        udpControl->SendBuffer(dst_ip, package.udp_port, package.data, package.data_size);
-        /*if (last_command == UDP_PORT_STORE_PRESET_PC2FLASH)
+        if(package_list.size() != 0)
         {
-            udpControl->SendBuffer(dst_ip, last_command, &last_restore_package, sizeof(last_restore_package));
-        }
-        else if (last_command == UDP_PORT_READ_FLASH)
-        {
-            udpControl->SendBuffer(dst_ip, last_command, &last_readflash_package, sizeof(last_readflash_package));
-        }*/
+            TPackage package = package_list.back();
+            udpControl->SendBuffer(dst_ip, package.udp_port, package.data, package.data_size);
 
-        // 备份 恢复 流程使用的延时计时器
-        memo_debug->Lines->Add("retry syn");
+            // 备份 恢复 流程使用的延时计时器
+            memo_debug->Lines->Add("retry syn");
+        }
+        else if (read_one_preset_package_list.size() != 0)
+        {
+            TPackage package = read_one_preset_package_list.back();
+            udpControl->SendBuffer(dst_ip, package.udp_port, package.data, package.data_size);
+
+            // 备份 恢复 流程使用的延时计时器
+            memo_debug->Lines->Add("retry syn");
+        }
+        else
+        {
+            memo_debug->Lines->Add("列表空");
+            tmDelayBackup->Enabled = false;
+        }
     }
 }
 //---------------------------------------------------------------------------

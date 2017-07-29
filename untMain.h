@@ -843,6 +843,7 @@ private:
     vector<TPackage> read_one_preset_package_list;
     void StartReadOnePackage(int preset_id)
     {
+        memo_debug->Lines->Add("ÇÐ»»µ½: "+IntToStr(preset_id));
         read_one_preset_package_list.clear();
         for (int store_page=0;store_page<9;store_page++)
         {
