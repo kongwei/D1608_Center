@@ -58,6 +58,51 @@ struct Channel
 static Channel copied_channel = {ctNone, 0};
 static Channel selected_channel = {ctNone, 0};
 
+struct DeviceData
+{
+    int count;
+    T_slp_pack data;
+};
+//------------------------------------------------
+// 版本兼容信息
+static UINT version = 0x0000000A;
+static UINT version_list[] =
+{
+    0x0000000A,
+    0x00000000
+};
+// 返回YES或者NO
+// version_list以0结尾
+String IsCompatibility(T_slp_pack slp_pack)
+{
+    UINT * active_version_list;
+    if (slp_pack.version < version)
+    {
+        // 以上位机为检查条件
+        for (int i=0;version_list[i]!=0;i++)
+        {
+            if (version_list[i] == slp_pack.version)
+            {
+                return "YES";
+            }
+        }
+    }
+    else
+    {
+        // 以下位机为检查条件
+        for (int i=0;slp_pack.version_list[i]!=0;i++)
+        {
+            if (slp_pack.version_list[i] == version)
+            {
+                return "YES";
+            }
+        }
+    }
+
+    return "NO";
+}
+//------------------------------------------------
+
 unsigned int GetOffsetOfData(void * p_data)
 {
     static char * p_config_map = (char*)&config_map;
@@ -1228,10 +1273,11 @@ void __fastcall TForm1::btnRefreshClick(TObject *Sender)
     for (int i=lvDevice->Items->Count-1;i>=0;i--)
     {
         TListItem * item = lvDevice->Items->Item[i];
-        int count = (int)item->Data;
-        count--;
-        item->Data = (void*)count;
-        if (count == 0)
+
+        DeviceData * data = (DeviceData*)item->Data;
+        data->count--;
+
+        if (data->count == 0)
         {
             lvDevice->Items->Delete(i);
         }
@@ -1296,7 +1342,6 @@ void __fastcall TForm1::udpSLPUDPRead(TObject *Sender,
         {
             // 更新属性
             find_item->Caption = display_device_name.UpperCase();
-            find_item->Data = (void*)2;
             find_item->SubItems->Strings[0] = ip_address;
             find_item->SubItems->Strings[1] = ABinding->IP;
             //find_item->SubItems->Strings[2] = device_id;
@@ -1305,6 +1350,11 @@ void __fastcall TForm1::udpSLPUDPRead(TObject *Sender,
             find_item->SubItems->Strings[5] = cpu_id;
             find_item->SubItems->Strings[6] = mac;
             find_item->SubItems->Strings[7] = slp_pack.sn;
+            find_item->SubItems->Strings[8] = IsCompatibility(slp_pack);
+
+            DeviceData * data = (DeviceData*)find_item->Data;
+            data->count = 2;
+            data->data = slp_pack;
 
             item = find_item;
             break;
@@ -1314,7 +1364,6 @@ void __fastcall TForm1::udpSLPUDPRead(TObject *Sender,
     if (item == NULL)
     {
         item = lvDevice->Items->Add();
-        item->Data = (void*)2;
         item->Caption = display_device_name.UpperCase();
         item->SubItems->Add(ip_address);
         item->SubItems->Add(ABinding->IP);
@@ -1324,6 +1373,12 @@ void __fastcall TForm1::udpSLPUDPRead(TObject *Sender,
         item->SubItems->Add(cpu_id);
         item->SubItems->Add(mac);
         item->SubItems->Add(slp_pack.sn);
+        item->SubItems->Add(IsCompatibility(slp_pack));
+
+        DeviceData * data = new DeviceData;
+        data->count = 2;
+        data->data = slp_pack;
+        item->Data = data;
     }
 
     if (slp_pack.id[0] == '\x0')
@@ -1371,6 +1426,14 @@ void __fastcall TForm1::btnSelectClick(TObject *Sender)
     TListItem * selected = lvDevice->Selected;
     if (selected == NULL)
     {
+        return;
+    }
+
+    // 是否版本兼容
+    if (selected->SubItems->Strings[8] != "YES")
+    {
+        if (Sender != NULL)
+            ShowMessage("版本不兼容，请更新上位机软件");
         return;
     }
 
