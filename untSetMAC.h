@@ -16,6 +16,7 @@ __published:	// IDE-managed Components
     TEdit *edtVar;
     TLabel *Label1;
     TEdit *edtFix;
+    TLabel *Label2;
 private:	// User declarations
 public:		// User declarations
     __fastcall TfrmSetMAC(TComponent* Owner);

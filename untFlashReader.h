@@ -10,6 +10,49 @@ extern "C"{
 //---------------------------------------------------------------------------
 using namespace std;
 
+//00000000000000000000
+// 防止  NotStorageCmd 变化引起的数据存盘错误
+typedef struct
+{
+    int noop;
+    short adc[16];
+    int hardware_mute;
+    int WatchLevel[INPUT_DSP_NUM + OUTPUT_DSP_NUM];
+    int switch_preset;
+    struct
+    {
+        int ratio;
+        int threshold;
+        int attack;
+        int release;
+    } comp;
+	unsigned char pad_yss920[16];
+	unsigned char pad_ad_da_card[8];
+	int reboot;
+	int flash_oled;
+	//int version_list;
+}NotStorageCmdX;
+typedef struct
+{
+    MasterMixConfigMap master_mix;
+
+    InputConfigMap input_dsp[INPUT_DSP_NUM];
+    OutputConfigMap output_dsp[OUTPUT_DSP_NUM];
+    NotStorageCmdX op_code;
+
+    void operator = (ConfigMap & config_map)
+    {
+        memcpy(this, &config_map, sizeof(config_map));
+    }
+    ConfigMap ToConfigMap()
+    {
+        ConfigMap result;
+        memcpy(&config_map, this, sizeof(config_map));
+        return config_map;
+    }
+}ConfigMapX;
+//000000000000000000000
+
 void LoadPresetById(int preset_id, ConfigMap& tmp_config_map, unsigned char* flash_dump_data);
 void LoadGlobalConfig(GlobalConfig& global_config, unsigned char* flash_dump_data);
 

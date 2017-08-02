@@ -17,14 +17,21 @@ object frmSetMAC: TfrmSetMAC
   TextHeight = 21
   object Label1: TLabel
     Left = 88
-    Top = 56
+    Top = 60
     Width = 38
     Height = 21
     Caption = 'MAC'
   end
+  object Label2: TLabel
+    Left = 104
+    Top = 96
+    Width = 80
+    Height = 21
+    Caption = #37325#21551#21518#29983#25928
+  end
   object Button1: TButton
     Left = 96
-    Top = 112
+    Top = 136
     Width = 75
     Height = 25
     Caption = #30830#23450
@@ -33,7 +40,7 @@ object frmSetMAC: TfrmSetMAC
   end
   object Button2: TButton
     Left = 224
-    Top = 112
+    Top = 136
     Width = 75
     Height = 25
     Cancel = True

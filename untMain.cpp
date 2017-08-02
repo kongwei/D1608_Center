@@ -32,12 +32,16 @@ int REAL_OUTPUT_DSP_NUM = 16;
 
 extern String GetMacList();
 
+void operator <<(ConfigMap & result, ConfigMapX config_map)
+{
+    memcpy(&result, &config_map, sizeof(config_map));
+}
 // 用于复制设备的flaah数据
 struct SmcConfig
 {
     GlobalConfig global_config;
     char pad1[2048-sizeof(GlobalConfig)];
-    ConfigMap all_config_map[PRESET_NUM];
+    ConfigMapX all_config_map[PRESET_NUM];
     char pad2[80*1024-sizeof(ConfigMap)*PRESET_NUM];
     char device_flash_dump[128*1024];
 };
@@ -1177,6 +1181,15 @@ void __fastcall TForm1::FormCreate(TObject *Sender)
     cg16Va->MinValue = 1600-75;
     cg_16Va->MinValue = 1600-75;
     cg46Va->MinValue = 4800-75;
+
+    // 加载LOGO图片
+    if (FileExists("logo.bmp"))
+    {
+        imgLogo->Picture->LoadFromFile("logo.bmp");
+        // Height -- 3, 73px  -- 中线 38
+        // imgLogo->Height/2  <-- 38
+        imgLogo->Top = 38 - imgLogo->Height/2;
+    }
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::FormDestroy(TObject *Sender)
@@ -2090,7 +2103,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             
             // 显示版本信息
             edtDeviceType->Text = device_type;
-            edtStartBuildTime->Text = String("")+global_config.start_build_time+"\t"+global_config.build_time+"\t"+__DATE__ " " __TIME__;
+            edtStartBuildTime->Text = String("'")+global_config.start_build_time+"\t'"+global_config.build_time+"\t'"+__DATE__ " " __TIME__;
             //edtBuildTime->Text = global_config.build_time;
             edtDeviceName->Text = global_config.d1616_name;
             //TDateTime d = edtBuildTime->Text;
@@ -2294,7 +2307,8 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             LoadGlobalConfig(smc_config.global_config, smc_config.device_flash_dump);
             for (int i=1;i<=8;i++)
             {
-                LoadPresetById(i, smc_config.all_config_map[i-1], smc_config.device_flash_dump);
+                ConfigMap config_map = smc_config.all_config_map[i-1].ToConfigMap();
+                LoadPresetById(i, config_map, smc_config.device_flash_dump);
             }
             file->WriteBuffer(&smc_config, sizeof(smc_config));
 
@@ -3608,7 +3622,7 @@ void __fastcall TForm1::btnLoadPresetFromFileClick(TObject *Sender)
         if (!udpControl->Active)
         {
             // 脱机
-            all_config_map[select_preset_id-1] = smc_config.all_config_map[select_preset_id-1];
+            all_config_map[select_preset_id-1] = smc_config.all_config_map[select_preset_id-1].ToConfigMap();
             // TODO: 是否更新当前界面？
             if (cur_preset_id == select_preset_id)
             {
@@ -5544,7 +5558,10 @@ void __fastcall TForm1::btnLoadFileToFlashClick(TObject *Sender)
         smc_config.global_config.import_filename[0] = 'l';
         strncpy(smc_config.global_config.import_filename+1, ExtractFileName(OpenDialog1->FileName).c_str(), 8);
 
-        memcpy(all_config_map, &smc_config.all_config_map, sizeof(smc_config.all_config_map));
+        for (int i=0;i<PRESET_NUM;i++)
+        {
+            all_config_map[i] = smc_config.all_config_map[i].ToConfigMap();
+        }
         global_config = smc_config.global_config;
 
         delete file;
@@ -5552,8 +5569,8 @@ void __fastcall TForm1::btnLoadFileToFlashClick(TObject *Sender)
         if (!udpControl->Active)
         {
             // 脱机
-            global_config = smc_config.global_config;
-            memcpy(&all_config_map, &smc_config.all_config_map, sizeof(all_config_map));
+            //global_config = smc_config.global_config;
+            //memcpy(&all_config_map, &smc_config.all_config_map, sizeof(all_config_map));
 
             SetPresetId(global_config.active_preset_id);
             CloseDspDetail();
