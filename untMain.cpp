@@ -65,10 +65,10 @@ struct DeviceData
 };
 //------------------------------------------------
 // 版本兼容信息
-static UINT version = 0x0000000A;
+static UINT version = 0x01000002;
 static UINT version_list[] =
 {
-    0x0000000A,
+    0x01000002,
     0x00000000
 };
 // 返回YES或者NO
@@ -76,7 +76,7 @@ static UINT version_list[] =
 String IsCompatibility(T_slp_pack slp_pack)
 {
     UINT * active_version_list;
-    if (slp_pack.version < version)
+    if (slp_pack.version <= version)
     {
         // 以上位机为检查条件
         for (int i=0;version_list[i]!=0;i++)
@@ -100,6 +100,14 @@ String IsCompatibility(T_slp_pack slp_pack)
     }
 
     return "NO";
+}
+String VersionToStr(UINT version_value)
+{
+    unsigned char * p_version = (unsigned char *)&version_value;
+    String str_version;
+    str_version.sprintf("%d.%d.%d.%d", p_version[3], p_version[2], p_version[1], p_version[0]);
+
+    return str_version;
 }
 //------------------------------------------------
 
@@ -1525,6 +1533,10 @@ void __fastcall TForm1::btnSelectClick(TObject *Sender)
     }
 
     edtMAC->Text = selected->SubItems->Strings[6];
+
+    // 从数据中获取版本信息            
+    DeviceData * data = (DeviceData*)selected->Data;
+    lblVersion->Caption = VersionToStr(data->data.version)+ " " +VersionToStr(version);
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::tmSLPTimer(TObject *Sender)
@@ -1782,7 +1794,8 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             int hour = running_time / 3600;
             int minute = running_time % 3600;
             minute = minute / 60;
-            lblDeviceRunningTime->Caption = IntToStr(hour) + "时：" + IntToStr(minute) + "分";
+            lblDeviceRunningTime->Caption = lblDeviceRunningTime->Caption.sprintf("%d:%02d", hour, minute);
+            //lblDeviceRunningTime->Caption = IntToStr(hour) + ":" + IntToStr(minute) + "";
             if (cbRunningTimer->Checked)
             {
                 int remain_time = global_config.running_timer_limit - running_time;
@@ -1951,7 +1964,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
                         item->SubItems->Add("");
                         break;
                     case EVENT_NO_KEY:
-                        item->SubItems->Add("RSA校验失败");
+                        item->SubItems->Add("设备未授权");
                         item->SubItems->Add("");
                         break;
                     case EVENT_DSP_NOT_MATCH_ERROR:
@@ -2074,7 +2087,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
                 edtDeviceType->Color = clRed;
                 device_type = global_config.device_type+1;
             }
-
+            
             // 显示版本信息
             edtDeviceType->Text = device_type;
             edtStartBuildTime->Text = String("")+global_config.start_build_time+"\t"+global_config.build_time+"\t"+__DATE__ " " __TIME__;

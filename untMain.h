@@ -527,6 +527,8 @@ __published:	// IDE-managed Components
     TMenuItem *N1;
     TMenuItem *Copy1;
     TMenuItem *Paste1;
+    TImage *Image8;
+    TLabel *lblVersion;
     void __fastcall FormCreate(TObject *Sender);
     void __fastcall FormDestroy(TObject *Sender);
     void __fastcall btnRefreshClick(TObject *Sender);
