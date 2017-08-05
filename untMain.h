@@ -77,6 +77,23 @@ extern "C"{
     };*/
 #pragma pack()
 
+typedef struct
+{
+    int timer;
+    short event_id;
+    short event_data;
+}Event;
+typedef unsigned char MacCode[8];
+struct LogBuff
+{
+    int address;
+    union{
+        Event event[128];
+        MacCode mac[128];
+    };
+};
+
+
 //---------------------------------------------------------------------------
 class TForm1 : public TForm
 {
@@ -726,6 +743,9 @@ private:
 public:
     int sendcmd_delay_count;
     vector<TPackage> sendcmd_list;
+
+    void SendLogBuff(int udp_port, void * buff, int size);
+    bool ProcessLogBuffAck(LogBuff& buff, TStream *AData, TIdSocketHandle *ABinding);
 
     void SendCmd(D1608Cmd& cmd);
     void SendCmd2(D1608Cmd& cmd);

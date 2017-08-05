@@ -6,6 +6,7 @@
 #include "untMain.h"
 #include "untSetMAC.h"
 #include "untFlashReader.h"
+#include "untUtils.h"
 
 #include <winsock2.h>
 #include <algorithm>
@@ -943,6 +944,9 @@ __fastcall TForm1::TForm1(TComponent* Owner)
     TIniFile * ini_file = new TIniFile(ExtractFilePath(Application->ExeName) + "iap.ini");
     last_device_id = ini_file->ReadString("connection", "last_id", "");
     delete ini_file;
+
+    // 需要初始化完成后才开启SLP，否则自动连接后会立即调整界面，导致Input面板还未初始化时就做调整，这样就会出现异常。
+    tmSLP->Enabled = true;
 }
 //---------------------------------------------------------------------------
 LRESULT TForm1::new_pnlSystem_proc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
@@ -1235,6 +1239,34 @@ void TForm1::SendCmd2(D1608Cmd& cmd)
         }
     }
 }
+
+void TForm1::SendLogBuff(int udp_port, void * buff, int size)
+{
+    TPackage package;
+    package.udp_port = udp_port;
+    memcpy(package.data, buff, size);
+    package.data_size = size;
+
+    reverse(sendcmd_list.begin(), sendcmd_list.end());
+    sendcmd_list.push_back(package);
+    reverse(sendcmd_list.begin(), sendcmd_list.end());
+
+    int sendcmd_list_length = sendcmd_list.size();
+    // 保存在队列中
+    if (sendcmd_list_length == 1)
+    {
+        memo_debug->Lines->Add("发出UDP信息");
+        try
+        {
+            udpControl->SendBuffer(dst_ip, udp_port, buff, size);
+        }
+        catch(...)
+        {
+            udpControl->Active = false;
+        }
+        sendcmd_delay_count = 15;
+    }
+}
 void TForm1::SendCmd(D1608Cmd& cmd)
 {
     edtCmdId->Text = cmd.id;
@@ -1257,7 +1289,10 @@ void TForm1::SendCmd(D1608Cmd& cmd)
             iter+1!=sendcmd_list.end();
             iter++)
         {
-            D1608Cmd * package_sendcmd = (D1608Cmd*)iter->data;
+            if (iter->udp_port != UDP_PORT_CONTROL)
+                continue;
+
+            D1608Cmd * package_sendcmd = (D1608Cmd*)(iter+1)->data;
             if (package_sendcmd->id == cmd.id)
             {
                 memo_debug->Lines->Add("消息积压:"+IntToStr(cmd.id));
@@ -1883,21 +1918,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
     }
     else if (ABinding->PeerPort == UDP_PORT_READ_LOG)
     {
-        typedef struct
-        {
-            int timer;
-            short event_id;
-            short event_data;
-        }Event;
-        typedef unsigned char MacCode[8];
-        struct
-        {
-            int address;
-            union{
-                Event event[128];
-                MacCode mac[128];
-            };
-        }buff;
+        LogBuff buff;
 
         AData->ReadBuffer(&buff, sizeof(buff));
         if ((buff.address >= LOG_START_PAGE) && (buff.address < MAC_LIST_START_PAGE))
@@ -2030,12 +2051,12 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
                     item->SubItems->Add(mac_string);
                 }
             }
+            btnGetLog->Enabled = true;
         }
 
-        if (buff.address+1024 < MAC_LIST_START_PAGE+MAC_LIST_SIZE)
+        if (!ProcessLogBuffAck(buff, AData, ABinding))
         {
-            buff.address += 1024;
-            udpControl->SendBuffer(dst_ip, UDP_PORT_READ_LOG, &buff, sizeof(buff));
+            memo_debug->Lines->Add("Reply Buff");
         }
     }
     else if (ABinding->PeerPort == UDP_PORT_GET_DEBUG_INFO)
@@ -2103,7 +2124,27 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             
             // 显示版本信息
             edtDeviceType->Text = device_type;
-            edtStartBuildTime->Text = String("'")+global_config.start_build_time+"\t'"+global_config.build_time+"\t'"+__DATE__ " " __TIME__;
+
+            try
+            {
+                edtStartBuildTime->Text = "'"+GetDateTimeFromMarco(global_config.start_build_time).FormatString("yymmddhhnnss");
+            }
+            catch(...)
+            {
+                edtStartBuildTime->Text = global_config.start_build_time;
+            }
+
+            edtStartBuildTime->Text = edtStartBuildTime->Text+"\t'" + global_config.build_time + "\t'";
+            
+            try
+            {
+                edtStartBuildTime->Text = edtStartBuildTime->Text + GetDateTimeFromMarco(__DATE__ " " __TIME__).FormatString("yymmddhhnnss");
+            }
+            catch(...)
+            {
+                edtStartBuildTime->Text = edtStartBuildTime->Text + __DATE__ " " __TIME__;
+            }
+
             //edtBuildTime->Text = global_config.build_time;
             edtDeviceName->Text = global_config.d1616_name;
             //TDateTime d = edtBuildTime->Text;
@@ -2483,6 +2524,29 @@ bool TForm1::ProcessSendCmdAck(D1608Cmd& cmd, TStream *AData, TIdSocketHandle *A
     if (cmd.type != package_cmd->type)
         return false;
     if (memcmp(&cmd.data, &package_cmd->data, package_cmd->length) == 0)
+    {
+        memo_debug->Lines->Add("消息匹配");
+        sendcmd_list.pop_back();
+        if (sendcmd_list.size() > 0)
+        {
+            package = sendcmd_list.back();
+            udpControl->SendBuffer(dst_ip, package.udp_port, package.data, package.data_size);
+            sendcmd_delay_count = 15;
+        }
+    }
+    return true;
+}
+bool TForm1::ProcessLogBuffAck(LogBuff& buff, TStream *AData, TIdSocketHandle *ABinding)
+{
+    TPackage package = sendcmd_list.back();
+    if (package.udp_port != ABinding->PeerPort)
+        return false;
+    if (package.data_size != AData->Size)
+        return false;
+
+    LogBuff* package_buff = (LogBuff*)package.data;
+
+    if (buff.address == package_buff->address)
     {
         memo_debug->Lines->Add("消息匹配");
         sendcmd_list.pop_back();
@@ -4212,9 +4276,16 @@ void __fastcall TForm1::btnSetIpClick(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TForm1::btnGetLogClick(TObject *Sender)
 {
+    // 最后一包一定是MAC地址，所以实在MAC处理的时候恢复这个Enabled
+    btnGetLog->Enabled = false;
     lvLog->Clear();
-    int log_address = 0x8000000+128*1024+10*5*2*1024;
-    udpControl->SendBuffer(dst_ip, UDP_PORT_READ_LOG, &log_address, 4+1024);
+    LogBuff buff;
+    for (buff.address = 0x8000000+128*1024+10*5*2*1024;
+        buff.address < MAC_LIST_START_PAGE+MAC_LIST_SIZE;
+        buff.address += 1024)
+    {
+        SendLogBuff(UDP_PORT_READ_LOG, &buff, sizeof(buff));
+    }
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::btnGetDebugClick(TObject *Sender)
