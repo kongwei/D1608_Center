@@ -11,6 +11,7 @@
 #include <winsock2.h>
 #include <algorithm>
 #include <stddef.h>
+#include <assert.h>
 //---------------------------------------------------------------------------
 #pragma package(smart_init)
 #pragma link "CSPIN"
@@ -71,15 +72,26 @@ struct DeviceData
 //------------------------------------------------
 // 版本兼容信息
 static UINT version = 0x01000002;
-static UINT version_list[] =
+/*static UINT version_list[] =
 {
     0x01000002,
     0x00000000
-};
+};*/
 // 返回YES或者NO
 // version_list以0结尾
 String IsCompatibility(T_slp_pack slp_pack)
 {
+    UINT ctrl_app_protocol_version = version & 0xFF000000;
+    UINT app_protocol_version = slp_pack.version & 0xFF000000;
+    if (ctrl_app_protocol_version == app_protocol_version)
+    {
+        return "YES";
+    }
+    else
+    {
+        return "NO";
+    }
+#if 0
     UINT * active_version_list;
     if (slp_pack.version <= version)
     {
@@ -105,6 +117,7 @@ String IsCompatibility(T_slp_pack slp_pack)
     }
 
     return "NO";
+#endif
 }
 String VersionToStr(UINT version_value)
 {
@@ -941,7 +954,7 @@ __fastcall TForm1::TForm1(TComponent* Owner)
     keep_live_count = 0;
 
     // 读取配置
-    TIniFile * ini_file = new TIniFile(ExtractFilePath(Application->ExeName) + "iap.ini");
+    TIniFile * ini_file = new TIniFile(ExtractFilePath(Application->ExeName) + "SMC.ini");
     last_device_id = ini_file->ReadString("connection", "last_id", "");
     delete ini_file;
 
@@ -1135,21 +1148,21 @@ void __fastcall TForm1::FormCreate(TObject *Sender)
     // Label->Caption
 
     mmLog->Text = Now();
-                                     
-    if (FileExists("iap.log"))
+
+    if (FileExists("SMC.log"))
     {
         try{
-            log_file = new TFileStream("iap.log", fmOpenWrite|fmShareDenyWrite);
+            log_file = new TFileStream("SMC.log", fmOpenWrite|fmShareDenyWrite);
             log_file->Seek(0, soFromEnd);
         }
         catch(...)
         {
-            log_file = new TFileStream("iap"+Now().FormatString("yymmdd_hhnnss")+".log", fmCreate);
+            log_file = new TFileStream("SMC"+Now().FormatString("yymmdd_hhnnss")+".log", fmCreate);
         }
     }
     else
     {
-        log_file = new TFileStream("iap.log", fmCreate);
+        log_file = new TFileStream("SMC.log", fmCreate);
     }                       
 
     btnRefresh->Click();
@@ -1534,21 +1547,24 @@ void __fastcall TForm1::btnSelectClick(TObject *Sender)
 
     UpdateCaption();
 
+    // 发送上位机时间
+    double app_time = Now()-TDateTime(2000,1,1);
+    app_time = app_time * 24 * 3600 * 10;
+    D1608Cmd cmd;
+    cmd.id = GetOffsetOfData(&config_map.op_code.set_time);
+    cmd.data.data_64 = app_time;
+    cmd.length = 8;
+    udpControl->SendBuffer(dst_ip, UDP_PORT_CONTROL, &cmd, sizeof(cmd));
 
+    // 获取下位机PRESET数据，同时这个消息作为下位机认可的消息
     TPackage package;
     package.udp_port = UDP_PORT_READ_PRESET;
 
-    D1608PresetCmd preset_cmd;
-
-    /*preset_cmd.preset = 0xFF; // 读取当前config
-    preset_cmd.store_page = 0;
-    memcpy(package.data, &preset_cmd, sizeof(preset_cmd));
-    package.data_size = sizeof(preset_cmd);
-    read_one_preset_package_list.push_back(package);*/
     StartReadOnePackage(0xFF);
     restor_delay_count = 15;
     tmDelayBackup->Enabled = true;
 
+    D1608PresetCmd preset_cmd(version);
     preset_cmd.preset = 0; // 读取global_config
     preset_cmd.store_page = 0;
     memcpy(package.data, &preset_cmd, sizeof(preset_cmd));
@@ -1556,6 +1572,13 @@ void __fastcall TForm1::btnSelectClick(TObject *Sender)
     read_one_preset_package_list.push_back(package);
 
     udpControl->SendBuffer(dst_ip, package.udp_port, package.data, package.data_size);
+
+    // 发送上位机时间, 单位100ms, 从2000年1月1日开始计算
+#if 0
+    double diffx = TDate(2099,1,1)-TDate(2000,1,1);
+    diffx = diffx * 24 * 3600 * 10;
+    assert(diffx < 0x7FFFFFFFFFFFFFFF);
+#endif
 
     pnlOperator->Show();
     pnlDspDetail->Hide();
@@ -1566,7 +1589,7 @@ void __fastcall TForm1::btnSelectClick(TObject *Sender)
 
     last_device_id = selected->SubItems->Strings[2];
     // 记录在配置文件里
-    TIniFile * ini_file = new TIniFile(ExtractFilePath(Application->ExeName) + "iap.ini");
+    TIniFile * ini_file = new TIniFile(ExtractFilePath(Application->ExeName) + "SMC.ini");
     ini_file->WriteString("connection", "last_id", last_device_id);
     delete ini_file;
 
@@ -1803,7 +1826,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
                 TPackage package;
                 package.udp_port = UDP_PORT_READ_PRESET;
 
-                D1608PresetCmd preset_cmd;
+                D1608PresetCmd preset_cmd(version);
                 preset_cmd.preset = 0; // 读取global_config
                 preset_cmd.store_page = 0;
                 memcpy(package.data, &preset_cmd, sizeof(preset_cmd));
@@ -2090,7 +2113,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
     }
     else if (ABinding->PeerPort == UDP_PORT_READ_PRESET)
     {
-        D1608PresetCmd preset_cmd;
+        D1608PresetCmd preset_cmd(version);
         AData->ReadBuffer(&preset_cmd, std::min(sizeof(preset_cmd), AData->Size));
 
         // 校验一下
@@ -2261,7 +2284,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
     }
     else if (ABinding->PeerPort == UDP_PORT_STORE_PRESET_PC2FLASH)
     {
-        D1608PresetCmd preset_cmd;
+        D1608PresetCmd preset_cmd(version);
         AData->ReadBuffer(&preset_cmd, std::min(sizeof(preset_cmd), AData->Size));
 
         // 校验一下
@@ -3702,7 +3725,7 @@ void __fastcall TForm1::btnLoadPresetFromFileClick(TObject *Sender)
 
             // Download To Device
             // 写入所有的preset数据
-            D1608PresetCmd preset_cmd;
+            D1608PresetCmd preset_cmd(version);
             preset_cmd.preset = select_preset_id;
 
             for (int i=select_preset_id-1;i<=select_preset_id-1;i++)
@@ -5654,7 +5677,7 @@ void __fastcall TForm1::btnLoadFileToFlashClick(TObject *Sender)
             // 准备好所有报文
             //  global_config数据
             {
-                D1608PresetCmd preset_cmd;
+                D1608PresetCmd preset_cmd(version);
                 preset_cmd.preset = 0x80;
                 preset_cmd.store_page = 8;  // 使用8表示最后一页，TODO: 表达不是很清楚
                 memcpy(preset_cmd.data, &smc_config.global_config, sizeof(smc_config.global_config));
@@ -5671,7 +5694,7 @@ void __fastcall TForm1::btnLoadFileToFlashClick(TObject *Sender)
             {
                 if (smc_config.global_config.avaliable_preset[i] == 1)
                 {
-                    D1608PresetCmd preset_cmd;
+                    D1608PresetCmd preset_cmd(version);
                     preset_cmd.preset = 0x80+i+1;
                     for (int store_page=0;store_page<9;store_page++)
                     {
@@ -6053,4 +6076,30 @@ void __fastcall TForm1::FormResize(TObject *Sender)
     nees_resize = true;
 }
 //---------------------------------------------------------------------------
+void TForm1::StartReadOnePackage(int preset_id)
+{
+    memo_debug->Lines->Add("切换到: "+IntToStr(preset_id));
+    read_one_preset_package_list.clear();
+    for (int store_page=0;store_page<9;store_page++)
+    {
+        D1608PresetCmd preset_cmd(version);
+        preset_cmd.preset = preset_id; // 读取preset
+        // 从0页读取
+        preset_cmd.store_page = store_page;
+
+        TPackage package;
+        package.udp_port = UDP_PORT_READ_PRESET;
+        memcpy(package.data, &preset_cmd, sizeof(preset_cmd));
+        package.data_size = sizeof(preset_cmd);
+
+        read_one_preset_package_list.push_back(package);
+    }
+
+    reverse(read_one_preset_package_list.begin(), read_one_preset_package_list.end());
+
+    TPackage package = read_one_preset_package_list.back();
+    udpControl->SendBuffer(dst_ip, package.udp_port, package.data, package.data_size);
+}
+//---------------------------------------------------------------------------
+
 

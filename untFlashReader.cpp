@@ -2,7 +2,7 @@
 
 
 #pragma hdrstop
-
+#include <Classes.hpp>
 #include "untFlashReader.h"
 #include "Coefficient.h"
 #include <string.h>
