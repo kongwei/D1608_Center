@@ -1358,7 +1358,7 @@ void __fastcall TForm1::btnRefreshClick(TObject *Sender)
     for (int i=0;i<lvDevice->Items->Count;i++)
     {
         TListItem * find_item = lvDevice->Items->Item[i];
-        if (find_item->SubItems->Strings[2] == last_device_id)
+        if (find_item->SubItems->Strings[6] == last_device_id)
         {
             find_item->Selected = true;
             break;
@@ -1587,7 +1587,7 @@ void __fastcall TForm1::btnSelectClick(TObject *Sender)
 
     keep_live_count = 0;
 
-    last_device_id = selected->SubItems->Strings[2];
+    last_device_id = selected->SubItems->Strings[6];
     // 记录在配置文件里
     TIniFile * ini_file = new TIniFile(ExtractFilePath(Application->ExeName) + "SMC.ini");
     ini_file->WriteString("connection", "last_id", last_device_id);
