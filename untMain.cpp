@@ -1298,8 +1298,8 @@ void TForm1::SendCmd(D1608Cmd& cmd)
     // 需要发送的命令id是否在队列中
     if (sendcmd_list.size() > 1)
     {
-        for (vector<TPackage>::iterator iter=sendcmd_list.begin();
-            iter+1!=sendcmd_list.end();
+        for (vector<TPackage>::iterator iter=sendcmd_list.begin()+1;
+            iter!=sendcmd_list.end();
             iter++)
         {
             if (iter->udp_port != UDP_PORT_CONTROL)
@@ -2371,8 +2371,9 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             LoadGlobalConfig(smc_config.global_config, smc_config.device_flash_dump);
             for (int i=1;i<=8;i++)
             {
-                ConfigMap config_map = smc_config.all_config_map[i-1].ToConfigMap();
+                ConfigMap config_map;
                 LoadPresetById(i, config_map, smc_config.device_flash_dump);
+                smc_config.all_config_map[i-1] = config_map;
             }
             file->WriteBuffer(&smc_config, sizeof(smc_config));
 
@@ -5739,6 +5740,20 @@ void __fastcall TForm1::btnLoadFileToFlashClick(TObject *Sender)
                     }
                 }
             }
+
+            {
+                // 追加一个0x89作为结束标志
+                D1608PresetCmd preset_cmd(version);
+                preset_cmd.preset = 0x89;
+
+                TPackage package;
+                memcpy(package.data, &preset_cmd, sizeof(preset_cmd));
+                package.udp_port = UDP_PORT_STORE_PRESET_PC2FLASH;
+                package.data_size = sizeof(preset_cmd);
+
+                package_list.push_back(package);
+            }
+
 
             std::reverse(package_list.begin(), package_list.end());
 
