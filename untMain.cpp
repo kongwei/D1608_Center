@@ -1457,7 +1457,7 @@ void __fastcall TForm1::udpSLPUDPRead(TObject *Sender,
     {
         if (!udpControl->Active)
         {
-            if ((last_device_id == "") || (last_device_id == slp_pack.id) || ( Now() > startup_time+10.0/3600/24 ))
+            if ((last_device_id == "") || (last_device_id == mac) || ( Now() > startup_time+10.0/3600/24 ))
             {
                 // 连接第一个 或者 匹配ID 或者 5秒钟 或者 没有找到原先的设备
                 //file_dirty = false;
