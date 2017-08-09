@@ -1295,6 +1295,7 @@ void TForm1::SendCmd(D1608Cmd& cmd)
         return;
     }
 
+#if 0
     // 需要发送的命令id是否在队列中
     if (sendcmd_list.size() > 1)
     {
@@ -1308,29 +1309,34 @@ void TForm1::SendCmd(D1608Cmd& cmd)
             D1608Cmd * package_sendcmd = (D1608Cmd*)(iter+1)->data;
             if (package_sendcmd->id == cmd.id)
             {
-                memo_debug->Lines->Add("消息积压:"+IntToStr(cmd.id));
-                memcpy(&package_sendcmd->data, &cmd.data, cmd.length);
-                return;
+                sendcmd_list.erase(iter);
+                break;
             }
         }
     }
+#endif
 
     TPackage package;
     package.udp_port = UDP_PORT_CONTROL;
     memcpy(package.data, &cmd, sizeof(cmd));
     package.data_size = sizeof(cmd);
 
+    // 保存在队列中
     reverse(sendcmd_list.begin(), sendcmd_list.end());
     sendcmd_list.push_back(package);
     reverse(sendcmd_list.begin(), sendcmd_list.end());
 
     int sendcmd_list_length = sendcmd_list.size();
-    // 保存在队列中
+    // 如果原先队列是空，那么触发一次发送消息
     if (sendcmd_list_length == 1)
     {
-        memo_debug->Lines->Add("发出消息:"+IntToStr(cmd.id));
+        memo_debug->Lines->Add("发出消息:"+IntToStr(cmd.id)+"|"+IntToStr(cmd.data.data_32));
         SendCmd2(cmd);
         sendcmd_delay_count = 15;
+    }
+    else
+    {
+        memo_debug->Lines->Add("追加到队列"+IntToStr(cmd.id)+"|"+IntToStr(cmd.data.data_32));
     }
 }
 //---------------------------------------------------------------------------
@@ -1407,7 +1413,7 @@ void __fastcall TForm1::udpSLPUDPRead(TObject *Sender,
     for (int i=0;i<lvDevice->Items->Count;i++)
     {
         TListItem * find_item = lvDevice->Items->Item[i];
-        if (find_item->SubItems->Strings[2] == slp_pack.id)
+        if (find_item->SubItems->Strings[6] == mac)
         {
             // 更新属性
             find_item->Caption = display_device_name.UpperCase();
@@ -1436,7 +1442,7 @@ void __fastcall TForm1::udpSLPUDPRead(TObject *Sender,
         item->Caption = display_device_name.UpperCase();
         item->SubItems->Add(ip_address);
         item->SubItems->Add(ABinding->IP);
-        item->SubItems->Add(slp_pack.id);
+        item->SubItems->Add(""/*slp_pack.id*/);
         item->SubItems->Add(slp_pack.name);
         item->SubItems->Add(slp_pack.default_device_name);
         item->SubItems->Add(cpu_id);
@@ -1450,24 +1456,18 @@ void __fastcall TForm1::udpSLPUDPRead(TObject *Sender,
         item->Data = data;
     }
 
-    if (slp_pack.id[0] == '\x0')
+    if (!udpControl->Active)
     {
-    }
-    else
-    {
-        if (!udpControl->Active)
+        if ((last_device_id == "") || (last_device_id == mac) || ( Now() > startup_time+10.0/3600/24 ))
         {
-            if ((last_device_id == "") || (last_device_id == mac) || ( Now() > startup_time+10.0/3600/24 ))
-            {
-                // 连接第一个 或者 匹配ID 或者 5秒钟 或者 没有找到原先的设备
-                //file_dirty = false;
-                item->Selected = true;
-                btnSelectClick(NULL);
-                startup_time = startup_time + 100000;
-            }
+            // 连接第一个 或者 匹配ID 或者 5秒钟 或者 没有找到原先的设备
+            //file_dirty = false;
+            item->Selected = true;
+            btnSelectClick(NULL);
+            startup_time = startup_time + 100000;
         }
     }
-}                                         
+}
 //---------------------------------------------------------------------------
 void __fastcall TForm1::lvDeviceSelectItem(TObject *Sender,
       TListItem *Item, bool Selected)
@@ -1536,7 +1536,7 @@ void __fastcall TForm1::btnSelectClick(TObject *Sender)
     String broadcast_ip = selected->SubItems->Strings[1];
     device_cpuid = selected->SubItems->Strings[5];
 
-    sendcmd_list.empty();
+    sendcmd_list.clear();
     // 初始化socket
     udpControl->Active = false;
     udpControl->Bindings->Clear();
@@ -2549,16 +2549,23 @@ bool TForm1::ProcessSendCmdAck(D1608Cmd& cmd, TStream *AData, TIdSocketHandle *A
         return false;
     if (memcmp(&cmd.data, &package_cmd->data, package_cmd->length) == 0)
     {
-        memo_debug->Lines->Add("消息匹配");
+        memo_debug->Lines->Add("消息匹配:"+IntToStr(cmd.id)+"|"+IntToStr(cmd.data.data_32));
+
         sendcmd_list.pop_back();
         if (sendcmd_list.size() > 0)
         {
             package = sendcmd_list.back();
             udpControl->SendBuffer(dst_ip, package.udp_port, package.data, package.data_size);
             sendcmd_delay_count = 15;
+
+            {
+                D1608Cmd& cmd1 = *(D1608Cmd*)(sendcmd_list.end()-1)->data;
+                memo_debug->Lines->Add(IntToHex((int)&cmd1, 8)+"继续下一个消息:"+IntToStr(cmd1.id)+"|"+IntToStr(cmd1.data.data_32));
+            }
         }
+        return true;
     }
-    return true;
+    return false;
 }
 bool TForm1::ProcessLogBuffAck(LogBuff& buff, TStream *AData, TIdSocketHandle *ABinding)
 {
@@ -5940,7 +5947,8 @@ void __fastcall TForm1::tmDelaySendCmdTimer(TObject *Sender)
         udpControl->SendBuffer(dst_ip, package.udp_port, package.data, package.data_size);
 
         // 备份 恢复 流程使用的延时计时器
-        memo_debug->Lines->Add("retry sendcmd");
+        int addr = (int)&((D1608Cmd*)(sendcmd_list.end()-1))->data;
+        memo_debug->Lines->Add(IntToHex(addr, 8)+"retry sendcmd");
     }
 }
 //---------------------------------------------------------------------------
