@@ -98,10 +98,6 @@ struct LogBuff
 class TForm1 : public TForm
 {
 __published:	// IDE-managed Components
-    TMemo *mmLog;
-    TButton *btnRefresh;
-    TListBox *lbIplist;
-    TButton *btnSelect;
     TIdUDPServer *udpSLP;
     TTimer *tmSLP;
     TIdUDPServer *udpControl;
@@ -391,7 +387,6 @@ __published:	// IDE-managed Components
     TPanel *pnlMonitor;
     TPanel *pnlSystem;
     TPanel *pnlMist;
-    TPanel *pnlSearch;
     TPanel *Panel3;
     TPaintBox *PaintBox2;
     TBevel *Bevel8;
@@ -453,14 +448,11 @@ __published:	// IDE-managed Components
     TTabSheet *TabSheet1;
     TTabSheet *TabSheet2;
     TTabSheet *TabSheet3;
-    TTabSheet *TabSheet4;
     TTabSheet *TabSheet5;
     TLabel *lblDeviceRunningTime;
     TLabel *Label1;
     TLabel *Label20;
     TLabel *Label21;
-    TSpeedButton *divbase;
-    TSpeedButton *cbWatch;
     TComboBox *cbMenuKeyFunction;
     TComboBox *cbUpKeyFunction;
     TComboBox *cbDownKeyFunction;
@@ -546,6 +538,10 @@ __published:	// IDE-managed Components
     TMenuItem *Paste1;
     TImage *imgLogo;
     TLabel *lblVersion;
+    TButton *btnSelect;
+    TButton *btnRefresh;
+    TListBox *lbIplist;
+    TMemo *mmLog;
     void __fastcall FormCreate(TObject *Sender);
     void __fastcall FormDestroy(TObject *Sender);
     void __fastcall btnRefreshClick(TObject *Sender);

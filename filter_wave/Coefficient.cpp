@@ -322,11 +322,7 @@ void Coefficient::ChangFilterParameter(String type, double freq, double gain, do
     _gain = gain;
     _q = q;
 
-    float base = 0.5;
-    if (Form1->divbase->Down)
-    {
-        base = 0.125;
-    }
+    float base = 0.125;
 
     Form1->mmCoeff->Clear();
     a1 = -a1;

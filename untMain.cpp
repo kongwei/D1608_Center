@@ -1076,7 +1076,6 @@ void __fastcall TForm1::FormCreate(TObject *Sender)
     pnlOperator->Parent = this;
     pnlMonitor->Parent = this;
     pnlSystem->Parent = this;
-    pnlSearch->Parent = this;
     pnlMist->Parent = this;
     PageControl1->Hide();
 
@@ -1593,7 +1592,7 @@ void __fastcall TForm1::btnSelectClick(TObject *Sender)
     pnlOperator->Show();
     pnlDspDetail->Hide();
     pnlMix->Hide();
-    cbWatch->Down = true;
+    //cbWatch->Down = true;
 
     keep_live_count = 0;
 
@@ -2656,22 +2655,11 @@ void TForm1::MsgWatchHandle(const D1608Cmd& cmd)
 //---------------------------------------------------------------------------
 void __fastcall TForm1::tmWatchTimer(TObject *Sender)
 {
-    if (cbWatch->Down)
-    {
-        D1608Cmd cmd;
-        cmd.id = GetOffsetOfData(&config_map.op_code.WatchLevel);
-        SendCmd2(cmd);
-
-        cmd.id = GetOffsetOfData(&config_map.op_code.adc);
-        SendCmd2(cmd);
-    }
-    else
-    {
-        for (int i=0;i<32;i++)
-        {
-            UpdateWatchLevel(i, -49);
-        }
-    }
+    D1608Cmd cmd;
+    cmd.id = GetOffsetOfData(&config_map.op_code.WatchLevel);
+    SendCmd2(cmd);
+    cmd.id = GetOffsetOfData(&config_map.op_code.adc);
+    SendCmd2(cmd);
 
     // keep alive
     if ((keep_live_count < 5) && udpControl->Active)
@@ -6134,5 +6122,6 @@ void TForm1::StartReadOnePackage(int preset_id)
     udpControl->SendBuffer(dst_ip, package.udp_port, package.data, package.data_size);
 }
 //---------------------------------------------------------------------------
+
 
 
