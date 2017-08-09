@@ -475,6 +475,7 @@ static void CreateOutputPanel(int panel_id, TForm1 * form)
     Graphics::TBitmap * bmp = new Graphics::TBitmap();
     form->ImageList1->GetBitmap(panel_id-1, bmp);
     form->output_number_btn[panel_id-1] = CopyInputPanelButton(form->output_panel_number_btn, panel_id, bmp);
+    delete bmp;
 
     form->output_level_edit[panel_id-1] = CopyInputPanelEdit(form->output_panel_level_edit, panel_id);
     form->output_level_trackbar[panel_id-1] = CopyInputPanelTrackbar(form->output_panel_trackbar, panel_id);
@@ -493,11 +494,12 @@ static void CopyWatchPanel(int panel_id, TForm1 * form, String label, int left)
     TImage * bk_image = new TImage(watch_panel);
     bk_image->BoundsRect = form->imgWatch->BoundsRect;
     bk_image->Parent = watch_panel;
-    //bk_image->Picture = form->imgWatch->Picture;
-    bk_image->Picture->Bitmap = new Graphics::TBitmap();
+    Graphics::TBitmap * tmp_bmp = new Graphics::TBitmap();
+    bk_image->Picture->Bitmap = tmp_bmp;
     bk_image->Picture->Bitmap->Height = bk_image->Height;
     bk_image->Picture->Bitmap->Width = bk_image->Width;
     bk_image->Canvas->Draw(-watch_panel->Left, -watch_panel->Top, form->imgBody->Picture->Graphic);
+    delete tmp_bmp;
 
     ::AlphaBlend(bk_image->Canvas->Handle,
         0,0,bk_image->Width,bk_image->Height,
@@ -1216,6 +1218,14 @@ void __fastcall TForm1::FormDestroy(TObject *Sender)
         delete log_file;
         log_file = NULL;
     }
+    for (int i=0;i<REAL_OUTPUT_DSP_NUM;i++)
+    {
+        if (MixPicture[i] != NULL)
+            delete MixPicture[i];
+    }
+    delete panel_agent;
+    delete paint_agent;
+
 }
 //---------------------------------------------------------------------------
 void TForm1::SendCmd2(D1608Cmd& cmd)

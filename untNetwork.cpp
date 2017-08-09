@@ -45,7 +45,7 @@ String GetMacList()
     }
 
     if (pinfo!=NULL)
-        delete (pinfo);
+        free(pinfo);
 
     return result;
 }
