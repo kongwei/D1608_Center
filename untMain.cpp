@@ -49,7 +49,8 @@ void operator <<(ConfigMap & result, ConfigMapX config_map)
 struct SmcConfig
 {
     GlobalConfig global_config;
-    char pad1[2048-sizeof(GlobalConfig)];
+    UINT file_version;
+    char pad1[2048-sizeof(GlobalConfig) - sizeof(UINT)];
     ConfigMapX all_config_map[PRESET_NUM];
     char pad2[80*1024-sizeof(ConfigMap)*PRESET_NUM];
     char device_flash_dump[128*1024];
@@ -79,11 +80,7 @@ struct DeviceData
 //------------------------------------------------
 // 版本兼容信息
 static UINT version = 0x01000002;
-/*static UINT version_list[] =
-{
-    0x01000002,
-    0x00000000
-};*/
+static UINT file_version = 0x00000000;
 // 返回YES或者NO
 // version_list以0结尾
 String IsCompatibility(T_slp_pack slp_pack)
@@ -5637,6 +5634,7 @@ void __fastcall TForm1::btnSaveFlashToFileClick(TObject *Sender)
             memset(&smc_config, 0, sizeof(smc_config));
             global_config.active_preset_id = cur_preset_id;
 
+            smc_config.file_version = file_version;
             smc_config.global_config = global_config;
             smc_config.all_config_map[0] = all_config_map[0];
             smc_config.all_config_map[1] = all_config_map[1];
@@ -5674,6 +5672,7 @@ void __fastcall TForm1::btnSaveFlashToFileClick(TObject *Sender)
             SendCmd(cmd);
 
             memset(smc_config.device_flash_dump, 0, sizeof(smc_config.device_flash_dump));
+            smc_config.file_version = file_version;
 
             for (int address=PRESET_START_PAGE;address<0x8000000+256*1024;address+=1024)
             {
@@ -5729,6 +5728,14 @@ void __fastcall TForm1::btnLoadFileToFlashClick(TObject *Sender)
         }
 
         file->ReadBuffer(&smc_config, sizeof(smc_config));
+
+        // 文件版本判断
+        if (smc_config.file_version != file_version)
+        {
+            ShowMessage("文件版本不兼容");
+            return;
+        }
+
         // 替换文件名
         smc_config.global_config.import_filename[0] = 'l';
         strncpy(smc_config.global_config.import_filename+1, ExtractFileName(OpenDialog1->FileName).c_str(), 8);
