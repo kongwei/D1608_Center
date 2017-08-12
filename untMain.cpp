@@ -1875,6 +1875,8 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
     else if (ABinding->PeerPort == UDP_PORT_READ_LOG)
     {
         LogBuff buff;
+        static unsigned __int64 time_base;
+        static unsigned short time1=0, time2=0, time3=0, time4=0;
 
         AData->ReadBuffer(&buff, sizeof(buff));
         if ((buff.address >= LOG_START_PAGE) && (buff.address < MAC_LIST_START_PAGE))
@@ -1885,12 +1887,13 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
                 if (buff.event[i].timer != 0xFFFFFFFF)
                 {
                     TListItem * item = lvLog->Items->Insert(0);
+                    int event_timer = buff.event[i].timer;
 
-                    int ms = buff.event[i].timer % 10;  buff.event[i].timer /= 10;
-                    int sec = buff.event[i].timer % 60; buff.event[i].timer /= 60;
-                    int min = buff.event[i].timer % 60; buff.event[i].timer /= 60;
+                    int ms = event_timer % 10;  event_timer /= 10;
+                    int sec = event_timer % 60; event_timer /= 60;
+                    int min = event_timer % 60; event_timer /= 60;
 
-                    item->Caption = IntToStr(buff.event[i].timer)+":"
+                    item->Caption = IntToStr(event_timer)+":"
                                   + IntToStr(min)+":"
                                   + IntToStr(sec)+"."
                                   + IntToStr(ms);
@@ -1980,12 +1983,63 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
                         item->SubItems->Add("AD/DA数量与配置不符");
                         item->SubItems->Add("AD:"+IntToStr(buff.event[i].event_data/32)+"/DA:"+IntToStr(buff.event[i].event_data%32));
                         break;
+                    case EVENT_TIME_1:
+                        time1 = buff.event[i].event_data;
+                        time2 = 0;
+                        time3 = 0;
+                        time4 = 0;
+
+                        item->SubItems->Add("时间校准信息1");
+                        item->SubItems->Add("0x"+IntToHex(buff.event[i].event_data, 4));
+                        break;
+                    case EVENT_TIME_2:
+                        time2 = buff.event[i].event_data;
+
+                        item->SubItems->Add("时间校准信息2");
+                        item->SubItems->Add("0x"+IntToHex(buff.event[i].event_data, 4));
+                        break;
+                    case EVENT_TIME_3:
+                        time3 = buff.event[i].event_data;
+
+                        item->SubItems->Add("时间校准信息3");
+                        item->SubItems->Add("0x"+IntToHex(buff.event[i].event_data, 4));
+                        break;
+                    case EVENT_TIME_4:
+                        time4 = buff.event[i].event_data;
+
+                        // 显示修正后的时间
+                        time_base = time1;
+                        time_base = time_base << 16 | time2;
+                        time_base = time_base << 16 | time3;
+                        time_base = time_base << 16 | time4;
+                        // 事件中记录的是差值, 时间都是以100ms为单位
+
+                        item->SubItems->Add("时间校准信息4");
+                        item->SubItems->Add("0x"+IntToHex(buff.event[i].event_data, 4));
+                        break;
                     default:
                         item->SubItems->Add(buff.event[i].event_id);
-                        item->SubItems->Add(buff.event[i].event_data);
+                        item->SubItems->Add(IntToHex(buff.event[i].event_data, 2));
                         break;
                     }
 
+                    switch (buff.event[i].event_id)
+                    {
+                    case EVENT_TIME_1:
+                    case EVENT_TIME_2:
+                    case EVENT_TIME_3:
+                    case EVENT_TIME_4:
+                        item->SubItems->Add("");
+                        break;
+                    default:
+                        {
+                            // 从2000-1-1为基准
+                            double time_of_real = time_base + buff.event[i].timer;
+                            time_of_real = time_of_real / (24*3600*10) + TDateTime(2000, 1, 1);
+                            TDateTime datetime_of_real = time_of_real;
+                            item->SubItems->Add(datetime_of_real);
+                        }
+                    }
                 }
             }
         }
@@ -2005,6 +2059,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
                                         buff.mac[i][0], buff.mac[i][1], buff.mac[i][2],
                                         buff.mac[i][3], buff.mac[i][4], buff.mac[i][5]);
                     item->SubItems->Add(mac_string);
+                    item->SubItems->Add("");
                 }
             }
             btnGetLog->Enabled = true;
@@ -5944,6 +5999,7 @@ void __fastcall TForm1::btnSaveLogClick(TObject *Sender)
         String line = lvLog->Items->Item[i]->Caption;
         line = line + "\t" + lvLog->Items->Item[i]->SubItems->Strings[0];
         line = line + "\t" + lvLog->Items->Item[i]->SubItems->Strings[1];
+        line = line + "\t" + lvLog->Items->Item[i]->SubItems->Strings[2];
         log_strs->Add(line);
     }
     String path = ExtractFilePath(Application->ExeName);

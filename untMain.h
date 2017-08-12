@@ -81,7 +81,7 @@ typedef struct
 {
     int timer;
     short event_id;
-    short event_data;
+    unsigned short event_data;
 }Event;
 typedef unsigned char MacCode[8];
 struct LogBuff
