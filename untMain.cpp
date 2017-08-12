@@ -25,6 +25,13 @@
 
 #define PANEL_WIDTH 48
 
+const String compile_time = __DATE__ " " __TIME__;
+
+static String GetTime()
+{
+    return FormatDateTime("nn:ss.zzz", Now())+" ";
+}
+
 TForm1 *Form1;
 ConfigMap all_config_map[PRESET_NUM];
 ConfigMap config_map;
@@ -91,33 +98,6 @@ String IsCompatibility(T_slp_pack slp_pack)
     {
         return "NO";
     }
-#if 0
-    UINT * active_version_list;
-    if (slp_pack.version <= version)
-    {
-        // 以上位机为检查条件
-        for (int i=0;version_list[i]!=0;i++)
-        {
-            if (version_list[i] == slp_pack.version)
-            {
-                return "YES";
-            }
-        }
-    }
-    else
-    {
-        // 以下位机为检查条件
-        for (int i=0;slp_pack.version_list[i]!=0;i++)
-        {
-            if (slp_pack.version_list[i] == version)
-            {
-                return "YES";
-            }
-        }
-    }
-
-    return "NO";
-#endif
 }
 String VersionToStr(UINT version_value)
 {
@@ -953,7 +933,8 @@ __fastcall TForm1::TForm1(TComponent* Owner)
     on_loading = false;
 
     // 私有变量初始化
-    keep_live_count = 0;
+    keep_live_count = 5;
+    device_connected = false;
 
     // 读取配置
     TIniFile * ini_file = new TIniFile(ExtractFilePath(Application->ExeName) + "SMC.ini");
@@ -1137,11 +1118,12 @@ void __fastcall TForm1::FormCreate(TObject *Sender)
 
 
     // 输出结构体大小
-    memo_debug->Lines->Add("InputConfigMap:" + IntToStr(sizeof(InputConfigMap)));
-    memo_debug->Lines->Add("OutputConfigMap:" + IntToStr(sizeof(OutputConfigMap)));
-    memo_debug->Lines->Add("MasterMixConfigMap:" + IntToStr(sizeof(MasterMixConfigMap)));
-    memo_debug->Lines->Add("ConfigMap:" + IntToStr(sizeof(ConfigMap)));
-    memo_debug->Lines->Add("mix_mute:" + IntToStr(sizeof(config_map.master_mix.mix_mute)));
+    memo_debug->Lines->Add(GetTime()+"InputConfigMap:" + IntToStr(sizeof(InputConfigMap)));
+    memo_debug->Lines->Add(GetTime()+"OutputConfigMap:" + IntToStr(sizeof(OutputConfigMap)));
+    memo_debug->Lines->Add(GetTime()+"MasterMixConfigMap:" + IntToStr(sizeof(MasterMixConfigMap)));
+    memo_debug->Lines->Add(GetTime()+"ConfigMap:" + IntToStr(sizeof(ConfigMap)));
+    memo_debug->Lines->Add(GetTime()+"mix_mute:" + IntToStr(sizeof(config_map.master_mix.mix_mute)));
+    memo_debug->Lines->Add(GetTime()+"NotStorageCmd:" + IntToStr(sizeof(NotStorageCmd)));
 
     // 根据数量初始化控制器
     // Panel->Tag
@@ -1208,6 +1190,10 @@ void __fastcall TForm1::FormCreate(TObject *Sender)
         // imgLogo->Height/2  <-- 38
         imgLogo->Top = 38 - imgLogo->Height/2;
     }
+
+    // 上位机时间
+    edtStartBuildTime->Text = " \t \t";
+    edtStartBuildTime->Text = edtStartBuildTime->Text + GetDateTimeFromMarco(compile_time).FormatString("yymmddhhnnss");
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::FormDestroy(TObject *Sender)
@@ -1238,21 +1224,25 @@ void TForm1::SendCmd2(D1608Cmd& cmd)
     }
     edtDebug->Text = cmd_text;
 
-    if (on_loading || !udpControl->Active)
+    if (on_loading || !udpControl->Active || keep_live_count >= 5)
     {
+        return;
     }
-    else
+    if (!device_connected && cmd.id != GetOffsetOfData(&config_map.op_code))
     {
-        try
-        {
-            udpControl->SendBuffer(dst_ip, UDP_PORT_CONTROL, &cmd, sizeof(cmd));
-        }
-        catch(...)
-        {
-            udpControl->Active = false;
-        }
+        return;
     }
 
+    try
+    {
+        udpControl->SendBuffer(dst_ip, UDP_PORT_CONTROL, &cmd, sizeof(cmd));
+    }
+    catch(...)
+    {
+        udpControl->Active = false;
+    }
+// TODO: 上面修改了 return 之后，这一段失效了
+#if 0
     if (!on_loading)
     {
         if (cmd.id < GetOffsetOfData(&config_map.op_code))
@@ -1260,6 +1250,7 @@ void TForm1::SendCmd2(D1608Cmd& cmd)
             SetFileDirty(true);
         }
     }
+#endif
 }
 
 void TForm1::SendLogBuff(int udp_port, void * buff, int size)
@@ -1277,7 +1268,7 @@ void TForm1::SendLogBuff(int udp_port, void * buff, int size)
     // 保存在队列中
     if (sendcmd_list_length == 1)
     {
-        memo_debug->Lines->Add("发出UDP信息");
+        memo_debug->Lines->Add(GetTime()+"发出UDP信息");
         try
         {
             udpControl->SendBuffer(dst_ip, udp_port, buff, size);
@@ -1299,17 +1290,21 @@ void TForm1::SendCmd(D1608Cmd& cmd)
         return;
     }
 
-    if (on_loading)
+    if (on_loading || !udpControl->Active || keep_live_count >= 5)
+    {
+        return;
+    }
+    if (!device_connected && cmd.id != GetOffsetOfData(&config_map.op_code))
     {
         return;
     }
 
-#if 0
+#if 1
     // 需要发送的命令id是否在队列中
     if (sendcmd_list.size() > 1)
     {
-        for (vector<TPackage>::iterator iter=sendcmd_list.begin()+1;
-            iter!=sendcmd_list.end();
+        for (vector<TPackage>::iterator iter=sendcmd_list.begin();
+            iter+1!=sendcmd_list.end();
             iter++)
         {
             if (iter->udp_port != UDP_PORT_CONTROL)
@@ -1331,21 +1326,25 @@ void TForm1::SendCmd(D1608Cmd& cmd)
     package.data_size = sizeof(cmd);
 
     // 保存在队列中
-    reverse(sendcmd_list.begin(), sendcmd_list.end());
-    sendcmd_list.push_back(package);
-    reverse(sendcmd_list.begin(), sendcmd_list.end());
+    sendcmd_list.insert(sendcmd_list.begin(), package);
 
     int sendcmd_list_length = sendcmd_list.size();
     // 如果原先队列是空，那么触发一次发送消息
     if (sendcmd_list_length == 1)
     {
-        memo_debug->Lines->Add("发出消息:"+IntToStr(cmd.id)+"|"+IntToStr(cmd.data.data_32));
+        TPackage package = sendcmd_list.back();
+        D1608Cmd * p_cmd = (D1608Cmd*)package.data;
+
+        memo_debug->Lines->Add(GetTime()+"发出消息:"+IntToStr(cmd.id)+"|"+IntToStr(cmd.data.data_32)+"    "+IntToStr(p_cmd->id)+"|"+IntToStr(p_cmd->data.data_32));
         SendCmd2(cmd);
         sendcmd_delay_count = 15;
     }
     else
     {
-        memo_debug->Lines->Add("追加到队列"+IntToStr(cmd.id)+"|"+IntToStr(cmd.data.data_32));
+        TPackage package = sendcmd_list.back();
+        D1608Cmd * p_cmd = (D1608Cmd*)package.data;
+
+        memo_debug->Lines->Add(GetTime()+"追加到队列"+IntToStr(cmd.id)+"|"+IntToStr(cmd.data.data_32)+"    "+IntToStr(p_cmd->id)+"|"+IntToStr(p_cmd->data.data_32));
     }
 }
 //---------------------------------------------------------------------------
@@ -1386,7 +1385,7 @@ void __fastcall TForm1::btnRefreshClick(TObject *Sender)
             lblDeviceName->Caption = lvDevice->Selected->SubItems->Strings[3];
         else
         {
-            lblDeviceName->Caption = lvDevice->Selected->SubItems->Strings[4]+"-"+lvDevice->Selected->SubItems->Strings[2];
+            lblDeviceName->Caption = lvDevice->Selected->SubItems->Strings[4]+"-"+lvDevice->Selected->SubItems->Strings[6];
             if (lblDeviceName->Caption.Length() > 16)
                 lblDeviceName->Caption = lvDevice->Selected->SubItems->Strings[4];
         }
@@ -1605,9 +1604,9 @@ void __fastcall TForm1::btnSelectClick(TObject *Sender)
     // 显示名称
     if (selected->SubItems->Strings[3] != "")
         lblDeviceName->Caption = selected->SubItems->Strings[3];
-    else
+    else             
     {
-        lblDeviceName->Caption = lvDevice->Selected->SubItems->Strings[4]+"-"+lvDevice->Selected->SubItems->Strings[2];
+        lblDeviceName->Caption = lvDevice->Selected->SubItems->Strings[4]+"-"+lvDevice->Selected->SubItems->Strings[6];
         if (lblDeviceName->Caption.Length() > 16)
             lblDeviceName->Caption = lvDevice->Selected->SubItems->Strings[4];
     }
@@ -1617,6 +1616,7 @@ void __fastcall TForm1::btnSelectClick(TObject *Sender)
     // 从数据中获取版本信息            
     DeviceData * data = (DeviceData*)selected->Data;
     lblVersion->Caption = VersionToStr(data->data.version)+ " " +VersionToStr(version);
+    lblDeviceInfo->Caption = "VERSION " + VersionToStr(data->data.version);
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::tmSLPTimer(TObject *Sender)
@@ -1820,7 +1820,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
         D1608Cmd cmd;
         AData->ReadBuffer(&cmd, std::min(sizeof(cmd), AData->Size));
 
-        //memo_debug->Lines->Add("Reply：" + CmdLog(cmd));
+        //memo_debug->Lines->Add(GetTime()+"Reply：" + CmdLog(cmd));
 
         // id == 1 表示全局配置
         if (cmd.type == CMD_TYPE_GLOBAL)
@@ -1849,81 +1849,9 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
         }
         else if (cmd.id == GetOffsetOfData(&config_map.op_code.noop))
         {
-            int preset_id = cmd.data.data_32_array[0];
-            if (preset_id<1 || preset_id>8)
-            {
-                // 收到的数据包异常
-                return;
-            }
-
-            if (preset_id != cur_preset_id)
-            {
-                SetPresetId(preset_id);
-                StartReadOnePackage(0xFF);
-                restor_delay_count = 15;
-                tmDelayBackup->Enabled = true;
-            }
-
-            if (cmd.data.data_64_array[2] != 0)
-            {
-                //ShowLockConfigArea();
-            }
-
-            // 显示时钟
-            long running_time = (cmd.data.data_64_array[1] - global_config.adjust_running_time) / 1000;    // 单位：秒
-            int hour = running_time / 3600;
-            int minute = running_time % 3600;
-            minute = minute / 60;
-            lblDeviceRunningTime->Caption = lblDeviceRunningTime->Caption.sprintf("%d:%02d", hour, minute);
-            //lblDeviceRunningTime->Caption = IntToStr(hour) + ":" + IntToStr(minute) + "";
-            if (cbRunningTimer->Checked)
-            {
-                int remain_time = global_config.running_timer_limit - running_time;
-                if (remain_time > 0)
-                {
-                    edtRemainTime->Text = FormatFloat("0.00", remain_time/3600.0);
-                }
-                else
-                {
-                    edtRemainTime->Text = "0";
-                }
-            }
-            else
-            {
-                edtRemainTime->Text = "--";
-            }
-
-            if (cbRebootCount->Checked)
-            {
-                int remain_count = global_config.reboot_count_limit - (global_config.reboot_count - global_config.adjust_reboot_count);
-                if (remain_count > 0)
-                {
-                    edtRemainRebootCount->Text = remain_count;
-                }
-                else
-                {
-                    edtRemainRebootCount->Text = "0";
-                }
-            }
-            else
-            {
-                edtRemainRebootCount->Text = "--";
-            }
-            edtLockedString1->Text = global_config.locked_string;
-
-            keep_live_count = 0;
-            //tsOperator->Caption = "操作(连接)";
-            shape_live->Show();
-            shape_link->Show();
-            shape_power->Show();
-            lblDeviceName->Show();
-            lblDeviceInfo->Show();
-        }
-        // id == 0 表示preset配置
-        else if (cmd.id == GetOffsetOfData(&config_map.op_code.WatchLevel))
-        {
-            // 音量输出
-            MsgWatchHandle(cmd);
+            ProcessWatchLevel(cmd.data.keep_alive.watch_level);
+            ProcessVote(cmd.data.keep_alive.adc);
+            ProcessKeepAlive(cmd.data.keep_alive.switch_preset, cmd.data.keep_alive.set_time);
         }
         else if (cmd.id == GetOffsetOfData(&config_map.op_code.switch_preset))
         {
@@ -1932,16 +1860,12 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             restor_delay_count = 15;
             tmDelayBackup->Enabled = true;
         }
-        else if (cmd.id == GetOffsetOfData(&config_map.op_code.adc))
-        {
-            ProcessVote(cmd);
-        }
         else
         {
             // 如果是当前调节的数据，需要忽略
             if (!ProcessSendCmdAck(cmd, AData, ABinding))//(last_cmd.id != cmd.id /*|| !paint_agent->IsMouseDown()*/)
             {
-                memo_debug->Lines->Add("Reply：" + CmdLog(cmd));
+                memo_debug->Lines->Add(GetTime()+"Reply：" + CmdLog(cmd));
 
                 memcpy(((char*)(&config_map))+cmd.id, (char*)&cmd.data, cmd.length);
                 OnFeedbackData(cmd.id, cmd.length);
@@ -2088,7 +2012,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
 
         if (!ProcessLogBuffAck(buff, AData, ABinding))
         {
-            memo_debug->Lines->Add("Reply Buff");
+            memo_debug->Lines->Add(GetTime()+"Reply Buff");
         }
     }
     else if (ABinding->PeerPort == UDP_PORT_GET_DEBUG_INFO)
@@ -2165,17 +2089,8 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             {
                 edtStartBuildTime->Text = global_config.start_build_time;
             }
-
             edtStartBuildTime->Text = edtStartBuildTime->Text+"\t'" + global_config.build_time + "\t'";
-            
-            try
-            {
-                edtStartBuildTime->Text = edtStartBuildTime->Text + GetDateTimeFromMarco(__DATE__ " " __TIME__).FormatString("yymmddhhnnss");
-            }
-            catch(...)
-            {
-                edtStartBuildTime->Text = edtStartBuildTime->Text + __DATE__ " " __TIME__;
-            }
+            edtStartBuildTime->Text = edtStartBuildTime->Text + GetDateTimeFromMarco(compile_time).FormatString("yymmddhhnnss");
 
             //edtBuildTime->Text = global_config.build_time;
             edtDeviceName->Text = global_config.d1616_name;
@@ -2279,7 +2194,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             tmDelayUpdateUI->Enabled = false;
             ApplyConfigToUI();
             CloseDspDetail();
-            memo_debug->Lines->Add("同步完成");
+            memo_debug->Lines->Add(GetTime()+"同步完成");
         }
         else
         {
@@ -2426,22 +2341,22 @@ void TForm1::CalcAllVote(ADC_Data & adc_data)
     adc_data._x16va = CalcVot2(adc_data._16va , adc_data._x16va , vote_param._x16va_down,   vote_param._x16va_up,  vote_param._16va_up,  vote_param._16va_down);
     adc_data._x12va = CalcVot2(adc_data._12va , adc_data._x12va , vote_param._x12va_down,   vote_param._x12va_up,  vote_param._12va_up,  vote_param._12va_down);
 }
-void TForm1::ProcessVote(D1608Cmd & cmd)
+void TForm1::ProcessVote(short adc[ADC_NUM])
 {
     __int16 data[16];
 
     // 计算检测到的电压 3.3v ~ 4096
     for (int i=0; i<ADC_NUM; i++)
     {
-        data[i] = cmd.data.data_16_array[i] * 2500 / cmd.data.data_16_array[1];
+        data[i] = adc[i] * 2500 / adc[1];
     }
 
     for (int i=0; i<ADC_NUM; i++)
     {
-        ValueListEditor1->Cells[1][i+1] = cmd.data.data_16_array[i];
+        ValueListEditor1->Cells[1][i+1] = adc[i];
     }
 
-    int org_base = cmd.data.data_16_array[1];
+    int org_base = adc[1];
     ADC_Data * true_data = (ADC_Data *)data;
 
     ADC_Data calc_data;
@@ -2551,14 +2466,14 @@ bool TForm1::ProcessSendCmdAck(D1608Cmd& cmd, TStream *AData, TIdSocketHandle *A
         return false;
     if (cmd.length != package_cmd->length)
     {
-        memo_debug->Lines->Add("消息长度不匹配");
+        memo_debug->Lines->Add(GetTime()+"消息长度不匹配");
         //return;
     }
     if (cmd.type != package_cmd->type)
         return false;
     if (memcmp(&cmd.data, &package_cmd->data, package_cmd->length) == 0)
     {
-        memo_debug->Lines->Add("消息匹配:"+IntToStr(cmd.id)+"|"+IntToStr(cmd.data.data_32));
+        memo_debug->Lines->Add(GetTime()+"消息匹配:"+IntToStr(cmd.id)+"|"+IntToStr(cmd.data.data_32));
 
         sendcmd_list.pop_back();
         if (sendcmd_list.size() > 0)
@@ -2568,13 +2483,79 @@ bool TForm1::ProcessSendCmdAck(D1608Cmd& cmd, TStream *AData, TIdSocketHandle *A
             sendcmd_delay_count = 15;
 
             {
-                D1608Cmd& cmd1 = *(D1608Cmd*)(sendcmd_list.end()-1)->data;
-                memo_debug->Lines->Add(IntToHex((int)&cmd1, 8)+"继续下一个消息:"+IntToStr(cmd1.id)+"|"+IntToStr(cmd1.data.data_32));
+                D1608Cmd& cmd1 = *(D1608Cmd*)package.data;
+                memo_debug->Lines->Add(GetTime()+IntToHex((int)&cmd1, 8)+"继续下一个消息:"+IntToStr(cmd1.id)+"|"+IntToStr(cmd1.data.data_32));
             }
         }
         return true;
     }
     return false;
+}
+void TForm1::ProcessKeepAlive(int preset_id, long timer)
+{
+    if (preset_id<1 || preset_id>8)
+    {
+        // 收到的数据包异常
+        return;
+    }
+
+    if (preset_id != cur_preset_id)
+    {
+        SetPresetId(preset_id);
+        StartReadOnePackage(0xFF);
+        restor_delay_count = 15;
+        tmDelayBackup->Enabled = true;
+    }
+
+    // 显示时钟
+    long running_time = (timer - global_config.adjust_running_time) / 1000;    // 单位：秒
+    int hour = running_time / 3600;
+    int minute = running_time % 3600;
+    minute = minute / 60;
+    lblDeviceRunningTime->Caption = lblDeviceRunningTime->Caption.sprintf("%d:%02d", hour, minute);
+    //lblDeviceRunningTime->Caption = IntToStr(hour) + ":" + IntToStr(minute) + "";
+    if (cbRunningTimer->Checked)
+    {
+        int remain_time = global_config.running_timer_limit - running_time;
+        if (remain_time > 0)
+        {
+            edtRemainTime->Text = FormatFloat("0.00", remain_time/3600.0);
+        }
+        else
+        {
+            edtRemainTime->Text = "0";
+        }
+    }
+    else
+    {
+        edtRemainTime->Text = "--";
+    }
+
+    if (cbRebootCount->Checked)
+    {
+        int remain_count = global_config.reboot_count_limit - (global_config.reboot_count - global_config.adjust_reboot_count);
+        if (remain_count > 0)
+        {
+            edtRemainRebootCount->Text = remain_count;
+        }
+        else
+        {
+            edtRemainRebootCount->Text = "0";
+        }
+    }
+    else
+    {
+        edtRemainRebootCount->Text = "--";
+    }
+    edtLockedString1->Text = global_config.locked_string;
+
+    keep_live_count = 0;
+    shape_live->Show();
+    shape_link->Show();
+    shape_power->Show();
+    lblDeviceName->Show();
+    lblDeviceInfo->Show();
+    device_connected = true;
 }
 bool TForm1::ProcessLogBuffAck(LogBuff& buff, TStream *AData, TIdSocketHandle *ABinding)
 {
@@ -2588,7 +2569,7 @@ bool TForm1::ProcessLogBuffAck(LogBuff& buff, TStream *AData, TIdSocketHandle *A
 
     if (buff.address == package_buff->address)
     {
-        memo_debug->Lines->Add("消息匹配");
+        memo_debug->Lines->Add(GetTime()+"消息匹配");
         sendcmd_list.pop_back();
         if (sendcmd_list.size() > 0)
         {
@@ -2600,11 +2581,11 @@ bool TForm1::ProcessLogBuffAck(LogBuff& buff, TStream *AData, TIdSocketHandle *A
     return true;
 }
 //---------------------------------------------------------------------------
-void TForm1::MsgWatchHandle(const D1608Cmd& cmd)
+void TForm1::ProcessWatchLevel(int watch_level[INPUT_DSP_NUM + OUTPUT_DSP_NUM])
 {
-    for (int i=0;i<32;i++)
+    for (int i=0;i<INPUT_DSP_NUM+OUTPUT_DSP_NUM;i++)
     {
-        int value = cmd.data.data_32_array[i];
+        int value = watch_level[i];
         if (value <= 0)
         {
             UpdateWatchLevel(i, -71);
@@ -2621,7 +2602,11 @@ void TForm1::MsgWatchHandle(const D1608Cmd& cmd)
                 }
                 else
                 {
-                    int comp_level = cmd.data.data_32_array[i+16];
+                    UpdateWatchLevel(i,
+                        (valuex - base) * 20 + 1 + 24,
+                        -100);
+#if 0
+                    int comp_level = watch_level[i+16];
                     if (comp_level == -100)
                     {
                         UpdateWatchLevel(i,
@@ -2641,7 +2626,7 @@ void TForm1::MsgWatchHandle(const D1608Cmd& cmd)
                             (valuex - base) * 20 + 1 + 24,
                             (comp_valuex - base) * 20 + 1 + 24);
                     }
-
+#endif
                 }
 
             }
@@ -2655,27 +2640,21 @@ void TForm1::MsgWatchHandle(const D1608Cmd& cmd)
 //---------------------------------------------------------------------------
 void __fastcall TForm1::tmWatchTimer(TObject *Sender)
 {
-    D1608Cmd cmd;
+    /*D1608Cmd cmd;
     cmd.id = GetOffsetOfData(&config_map.op_code.WatchLevel);
     SendCmd2(cmd);
     cmd.id = GetOffsetOfData(&config_map.op_code.adc);
-    SendCmd2(cmd);
+    SendCmd2(cmd);*/
 
     // keep alive
     if ((keep_live_count < 5) && udpControl->Active)
     {
         keep_live_count++;
-
-        D1608Cmd cmd;
-        cmd.type = CMD_TYPE_PRESET;
-        cmd.id = GetOffsetOfData(&config_map.op_code.noop);
-        SendCmd2(cmd);
     }
     else
     {
         udpControl->Active = false;
         sendcmd_list.empty();
-        //tsOperator->Caption = "操作(断开)";
         shape_live->Hide();
         shape_link->Hide();
         shape_power->Hide();
@@ -2686,7 +2665,13 @@ void __fastcall TForm1::tmWatchTimer(TObject *Sender)
         {
             UpdateWatchLevel(i, -49);
         }
+        device_connected = false;
     }
+
+    D1608Cmd cmd;
+    cmd.type = CMD_TYPE_PRESET;
+    cmd.id = GetOffsetOfData(&config_map.op_code);
+    SendCmd2(cmd);
 
     // 检测resize事件
     if (nees_resize)
@@ -5811,7 +5796,7 @@ void __fastcall TForm1::tmDelayBackupTimer(TObject *Sender)
             udpControl->SendBuffer(dst_ip, package.udp_port, package.data, package.data_size);
 
             // 备份 恢复 流程使用的延时计时器
-            memo_debug->Lines->Add("retry syn");
+            memo_debug->Lines->Add(GetTime()+"retry syn");
         }
         else if (read_one_preset_package_list.size() != 0)
         {
@@ -5819,11 +5804,11 @@ void __fastcall TForm1::tmDelayBackupTimer(TObject *Sender)
             udpControl->SendBuffer(dst_ip, package.udp_port, package.data, package.data_size);
 
             // 备份 恢复 流程使用的延时计时器
-            memo_debug->Lines->Add("retry syn");
+            memo_debug->Lines->Add(GetTime()+"retry syn");
         }
         else
         {
-            memo_debug->Lines->Add("列表空");
+            memo_debug->Lines->Add(GetTime()+"列表空");
             tmDelayBackup->Enabled = false;
         }
     }
@@ -5946,7 +5931,7 @@ void __fastcall TForm1::tmDelaySendCmdTimer(TObject *Sender)
 
         // 备份 恢复 流程使用的延时计时器
         int addr = (int)&((D1608Cmd*)(sendcmd_list.end()-1))->data;
-        memo_debug->Lines->Add(IntToHex(addr, 8)+"retry sendcmd");
+        memo_debug->Lines->Add(GetTime()+IntToHex(addr, 8)+"retry sendcmd");
     }
 }
 //---------------------------------------------------------------------------
@@ -6099,7 +6084,7 @@ void __fastcall TForm1::FormResize(TObject *Sender)
 //---------------------------------------------------------------------------
 void TForm1::StartReadOnePackage(int preset_id)
 {
-    memo_debug->Lines->Add("切换到: "+IntToStr(preset_id));
+    memo_debug->Lines->Add(GetTime()+"切换到: "+IntToStr(preset_id));
     read_one_preset_package_list.clear();
     for (int store_page=0;store_page<9;store_page++)
     {

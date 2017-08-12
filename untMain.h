@@ -723,8 +723,6 @@ private:
 
     int mix_panel_state;
 
-    void MsgWatchHandle(const D1608Cmd& cmd);
-
     int low_freq;
     int low_gain;
     int high_freq;
@@ -805,7 +803,9 @@ public:		// User declarations
 private:
     VoteParam default_vote_param;
     void CalcAllVote(ADC_Data & adc_data);
-    void ProcessVote(D1608Cmd & cmd);
+    void ProcessKeepAlive(int preset_id, long timer);
+    void ProcessVote(short adc[ADC_NUM]);
+    void ProcessWatchLevel(int watch_level[INPUT_DSP_NUM + OUTPUT_DSP_NUM]);
 private:
     void UpdateWatchLevel(int i, int value, int comp_value=-100)
     {
@@ -826,7 +826,9 @@ private:
     long running_timer;
     int roboot_count;
 
+    // 0-3 正常； 4 初始化； >=5 失联
     int keep_live_count;
+    bool device_connected;
 
     void ShowInputPanel(TControl * Sender, TNotifyEvent event, String default_text);
     TControl * inputObject;
