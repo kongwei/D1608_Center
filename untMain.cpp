@@ -2942,8 +2942,11 @@ void __fastcall TForm1::ToggleDSP(TObject *Sender)
 
             int dsp_num = btn->Tag;
             dsp_gain_trackbar->Position = config_map.input_dsp[dsp_num-1].level_b;
-            btnPhanton->Down = config_map.input_dsp[dsp_num-1].phantom_switch;
-            btnPhanton->Show();
+            if (GetVersionConfig(global_config.device_type).is_48v)
+            {
+                btnPhanton->Down = config_map.input_dsp[dsp_num-1].phantom_switch;
+                btnPhanton->Show();
+            }
 
             // µ÷ÕûPaintBox1µÄ³ß´ç
             PaintBox1->Left = 8;
