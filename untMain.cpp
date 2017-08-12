@@ -1929,8 +1929,42 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
                         item->SubItems->Add("地址:0x"+IntToHex(buff.event[i].event_data * 2048, 8));
                         break;
                     case EVENT_REBOOT:
-                        item->SubItems->Add("上位机发起重启");
-                        item->SubItems->Add(buff.event[i].event_data);
+                        if (buff.event[i].event_data < 0x10)
+                        {
+                            item->SubItems->Add("上位机发起重启");
+                            if (buff.event[i].event_data == 0)
+                            {
+                                item->SubItems->Add("重启");
+                            }
+                            else if (buff.event[i].event_data == 1)
+                            {
+                                item->SubItems->Add("清除PRESER");
+                            }
+                            else if (buff.event[i].event_data == 2)
+                            {
+                                item->SubItems->Add("恢复出厂设置");
+                            }
+                            else
+                            {
+                                item->SubItems->Add(buff.event[i].event_data);
+                            }
+                        }
+                        else
+                        {
+                            item->SubItems->Add("上电时清除");
+                            if (buff.event[i].event_data == 0x011)
+                            {
+                                item->SubItems->Add("清除PRESER");
+                            }
+                            else if (buff.event[i].event_data == 0x12)
+                            {
+                                item->SubItems->Add("恢复出厂设置");
+                            }
+                            else
+                            {
+                                item->SubItems->Add(buff.event[i].event_data);
+                            }
+                        }
                         break;
                     case EVENT_SAVE_PRESET_OK:
                         item->SubItems->Add("存盘完成");
