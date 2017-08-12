@@ -2023,22 +2023,19 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
                         break;
                     }
 
-                    switch (buff.event[i].event_id)
+                    if (time_base != 0)
                     {
-                    case EVENT_TIME_1:
-                    case EVENT_TIME_2:
-                    case EVENT_TIME_3:
-                    case EVENT_TIME_4:
-                        item->SubItems->Add("");
-                        break;
-                    default:
-                        {
-                            // 从2000-1-1为基准
-                            double time_of_real = time_base + buff.event[i].timer;
-                            time_of_real = time_of_real / (24*3600*10) + TDateTime(2000, 1, 1);
-                            TDateTime datetime_of_real = time_of_real;
-                            item->SubItems->Add(datetime_of_real);
-                        }
+                        // 从2000-1-1为基准
+                        double time_of_real = time_base + buff.event[i].timer;
+                        time_of_real = time_of_real / (24*3600*10) + TDateTime(2000, 1, 1);
+                        TDateTime datetime_of_real = time_of_real;
+                        item->SubItems->Add(datetime_of_real);
+                    }
+
+                    // 关机后清除校准值。这样后续记录不在显示时间
+                    if (buff.event[i].event_id == EVENT_POWER_SAVE_OK)
+                    {
+                        time_base = 0;
                     }
                 }
             }
