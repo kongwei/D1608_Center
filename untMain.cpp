@@ -1451,7 +1451,7 @@ void __fastcall TForm1::udpSLPUDPRead(TObject *Sender,
             find_item->SubItems->Strings[8] = IsCompatibility(slp_pack);
 
             DeviceData * data = (DeviceData*)find_item->Data;
-            data->count = 2;
+            data->count = 4;
             data->data = slp_pack;
 
             item = find_item;
@@ -1474,7 +1474,7 @@ void __fastcall TForm1::udpSLPUDPRead(TObject *Sender,
         item->SubItems->Add(IsCompatibility(slp_pack));
 
         DeviceData * data = new DeviceData;
-        data->count = 2;
+        data->count = 4;
         data->data = slp_pack;
         item->Data = data;
     }
