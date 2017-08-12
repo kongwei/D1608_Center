@@ -714,8 +714,8 @@ private:
 
     String last_select_device_ip;
 
-    TFileStream * log_file;
-    void AppendLog(String);
+    //TFileStream * log_file;
+    //void AppendLog(String);
 private:
     TSpeedButton * last_default_btn;
     TSpeedButton * last_out_num_btn;

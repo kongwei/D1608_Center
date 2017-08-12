@@ -1131,7 +1131,7 @@ void __fastcall TForm1::FormCreate(TObject *Sender)
     // Label->Caption
 
     mmLog->Text = Now();
-
+#if 0
     if (FileExists("SMC.log"))
     {
         try{
@@ -1147,7 +1147,7 @@ void __fastcall TForm1::FormCreate(TObject *Sender)
     {
         log_file = new TFileStream("SMC.log", fmCreate);
     }                       
-
+#endif
     btnRefresh->Click();
 
     //tsSearch->Show();
@@ -1198,11 +1198,13 @@ void __fastcall TForm1::FormCreate(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TForm1::FormDestroy(TObject *Sender)
 {
+#if 0
     if (log_file)
     {
         delete log_file;
         log_file = NULL;
     }
+#endif
     for (int i=0;i<REAL_OUTPUT_DSP_NUM;i++)
     {
         if (MixPicture[i] != NULL)
@@ -1488,6 +1490,7 @@ void __fastcall TForm1::lvDeviceSelectItem(TObject *Sender,
     //AppendLog("—°‘Ò£∫"+IntToStr(Item->Index+1)+" "+Item->SubItems->Strings[0]);
 }
 //---------------------------------------------------------------------------
+#if 0
 void TForm1::AppendLog(String log)
 {
     mmLog->Lines->Add(log);
@@ -1497,6 +1500,7 @@ void TForm1::AppendLog(String log)
         log_file->WriteBuffer("\x0d\x0a", 2);
     }
 }
+#endif
 //---------------------------------------------------------------------------
 void __fastcall TForm1::btnSelectClick(TObject *Sender)
 {
@@ -1652,7 +1656,7 @@ void __fastcall TForm1::tmSLPTimer(TObject *Sender)
         }
         catch(...)
         {
-            AppendLog("Õ¯¬Á“Ï≥£");
+            //AppendLog("Õ¯¬Á“Ï≥£");
         }
     }
     else
@@ -2234,7 +2238,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
         }
         else
         {
-            AppendLog(IntToHex(preset_cmd.preset, 2) + "/" + IntToStr(preset_cmd.store_page));
+            //AppendLog(IntToHex(preset_cmd.preset, 2) + "/" + IntToStr(preset_cmd.store_page));
 
             ConfigMap * dest_config_map = &all_config_map[preset_id-1];
 
