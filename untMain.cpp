@@ -1526,8 +1526,9 @@ void __fastcall TForm1::btnSelectClick(TObject *Sender)
     // 是否版本兼容
     if (selected->SubItems->Strings[8] != "YES")
     {
+        // TODO: 需要显示下位机和上位机的版本号
         if (Sender != NULL)
-            ShowMessage("版本不兼容，请更新上位机软件");
+            ShowMessage("版本不兼容，请更新软件");
         return;
     }
 
@@ -2186,14 +2187,14 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
 
             try
             {
-                edtStartBuildTime->Text = "'"+GetDateTimeFromMarco(global_config.start_build_time).FormatString("yymmddhhnnss");
+                edtStartBuildTime->Text = DateTime2Str(GetDateTimeFromMarco(global_config.start_build_time))+"'";
             }
             catch(...)
             {
                 edtStartBuildTime->Text = global_config.start_build_time;
             }
-            edtStartBuildTime->Text = edtStartBuildTime->Text+"\t'" + global_config.build_time + "\t'";
-            edtStartBuildTime->Text = edtStartBuildTime->Text + GetDateTimeFromMarco(compile_time).FormatString("yymmddhhnnss");
+            edtStartBuildTime->Text = edtStartBuildTime->Text+"\t" + AppBuildTime2Str(global_config.build_time) + "'\t";
+            edtStartBuildTime->Text = edtStartBuildTime->Text + DateTime2Str(GetDateTimeFromMarco(compile_time))+"'";
 
             //edtBuildTime->Text = global_config.build_time;
             edtDeviceName->Text = global_config.d1616_name;
@@ -2974,6 +2975,10 @@ void __fastcall TForm1::ToggleDSP(TObject *Sender)
             {
                 btnPhanton->Down = config_map.input_dsp[dsp_num-1].phantom_switch;
                 btnPhanton->Show();
+            }
+            else
+            {
+                btnPhanton->Hide();
             }
 
             // 调整PaintBox1的尺寸
@@ -6072,7 +6077,10 @@ void __fastcall TForm1::btnSaveLogClick(TObject *Sender)
         String line = lvLog->Items->Item[i]->Caption;
         line = line + "\t" + lvLog->Items->Item[i]->SubItems->Strings[0];
         line = line + "\t" + lvLog->Items->Item[i]->SubItems->Strings[1];
-        line = line + "\t" + lvLog->Items->Item[i]->SubItems->Strings[2];
+        if (lvLog->Items->Item[i]->SubItems->Count > 2)
+        {
+            line = line + "\t" + lvLog->Items->Item[i]->SubItems->Strings[2];
+        }
         log_strs->Add(line);
     }
     String path = ExtractFilePath(Application->ExeName);
