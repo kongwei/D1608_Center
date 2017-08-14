@@ -81,7 +81,7 @@ struct DeviceData
 // 版本兼容信息
 static UINT version = 0x01000002;
 static UINT file_version = 0x00000000;
-// 返回YES或者NO
+// 返回YES或者下位机版本号
 // version_list以0结尾
 String IsCompatibility(T_slp_pack slp_pack)
 {
@@ -93,7 +93,7 @@ String IsCompatibility(T_slp_pack slp_pack)
     }
     else
     {
-        return "NO";
+        return IntToHex((int)slp_pack.version, 8);
     }
 }
 String VersionToStr(UINT version_value)
@@ -1528,7 +1528,7 @@ void __fastcall TForm1::btnSelectClick(TObject *Sender)
     {
         // TODO: 需要显示下位机和上位机的版本号
         if (Sender != NULL)
-            ShowMessage("版本不兼容，请更新软件");
+            ShowMessage("版本不兼容，请更新软件。\n上位机版本："+IntToHex((int)version,8)+"，下位机版本："+selected->SubItems->Strings[8]);
         return;
     }
 
