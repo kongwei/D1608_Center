@@ -1878,6 +1878,30 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             restor_delay_count = 15;
             tmDelayBackup->Enabled = true;
         }
+        else if (cmd.id == GetOffsetOfData(&config_map.op_code.reboot))
+        {
+            memo_debug->Lines->Add(GetTime()+"reboot:" + IntToStr(cmd.data.data_32));
+            if ((cmd.data.data_32 & 0x80) != 0)
+            {
+                cmd.data.data_32 = cmd.data.data_32 & 0x7F;
+                udpControl->SendBuffer(dst_ip, UDP_PORT_CONTROL, &cmd, sizeof(cmd));
+            }
+            keep_live_count = 5;
+            {
+                sendcmd_list.empty();
+                shape_live->Hide();
+                shape_link->Hide();
+                shape_power->Hide();
+                lblDeviceName->Hide();
+                lblDeviceInfo->Hide();
+                // Level Meter归零
+                for (int i=0;i<32;i++)
+                {
+                    UpdateWatchLevel(i, -49);
+                }
+                device_connected = false;
+            }
+        }
         else
         {
             // 如果是当前调节的数据，需要忽略
@@ -5605,7 +5629,7 @@ void __fastcall TForm1::btnRebootDeviceClick(TObject *Sender)
         D1608Cmd cmd;
         cmd.type = CMD_TYPE_PRESET;
         cmd.id = offsetof(ConfigMap, op_code.reboot);
-        cmd.data.data_32 = 0;
+        cmd.data.data_32 = 0x80;
         cmd.length = 4;
         SendCmd2(cmd);
     }
@@ -5987,7 +6011,7 @@ void __fastcall TForm1::btnResetAllConfigClick(TObject *Sender)
         D1608Cmd cmd;
         cmd.type = CMD_TYPE_PRESET;
         cmd.id = offsetof(ConfigMap, op_code.reboot);
-        cmd.data.data_32 = 2;
+        cmd.data.data_32 = 0x82;
         cmd.length = 4;
         SendCmd2(cmd);
     }
@@ -6036,7 +6060,7 @@ void __fastcall TForm1::btnClearAllPresetClick(TObject *Sender)
         D1608Cmd cmd;
         cmd.type = CMD_TYPE_PRESET;
         cmd.id = offsetof(ConfigMap, op_code.reboot);
-        cmd.data.data_32 = 1;
+        cmd.data.data_32 = 0x81;
         cmd.length = 4;
         SendCmd2(cmd);
     }
