@@ -1275,9 +1275,7 @@ void TForm1::SendLogBuff(int udp_port, void * buff, int size)
     memcpy(package.data, buff, size);
     package.data_size = size;
 
-    reverse(sendcmd_list.begin(), sendcmd_list.end());
-    sendcmd_list.push_back(package);
-    reverse(sendcmd_list.begin(), sendcmd_list.end());
+    sendcmd_list.insert(sendcmd_list.begin(), package);
 
     int sendcmd_list_length = sendcmd_list.size();
     // 保存在队列中
@@ -1382,7 +1380,47 @@ void __fastcall TForm1::btnRefreshClick(TObject *Sender)
     }
 
     GetLocalIpList(lbIplist->Items);
+    // 更新到xxx里
+    // 检测是否有ip变化
+    bool is_ip_changed = false;
+    int socket_count = udpSLP->Bindings->Count;
+    if (lbIplist->Items->Count != socket_count)
+        is_ip_changed = true;
+    else
+    {
+        for (int i=0;i<udpSLP->Bindings->Count;i++)
+        {
+            String ip = udpSLP->Bindings->Items[i]->IP;
+            bool ip_found = false;
+            for (int j=0;j<lbIplist->Items->Count;j++)
+            {
+                if (ip == lbIplist->Items->Strings[j])
+                {
+                    ip_found = true;
+                    break;
+                }
+            }
+            if (ip_found == false)
+            {
+                is_ip_changed = true;
+                break;
+            }
+        }
+    }
 
+    if (is_ip_changed)
+    {
+        udpSLP->Active = false;
+        udpSLP->Bindings->Clear();
+        for (int i=0;i<lbIplist->Items->Count;i++)
+        {
+            udpSLP->Bindings->Add();
+            int socket_count1 = udpSLP->Bindings->Count;
+            udpSLP->Bindings->Items[socket_count1-1]->IP = lbIplist->Items->Strings[i];
+            udpSLP->Bindings->Items[i]->Port = 0;
+        }
+        udpSLP->BroadcastEnabled = true;
+    }
 
     for (int i=0;i<lvDevice->Items->Count;i++)
     {
@@ -1643,18 +1681,19 @@ void __fastcall TForm1::tmSLPTimer(TObject *Sender)
 
     if (lbIplist->Count > 0)
     {
+#if 0
         local_broadcast_ip = lbIplist->Items->Strings[0];
         lbIplist->Items->Delete(0);
 
         //AppendLog("尝试侦听地址： " + local_broadcast_ip);
-
         udpSLP->Active = false;
         udpSLP->Bindings->Clear();
         udpSLP->Bindings->Add();
         udpSLP->Bindings->Items[0]->IP = local_broadcast_ip;
         udpSLP->Bindings->Items[0]->Port = 0;
         udpSLP->BroadcastEnabled = true;
-
+#endif
+        btnRefresh->Click();
         try{
             udpSLP->Active = true;
             char *search_flag;
@@ -5729,7 +5768,7 @@ void __fastcall TForm1::btnSaveFlashToFileClick(TObject *Sender)
             cmd.data.data_string[0] = 's';
             strncpy(cmd.data.data_string+1, ExtractFileName(SaveDialog1->FileName).c_str(), 8);
             cmd.length = 10;
-            SendCmd(cmd);
+            SendCmd2(cmd);
 
             memset(smc_config.device_flash_dump, 0, sizeof(smc_config.device_flash_dump));
             smc_config.file_version = file_version;
@@ -5755,8 +5794,6 @@ void __fastcall TForm1::btnSaveFlashToFileClick(TObject *Sender)
             TPackage package = package_list.back();
             udpControl->SendBuffer(dst_ip, package.udp_port, package.data, package.data_size);
 
-            //last_command = UDP_PORT_READ_FLASH;
-            //last_readflash_package = buff;
             restor_delay_count = 15;
             tmDelayBackup->Enabled = true;
 
