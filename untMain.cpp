@@ -325,7 +325,8 @@ int GetLocalIpList(TStrings * IpList)
 static String CmdLog(D1608Cmd cmd)
 {
     String result;
-    result = result + IntToStr(cmd.id) + "。";
+    result = result + IntToStr(cmd.seq) + ",";
+    result = result + IntToStr(cmd.id) + ",";
     result = result + IntToStr(cmd.data.data_32_array[0]) + ",";
     result = result + IntToStr(cmd.data.data_32_array[1]) + ",";
     result = result + IntToStr(cmd.data.data_32_array[2]) + ",";
@@ -1829,8 +1830,6 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
         D1608Cmd cmd;
         AData->ReadBuffer(&cmd, std::min(sizeof(cmd), AData->Size));
 
-        //memo_debug->Lines->Add(GetTime()+"Reply：" + CmdLog(cmd));
-
         // id == 1 表示全局配置
         if (cmd.type == CMD_TYPE_GLOBAL)
         {
@@ -1862,10 +1861,11 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             ProcessVote(cmd.data.keep_alive.adc);
             ProcessKeepAlive(cmd.data.keep_alive.switch_preset, cmd.data.keep_alive.set_time);
 
-            memo_debug->Lines->Add("广播消息序号:"+IntToStr(cmd.data.keep_alive.seq)+":"+IntToStr(received_cmd_seq));
-            if (cmd.data.keep_alive.seq != received_cmd_seq && (received_cmd_seq!=0))
+            //memo_debug->Lines->Add("广播消息序号:"+IntToStr(cmd.data.keep_alive.seq)+":"+IntToStr(received_cmd_seq));
+            if ((cmd.data.keep_alive.seq>received_cmd_seq) && (received_cmd_seq!=0))
             {
                 // 断开连接
+                // TODO: 暂时不处理
                 keep_live_count = 5;
                 received_cmd_seq = 0;
             }
@@ -1906,7 +1906,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
         {
             if (cmd.seq != 0)
             {
-                if ((cmd.seq == received_cmd_seq+1) || (received_cmd_seq==0))
+                if ((cmd.seq <= received_cmd_seq+1) || (received_cmd_seq==0))
                     received_cmd_seq = cmd.seq;
                 else
                 {
@@ -1914,11 +1914,10 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
                     received_cmd_seq = 0;
                 }
             }
+            memo_debug->Lines->Add(GetTime()+"Reply：" + CmdLog(cmd));
             // 如果是当前调节的数据，需要忽略
             if (!ProcessSendCmdAck(cmd, AData, ABinding))//(last_cmd.id != cmd.id /*|| !paint_agent->IsMouseDown()*/)
             {
-                memo_debug->Lines->Add(GetTime()+"Reply：" + CmdLog(cmd));
-
                 memcpy(((char*)(&config_map))+cmd.id, (char*)&cmd.data, cmd.length);
                 OnFeedbackData(cmd.id, cmd.length);
             }
@@ -6052,6 +6051,9 @@ void __fastcall TForm1::tmDelaySendCmdTimer(TObject *Sender)
     else if ((sendcmd_delay_count%5) == 1)
     {
         TPackage package = sendcmd_list.back();
+
+        // 重试命令
+        received_cmd_seq = 0;
         udpControl->SendBuffer(dst_ip, package.udp_port, package.data, package.data_size);
 
         // 备份 恢复 流程使用的延时计时器
