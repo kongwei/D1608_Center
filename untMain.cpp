@@ -77,9 +77,11 @@ struct DeviceData
     int count;
     T_slp_pack data;
 };
+
+static int received_cmd_seq = 0;
 //------------------------------------------------
 // 版本兼容信息
-static UINT version = 0x01000002;
+static UINT version = 0x01000002;  
 static UINT file_version = 0x00000000;
 // 返回YES或者下位机版本号
 // version_list以0结尾
@@ -109,7 +111,8 @@ String VersionToStr(UINT version_value)
 unsigned int GetOffsetOfData(void * p_data)
 {
     static char * p_config_map = (char*)&config_map;
-    return (char*)p_data - p_config_map;
+    int result = (char*)p_data - p_config_map;
+    return result;
 }
 
 String FormatFloat(float value, int precise)
@@ -935,8 +938,6 @@ __fastcall TForm1::TForm1(TComponent* Owner)
         all_config_map[i] = config_map;
     }
 
-    file_dirty = false;
-
     InitGdipus();
 
     pnlDspDetail->BringToFront();
@@ -947,6 +948,7 @@ __fastcall TForm1::TForm1(TComponent* Owner)
 
     // 私有变量初始化
     keep_live_count = 5;
+    received_cmd_seq = 0;
     device_connected = false;
 
     // 读取配置
@@ -1522,36 +1524,12 @@ void __fastcall TForm1::udpSLPUDPRead(TObject *Sender,
         if ((last_device_id == "") || (last_device_id == mac) || ( Now() > startup_time+10.0/3600/24 ))
         {
             // 连接第一个 或者 匹配ID 或者 5秒钟 或者 没有找到原先的设备
-            //file_dirty = false;
             item->Selected = true;
             btnSelectClick(NULL);
             startup_time = startup_time + 100000;
         }
     }
 }
-//---------------------------------------------------------------------------
-void __fastcall TForm1::lvDeviceSelectItem(TObject *Sender,
-      TListItem *Item, bool Selected)
-{
-    if (!Selected)
-    {
-        return;
-    }
-
-    //AppendLog("选择："+IntToStr(Item->Index+1)+" "+Item->SubItems->Strings[0]);
-}
-//---------------------------------------------------------------------------
-#if 0
-void TForm1::AppendLog(String log)
-{
-    mmLog->Lines->Add(log);
-    if (log_file != NULL)
-    {
-        log_file->WriteBuffer(log.c_str(), log.Length());
-        log_file->WriteBuffer("\x0d\x0a", 2);
-    }
-}
-#endif
 //---------------------------------------------------------------------------
 void __fastcall TForm1::btnSelectClick(TObject *Sender)
 {
@@ -1568,32 +1546,6 @@ void __fastcall TForm1::btnSelectClick(TObject *Sender)
         if (Sender != NULL)
             ShowMessage("版本不兼容，请更新软件。\n上位机版本："+IntToHex((int)version,8)+"，下位机版本："+selected->SubItems->Strings[8]);
         return;
-    }
-
-    // 断开文件
-    if (file_dirty)
-    {
-        /* 暂时不考虑提示对话框
-        int ret = Application->MessageBox("是否保存当前preset修改", "关闭确认", MB_YESNOCANCEL);
-        if (ret == ID_CANCEL)
-        {
-            return;
-        }
-        else if (ret == ID_YES)
-        {
-            // SAVE
-            SaveAllPreset->Click();
-            if (file_dirty)
-            {
-                return;
-            }
-        }
-        else*/
-        {
-            // 放弃
-            preset_lib_filename = "";
-            file_dirty = false;
-        }
     }
 
     dst_ip = selected->SubItems->Strings[0];
@@ -1909,6 +1861,14 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             ProcessWatchLevel(cmd.data.keep_alive.watch_level);
             ProcessVote(cmd.data.keep_alive.adc);
             ProcessKeepAlive(cmd.data.keep_alive.switch_preset, cmd.data.keep_alive.set_time);
+
+            memo_debug->Lines->Add("广播消息序号:"+IntToStr(cmd.data.keep_alive.seq)+":"+IntToStr(received_cmd_seq));
+            if (cmd.data.keep_alive.seq != received_cmd_seq && (received_cmd_seq!=0))
+            {
+                // 断开连接
+                keep_live_count = 5;
+                received_cmd_seq = 0;
+            }
         }
         else if (cmd.id == GetOffsetOfData(&config_map.op_code.switch_preset))
         {
@@ -1926,6 +1886,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
                 udpControl->SendBuffer(dst_ip, UDP_PORT_CONTROL, &cmd, sizeof(cmd));
             }
             keep_live_count = 5;
+            received_cmd_seq = 0;
             {
                 sendcmd_list.empty();
                 shape_live->Hide();
@@ -1943,6 +1904,16 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
         }
         else
         {
+            if (cmd.seq != 0)
+            {
+                if ((cmd.seq == received_cmd_seq+1) || (received_cmd_seq==0))
+                    received_cmd_seq = cmd.seq;
+                else
+                {
+                    keep_live_count = 5;
+                    received_cmd_seq = 0;
+                }
+            }
             // 如果是当前调节的数据，需要忽略
             if (!ProcessSendCmdAck(cmd, AData, ABinding))//(last_cmd.id != cmd.id /*|| !paint_agent->IsMouseDown()*/)
             {
@@ -4343,12 +4314,6 @@ void __fastcall TForm1::SetPresetLibFilename(String filename)
     UpdateCaption();
 }
 //---------------------------------------------------------------------------
-void __fastcall TForm1::SetFileDirty(bool dirty_flag)
-{
-    file_dirty = dirty_flag;
-    UpdateCaption();
-}
-//---------------------------------------------------------------------------
 void __fastcall TForm1::UpdateCaption()
 {
     if (udpControl->Active)
@@ -4358,40 +4323,6 @@ void __fastcall TForm1::UpdateCaption()
     else
     {
         Caption = "";
-    }
-    if (file_dirty)
-    {
-        Caption = Caption + "*";
-    }
-}
-//---------------------------------------------------------------------------
-
-
-void __fastcall TForm1::FormCloseQuery(TObject *Sender, bool &CanClose)
-{
-    if (file_dirty)
-    {
-        /* 暂时不考虑提示对话框
-        int ret = Application->MessageBox("是否保存当前preset修改", "关闭确认", MB_YESNOCANCEL);
-        if (ret == ID_CANCEL)
-        {
-            CanClose = false;
-            return;
-        }
-        else if (ret == ID_YES)
-        {
-            // SAVE
-            SaveAllPreset->Click();
-            if (file_dirty)
-            {
-                CanClose = false;
-                return;
-            }
-        }
-        else*/
-        {
-            return;
-        }
     }
 }
 //---------------------------------------------------------------------------

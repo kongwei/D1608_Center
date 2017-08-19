@@ -547,8 +547,6 @@ __published:	// IDE-managed Components
     void __fastcall btnRefreshClick(TObject *Sender);
     void __fastcall udpSLPUDPRead(TObject *Sender, TStream *AData,
           TIdSocketHandle *ABinding);
-    void __fastcall lvDeviceSelectItem(TObject *Sender, TListItem *Item,
-          bool Selected);
     void __fastcall btnSelectClick(TObject *Sender);
     void __fastcall tmSLPTimer(TObject *Sender);
     void __fastcall InputVolumeChange(TObject *Sender);
@@ -616,7 +614,6 @@ __published:	// IDE-managed Components
     void __fastcall pnlmix_muteClick(TObject *Sender);
     void __fastcall btnSavePresetToFileClick(TObject *Sender);
     void __fastcall btnLoadPresetFromFileClick(TObject *Sender);
-    void __fastcall FormCloseQuery(TObject *Sender, bool &CanClose);
     void __fastcall StoreClick(TObject *Sender);
     void __fastcall StoreAsClick(TObject *Sender);
     void __fastcall RecallClick(TObject *Sender);
@@ -762,7 +759,6 @@ private:
 
     String preset_lib_filename;
     void __fastcall SetPresetLibFilename(String filename);
-    bool file_dirty;
     void __fastcall SetFileDirty(bool dirty_flag);
 
     void __fastcall UpdateCaption();
