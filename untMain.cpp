@@ -1543,7 +1543,6 @@ void __fastcall TForm1::btnSelectClick(TObject *Sender)
     // 是否版本兼容
     if (selected->SubItems->Strings[8] != "YES")
     {
-        // TODO: 需要显示下位机和上位机的版本号
         if (Sender != NULL)
             ShowMessage("版本不兼容，请更新软件。\n上位机版本："+IntToHex((int)version,8)+"，下位机版本："+selected->SubItems->Strings[8]);
         return;
@@ -1865,9 +1864,8 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             if ((cmd.data.keep_alive.seq>received_cmd_seq) && (received_cmd_seq!=0))
             {
                 // 断开连接
-                // TODO: 暂时不处理
-                keep_live_count = 5;
-                received_cmd_seq = 0;
+                memo_debug->Lines->Add(GetTime()+"同步发现消息序号不匹配" + IntToStr(cmd.data.keep_alive.seq) + "," + IntToStr(received_cmd_seq));
+                keep_live_count++;
             }
         }
         else if (cmd.id == GetOffsetOfData(&config_map.op_code.switch_preset))
@@ -1907,9 +1905,16 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             if (cmd.seq != 0)
             {
                 if ((cmd.seq <= received_cmd_seq+1) || (received_cmd_seq==0))
+                {
                     received_cmd_seq = cmd.seq;
+                }
+                else if ((cmd.last_same_id_seq <= received_cmd_seq) && (cmd.last_same_id_seq > 0))
+                {
+                    received_cmd_seq = cmd.seq;
+                }
                 else
                 {
+                    memo_debug->Lines->Add(GetTime()+"消息序号不匹配" + IntToStr(cmd.seq) + "," + IntToStr(cmd.last_same_id_seq));
                     keep_live_count = 5;
                     received_cmd_seq = 0;
                 }
