@@ -543,6 +543,7 @@ __published:	// IDE-managed Components
     TListBox *lbIplist;
     TMemo *mmLog;
     TCheckBox *cbLedTest;
+    TAction *aStore;
     void __fastcall FormCreate(TObject *Sender);
     void __fastcall FormDestroy(TObject *Sender);
     void __fastcall btnRefreshClick(TObject *Sender);
