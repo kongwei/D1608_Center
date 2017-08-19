@@ -958,6 +958,9 @@ __fastcall TForm1::TForm1(TComponent* Owner)
     delete ini_file;
 
     // 需要初始化完成后才开启SLP，否则自动连接后会立即调整界面，导致Input面板还未初始化时就做调整，这样就会出现异常。
+    udpSLPList[0] = udpSLP;
+    udpSLPList[1] = udpSLP1;
+    udpSLPList[2] = udpSLP2;
     tmSLP->Enabled = true;
 }
 //---------------------------------------------------------------------------
@@ -1384,6 +1387,7 @@ void __fastcall TForm1::btnRefreshClick(TObject *Sender)
     }
 
     GetLocalIpList(lbIplist->Items);
+#if 0
     // 更新到xxx里
     // 检测是否有ip变化
     bool is_ip_changed = false;
@@ -1411,21 +1415,52 @@ void __fastcall TForm1::btnRefreshClick(TObject *Sender)
             }
         }
     }
+#else
+    bool is_ip_changed = false;
+    int ip_count = 0;
+    for (int i=0;i<3;i++)
+    {
+        if (udpSLPList[i]->Active && udpSLPList[i]->Bindings->Count == 1)
+        {
+            ip_count++;
+            
+            String ip = udpSLPList[i]->Bindings->Items[0]->IP;
+            bool ip_found = false;
+            for (int j=0;j<lbIplist->Items->Count;j++)
+            {
+                if (ip == lbIplist->Items->Strings[j])
+                {
+                    ip_found = true;
+                    break;
+                }
+            }
+            if (ip_found == false)
+            {
+                is_ip_changed = true;
+                break;
+            }
+        }
+    }
+    if (ip_count != lbIplist->Items->Count)
+        is_ip_changed= true;
 
+#endif
     if (is_ip_changed)
     {
-        udpSLP->Active = false;
-        udpSLP->Bindings->Clear();
-        for (int i=0;i<lbIplist->Items->Count;i++)
+        for (int i=0;i<3;i++)
         {
-            udpSLP->Bindings->Add();
-            int socket_count1 = udpSLP->Bindings->Count;
-            udpSLP->Bindings->Items[socket_count1-1]->IP = lbIplist->Items->Strings[i];
-            udpSLP->Bindings->Items[i]->Port = 0;
+            udpSLPList[i]->Active = false;
+            udpSLPList[i]->Bindings->Clear();
         }
-        udpSLP->BroadcastEnabled = true;
+        for (int i=0;i<lbIplist->Items->Count && i<3;i++)
+        {
+            udpSLPList[i]->Bindings->Add();
+            udpSLPList[i]->Bindings->Items[0]->IP = lbIplist->Items->Strings[i];
+            udpSLPList[i]->Bindings->Items[0]->Port = 0;
+            udpSLPList[i]->Active = true;
+        }
     }
-
+#if 0
     for (int i=0;i<lvDevice->Items->Count;i++)
     {
         TListItem * find_item = lvDevice->Items->Item[i];
@@ -1435,7 +1470,7 @@ void __fastcall TForm1::btnRefreshClick(TObject *Sender)
             break;
         }
     }
-
+#endif
     if (lvDevice->Selected != NULL)
     {
         if (lvDevice->Selected->SubItems->Strings[3] != "")
@@ -1632,42 +1667,29 @@ void __fastcall TForm1::tmSLPTimer(TObject *Sender)
 {
     tmSLP->Enabled = false;
 
+    btnRefresh->Click();
     if (lbIplist->Count > 0)
     {
-#if 0
-        local_broadcast_ip = lbIplist->Items->Strings[0];
-        lbIplist->Items->Delete(0);
-
-        //AppendLog("尝试侦听地址： " + local_broadcast_ip);
-        udpSLP->Active = false;
-        udpSLP->Bindings->Clear();
-        udpSLP->Bindings->Add();
-        udpSLP->Bindings->Items[0]->IP = local_broadcast_ip;
-        udpSLP->Bindings->Items[0]->Port = 0;
-        udpSLP->BroadcastEnabled = true;
-#endif
-        btnRefresh->Click();
-        try{
-            udpSLP->Active = true;
-            char *search_flag;
-            if (is_inner_pc)
-            {
-                search_flag = "ver info";
-            }
-            else
-            {
-                search_flag = "rep";
-            }
-            udpSLP->SendBuffer("255.255.255.255", UDP_PORT_SLP, search_flag, sizeof(search_flag));
-        }
-        catch(...)
+        for (int i=0;i<3;i++)
         {
-            //AppendLog("网络异常");
+            try{
+                udpSLPList[i]->Active = true;
+                char *search_flag;
+                if (is_inner_pc)
+                {
+                    search_flag = "ver info";
+                }
+                else
+                {
+                    search_flag = "rep";
+                }
+                udpSLPList[i]->SendBuffer("255.255.255.255", UDP_PORT_SLP, search_flag, sizeof(search_flag));
+            }
+            catch(...)
+            {
+                //AppendLog("网络异常");
+            }
         }
-    }
-    else
-    {
-        btnRefresh->Click();
     }
 
     tmSLP->Enabled = true;
@@ -2978,6 +3000,7 @@ void __fastcall TForm1::lvDeviceDblClick(TObject *Sender)
         dst_ip = item->SubItems->Strings[0];
         btnSelect->Click();
     }
+    lvDevice->Invalidate();
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::ToggleDSP(TObject *Sender)
@@ -6254,6 +6277,14 @@ void __fastcall TForm1::cbLedTestClick(TObject *Sender)
     cmd.data.data_8 = cbLedTest->Checked;
     cmd.length = 1;
     SendCmd(cmd);
+}
+//---------------------------------------------------------------------------
+
+void __fastcall TForm1::lvDeviceCustomDrawItem(TCustomListView *Sender,
+      TListItem *Item, TCustomDrawState State, bool &DefaultDraw)
+{
+    if (Item->SubItems->Strings[6] == last_device_id)
+        lvDevice->Canvas->Font->Color = clRed;
 }
 //---------------------------------------------------------------------------
 

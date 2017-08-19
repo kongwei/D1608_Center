@@ -544,6 +544,8 @@ __published:	// IDE-managed Components
     TMemo *mmLog;
     TCheckBox *cbLedTest;
     TAction *aStore;
+    TIdUDPServer *udpSLP1;
+    TIdUDPServer *udpSLP2;
     void __fastcall FormCreate(TObject *Sender);
     void __fastcall FormDestroy(TObject *Sender);
     void __fastcall btnRefreshClick(TObject *Sender);
@@ -703,7 +705,10 @@ __published:	// IDE-managed Components
     void __fastcall Paste1Click(TObject *Sender);
     void __fastcall FormResize(TObject *Sender);
     void __fastcall cbLedTestClick(TObject *Sender);
-
+    void __fastcall lvDeviceCustomDrawItem(TCustomListView *Sender,
+          TListItem *Item, TCustomDrawState State, bool &DefaultDraw);
+private:
+    TIdUDPServer * udpSLPList[3];
 private:
     // 已经加载版本文件
     bool flag_file_open;
