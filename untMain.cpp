@@ -668,7 +668,7 @@ __fastcall TForm1::TForm1(TComponent* Owner)
 
     // µ÷Õû³ß´ç
     Width = 1664;//1366;
-    Height = 768;//798;
+    Height = 778;//798;
 
     for (int i=0;i<32;i++)
     {
