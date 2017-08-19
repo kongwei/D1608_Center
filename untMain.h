@@ -710,9 +710,6 @@ __published:	// IDE-managed Components
 private:
     TIdUDPServer * udpSLPList[3];
 private:
-    // 已经加载版本文件
-    bool flag_file_open;
-
     String dst_ip;
     String local_ip;
     String local_broadcast_ip;

@@ -2818,11 +2818,11 @@ void TForm1::ProcessWatchLevel(int watch_level[INPUT_DSP_NUM + OUTPUT_DSP_NUM])
 //---------------------------------------------------------------------------
 void __fastcall TForm1::tmWatchTimer(TObject *Sender)
 {
-    /*D1608Cmd cmd;
-    cmd.id = GetOffsetOfData(&config_map.op_code.WatchLevel);
-    SendCmd2(cmd);
-    cmd.id = GetOffsetOfData(&config_map.op_code.adc);
-    SendCmd2(cmd);*/
+    // stroe»òÕßopen×´Ì¬
+    if (pbBackup->Visible)
+    {
+        return;
+    }
 
     // keep alive
     if ((keep_live_count < 5) && udpControl->Active)
@@ -6284,7 +6284,7 @@ void __fastcall TForm1::lvDeviceCustomDrawItem(TCustomListView *Sender,
       TListItem *Item, TCustomDrawState State, bool &DefaultDraw)
 {
     if (Item->SubItems->Strings[6] == last_device_id)
-        lvDevice->Canvas->Font->Color = clRed;
+        lvDevice->Canvas->Font->Color = clAqua;
 }
 //---------------------------------------------------------------------------
 
