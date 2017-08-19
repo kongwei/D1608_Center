@@ -1115,6 +1115,7 @@ void __fastcall TForm1::FormCreate(TObject *Sender)
 
         btnUnlockExt->Show();
         btnLeaveTheFactory->Show();
+        cbLedTest->Show();
     }
      
     pnlOperator->Show();
@@ -2298,6 +2299,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             {
                 // 读取'自动保存'配置
                 cbPresetAutoSaved->Checked = ((global_config.auto_saved == 1) || (global_config.auto_saved == 0xFF));
+                cbLedTest->Checked = (global_config.led_test == 1);
             }
         }
         else
@@ -5178,6 +5180,7 @@ void __fastcall TForm1::PaintBox3Paint(TObject *Sender)
     cbGlobalDspName->Color = bmp->Canvas->Brush->Color;
     cbPresetAutoSaved->Color = bmp->Canvas->Brush->Color;
     cbLockUpDownMenuKey->Color = bmp->Canvas->Brush->Color;
+    cbLedTest->Color = bmp->Canvas->Brush->Color;
 
     delete bmp;
 }
@@ -6243,6 +6246,14 @@ void TForm1::StartReadOnePackage(int preset_id)
     udpControl->SendBuffer(dst_ip, package.udp_port, package.data, package.data_size);
 }
 //---------------------------------------------------------------------------
-
-
+void __fastcall TForm1::cbLedTestClick(TObject *Sender)
+{
+    D1608Cmd cmd;
+    cmd.type = CMD_TYPE_GLOBAL;
+    cmd.id = offsetof(GlobalConfig, led_test);
+    cmd.data.data_8 = cbLedTest->Checked;
+    cmd.length = 1;
+    SendCmd(cmd);
+}
+//---------------------------------------------------------------------------
 

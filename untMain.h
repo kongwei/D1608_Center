@@ -542,6 +542,7 @@ __published:	// IDE-managed Components
     TButton *btnRefresh;
     TListBox *lbIplist;
     TMemo *mmLog;
+    TCheckBox *cbLedTest;
     void __fastcall FormCreate(TObject *Sender);
     void __fastcall FormDestroy(TObject *Sender);
     void __fastcall btnRefreshClick(TObject *Sender);
@@ -700,6 +701,7 @@ __published:	// IDE-managed Components
     void __fastcall Copy1Click(TObject *Sender);
     void __fastcall Paste1Click(TObject *Sender);
     void __fastcall FormResize(TObject *Sender);
+    void __fastcall cbLedTestClick(TObject *Sender);
 
 private:
     // 已经加载版本文件
