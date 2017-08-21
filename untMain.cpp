@@ -1967,6 +1967,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
                 {
                     TListItem * item = lvLog->Items->Insert(0);
                     int event_timer = buff.event[i].timer;
+                    item->Data = (void*)event_timer;
 
                     int ms = event_timer % 10;  event_timer /= 10;
                     int sec = event_timer % 60; event_timer /= 60;
@@ -2173,6 +2174,8 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
                 }
             }
             btnGetLog->Enabled = true;
+
+            lvLog->AlphaSort();
         }
 
         if (!ProcessLogBuffAck(buff, AData, ABinding))
@@ -6285,6 +6288,12 @@ void __fastcall TForm1::lvDeviceCustomDrawItem(TCustomListView *Sender,
 {
     if (Item->SubItems->Strings[6] == last_device_id)
         lvDevice->Canvas->Font->Color = clAqua;
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::lvLogCompare(TObject *Sender, TListItem *Item1,
+      TListItem *Item2, int Data, int &Compare)
+{
+    Compare = (int)Item2->Data - (int)Item1->Data;
 }
 //---------------------------------------------------------------------------
 

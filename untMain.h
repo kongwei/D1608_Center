@@ -707,6 +707,8 @@ __published:	// IDE-managed Components
     void __fastcall cbLedTestClick(TObject *Sender);
     void __fastcall lvDeviceCustomDrawItem(TCustomListView *Sender,
           TListItem *Item, TCustomDrawState State, bool &DefaultDraw);
+    void __fastcall lvLogCompare(TObject *Sender, TListItem *Item1,
+          TListItem *Item2, int Data, int &Compare);
 private:
     TIdUDPServer * udpSLPList[3];
 private:
