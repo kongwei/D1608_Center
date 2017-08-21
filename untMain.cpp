@@ -9,6 +9,7 @@
 #include "untUtils.h"
 
 #include <winsock2.h>
+#include <IPHlpApi.h>  
 #include <algorithm>
 #include <stddef.h>
 #include <assert.h>
@@ -31,6 +32,13 @@ static String GetTime()
 {
     return FormatDateTime("nn:ss.zzz", Now())+" ";
 }
+
+struct IpInfo
+{
+    String ip;
+    DWORD mask;
+};
+vector<IpInfo> ip_info;
 
 TForm1 *Form1;
 ConfigMap all_config_map[PRESET_NUM];
@@ -283,44 +291,57 @@ static int SetBit(int old_value, int bit, bool is_set)
 }
 //---------------------------------------------------------------------------
 //多网卡 将IP地址写入到列表 WinSock
-int GetLocalIpList(TStrings * IpList)
+void GetLocalIpList(vector<IpInfo> & ip_info)
 {
-    int result = 0;
+    ip_info.clear();
 
-    try
-    {
-        char HostName[MAX_PATH + 1] = {0};
-        int NameLen = gethostname(HostName, MAX_PATH);
-        if (NameLen == SOCKET_ERROR)
-        {
-            return result;
+    String szMark;
+
+    PIP_ADAPTER_INFO pAdapterInfo;  
+    PIP_ADAPTER_INFO pAdapter = NULL;   
+  
+    pAdapterInfo = ( IP_ADAPTER_INFO * ) malloc( sizeof( IP_ADAPTER_INFO ) );  
+    ULONG ulOutBufLen;   
+    ulOutBufLen = sizeof(IP_ADAPTER_INFO);   
+  
+    // 第一次调用GetAdapterInfo获取ulOutBufLen大小   
+    if (GetAdaptersInfo( pAdapterInfo, &ulOutBufLen) == ERROR_BUFFER_OVERFLOW)   
+    {   
+        free(pAdapterInfo);  
+        pAdapterInfo = (IP_ADAPTER_INFO *) malloc (ulOutBufLen);
+    }   
+
+    if (GetAdaptersInfo( pAdapterInfo, &ulOutBufLen) == NO_ERROR)
+    {   
+        pAdapter = pAdapterInfo;   
+        while (pAdapter)   
+        {  
+            PIP_ADDR_STRING pIPAddr;  
+            pIPAddr = &pAdapter->IpAddressList;  
+            while (pIPAddr)  
+            {
+                IpInfo ip;
+                ip.ip = pIPAddr->IpAddress.String;
+                ip.mask = inet_addr(pIPAddr->IpMask.String);
+                if (ip.ip != "0.0.0.0" && ip.mask != INADDR_NONE)
+                    ip_info.push_back(ip);
+                pIPAddr = pIPAddr->Next;  
+            }  
+            pAdapter = pAdapter->Next;
         }
-        
-        hostent * lpHostEnt = gethostbyname(HostName);
-
-        if (lpHostEnt == NULL)
-        {
-            return result;
-        }
-
-        int i = 0;
-        char * * pPtr = lpHostEnt->h_addr_list;
-        
-        IpList->Clear();
-        
-        while (pPtr[i] != NULL)
-        {
-            IpList->Add( inet_ntoa(*(in_addr*)pPtr[i]) );
-            i++;
-        }
-        result = IpList->Count;
-
-        return result;
     }
-    __finally
+}
+
+#define DEFAULT_MASK 0x00FFFFFF
+DWORD GetMaskOfIp(String ip)
+{
+    for (UINT i=0;i<ip_info.size();i++)
     {
-        return result;
+        if (ip_info[i].ip == ip)
+            return ip_info[i].mask;
     }
+
+    return DEFAULT_MASK;
 }
 static String CmdLog(D1608Cmd cmd)
 {
@@ -1168,8 +1189,6 @@ void __fastcall TForm1::FormCreate(TObject *Sender)
         log_file = new TFileStream("SMC.log", fmCreate);
     }                       
 #endif
-    btnRefresh->Click();
-
     //tsSearch->Show();
     this->Repaint();
 
@@ -1386,38 +1405,12 @@ void __fastcall TForm1::btnRefreshClick(TObject *Sender)
         }
     }
 
-    GetLocalIpList(lbIplist->Items);
-#if 0
-    // 更新到xxx里
-    // 检测是否有ip变化
+    GetLocalIpList(ip_info);
+
+
+    
     bool is_ip_changed = false;
-    int socket_count = udpSLP->Bindings->Count;
-    if (lbIplist->Items->Count != socket_count)
-        is_ip_changed = true;
-    else
-    {
-        for (int i=0;i<udpSLP->Bindings->Count;i++)
-        {
-            String ip = udpSLP->Bindings->Items[i]->IP;
-            bool ip_found = false;
-            for (int j=0;j<lbIplist->Items->Count;j++)
-            {
-                if (ip == lbIplist->Items->Strings[j])
-                {
-                    ip_found = true;
-                    break;
-                }
-            }
-            if (ip_found == false)
-            {
-                is_ip_changed = true;
-                break;
-            }
-        }
-    }
-#else
-    bool is_ip_changed = false;
-    int ip_count = 0;
+    UINT ip_count = 0;
     for (int i=0;i<3;i++)
     {
         if (udpSLPList[i]->Active && udpSLPList[i]->Bindings->Count == 1)
@@ -1426,9 +1419,9 @@ void __fastcall TForm1::btnRefreshClick(TObject *Sender)
             
             String ip = udpSLPList[i]->Bindings->Items[0]->IP;
             bool ip_found = false;
-            for (int j=0;j<lbIplist->Items->Count;j++)
+            for (UINT j=0;j<ip_info.size();j++)
             {
-                if (ip == lbIplist->Items->Strings[j])
+                if (ip == ip_info[j].ip)
                 {
                     ip_found = true;
                     break;
@@ -1441,10 +1434,11 @@ void __fastcall TForm1::btnRefreshClick(TObject *Sender)
             }
         }
     }
-    if (ip_count != lbIplist->Items->Count)
+    if (ip_count != ip_info.size())
         is_ip_changed= true;
 
-#endif
+
+
     if (is_ip_changed)
     {
         for (int i=0;i<3;i++)
@@ -1452,10 +1446,10 @@ void __fastcall TForm1::btnRefreshClick(TObject *Sender)
             udpSLPList[i]->Active = false;
             udpSLPList[i]->Bindings->Clear();
         }
-        for (int i=0;i<lbIplist->Items->Count && i<3;i++)
+        for (UINT i=0;i<ip_info.size() && i<3;i++)
         {
             udpSLPList[i]->Bindings->Add();
-            udpSLPList[i]->Bindings->Items[0]->IP = lbIplist->Items->Strings[i];
+            udpSLPList[i]->Bindings->Items[0]->IP = ip_info[i].ip;
             udpSLPList[i]->Bindings->Items[0]->Port = 0;
             udpSLPList[i]->Active = true;
         }
@@ -1668,22 +1662,23 @@ void __fastcall TForm1::tmSLPTimer(TObject *Sender)
     tmSLP->Enabled = false;
 
     btnRefresh->Click();
-    if (lbIplist->Count > 0)
+    if (ip_info.size() > 0)
     {
         for (int i=0;i<3;i++)
         {
             try{
                 udpSLPList[i]->Active = true;
-                char *search_flag;
+                String ip = udpSLPList[i]->Bindings->Items[0]->IP;
+                T_slp_pack slp_pack = {0};
+
                 if (is_inner_pc)
-                {
-                    search_flag = "ver info";
-                }
+                    memcpy(slp_pack.ip, "ver", 3);
                 else
-                {
-                    search_flag = "rep";
-                }
-                udpSLPList[i]->SendBuffer("255.255.255.255", UDP_PORT_SLP, search_flag, sizeof(search_flag));
+                    memcpy(slp_pack.ip, "rep", 3);
+
+                slp_pack.mask = GetMaskOfIp(ip);
+
+                udpSLPList[i]->SendBuffer("255.255.255.255", UDP_PORT_SLP, &slp_pack, sizeof(slp_pack));
             }
             catch(...)
             {
@@ -2264,16 +2259,8 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             edtDeviceName->Text = global_config.d1616_name;
             //TDateTime d = edtBuildTime->Text;
 
-#if 0
-            String gain_set = GetVersionConfig().gain_function;
-            iMIC->Visible = (gain_set.Pos("iMIC")!=0);
-            i10dBv->Visible = (gain_set.Pos("i10dBv")!=0);
-            i22dBu->Visible = (gain_set.Pos("i22dBu")!=0);
-            i24dBu->Visible = (gain_set.Pos("i24dBu")!=0);
-            o10dBv->Visible = (gain_set.Pos("o10dBv")!=0);
-            o22dBu->Visible = (gain_set.Pos("o22dBu")!=0);
-            o24dBu->Visible = (gain_set.Pos("o24dBu")!=0);
-#endif
+            btnMonitor->Visible = GetVersionConfig().is_vote_check;
+
             int input_gain = GetVersionConfig().input_gain;
             iMIC->Visible = input_gain & INPUT_GAIN_MIC;
             i10dBv->Visible = input_gain & INPUT_GAIN_10dBv;
@@ -6279,7 +6266,7 @@ void __fastcall TForm1::cbLedTestClick(TObject *Sender)
     cmd.id = offsetof(GlobalConfig, led_test);
     cmd.data.data_8 = cbLedTest->Checked;
     cmd.length = 1;
-    SendCmd(cmd);
+    SendCmd2(cmd);
 }
 //---------------------------------------------------------------------------
 

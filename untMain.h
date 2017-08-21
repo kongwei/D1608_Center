@@ -360,7 +360,7 @@ __published:	// IDE-managed Components
     TPanel *pnlHeader;
     TImage *imgHeader;
         TSpeedButtonNoFrame *SpeedButtonNoFrame2;
-        TSpeedButtonNoFrame *SpeedButtonNoFrame3;
+    TSpeedButtonNoFrame *btnMonitor;
         TSpeedButtonNoFrame *SpeedButtonNoFrame4;
     TAdvTrackBar *input_panel_trackbar;
     TChart *Chart1;
@@ -540,7 +540,6 @@ __published:	// IDE-managed Components
     TLabel *lblVersion;
     TButton *btnSelect;
     TButton *btnRefresh;
-    TListBox *lbIplist;
     TMemo *mmLog;
     TCheckBox *cbLedTest;
     TAction *aStore;
