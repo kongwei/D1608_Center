@@ -699,7 +699,7 @@ __fastcall TForm1::TForm1(TComponent* Owner)
 
     pnlOperator->Width = REAL_INPUT_DSP_NUM * PANEL_WIDTH + imgPresetBg->Width + REAL_OUTPUT_DSP_NUM * PANEL_WIDTH;
     pnlOperator->Width = Math::Max(pnlOperator->Width, Width-16);
-        HorzScrollBar->Visible = (pnlOperator->Width > Width);
+        //HorzScrollBar->Visible = (pnlOperator->Width > Width);
     pnlOperator->Height = 650;//-(728-584);
     pnlOperator->Top = pnlHeader->Height;
 
@@ -2395,7 +2395,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             pbBackup->Position = pbBackup->Max;
             ::Sleep(1000);
             pbBackup->Hide();
-
+#if 0
             // 发送一个重新加载preset的指令
             if (preset_cmd.preset & 0x80)
             {
@@ -2413,6 +2413,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
                 cmd.data.data_32_array[1] = 1;
                 SendCmd2(cmd);
             }
+#endif
         }
         else
         {
@@ -5390,7 +5391,7 @@ void TForm1::SetIOChannelNum()
 {
     pnlOperator->Width = REAL_INPUT_DSP_NUM * PANEL_WIDTH + imgPresetBg->Width + REAL_OUTPUT_DSP_NUM * PANEL_WIDTH;
     pnlOperator->Width = Math::Max(pnlOperator->Width, Width-16);
-        HorzScrollBar->Visible = (pnlOperator->Width > Width);
+        //HorzScrollBar->Visible = (pnlOperator->Width > Width);
 
     pnlMix->Width = REAL_INPUT_DSP_NUM * PANEL_WIDTH;                               
 
@@ -5808,6 +5809,8 @@ void __fastcall TForm1::btnLoadFileToFlashClick(TObject *Sender)
         }
         else
         {
+            StoreClick(Sender);
+
             // 联机
             // Download To Device
             // 准备好所有报文
