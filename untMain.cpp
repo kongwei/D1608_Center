@@ -1522,7 +1522,7 @@ void __fastcall TForm1::udpSLPUDPRead(TObject *Sender,
             find_item->SubItems->Strings[8] = IsCompatibility(slp_pack);
 
             DeviceData * data = (DeviceData*)find_item->Data;
-            data->count = 4;
+            data->count = 3;
             data->data = slp_pack;
 
             item = find_item;
@@ -2170,6 +2170,17 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             }
             btnGetLog->Enabled = true;
 
+            int log_count = 0;
+            int mac_count = 0;
+            for (int i=0;i<lvLog->Items->Count;i++)
+            {
+                if (lvLog->Items->Item[i]->Caption != "")
+                    log_count++;
+                else
+                    mac_count++;
+            }
+            lblLogCount->Caption = "日志数量："+IntToStr(log_count) + "   MAC数量："+IntToStr(mac_count);
+
             lvLog->AlphaSort();
         }
 
@@ -2259,7 +2270,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             edtDeviceName->Text = global_config.d1616_name;
             //TDateTime d = edtBuildTime->Text;
 
-            btnMonitor->Visible = GetVersionConfig().is_vote_check;
+            btnMonitor->Visible = GetVersionConfig().is_vote_check || is_inner_pc;
 
             int input_gain = GetVersionConfig().input_gain;
             iMIC->Visible = input_gain & INPUT_GAIN_MIC;
