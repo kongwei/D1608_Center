@@ -2380,7 +2380,6 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             package = read_one_preset_package_list.back();
             udpControl->SendBuffer(dst_ip, package.udp_port, package.data, package.data_size);
 
-            //pbBackup->Position = pbBackup->Max - read_one_preset_package_list.size();
             restor_delay_count = 15;
             tmDelayBackup->Enabled = true;
         }
@@ -2406,6 +2405,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             pbBackup->Position = pbBackup->Max;
             ::Sleep(1000);
             pbBackup->Hide();
+            this->Enabled = true;
 #if 0
             // 发送一个重新加载preset的指令
             if (preset_cmd.preset & 0x80)
@@ -2462,6 +2462,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             pbBackup->Position = pbBackup->Max;
             ::Sleep(1000);
             pbBackup->Hide();
+            this->Enabled = true;
 
             // 完成，写入文件
             TFileStream * file = new TFileStream(save_device_to_file_filename, fmCreate);
@@ -2484,6 +2485,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             pbBackup->Position = pbBackup->Max;
             ::Sleep(1000);
             pbBackup->Hide();
+            this->Enabled = true;
             delete file;
         }
         else
@@ -3961,8 +3963,6 @@ void __fastcall TForm1::btnLoadPresetFromFileClick(TObject *Sender)
             tmDelayBackup->Enabled = true;
 
             pbBackup->Max = package_list.size();
-            //pbBackup->Position = 0;
-            //pbBackup->Show();
         }
     }
 }
@@ -5763,6 +5763,7 @@ void __fastcall TForm1::btnSaveFlashToFileClick(TObject *Sender)
             pbBackup->Max = package_list.size();
             pbBackup->Position = 0;
             pbBackup->Show();
+            this->Enabled = false;
         }
     }
 }
@@ -5917,6 +5918,7 @@ void __fastcall TForm1::btnLoadFileToFlashClick(TObject *Sender)
             pbBackup->Max = package_list.size();
             pbBackup->Position = 0;
             pbBackup->Show();
+            this->Enabled = false;
         }
     }
 }
@@ -5946,6 +5948,7 @@ void __fastcall TForm1::tmDelayBackupTimer(TObject *Sender)
         package_list.clear();
         ::Sleep(1000);
         pbBackup->Hide();
+        this->Enabled = true;
     }
     else if ((restor_delay_count%5) == 1)
     {
