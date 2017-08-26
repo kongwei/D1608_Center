@@ -9,6 +9,8 @@
 
 #pragma package(smart_init)
 
+//--------------------------------------
+// Timer String Utils
 TDate GetDateFrom__DATE__(String __DATA__STR)
 {
     String day_str = __DATA__STR.SubString(5, 2);
@@ -108,4 +110,34 @@ String AppBuildTime2Str(String app_build_time)
     String result = str_y+str_m+str_d+"-"+app_build_time.SubString(7, 8);
     return result;
 }
+
+//--------------------------------------
+// Log File Utils
+void MergeLog(TStrings * append_data, TStrings * log_data)
+{
+    if (append_data->Count == 0)
+    {
+        append_data->AddStrings(log_data);
+    }
+    else
+    {
+        String first_data = append_data->Strings[append_data->Count - 1];
+        // ÔÚlog_dataÖÐ²éÕÒ
+        int index_of_first_data = -1;
+        for (int i=log_data->Count-1;i>=0;i--)
+        {
+            if (log_data->Strings[i] == first_data)
+            {
+                index_of_first_data = i;
+                break;
+            }
+        }
+
+        for (int i=index_of_first_data+1;i<log_data->Count;i++)
+        {
+            append_data->Add(log_data->Strings[i]);
+        }
+    }
+}
+
 

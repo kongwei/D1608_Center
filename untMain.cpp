@@ -2139,7 +2139,11 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
                         break;
                     }
 
-                    if (time_base != 0)
+                    if (time_base != 0
+                        && buff.event[i].event_id != EVENT_TIME_1
+                        && buff.event[i].event_id != EVENT_TIME_2
+                        && buff.event[i].event_id != EVENT_TIME_3
+                        && buff.event[i].event_id != EVENT_TIME_4)
                     {
                         // 从2000-1-1为基准
                         double time_of_real = time_base + buff.event[i].timer;
@@ -6113,16 +6117,28 @@ void __fastcall TForm1::btnSaveLogClick(TObject *Sender)
 
     for (int i=0;i<lvLog->Items->Count;i++)
     {
-        String line = lvLog->Items->Item[i]->Caption;
-        line = line + "\t" + lvLog->Items->Item[i]->SubItems->Strings[0];
-        line = line + "\t" + lvLog->Items->Item[i]->SubItems->Strings[1];
-        if (lvLog->Items->Item[i]->SubItems->Count > 2)
+        if (lvLog->Items->Item[i]->Caption != "")
         {
-            line = line + "\t" + lvLog->Items->Item[i]->SubItems->Strings[2];
+            String line = lvLog->Items->Item[i]->Caption;
+            line = line + "\t" + lvLog->Items->Item[i]->SubItems->Strings[0];
+            line = line + "\t" + lvLog->Items->Item[i]->SubItems->Strings[1];
+            if (lvLog->Items->Item[i]->SubItems->Count > 2)
+            {
+                line = line + "\t" + lvLog->Items->Item[i]->SubItems->Strings[2];
+            }
+            log_strs->Add(line);
         }
-        log_strs->Add(line);
     }
     String path = ExtractFilePath(Application->ExeName);
+
+    // 合并日志
+    if (FileExists(path+device_cpuid+".log"))
+    {
+        TStrings * log_data = new TStringList();
+        log_data->LoadFromFile(path+device_cpuid+".log");
+        MergeLog(log_strs, log_data);
+        delete log_data;
+    }
     log_strs->SaveToFile(path+device_cpuid+".log");
 
     delete log_strs;
