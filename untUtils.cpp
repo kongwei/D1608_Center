@@ -62,19 +62,26 @@ void TestGetDateFrom__DATE__()
 }
 String DateTime2Str(TDateTime dt)
 {
-    unsigned short y,m,d;
-    dt.DecodeDate(&y, &m, &d);
-
-    if (y>2010 && y<2020)
-        y = y - 2010;
+    if ((double)dt == 0.0)
+    {
+        return "9999-000000";
+    }
     else
-        y = y % 100;
+    {
+        unsigned short y,m,d;
+        dt.DecodeDate(&y, &m, &d);
 
-    String result;
-    result.sprintf("%02d", d);
-    result = IntToStr(y)+IntToHex(m, 1)+result + dt.FormatString("-hhnnss");
+        if (y>2010 && y<2020)
+            y = y - 2010;
+        else
+            y = y % 100;
 
-    return result;
+        String result;
+        result.sprintf("%02d", d);
+        result = IntToStr(y)+IntToHex(m, 1)+result + dt.FormatString("-hhnnss");
+
+        return result;
+    }
 }
 String AppBuildTime2Str(String app_build_time)
 {

@@ -1232,7 +1232,7 @@ void __fastcall TForm1::FormCreate(TObject *Sender)
 
     // ÉÏÎ»»úÊ±¼ä
     edtStartBuildTime->Text = " \t \t";
-    edtStartBuildTime->Text = edtStartBuildTime->Text + GetDateTimeFromMarco(compile_time).FormatString("yymmdd-hhnnss");
+    edtStartBuildTime->Text = edtStartBuildTime->Text + DateTime2Str(GetDateTimeFromMarco(compile_time));
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::FormDestroy(TObject *Sender)
@@ -2128,7 +2128,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
                         break;
                     case EVENT_SAVE_LOAD_TIMEOUT:
                         item->SubItems->Add("´æÅÌ»òÕß»Ö¸´³¬Ê±");
-                        item->SubItems->Add(buff.event[i].event_data==1?"´æÅÌ":"»Ö¸´´æÅÌ");
+                        item->SubItems->Add(buff.event[i].event_data==1?"LOAD UNIT":"SAVE UNIT");
                         break;
                     default:
                         item->SubItems->Add(buff.event[i].event_id);
