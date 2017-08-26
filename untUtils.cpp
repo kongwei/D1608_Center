@@ -31,6 +31,8 @@ TDate GetDateFrom__DATE__(String __DATA__STR)
 }
 TDateTime GetDateTimeFromMarco(String marcoDateTime)
 {
+    if (marcoDateTime == "                  ")
+        return 0;
     try
     {
         TDate date = GetDateFrom__DATE__(marcoDateTime);
