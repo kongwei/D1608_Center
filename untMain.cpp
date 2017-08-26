@@ -2126,6 +2126,10 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
                         item->SubItems->Add("时间校准信息4");
                         item->SubItems->Add("0x"+IntToHex(buff.event[i].event_data, 4));
                         break;
+                    case EVENT_SAVE_LOAD_TIMEOUT:
+                        item->SubItems->Add("存盘或者恢复超时");
+                        item->SubItems->Add(buff.event[i].event_data==1?"存盘":"恢复存盘");
+                        break;
                     default:
                         item->SubItems->Add(buff.event[i].event_id);
                         item->SubItems->Add(IntToHex(buff.event[i].event_data, 2));
