@@ -121,14 +121,19 @@ void MergeLog(TStrings * append_data, TStrings * log_data)
     }
     else
     {
-        String first_data = append_data->Strings[append_data->Count - 1];
         // 在log_data中查找
-        int index_of_first_data = -1;
-        for (int i=log_data->Count-1;i>=0;i--)
+        String first_data = append_data->Strings[append_data->Count - 1];
+        int index_of_first_data = log_data->IndexOf(first_data);
+
+        //  校验一下，是不是从 0 ~ index_of_first_data 都在 log_data里
+        for (int i=0;i<index_of_first_data;i++)
         {
-            if (log_data->Strings[i] == first_data)
+            String old_log_str = log_data->Strings[i];
+            if (append_data->IndexOf(old_log_str) == -1)
             {
-                index_of_first_data = i;
+                // 日志文件无法合并，直接追加
+                index_of_first_data = -1;
+                log_data->Insert(0, "日志文件无法合并");
                 break;
             }
         }
