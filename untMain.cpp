@@ -1232,7 +1232,7 @@ void __fastcall TForm1::FormCreate(TObject *Sender)
 
     // 上位机时间
     edtStartBuildTime->Text = " \t \t";
-    edtStartBuildTime->Text = edtStartBuildTime->Text + GetDateTimeFromMarco(compile_time).FormatString("yymmddhhnnss");
+    edtStartBuildTime->Text = edtStartBuildTime->Text + GetDateTimeFromMarco(compile_time).FormatString("yymmdd-hhnnss");
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::FormDestroy(TObject *Sender)
@@ -2261,14 +2261,14 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
 
             try
             {
-                edtStartBuildTime->Text = DateTime2Str(GetDateTimeFromMarco(global_config.start_build_time))+"'";
+                edtStartBuildTime->Text = DateTime2Str(GetDateTimeFromMarco(global_config.start_build_time));
             }
             catch(...)
             {
                 edtStartBuildTime->Text = global_config.start_build_time;
             }
-            edtStartBuildTime->Text = edtStartBuildTime->Text+"\t" + AppBuildTime2Str(global_config.build_time) + "'\t";
-            edtStartBuildTime->Text = edtStartBuildTime->Text + DateTime2Str(GetDateTimeFromMarco(compile_time))+"'";
+            edtStartBuildTime->Text = edtStartBuildTime->Text+"\t" + AppBuildTime2Str(global_config.build_time) + "\t";
+            edtStartBuildTime->Text = edtStartBuildTime->Text + DateTime2Str(GetDateTimeFromMarco(compile_time));
 
             //edtBuildTime->Text = global_config.build_time;
             edtDeviceName->Text = global_config.d1616_name;
