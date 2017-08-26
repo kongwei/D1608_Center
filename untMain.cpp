@@ -1666,23 +1666,26 @@ void __fastcall TForm1::tmSLPTimer(TObject *Sender)
     {
         for (int i=0;i<3;i++)
         {
-            try{
-                udpSLPList[i]->Active = true;
-                String ip = udpSLPList[i]->Bindings->Items[0]->IP;
-                T_slp_pack slp_pack = {0};
-
-                if (is_inner_pc)
-                    memcpy(slp_pack.ip, "ver", 3);
-                else
-                    memcpy(slp_pack.ip, "rep", 3);
-
-                slp_pack.mask = GetMaskOfIp(ip);
-
-                udpSLPList[i]->SendBuffer("255.255.255.255", UDP_PORT_SLP, &slp_pack, sizeof(slp_pack));
-            }
-            catch(...)
+            if (udpSLPList[i]->Bindings->Count == 1)
             {
-                //AppendLog("网络异常");
+                try{
+                    udpSLPList[i]->Active = true;
+                    String ip = udpSLPList[i]->Bindings->Items[0]->IP;
+                    T_slp_pack slp_pack = {0};
+
+                    if (is_inner_pc)
+                        memcpy(slp_pack.ip, "ver", 3);
+                    else
+                        memcpy(slp_pack.ip, "rep", 3);
+
+                    slp_pack.mask = GetMaskOfIp(ip);
+
+                    udpSLPList[i]->SendBuffer("255.255.255.255", UDP_PORT_SLP, &slp_pack, sizeof(slp_pack));
+                }
+                catch(...)
+                {
+                    //AppendLog("网络异常");
+                }
             }
         }
     }
@@ -5847,7 +5850,7 @@ void __fastcall TForm1::btnLoadFileToFlashClick(TObject *Sender)
             // 写入所有的preset数据
             for (int i=0;i<8;i++)
             {
-                if (smc_config.global_config.avaliable_preset[i] == 1)
+                //if (smc_config.global_config.avaliable_preset[i] == 1)
                 {
                     D1608PresetCmd preset_cmd(version);
                     preset_cmd.preset = 0x80+i+1;
