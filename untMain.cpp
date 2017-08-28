@@ -2419,7 +2419,6 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
         if (package_list.empty())
         {
             pbBackup->Position = pbBackup->Max;
-            ::Sleep(1000);
             pbBackup->Hide();
             this->Enabled = true;
 #if 0
@@ -2476,7 +2475,6 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
         if (package_list.empty())
         {
             pbBackup->Position = pbBackup->Max;
-            ::Sleep(1000);
             pbBackup->Hide();
             this->Enabled = true;
 
@@ -2499,7 +2497,6 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             file->WriteBuffer(&smc_config, sizeof(smc_config));
 
             pbBackup->Position = pbBackup->Max;
-            ::Sleep(1000);
             pbBackup->Hide();
             this->Enabled = true;
             delete file;
@@ -5962,7 +5959,6 @@ void __fastcall TForm1::tmDelayBackupTimer(TObject *Sender)
     {
         // 超时，终止本次同步
         package_list.clear();
-        ::Sleep(1000);
         pbBackup->Hide();
         this->Enabled = true;
     }
