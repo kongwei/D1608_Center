@@ -44,6 +44,7 @@ TForm1 *Form1;
 ConfigMap all_config_map[PRESET_NUM];
 ConfigMap config_map;
 GlobalConfig global_config = {0};
+static bool global_config_loaded = false;
 int REAL_INPUT_DSP_NUM = 16;
 int REAL_OUTPUT_DSP_NUM = 16;
 
@@ -151,116 +152,14 @@ CompConfig threshold_config = {-320, 0, 0, 10, 3};
 CompConfig attack_config = {1, 20000, 640, 10, 3};
 CompConfig release_config = {10, 50000, 10000, 10, 3};
 CompConfig gain_config = {0, 240, 0, 10, 3};
-#if 0
-// 版本配置表
-struct VersionFunction
+VersionFunction TForm1::GetVersionConfig()
 {
-    char name[100];
-    //48V
-    bool is_48v;
-    //增益切换
-    char gain_function[200];
-    //压缩
-    bool is_comp;
-    //进
-    int input_channel_count;
-    //出
-    int output_channel_count;
-    //电压检测
-    bool is_vote_check;
-    //有没有OLED
-    bool is_oled;
-    //DSP数量
-    int dsp_count;
-    //输入PEQ数
-    int input_peq_count;
-    //输出PEQ数
-    int output_peq_count;
-    //输入延时
-    int input_delay;
-    //输出延时
-    int output_delay;
-};
-#endif
-static VersionFunction version_function_list[] =
-{   //name   48v  压缩  I   O         电压   OLED   DSP  PEQ i   PEQ o     delay         gain  增益                                          
-    {"C4D",   0,  0,    4,  4,         0,       0,    0,  6,      6,       160, 160,  INPUT_GAIN_24dBu,                                                     OUTPUT_GAIN_24dBu                                        },
-    {"C4H",   0,  0,    4,  8,         0,       0,    0,  6,      6,       160, 160,  INPUT_GAIN_24dBu,                                                     OUTPUT_GAIN_24dBu                                        },
-    {"C4L",   0,  0,    4,  12,        0,       0,    0,  6,      6,       160, 160,  INPUT_GAIN_24dBu,                                                     OUTPUT_GAIN_24dBu                                        },
-    {"C4P",   0,  0,    4,  16,        0,       0,    0,  6,      6,       160, 160,  INPUT_GAIN_24dBu,                                                     OUTPUT_GAIN_24dBu                                        },
-    {"C8D",   0,  0,    8,  4,         0,       0,    0,  6,      6,       160, 160,  INPUT_GAIN_24dBu,                                                     OUTPUT_GAIN_24dBu                                        },
-    {"C8H",   0,  0,    8,  8,         0,       0,    0,  6,      6,       160, 160,  INPUT_GAIN_24dBu,                                                     OUTPUT_GAIN_24dBu                                        },
-    {"C8L",   0,  0,    8,  12,        0,       0,    0,  6,      6,       160, 160,  INPUT_GAIN_24dBu,                                                     OUTPUT_GAIN_24dBu                                        },
-    {"C8P",   0,  0,    8,  16,        0,       0,    0,  6,      6,       160, 160,  INPUT_GAIN_24dBu,                                                     OUTPUT_GAIN_24dBu                                        },
-    {"C12D",  0,  0,    12, 4,         0,       0,    0,  6,      6,       160, 160,  INPUT_GAIN_24dBu,                                                     OUTPUT_GAIN_24dBu                                        },
-    {"C12H",  0,  0,    12, 8,         0,       0,    0,  6,      6,       160, 160,  INPUT_GAIN_24dBu,                                                     OUTPUT_GAIN_24dBu                                        },
-    {"C12L",  0,  0,    12, 12,        0,       0,    0,  6,      6,       160, 160,  INPUT_GAIN_24dBu,                                                     OUTPUT_GAIN_24dBu                                        },
-    {"C12P",  0,  0,    12, 16,        0,       0,    0,  6,      6,       160, 160,  INPUT_GAIN_24dBu,                                                     OUTPUT_GAIN_24dBu                                        },
-    {"C16D",  0,  0,    16, 4,         0,       0,    0,  6,      6,       160, 160,  INPUT_GAIN_24dBu,                                                     OUTPUT_GAIN_24dBu                                        },
-    {"C16H",  0,  0,    16, 8,         0,       0,    0,  6,      6,       160, 160,  INPUT_GAIN_24dBu,                                                     OUTPUT_GAIN_24dBu                                        },
-    {"C16L",  0,  0,    16, 12,        0,       0,    0,  6,      6,       160, 160,  INPUT_GAIN_24dBu,                                                     OUTPUT_GAIN_24dBu                                        },
-    {"C16P",  0,  0,    16, 16,        0,       0,    0,  6,      6,       160, 160,  INPUT_GAIN_24dBu,                                                     OUTPUT_GAIN_24dBu                                        },
-    {"M4D",   0,  0,    4,  4,         0,       1,    0,  7,      7,       320, 320,  INPUT_GAIN_10dBv|INPUT_GAIN_24dBu,                                    OUTPUT_GAIN_10dBv|OUTPUT_GAIN_24dBu                      },
-    {"M4H",   0,  0,    4,  8,         0,       1,    0,  7,      7,       320, 320,  INPUT_GAIN_10dBv|INPUT_GAIN_24dBu,                                    OUTPUT_GAIN_10dBv|OUTPUT_GAIN_24dBu                      },
-    {"M4L",   0,  0,    4,  12,        0,       1,    0,  7,      7,       320, 320,  INPUT_GAIN_10dBv|INPUT_GAIN_24dBu,                                    OUTPUT_GAIN_10dBv|OUTPUT_GAIN_24dBu                      },
-    {"M4P",   0,  0,    4,  16,        0,       1,    0,  7,      7,       320, 320,  INPUT_GAIN_10dBv|INPUT_GAIN_24dBu,                                    OUTPUT_GAIN_10dBv|OUTPUT_GAIN_24dBu                      },
-    {"M8D",   0,  0,    8,  4,         0,       1,    0,  7,      7,       320, 320,  INPUT_GAIN_10dBv|INPUT_GAIN_24dBu,                                    OUTPUT_GAIN_10dBv|OUTPUT_GAIN_24dBu                      },
-    {"M8H",   0,  0,    8,  8,         0,       1,    0,  7,      7,       320, 320,  INPUT_GAIN_10dBv|INPUT_GAIN_24dBu,                                    OUTPUT_GAIN_10dBv|OUTPUT_GAIN_24dBu                      },
-    {"M8L",   0,  0,    8,  12,        0,       1,    0,  7,      7,       320, 320,  INPUT_GAIN_10dBv|INPUT_GAIN_24dBu,                                    OUTPUT_GAIN_10dBv|OUTPUT_GAIN_24dBu                      },
-    {"M8P",   0,  0,    8,  16,        0,       1,    0,  7,      7,       320, 320,  INPUT_GAIN_10dBv|INPUT_GAIN_24dBu,                                    OUTPUT_GAIN_10dBv|OUTPUT_GAIN_24dBu                      },
-    {"M12D",  0,  0,    12, 4,         0,       1,    0,  7,      7,       320, 320,  INPUT_GAIN_10dBv|INPUT_GAIN_24dBu,                                    OUTPUT_GAIN_10dBv|OUTPUT_GAIN_24dBu                      },
-    {"M12H",  0,  0,    12, 8,         0,       1,    0,  7,      7,       320, 320,  INPUT_GAIN_10dBv|INPUT_GAIN_24dBu,                                    OUTPUT_GAIN_10dBv|OUTPUT_GAIN_24dBu                      },
-    {"M12L",  0,  0,    12, 12,        0,       1,    0,  7,      7,       320, 320,  INPUT_GAIN_10dBv|INPUT_GAIN_24dBu,                                    OUTPUT_GAIN_10dBv|OUTPUT_GAIN_24dBu                      },
-    {"M12P",  0,  0,    12, 16,        0,       1,    0,  7,      7,       320, 320,  INPUT_GAIN_10dBv|INPUT_GAIN_24dBu,                                    OUTPUT_GAIN_10dBv|OUTPUT_GAIN_24dBu                      },
-    {"M16D",  0,  0,    16, 4,         0,       1,    0,  7,      7,       320, 320,  INPUT_GAIN_10dBv|INPUT_GAIN_24dBu,                                    OUTPUT_GAIN_10dBv|OUTPUT_GAIN_24dBu                      },
-    {"M16H",  0,  0,    16, 8,         0,       1,    0,  7,      7,       320, 320,  INPUT_GAIN_10dBv|INPUT_GAIN_24dBu,                                    OUTPUT_GAIN_10dBv|OUTPUT_GAIN_24dBu                      },
-    {"M16L",  0,  0,    16, 12,        0,       1,    0,  7,      7,       320, 320,  INPUT_GAIN_10dBv|INPUT_GAIN_24dBu,                                    OUTPUT_GAIN_10dBv|OUTPUT_GAIN_24dBu                      },
-    {"M16P",  0,  0,    16, 16,        0,       1,    0,  7,      7,       320, 320,  INPUT_GAIN_10dBv|INPUT_GAIN_24dBu,                                    OUTPUT_GAIN_10dBv|OUTPUT_GAIN_24dBu                      },
-    {"S4D",   1,  1,    4,  4,         1,       1,    0,  7,      7,       320, 320,  INPUT_GAIN_MIC|INPUT_GAIN_10dBv|INPUT_GAIN_22dBu|INPUT_GAIN_24dBu,    OUTPUT_GAIN_10dBv|OUTPUT_GAIN_22dBu|OUTPUT_GAIN_24dBu    },
-    {"S4H",   1,  1,    4,  8,         1,       1,    0,  7,      7,       320, 320,  INPUT_GAIN_MIC|INPUT_GAIN_10dBv|INPUT_GAIN_22dBu|INPUT_GAIN_24dBu,    OUTPUT_GAIN_10dBv|OUTPUT_GAIN_22dBu|OUTPUT_GAIN_24dBu    },
-    {"S4L",   1,  1,    4,  12,        1,       1,    0,  7,      7,       320, 320,  INPUT_GAIN_MIC|INPUT_GAIN_10dBv|INPUT_GAIN_22dBu|INPUT_GAIN_24dBu,    OUTPUT_GAIN_10dBv|OUTPUT_GAIN_22dBu|OUTPUT_GAIN_24dBu    },
-    {"S4P",   1,  1,    4,  16,        1,       1,    0,  7,      7,       320, 320,  INPUT_GAIN_MIC|INPUT_GAIN_10dBv|INPUT_GAIN_22dBu|INPUT_GAIN_24dBu,    OUTPUT_GAIN_10dBv|OUTPUT_GAIN_22dBu|OUTPUT_GAIN_24dBu    },
-    {"S8D",   1,  1,    8,  4,         1,       1,    0,  7,      7,       320, 320,  INPUT_GAIN_MIC|INPUT_GAIN_10dBv|INPUT_GAIN_22dBu|INPUT_GAIN_24dBu,    OUTPUT_GAIN_10dBv|OUTPUT_GAIN_22dBu|OUTPUT_GAIN_24dBu    },
-    {"S8H",   1,  1,    8,  8,         1,       1,    0,  7,      7,       320, 320,  INPUT_GAIN_MIC|INPUT_GAIN_10dBv|INPUT_GAIN_22dBu|INPUT_GAIN_24dBu,    OUTPUT_GAIN_10dBv|OUTPUT_GAIN_22dBu|OUTPUT_GAIN_24dBu    },
-    {"S8L",   1,  1,    8,  12,        1,       1,    0,  7,      7,       320, 320,  INPUT_GAIN_MIC|INPUT_GAIN_10dBv|INPUT_GAIN_22dBu|INPUT_GAIN_24dBu,    OUTPUT_GAIN_10dBv|OUTPUT_GAIN_22dBu|OUTPUT_GAIN_24dBu    },
-    {"S8P",   1,  1,    8,  16,        1,       1,    0,  7,      7,       320, 320,  INPUT_GAIN_MIC|INPUT_GAIN_10dBv|INPUT_GAIN_22dBu|INPUT_GAIN_24dBu,    OUTPUT_GAIN_10dBv|OUTPUT_GAIN_22dBu|OUTPUT_GAIN_24dBu    },
-    {"S12D",  1,  1,    12, 4,         1,       1,    0,  7,      7,       320, 320,  INPUT_GAIN_MIC|INPUT_GAIN_10dBv|INPUT_GAIN_22dBu|INPUT_GAIN_24dBu,    OUTPUT_GAIN_10dBv|OUTPUT_GAIN_22dBu|OUTPUT_GAIN_24dBu    },
-    {"S12H",  1,  1,    12, 8,         1,       1,    0,  7,      7,       320, 320,  INPUT_GAIN_MIC|INPUT_GAIN_10dBv|INPUT_GAIN_22dBu|INPUT_GAIN_24dBu,    OUTPUT_GAIN_10dBv|OUTPUT_GAIN_22dBu|OUTPUT_GAIN_24dBu    },
-    {"S12L",  1,  1,    12, 12,        1,       1,    0,  7,      7,       320, 320,  INPUT_GAIN_MIC|INPUT_GAIN_10dBv|INPUT_GAIN_22dBu|INPUT_GAIN_24dBu,    OUTPUT_GAIN_10dBv|OUTPUT_GAIN_22dBu|OUTPUT_GAIN_24dBu    },
-    {"S12P",  1,  1,    12, 16,        1,       1,    0,  7,      7,       320, 320,  INPUT_GAIN_MIC|INPUT_GAIN_10dBv|INPUT_GAIN_22dBu|INPUT_GAIN_24dBu,    OUTPUT_GAIN_10dBv|OUTPUT_GAIN_22dBu|OUTPUT_GAIN_24dBu    },
-    {"S16D",  1,  1,    16, 4,         1,       1,    0,  7,      7,       320, 320,  INPUT_GAIN_MIC|INPUT_GAIN_10dBv|INPUT_GAIN_22dBu|INPUT_GAIN_24dBu,    OUTPUT_GAIN_10dBv|OUTPUT_GAIN_22dBu|OUTPUT_GAIN_24dBu    },
-    {"S16H",  1,  1,    16, 8,         1,       1,    0,  7,      7,       320, 320,  INPUT_GAIN_MIC|INPUT_GAIN_10dBv|INPUT_GAIN_22dBu|INPUT_GAIN_24dBu,    OUTPUT_GAIN_10dBv|OUTPUT_GAIN_22dBu|OUTPUT_GAIN_24dBu    },
-    {"S16L",  1,  1,    16, 12,        1,       1,    0,  7,      7,       320, 320,  INPUT_GAIN_MIC|INPUT_GAIN_10dBv|INPUT_GAIN_22dBu|INPUT_GAIN_24dBu,    OUTPUT_GAIN_10dBv|OUTPUT_GAIN_22dBu|OUTPUT_GAIN_24dBu    },
-    {"S16P",  1,  1,    16, 16,        1,       1,    0,  7,      7,       320, 320,  INPUT_GAIN_MIC|INPUT_GAIN_10dBv|INPUT_GAIN_22dBu|INPUT_GAIN_24dBu,    OUTPUT_GAIN_10dBv|OUTPUT_GAIN_22dBu|OUTPUT_GAIN_24dBu    },
-    {"",      0,  1,    16, 16,        0,       0,    0,  7,      7,       320, 320,  INPUT_GAIN_MIC|INPUT_GAIN_10dBv|INPUT_GAIN_22dBu|INPUT_GAIN_24dBu,    OUTPUT_GAIN_10dBv|OUTPUT_GAIN_22dBu|OUTPUT_GAIN_24dBu    },
-};
-static VersionFunction GetVersionConfigByName(String name)
-{
-    int i=0;
-    while (String(version_function_list[i].name) != "")
+    if (global_config_loaded && String(global_config.version_function.name) == "")
     {
-        if (String(version_function_list[i].name) == name)
-            break;
-        i++;
+        ShowMessage("读取配置表失败");
+        keep_live_count = 5;
     }
-    return version_function_list[i];
-}
-
-static VersionFunction GetVersionConfig()
-{
-    if (global_config.version_function.name[0] != '\0')
-    {
-        return global_config.version_function;
-    }
-    else
-    {
-        char * device_type = global_config.device_type;
-        if (*device_type == '*')
-        {
-            device_type++;
-        }
-        return GetVersionConfigByName(device_type);
-    }
+    return global_config.version_function;
 }
 
 String Ration2String(double ratio)
@@ -1632,6 +1531,7 @@ void __fastcall TForm1::btnSelectClick(TObject *Sender)
     //cbWatch->Down = true;
 
     keep_live_count = 0;
+    global_config_loaded = false;
 
     last_device_id = selected->SubItems->Strings[6];
     // 记录在配置文件里
@@ -2254,6 +2154,9 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
         {
             // global_config
             memcpy(&global_config, preset_cmd.data, sizeof(global_config));
+
+            global_config_loaded = true;
+
             UpdateCaption();
 
             char * device_type;
@@ -2868,10 +2771,10 @@ void __fastcall TForm1::tmWatchTimer(TObject *Sender)
     SendCmd2(cmd);
 
     // 检测resize事件
-    if (nees_resize)
+    if (need_resize)
     {
         SetIOChannelNum();
-        nees_resize = false;
+        need_resize = false;
     }
 }
 //---------------------------------------------------------------------------
@@ -6271,7 +6174,7 @@ void __fastcall TForm1::Paste1Click(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TForm1::FormResize(TObject *Sender)
 {
-    nees_resize = true;
+    need_resize = true;
 }
 //---------------------------------------------------------------------------
 void TForm1::StartReadOnePackage(int preset_id)

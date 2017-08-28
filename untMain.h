@@ -883,7 +883,10 @@ private:
     void ShowLockConfigArea();
     void HideLockConfigArea();
 private:
-    bool nees_resize;
+    bool need_resize;
+
+    VersionFunction GetVersionConfig();
+
 };
 //---------------------------------------------------------------------------
 extern PACKAGE TForm1 *Form1;
