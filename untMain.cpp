@@ -580,6 +580,11 @@ __fastcall TForm1::TForm1(TComponent* Owner)
     default_vote_param._16va_up = 20;
     default_vote_param._16va_down = 3.32;
 
+    default_vote_param._8v_current = 0.27;
+    default_vote_param._48v_current = 0.5;
+    default_vote_param._16v_current = 0.5;
+    default_vote_param._x16v_current = 0.5;
+
     // 参数处理
     on_loading = true;
 
@@ -2481,10 +2486,10 @@ void TForm1::ProcessVote(short adc[ADC_NUM])
 
     lblDiff->Caption = calc_data._8vdc-calc_data._8va;
 
-    ValueListEditor2->Cells[1][18] = (int)((calc_data._8va - calc_data._8vac) / 0.27);
-    ValueListEditor2->Cells[1][19] = (calc_data._48va - calc_data._46vc) / 0.5;
-    ValueListEditor2->Cells[1][20] = (calc_data._16va - calc_data._16vac) / 0.5;
-    ValueListEditor2->Cells[1][21] = (calc_data._x16vac - calc_data._x16va) / 0.5;
+    ValueListEditor2->Cells[1][18] = (int)((calc_data._8va - calc_data._8vac) / default_vote_param._8v_current);
+    ValueListEditor2->Cells[1][19] = (calc_data._48va - calc_data._46vc) / default_vote_param._48v_current;
+    ValueListEditor2->Cells[1][20] = (calc_data._16va - calc_data._16vac) / default_vote_param._16v_current;
+    ValueListEditor2->Cells[1][21] = (calc_data._x16vac - calc_data._x16va) / default_vote_param._x16v_current;
 
     //====================================================================
     lbl2_5V->Caption = String::FormatFloat("0.00 ", calc_data._2_5v / 100.0);
@@ -2534,17 +2539,17 @@ void TForm1::ProcessVote(short adc[ADC_NUM])
 
     //====================================================================
     lbl2_5mA->Caption = "-- ";
-    lbl3_3mA->Caption = IntOrZeroSring((int)((calc_data._8va - calc_data._8vdc) / 0.27 * 0.1)) + " ";   //8Vd * 0.10
-    lbl3_3mAd->Caption = IntOrZeroSring((int)((calc_data._8va - calc_data._8vdc) / 0.27 * 0.85)) + " "; //8Vd * 0.85
-    lbl5mAa->Caption = IntOrZeroSring((int)((calc_data._8va - calc_data._8vac) / 0.27)) + " ";          // 8Va
-    lbl5mAd->Caption = IntOrZeroSring((int)((calc_data._8va - calc_data._8vdc) / 0.27 * 0.05)) + " ";   // 8Vd * 0.05
-    lbl8mAa->Caption = IntOrZeroSring((int)((calc_data._8va - calc_data._8vac) / 0.27)) + " ";
-    lbl8mAd->Caption = IntOrZeroSring((int)((calc_data._8va - calc_data._8vdc) / 0.27)) + " ";
-    lbl12mAa->Caption = IntOrZeroSring((calc_data._16vac - calc_data._16va) / 0.5) + " ";               // 16Va
-    lbl_12mAa->Caption = IntOrZeroSring((calc_data._x16va - calc_data._x16vac) / 0.5) + " ";            // -16Va
-    lbl16mAa->Caption = IntOrZeroSring((calc_data._16vac - calc_data._16va) / 0.5) + " ";
-    lbl_16mAa->Caption = IntOrZeroSring((calc_data._x16va - calc_data._x16vac) / 0.5) + " ";
-    lbl46mAa->Caption = IntOrZeroSring((calc_data._48va - calc_data._46vc) / 0.5) + " ";
+    lbl3_3mA->Caption = IntOrZeroSring((int)((calc_data._8va - calc_data._8vdc) / default_vote_param._8v_current * 0.1)) + " ";   //8Vd * 0.10
+    lbl3_3mAd->Caption = IntOrZeroSring((int)((calc_data._8va - calc_data._8vdc) / default_vote_param._8v_current * 0.85)) + " "; //8Vd * 0.85
+    lbl5mAa->Caption = IntOrZeroSring((int)((calc_data._8va - calc_data._8vac) / default_vote_param._8v_current)) + " ";          // 8Va
+    lbl5mAd->Caption = IntOrZeroSring((int)((calc_data._8va - calc_data._8vdc) / default_vote_param._8v_current * 0.05)) + " ";   // 8Vd * 0.05
+    lbl8mAa->Caption = IntOrZeroSring((int)((calc_data._8va - calc_data._8vac) / default_vote_param._8v_current)) + " ";
+    lbl8mAd->Caption = IntOrZeroSring((int)((calc_data._8va - calc_data._8vdc) / default_vote_param._8v_current)) + " ";
+    lbl12mAa->Caption = IntOrZeroSring((calc_data._16vac - calc_data._16va) / default_vote_param._16v_current) + " ";               // 16Va
+    lbl_12mAa->Caption = IntOrZeroSring((calc_data._x16va - calc_data._x16vac) / default_vote_param._x16v_current) + " ";            // -16Va
+    lbl16mAa->Caption = IntOrZeroSring((calc_data._16vac - calc_data._16va) / default_vote_param._16v_current) + " ";
+    lbl_16mAa->Caption = IntOrZeroSring((calc_data._x16va - calc_data._x16vac) / default_vote_param._x16v_current) + " ";
+    lbl46mAa->Caption = IntOrZeroSring((calc_data._48va - calc_data._46vc) / default_vote_param._48v_current) + " ";
 }
 //---------------------------------------------------------------------------
 bool TForm1::ProcessSendCmdAck(D1608Cmd& cmd, TStream *AData, TIdSocketHandle *ABinding)
