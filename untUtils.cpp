@@ -112,6 +112,33 @@ String AppBuildTime2Str(String app_build_time)
 }
 
 //--------------------------------------
+static String GetLogWithoutTime(String log)
+{
+    TStrings * tmpStr = new TStringList();
+    tmpStr->Delimiter = '\t';
+    tmpStr->DelimitedText = log;
+
+    if (tmpStr->Count > 3)
+    {
+        log = tmpStr->Strings[0] + "\t" + tmpStr->Strings[1] + "\t" + tmpStr->Strings[2];
+    }
+
+    delete tmpStr;
+
+    return log;
+}
+static int FindLogStr(TStrings * log, String str)
+{
+    for (int i=0;i<log->Count;i++)
+    {
+        String log_str = GetLogWithoutTime(log->Strings[i]);
+        str = GetLogWithoutTime(str);
+        if (log_str == str)
+            return i;
+    }
+
+    return -1;
+}
 // Log File Utils
 void MergeLog(TStrings * append_data, TStrings * log_data)
 {
@@ -123,13 +150,13 @@ void MergeLog(TStrings * append_data, TStrings * log_data)
     {
         // 在log_data中查找
         String first_data = append_data->Strings[append_data->Count - 1];
-        int index_of_first_data = log_data->IndexOf(first_data);
+        int index_of_first_data = FindLogStr(log_data, first_data);
 
         //  校验一下，是不是从 0 ~ index_of_first_data 都在 log_data里
         for (int i=0;i<index_of_first_data;i++)
         {
             String old_log_str = log_data->Strings[i];
-            if (append_data->IndexOf(old_log_str) == -1)
+            if (FindLogStr(append_data, old_log_str) == -1)
             {
                 // 日志文件无法合并，直接追加
                 index_of_first_data = -1;
