@@ -1877,7 +1877,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
         }
         else if (cmd.id == GetOffsetOfData(&config_map.op_code.noop))
         {
-            ProcessWatchLevel(cmd.data.keep_alive.watch_level);
+            ProcessWatchLevel(cmd.data.keep_alive.watch_level, cmd.data.keep_alive.watch_level_comp);
             ProcessVote(cmd.data.keep_alive.adc);
             ProcessKeepAlive(cmd.data.keep_alive.switch_preset, cmd.data.keep_alive.set_time);
 
@@ -2776,7 +2776,7 @@ bool TForm1::ProcessLogBuffAck(LogBuff& buff, TStream *AData, TIdSocketHandle *A
     return true;
 }
 //---------------------------------------------------------------------------
-void TForm1::ProcessWatchLevel(int watch_level[INPUT_DSP_NUM + OUTPUT_DSP_NUM])
+void TForm1::ProcessWatchLevel(int watch_level[INPUT_DSP_NUM + OUTPUT_DSP_NUM], int watch_level_comp[OUTPUT_DSP_NUM])
 {
     for (int i=0;i<INPUT_DSP_NUM+OUTPUT_DSP_NUM;i++)
     {
@@ -2791,17 +2791,17 @@ void TForm1::ProcessWatchLevel(int watch_level[INPUT_DSP_NUM + OUTPUT_DSP_NUM])
                 double valuex = log10(value);
                 double base = log10(0x00FFFFFF);
 
-                if (i < 16)
+                if (i < 16) // Input
                 {
                     UpdateWatchLevel(i, (valuex - base) * 20 + 1 + 24);
                 }
-                else
+                else // Output
                 {
                     UpdateWatchLevel(i,
                         (valuex - base) * 20 + 1 + 24,
                         -100);
-#if 0
-                    int comp_level = watch_level[i+16];
+
+                    int comp_level = watch_level_comp[i-16];
                     if (comp_level == -100)
                     {
                         UpdateWatchLevel(i,
@@ -2821,7 +2821,6 @@ void TForm1::ProcessWatchLevel(int watch_level[INPUT_DSP_NUM + OUTPUT_DSP_NUM])
                             (valuex - base) * 20 + 1 + 24,
                             (comp_valuex - base) * 20 + 1 + 24);
                     }
-#endif
                 }
 
             }

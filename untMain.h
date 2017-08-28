@@ -808,7 +808,7 @@ private:
     void CalcAllVote(ADC_Data & adc_data);
     void ProcessKeepAlive(int preset_id, long timer);
     void ProcessVote(short adc[ADC_NUM]);
-    void ProcessWatchLevel(int watch_level[INPUT_DSP_NUM + OUTPUT_DSP_NUM]);
+    void ProcessWatchLevel(int watch_level[INPUT_DSP_NUM + OUTPUT_DSP_NUM], int watch_level_comp[OUTPUT_DSP_NUM]);
 private:
     void UpdateWatchLevel(int i, int value, int comp_value=-100)
     {
