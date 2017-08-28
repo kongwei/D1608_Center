@@ -2256,11 +2256,16 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             memcpy(&global_config, preset_cmd.data, sizeof(global_config));
             UpdateCaption();
 
-            char * device_type = global_config.device_type;
+            char * device_type;
             if (global_config.device_type[0] == '*')
             {
                 edtDeviceType->Color = clRed;
                 device_type = global_config.device_type+1;
+            }
+            else
+            {
+                edtDeviceType->Color = clWindow;
+                device_type = global_config.device_type;
             }
             
             // 显示版本信息
