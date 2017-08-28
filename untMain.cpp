@@ -2514,7 +2514,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
 void TForm1::CalcAllVote(ADC_Data & adc_data)
 {
     VoteParam vote_param;
-    if (global_config.vote_param._5vd_up != 0)
+    if (global_config.vote_param._5vd_up != 0 && !IsNan(global_config.vote_param._5vd_up))
         vote_param = global_config.vote_param;
     else
         vote_param = default_vote_param;
