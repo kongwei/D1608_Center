@@ -4358,6 +4358,12 @@ void __fastcall TForm1::btnSetIpClick(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TForm1::btnGetLogClick(TObject *Sender)
 {
+    if (!udpControl->Active)
+    {
+        ShowMessage("未联机，无法获取日志");
+        return;
+    }
+
     // 最后一包一定是MAC地址，所以实在MAC处理的时候恢复这个Enabled
     btnGetLog->Enabled = false;
     lvLog->Clear();
