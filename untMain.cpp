@@ -6143,7 +6143,7 @@ void __fastcall TForm1::PopupMenu3Popup(TObject *Sender)
     }
 
     Paste1->Enabled = (selected_channel.channel_type != ctNone)
-                   && (selected_channel.channel_type == copied_channel.channel_type)
+                   //&& (selected_channel.channel_type == copied_channel.channel_type)
                    && (selected_channel.channel_id != copied_channel.channel_id);
 }
 //---------------------------------------------------------------------------
@@ -6154,26 +6154,89 @@ void __fastcall TForm1::Copy1Click(TObject *Sender)
     selected_channel.channel_id = 0;
 }
 //---------------------------------------------------------------------------
+static void CloneChannelData(InputConfigMap &dest, InputConfigMap &src)
+{
+    dest = src;
+}
+static void CloneChannelData(OutputConfigMap &dest, OutputConfigMap &src)
+{
+    dest = src;
+}
+static void CloneChannelData(InputConfigMap &dest, OutputConfigMap &src)
+{
+    dest.eq_switch        = src.eq_switch      ;
+    dest.comp_switch      = src.comp_switch    ;
+    //dest.auto_switch    =                    ;
+    dest.invert_switch    = src.invert_switch  ;
+    //dest.noise_switch   =                    ;
+    dest.mute_switch      = src.mute_switch    ;
+    //dest.phantom_switch =                    ;
+    dest.level_a          = src.level_a        ;
+    dest.level_b          = src.level_b        ;
+    dest.gain             = src.gain           ;
+    dest.delay            = src.delay          ;
+    memcpy(dest.filter, src.filter, sizeof(dest.filter));
+    dest.dsp_name[7]      = src.dsp_name[7]    ;
+    //                    = src.ratio          ;
+    //                    = src.threshold      ;
+    //                    = src.attack_time    ;
+    //                    = src.release_time   ;
+    //                    = src.comp_gain      ;
+    //                    = src.auto_time      ;
+}
+static void CloneChannelData(OutputConfigMap &dest, InputConfigMap &src)
+{
+    dest.eq_switch        = src.eq_switch      ;
+    dest.comp_switch      = src.comp_switch    ;
+    //dest.auto_switch    =                    ;
+    dest.invert_switch    = src.invert_switch  ;
+    //dest.noise_switch   =                    ;
+    dest.mute_switch      = src.mute_switch    ;
+    //dest.phantom_switch =                    ;
+    dest.level_a          = src.level_a        ;
+    dest.level_b          = src.level_b        ;
+    dest.gain             = src.gain           ;
+    dest.delay            = src.delay          ;
+    memcpy(dest.filter, src.filter, sizeof(dest.filter));
+    dest.dsp_name[7]      = src.dsp_name[7]    ;
+    //                    = src.ratio          ;
+    //                    = src.threshold      ;
+    //                    = src.attack_time    ;
+    //                    = src.release_time   ;
+    //                    = src.comp_gain      ;
+    //                    = src.auto_time      ;
+}
 void __fastcall TForm1::Paste1Click(TObject *Sender)
 {
     Paste1->Enabled = (selected_channel.channel_type != ctNone)
-                   && (selected_channel.channel_type == copied_channel.channel_type)
+                   //&& (selected_channel.channel_type == copied_channel.channel_type)
                    && (selected_channel.channel_id != copied_channel.channel_id);
 
     // 考虑做成界面运动
     if (Paste1->Enabled)
     {
         ShowMessage("Copy channel "+IntToStr(copied_channel.channel_id)+" to channel "+IntToStr(selected_channel.channel_id));
+
+        // 需要根据输入和输出的状态进行区别处理
         if (selected_channel.channel_type == ctInput)
         {
-            config_map.input_dsp[selected_channel.channel_id-1] = config_map.input_dsp[copied_channel.channel_id-1];
-            ApplyConfigToUI();
+            if (copied_channel.channel_type == ctInput)
+                CloneChannelData(config_map.input_dsp[selected_channel.channel_id-1],
+                                 config_map.input_dsp[copied_channel.channel_id-1]);
+            else if (copied_channel.channel_type == ctOutput)
+                CloneChannelData(config_map.input_dsp[selected_channel.channel_id-1],
+                                 config_map.output_dsp[copied_channel.channel_id-1]);
         }
         else if (selected_channel.channel_type == ctOutput)
         {
-            config_map.output_dsp[selected_channel.channel_id-1] = config_map.output_dsp[copied_channel.channel_id-1];
-            ApplyConfigToUI();
+            if (copied_channel.channel_type == ctInput)
+                CloneChannelData(config_map.output_dsp[selected_channel.channel_id-1],
+                                 config_map.input_dsp[copied_channel.channel_id-1]);
+            else if (copied_channel.channel_type == ctOutput)
+                CloneChannelData(config_map.output_dsp[selected_channel.channel_id-1],
+                                 config_map.output_dsp[copied_channel.channel_id-1]);
         }
+        ApplyConfigToUI();
     }
 }
 //---------------------------------------------------------------------------
