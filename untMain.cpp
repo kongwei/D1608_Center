@@ -5752,15 +5752,6 @@ void __fastcall TForm1::btnLoadFileToFlashClick(TObject *Sender)
             // 联机
             // Download To Device
             // 准备好所有报文
-
-            {
-                // 加密区数据 #define SN_START_PAGE (0x0803E800)
-                // device_flash_dump 对应地址为： PRESET_START_PAGE
-                // active_code_length = 20
-                T_leave_factory_pack *leave_factory_pack = (T_leave_factory_pack*)(smc_config.device_flash_dump+ SN_START_PAGE - PRESET_START_PAGE + 20);
-                udpControl->SendBuffer(dst_ip, 889, leave_factory_pack, sizeof(T_leave_factory_pack));
-            }
-
             //  global_config数据
             {
                 D1608PresetCmd preset_cmd(version);
