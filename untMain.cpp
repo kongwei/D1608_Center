@@ -6223,7 +6223,7 @@ static void CloneChannelData(InputConfigMap &dest, OutputConfigMap &src)
     dest.gain             = src.gain           ;
     dest.delay            = src.delay          ;
     memcpy(dest.filter, src.filter, sizeof(dest.filter));
-    dest.dsp_name[7]      = src.dsp_name[7]    ;
+    memcpy(dest.dsp_name, src.dsp_name, sizeof(dest.dsp_name));
     //                    = src.ratio          ;
     //                    = src.threshold      ;
     //                    = src.attack_time    ;
@@ -6245,7 +6245,7 @@ static void CloneChannelData(OutputConfigMap &dest, InputConfigMap &src)
     dest.gain             = src.gain           ;
     dest.delay            = src.delay          ;
     memcpy(dest.filter, src.filter, sizeof(dest.filter));
-    dest.dsp_name[7]      = src.dsp_name[7]    ;
+    memcpy(dest.dsp_name, src.dsp_name, sizeof(dest.dsp_name));
     //                    = src.ratio          ;
     //                    = src.threshold      ;
     //                    = src.attack_time    ;
