@@ -1601,6 +1601,8 @@ void __fastcall TForm1::btnSelectClick(TObject *Sender)
     DeviceData * data = (DeviceData*)selected->Data;
     lblVersion->Caption = VersionToStr(data->data.version)+ " " +VersionToStr(version);
     lblDeviceInfo->Caption = "VERSION " + VersionToStr(data->data.version);
+
+    btnGetLog->Enabled = true;
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::tmSLPTimer(TObject *Sender)
@@ -2038,8 +2040,11 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
                         item->SubItems->Add(IntToHex(buff.event[i].event_data, 6));
                         break;
                     case EVENT_ADDA_ERROR:
-                        item->SubItems->Add("AD/DA数量与配置不符");
-                        item->SubItems->Add("AD:"+IntToStr(buff.event[i].event_data/32)+"/DA:"+IntToStr(buff.event[i].event_data%32));
+                        if (buff.event[i].event_data > 32)
+                            item->SubItems->Add("AD数量与配置不符");
+                        else
+                            item->SubItems->Add("DA数量与配置不符");
+                        item->SubItems->Add("现有数量："+IntToStr(buff.event[i].event_data%32));
                         break;
                     case EVENT_TIME_1:
                         time1 = buff.event[i].event_data;
