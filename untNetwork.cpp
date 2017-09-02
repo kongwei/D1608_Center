@@ -3,6 +3,7 @@
 
 #pragma hdrstop
 
+#include <winsock2.h>
 #include "untNetwork.h"
 #include <Dialogs.hpp>
 #include <iostream>
@@ -17,35 +18,35 @@ String ParseData(PIP_ADAPTER_INFO pinfo);
 
 String GetMacList()
 {
-    PIP_ADAPTER_INFO pinfo;
+    IP_ADAPTER_INFO ip_info = {0};
     unsigned long len = 0;
-    unsigned  long nError;
+    DWORD nError = GetAdaptersInfo(NULL, &len);
     String result;
-    nError = GetAdaptersInfo(pinfo, &len);
     if (nError==0)
     {
-        result = ParseData(pinfo);
+        result = ParseData(&ip_info);
     }
-    if (nError==ERROR_NO_DATA)
+    else if (nError==ERROR_NO_DATA)
     {
-        ShowMessage("没有网络设备信息");
+        return "";
     }
-    if (nError==ERROR_NOT_SUPPORTED)
+    else if (nError==ERROR_NOT_SUPPORTED)
     {
-        ShowMessage("GetAdaptersInfo不支持本系统");
+        return "";
     }
-    if (nError==ERROR_BUFFER_OVERFLOW)
+    else if (nError==ERROR_BUFFER_OVERFLOW)
     {
+        PIP_ADAPTER_INFO pinfo;
         pinfo = (PIP_ADAPTER_INFO)malloc(len);
         nError = GetAdaptersInfo(pinfo,&len);
         if (nError==0)
         {
             result = ParseData(pinfo);            
         }
+        
+        if (pinfo!=NULL)
+            free(pinfo);
     }
-
-    if (pinfo!=NULL)
-        free(pinfo);
 
     return result;
 }

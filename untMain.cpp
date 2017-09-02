@@ -26,6 +26,8 @@
 
 #define PANEL_WIDTH 48
 
+#define DEFAULT_MASK 0x00FFFFFF
+
 const String compile_time = __DATE__ " " __TIME__;
 
 static String GetTime()
@@ -190,7 +192,7 @@ static int SetBit(int old_value, int bit, bool is_set)
 }
 //---------------------------------------------------------------------------
 //多网卡 将IP地址写入到列表 WinSock
-void GetLocalIpList(vector<IpInfo> & ip_info)
+void GetLocalIpListEx(vector<IpInfo> & ip_info)
 {
     ip_info.clear();
 
@@ -231,7 +233,43 @@ void GetLocalIpList(vector<IpInfo> & ip_info)
     }
 }
 
-#define DEFAULT_MASK 0x00FFFFFF
+void GetLocalIpList(vector<IpInfo> & ip_info)
+{
+    ip_info.clear();
+
+    try
+    {
+        char HostName[MAX_PATH + 1] = {0};
+        int NameLen = gethostname(HostName, MAX_PATH);
+        if (NameLen == SOCKET_ERROR)
+        {
+            return;
+        }
+        
+        hostent * lpHostEnt = gethostbyname(HostName);
+
+        if (lpHostEnt == NULL)
+        {
+            return;
+        }
+
+        int i = 0;
+        char * * pPtr = lpHostEnt->h_addr_list;
+        
+        while (pPtr[i] != NULL)
+        {
+            IpInfo ip;
+            ip.ip = inet_ntoa(*(in_addr*)pPtr[i]);
+            ip.mask = DEFAULT_MASK;
+            ip_info.push_back(ip);
+            i++;
+        }
+    }
+    __finally
+    {
+    }
+}
+
 DWORD GetMaskOfIp(String ip)
 {
     for (UINT i=0;i<ip_info.size();i++)
@@ -1045,7 +1083,7 @@ void __fastcall TForm1::FormCreate(TObject *Sender)
         btnLeaveTheFactory->Show();
         cbLedTest->Show();
     }
-     
+
     pnlOperator->Show();
 
     SetWindowLong(edtPreset->Handle, GWL_STYLE, GetWindowLong(edtPreset->Handle, GWL_STYLE) | ES_CENTER);
@@ -1060,7 +1098,6 @@ void __fastcall TForm1::FormCreate(TObject *Sender)
     if (hFontInstalled == NULL)
     {
     }
-
 
     // 输出结构体大小
     memo_debug->Lines->Add(GetTime()+"InputConfigMap:" + IntToStr(sizeof(InputConfigMap)));
@@ -1309,7 +1346,11 @@ void __fastcall TForm1::btnRefreshClick(TObject *Sender)
         }
     }
 
-    GetLocalIpList(ip_info);
+    GetLocalIpListEx(ip_info);
+    if (ip_info.empty())
+    {
+        GetLocalIpList(ip_info);
+    }
 
 
     
