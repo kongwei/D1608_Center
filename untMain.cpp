@@ -1788,9 +1788,10 @@ int CalcVot1(unsigned __int16 true_data1, float rdown, float r_up)
 {
     return true_data1 * (rdown+r_up) / rdown / 10;
 }
-int CalcVot2(unsigned __int16 true_data1, unsigned __int16 true_data2, float r2_down, float r2_up, float r1_up, float r1_down)
+int CalcVot2(unsigned __int16 v, unsigned __int16 x_true_data, float rx_up, float rx_down)
 {
-    return ((true_data2 * (r1_up+r1_down) / r1_up) - (true_data1 * (r1_down/r1_up) * (r2_down+r2_up) / r2_down))  / 10;
+    float xv = x_true_data - (v - x_true_data) * rx_down / rx_up;
+    return xv / 10;
 } 
 String IntOrZeroSring(int value)
 {
@@ -2492,9 +2493,10 @@ void TForm1::CalcAllVote(ADC_Data & adc_data)
     adc_data._12va  = CalcVot1(adc_data._12va , vote_param._12va_down,   vote_param._12va_up);
     adc_data._16va  = CalcVot1(adc_data._16va , vote_param._16va_down,   vote_param._16va_up);
     adc_data._16vac = CalcVot1(adc_data._16vac, vote_param._16vac_down,  vote_param._16vac_up);
-    adc_data._x16vac= CalcVot2(adc_data._16vac, adc_data._x16vac, vote_param._16vac_down,  vote_param._16vac_up, vote_param._x16vac_up, vote_param._x16vac_down);
-    adc_data._x16va = CalcVot2(adc_data._16va , adc_data._x16va , vote_param._16va_down,   vote_param._16va_up,  vote_param._x16va_up,  vote_param._x16va_down);
-    adc_data._x12va = CalcVot2(adc_data._12va , adc_data._x12va , vote_param._12va_down,   vote_param._12va_up,  vote_param._x12va_up,  vote_param._x12va_down);
+
+    adc_data._x16vac= CalcVot2(adc_data._16vac*10, adc_data._x16vac, vote_param._x16vac_up, vote_param._x16vac_down);
+    adc_data._x16va = CalcVot2(adc_data._16va*10 , adc_data._x16va , vote_param._x16va_up,  vote_param._x16va_down);
+    adc_data._x12va = CalcVot2(adc_data._12va*10 , adc_data._x12va , vote_param._x12va_up,  vote_param._x12va_down);
 }
 void TForm1::ProcessVote(short adc[ADC_NUM])
 {
