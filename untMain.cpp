@@ -1174,6 +1174,9 @@ void __fastcall TForm1::FormCreate(TObject *Sender)
     // 上位机时间
     edtStartBuildTime->Text = " \t \t";
     edtStartBuildTime->Text = edtStartBuildTime->Text + DateTime2Str(GetDateTimeFromMarco(compile_time));
+
+    // 版本号
+    lblVersion->Caption = "-------- " +VersionToStr(version);
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::FormDestroy(TObject *Sender)
