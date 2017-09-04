@@ -139,9 +139,46 @@ static int FindLogStr(TStrings * log, String str)
 
     return -1;
 }
+static void DeleteMac(TStrings * log_data)
+{
+    TStrings * tmp = new TStringList();
+    for (int i=0;i<log_data->Count;i++)
+    {
+        if (log_data->Strings[i][1] == '\t')
+        {
+        }
+        else
+        {
+            tmp->Add(log_data->Strings[i]);
+        }
+    }
+    log_data->Clear();
+    log_data->AddStrings(tmp);
+
+    delete tmp;
+}
+static void DeleteLog(TStrings * log_data)
+{
+    TStrings * tmp = new TStringList();
+    for (int i=0;i<log_data->Count;i++)
+    {
+        if (log_data->Strings[i][1] == '\t')
+        {
+            tmp->Add(log_data->Strings[i]);
+        }
+        else
+        {
+        }
+    }
+    log_data->Clear();
+    log_data->AddStrings(tmp);
+
+    delete tmp;
+}
 // Log File Utils
 void MergeLog(TStrings * append_data, TStrings * log_data)
 {
+    DeleteMac(log_data);
     if (append_data->Count == 0)
     {
         append_data->AddStrings(log_data);
@@ -171,5 +208,25 @@ void MergeLog(TStrings * append_data, TStrings * log_data)
         }
     }
 }
-
+// Log File Utils
+void MergeMac(TStrings * append_data, TStrings * log_data)
+{
+    DeleteLog(log_data);
+    if (append_data->Count == 0)
+    {
+        append_data->AddStrings(log_data);
+    }
+    else
+    {
+        //  校验一下，是不是从 0 ~ index_of_first_data 都在 log_data里
+        for (int i=0;i<log_data->Count;i++)
+        {
+            String old_log_str = log_data->Strings[i];
+            if (append_data->IndexOf(old_log_str) == -1)
+            {
+                log_data->Add(old_log_str);
+            }
+        }
+    }
+}
 

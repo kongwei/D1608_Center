@@ -6074,6 +6074,7 @@ void __fastcall TForm1::tmDelaySendCmdTimer(TObject *Sender)
 void __fastcall TForm1::btnSaveLogClick(TObject *Sender)
 {
     TStrings * log_strs = new TStringList();
+    TStrings * mac_strs = new TStringList();
 
     for (int i=0;i<lvLog->Items->Count;i++)
     {
@@ -6088,20 +6089,37 @@ void __fastcall TForm1::btnSaveLogClick(TObject *Sender)
             }
             log_strs->Add(line);
         }
+        else
+        {
+            String line = "\t"+lvLog->Items->Item[i]->SubItems->Strings[0]+"\t"+lvLog->Items->Item[i]->SubItems->Strings[1];
+            mac_strs->Add(line);
+        }
     }
+
     String path = ExtractFilePath(Application->ExeName);
 
     // 合并日志
     if (FileExists(path+device_cpuid+".log"))
     {
+        // 合并日志
         TStrings * log_data = new TStringList();
         log_data->LoadFromFile(path+device_cpuid+".log");
         MergeLog(log_strs, log_data);
         delete log_data;
+
+        // 合并mac
+        TStrings * mac_data = new TStringList();
+        mac_data->LoadFromFile(path+device_cpuid+".log");
+        MergeMac(mac_strs, mac_data);
+        delete mac_data;
     }
+
+    log_strs->AddStrings(mac_strs);
+
     log_strs->SaveToFile(path+device_cpuid+".log");
 
     delete log_strs;
+    delete mac_strs;
 }
 //---------------------------------------------------------------------------
 
