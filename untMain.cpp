@@ -1631,6 +1631,9 @@ void __fastcall TForm1::tmSLPTimer(TObject *Sender)
 
                     slp_pack.mask = GetMaskOfIp(ip);
 
+                    slp_pack.led_debug = cbLanDebugLed->Checked;
+                    //slp_pack.oled_debug = cbLanDebugOled->Checked;
+
                     udpSLPList[i]->SendBuffer("255.255.255.255", UDP_PORT_SLP, &slp_pack, sizeof(slp_pack));
                 }
                 catch(...)

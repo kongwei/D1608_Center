@@ -546,6 +546,8 @@ __published:	// IDE-managed Components
     TIdUDPServer *udpSLP1;
     TIdUDPServer *udpSLP2;
     TLabel *lblLogCount;
+    TCheckBox *cbLanDebugLed;
+    TCheckBox *cbLanDebugOled;
     void __fastcall FormCreate(TObject *Sender);
     void __fastcall FormDestroy(TObject *Sender);
     void __fastcall btnRefreshClick(TObject *Sender);
