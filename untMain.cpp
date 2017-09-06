@@ -2600,17 +2600,17 @@ void TForm1::ProcessVote(short adc[ADC_NUM])
 
     //====================================================================
     lbl2_5mA->Caption = "-- ";
-    lbl3_3mA->Caption = IntOrZeroSring((int)((calc_data._8va - calc_data._8vdc) / default_vote_param._8v_current * 0.1)) + " ";   //8Vd * 0.10
-    lbl3_3mAd->Caption = IntOrZeroSring((int)((calc_data._8va - calc_data._8vdc) / default_vote_param._8v_current * 0.85)) + " "; //8Vd * 0.85
-    lbl5mAa->Caption = IntOrZeroSring((int)((calc_data._8va - calc_data._8vac) / default_vote_param._8v_current)) + " ";          // 8Va
-    lbl5mAd->Caption = IntOrZeroSring((int)((calc_data._8va - calc_data._8vdc) / default_vote_param._8v_current * 0.05)) + " ";   // 8Vd * 0.05
-    lbl8mAa->Caption = IntOrZeroSring((int)((calc_data._8va - calc_data._8vac) / default_vote_param._8v_current)) + " ";
-    lbl8mAd->Caption = IntOrZeroSring((int)((calc_data._8va - calc_data._8vdc) / default_vote_param._8v_current)) + " ";
-    lbl12mAa->Caption = IntOrZeroSring((calc_data._16vac - calc_data._16va) / default_vote_param._16v_current) + " ";               // 16Va
-    lbl_12mAa->Caption = IntOrZeroSring((calc_data._x16va - calc_data._x16vac) / default_vote_param._x16v_current) + " ";            // -16Va
-    lbl16mAa->Caption = IntOrZeroSring((calc_data._16vac - calc_data._16va) / default_vote_param._16v_current) + " ";
-    lbl_16mAa->Caption = IntOrZeroSring((calc_data._x16va - calc_data._x16vac) / default_vote_param._x16v_current) + " ";
-    lbl46mAa->Caption = IntOrZeroSring((calc_data._48va - calc_data._46vc) / default_vote_param._48v_current) + " ";
+    lbl3_3mA->Caption = IntOrZeroSring((int)((calc_data._8va - calc_data._8vdc) / default_vote_param._8v_current * 0.1 * 10.0)) + " ";   //8Vd * 0.10
+    lbl3_3mAd->Caption = IntOrZeroSring((int)((calc_data._8va - calc_data._8vdc) / default_vote_param._8v_current * 0.85 * 10.0)) + " "; //8Vd * 0.85
+    lbl5mAa->Caption = IntOrZeroSring((int)((calc_data._8va - calc_data._8vac) / default_vote_param._8v_current * 10.0)) + " ";          // 8Va
+    lbl5mAd->Caption = IntOrZeroSring((int)((calc_data._8va - calc_data._8vdc) / default_vote_param._8v_current * 0.05 * 10.0)) + " ";   // 8Vd * 0.05
+    lbl8mAa->Caption = IntOrZeroSring((int)((calc_data._8va - calc_data._8vac) / default_vote_param._8v_current * 10.0)) + " ";
+    lbl8mAd->Caption = IntOrZeroSring((int)((calc_data._8va - calc_data._8vdc) / default_vote_param._8v_current * 10.0)) + " ";
+    lbl12mAa->Caption = IntOrZeroSring((calc_data._16va - calc_data._16vac) / default_vote_param._16v_current * 10.0) + " ";               // 16Va
+    lbl_12mAa->Caption = IntOrZeroSring((calc_data._x16vac - calc_data._x16va) / default_vote_param._x16v_current * 10.0) + " ";            // -16Va
+    lbl16mAa->Caption = IntOrZeroSring((calc_data._16va - calc_data._16vac) / default_vote_param._16v_current * 10.0) + " ";
+    lbl_16mAa->Caption = IntOrZeroSring((calc_data._x16vac - calc_data._x16va) / default_vote_param._x16v_current * 10.0) + " ";
+    lbl46mAa->Caption = IntOrZeroSring((calc_data._48va - calc_data._46vc) / default_vote_param._48v_current * 10.0) + " ";
 }
 //---------------------------------------------------------------------------
 bool TForm1::ProcessSendCmdAck(D1608Cmd& cmd, TStream *AData, TIdSocketHandle *ABinding)
