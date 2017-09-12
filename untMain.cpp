@@ -92,7 +92,7 @@ struct DeviceData
 static int received_cmd_seq = 0;
 //------------------------------------------------
 // 版本兼容信息
-static UINT version = 0x01000002;  
+static UINT version = 0x01000003;  
 static UINT file_version = 0x00000000;
 // 返回YES或者下位机版本号
 // version_list以0结尾
@@ -1545,7 +1545,7 @@ void __fastcall TForm1::btnSelectClick(TObject *Sender)
     double app_time = Now()-TDateTime(2000,1,1);
     app_time = app_time * 24 * 3600 * 10;
     D1608Cmd cmd;
-    cmd.id = GetOffsetOfData(&config_map.op_code.set_time);
+    cmd.id = GetOffsetOfData(&config_map.op_code.set_time_ex);
     cmd.data.data_64 = app_time;
     cmd.length = 8;
     udpControl->SendBuffer(dst_ip, UDP_PORT_CONTROL, &cmd, sizeof(cmd));
@@ -1841,7 +1841,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
         {
             ProcessWatchLevel(cmd.data.keep_alive.watch_level, cmd.data.keep_alive.watch_level_comp);
             ProcessVote(cmd.data.keep_alive.adc);
-            ProcessKeepAlive(cmd.data.keep_alive.switch_preset, cmd.data.keep_alive.set_time);
+            ProcessKeepAlive(cmd.data.keep_alive.switch_preset, cmd.data.keep_alive.set_time_ex);
 
             //memo_debug->Lines->Add("广播消息序号:"+IntToStr(cmd.data.keep_alive.seq)+":"+IntToStr(received_cmd_seq));
             if ((cmd.data.keep_alive.seq>received_cmd_seq) && (received_cmd_seq!=0))
@@ -1926,7 +1926,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
                 if (buff.event[i].timer != 0xFFFFFFFF)
                 {
                     TListItem * item = lvLog->Items->Insert(0);
-                    int event_timer = buff.event[i].timer;
+                    unsigned int event_timer = buff.event[i].timer;
                     item->Data = (void*)event_timer;
 
                     int ms = event_timer % 10;  event_timer /= 10;
@@ -2112,7 +2112,8 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
                     {
                         // 从2000-1-1为基准
                         double time_of_real = time_base + buff.event[i].timer;
-                        time_of_real = time_of_real / (24*3600*10) + TDateTime(2000, 1, 1);
+                        time_of_real = time_of_real / (24*3600*10);
+                        time_of_real = time_of_real + TDateTime(2000, 1, 1);
                         TDateTime datetime_of_real = time_of_real;
                         item->SubItems->Add(datetime_of_real);
                     }
@@ -2167,12 +2168,14 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
     }
     else if (ABinding->PeerPort == UDP_PORT_GET_DEBUG_INFO)
     {
+#pragma pack(1)
         typedef struct
         {
             char desc[10];
             short log_level;
-            long timer;
+            unsigned __int64 timer;
         }LogData;
+#pragma pack()
         LogData log_data[50];
         AData->ReadBuffer(&log_data, sizeof(log_data));
         for (int i=0;i<50;i++)
@@ -2185,7 +2188,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
                 int sec = log_data[i].timer % 60; log_data[i].timer /= 60;
                 int min = log_data[i].timer % 60; log_data[i].timer /= 60;
 
-                item->Caption = IntToStr(log_data[i].timer)+":"
+                item->Caption = IntToStr((__int64)log_data[i].timer)+":"
                               + IntToStr(min)+":"
                               + IntToStr(sec)+"."
                               + IntToStr(ms);
@@ -2655,7 +2658,7 @@ bool TForm1::ProcessSendCmdAck(D1608Cmd& cmd, TStream *AData, TIdSocketHandle *A
     }
     return false;
 }
-void TForm1::ProcessKeepAlive(int preset_id, long timer)
+void TForm1::ProcessKeepAlive(int preset_id, unsigned __int64 timer)
 {
     if (preset_id<1 || preset_id>8)
     {
@@ -2672,7 +2675,7 @@ void TForm1::ProcessKeepAlive(int preset_id, long timer)
     }
 
     // 显示时钟
-    long running_time = (timer - global_config.adjust_running_time) / 1000;    // 单位：秒
+    unsigned __int64 running_time = (timer - global_config.adjust_running_time) / 1000;    // 单位：秒
     int hour = running_time / 3600;
     int minute = running_time % 3600;
     minute = minute / 60;
@@ -4667,7 +4670,7 @@ void __fastcall TForm1::btnUnlockExtClick(TObject *Sender)
     // 后台解锁    
     D1608Cmd cmd;
     cmd.type = CMD_TYPE_GLOBAL;
-    cmd.id = offsetof(GlobalConfig, back_door);
+    cmd.id = offsetof(GlobalConfig, running_timer_limit);
     cmd.length = 68+4;
     memset(&cmd.data, 0, cmd.length);
     SendCmd(cmd);
@@ -6376,7 +6379,30 @@ void __fastcall TForm1::lvDeviceCustomDrawItem(TCustomListView *Sender,
 void __fastcall TForm1::lvLogCompare(TObject *Sender, TListItem *Item1,
       TListItem *Item2, int Data, int &Compare)
 {
-    Compare = (int)Item2->Data - (int)Item1->Data;
+    unsigned __int64 d2 = (unsigned int)Item2->Data;
+    unsigned __int64 d1 = (unsigned int)Item1->Data;
+    if (d2 > d1)
+        Compare = 1;
+
+    if (d2 == d1)
+        Compare = 0;
+
+    if (d2 < d1)
+        Compare = -1;
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::btnInsertUserLogClick(TObject *Sender)
+{
+    DebugLog debug_log;
+    debug_log.event_id = edtEventId->Text.ToIntDef(0);
+    debug_log.event_data = edtEventData->Text.ToIntDef(0);
+    debug_log.event_timer = edtEventTimer->Text.ToIntDef(-1);
+    
+    D1608Cmd cmd;
+    cmd.id = GetOffsetOfData(&config_map.op_code.debug_log);
+    memcpy(&cmd.data, &debug_log, sizeof(debug_log));
+    cmd.length = sizeof(debug_log);
+    SendCmd(cmd);
 }
 //---------------------------------------------------------------------------
 

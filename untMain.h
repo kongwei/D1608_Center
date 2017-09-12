@@ -79,7 +79,7 @@ extern "C"{
 
 typedef struct
 {
-    int timer;
+    unsigned int timer;
     short event_id;
     unsigned short event_data;
 }Event;
@@ -548,6 +548,10 @@ __published:	// IDE-managed Components
     TLabel *lblLogCount;
     TCheckBox *cbLanDebugLed;
     TCheckBox *cbLanDebugOled;
+    TEdit *edtEventId;
+    TEdit *edtEventData;
+    TEdit *edtEventTimer;
+    TButton *btnInsertUserLog;
     void __fastcall FormCreate(TObject *Sender);
     void __fastcall FormDestroy(TObject *Sender);
     void __fastcall btnRefreshClick(TObject *Sender);
@@ -711,6 +715,7 @@ __published:	// IDE-managed Components
           TListItem *Item, TCustomDrawState State, bool &DefaultDraw);
     void __fastcall lvLogCompare(TObject *Sender, TListItem *Item1,
           TListItem *Item2, int Data, int &Compare);
+    void __fastcall btnInsertUserLogClick(TObject *Sender);
 private:
     TIdUDPServer * udpSLPList[3];
 private:
@@ -808,7 +813,7 @@ public:		// User declarations
 private:
     VoteParam default_vote_param;
     void CalcAllVote(ADC_Data & adc_data);
-    void ProcessKeepAlive(int preset_id, long timer);
+    void ProcessKeepAlive(int preset_id, unsigned __int64 timer);
     void ProcessVote(short adc[ADC_NUM]);
     void ProcessWatchLevel(int watch_level[INPUT_DSP_NUM + OUTPUT_DSP_NUM], int watch_level_comp[OUTPUT_DSP_NUM]);
 private:
@@ -828,7 +833,7 @@ public:
 private:
     String device_cpuid;
 
-    long running_timer;
+    unsigned __int64 running_timer;
     int roboot_count;
 
     // 0-3 正常； 4 初始化； >=5 失联
