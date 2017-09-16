@@ -2550,10 +2550,6 @@ void TForm1::ProcessLogData(LogBuff & buff)
             case EVENT_POWER_OFF:
                 item->SubItems->Add("关闭电源");
                 item->SubItems->Add("启动次数"+IntToStr(buff.event[i].event_data));
-                if (buff.event[i].event_data > max_startup_count)
-                {
-                    max_startup_address = (int)item->Data;
-                }
                 break;
             case EVENT_SYSTEM_LIMIT:
                 item->SubItems->Add("达到运行次数或时间限制");
@@ -4456,8 +4452,7 @@ void __fastcall TForm1::btnGetLogClick(TObject *Sender)
         SendLogBuff(UDP_PORT_READ_LOG, &buff, sizeof(buff));
     }
 
-    max_startup_address = LOG_START_PAGE;
-    max_startup_count = 0;
+    log_tail_address = LOG_START_PAGE;
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::btnGetDebugClick(TObject *Sender)

@@ -750,8 +750,6 @@ public:
     bool ProcessLogBuffAck(LogBuff& buff, TStream *AData, TIdSocketHandle *ABinding);
 
     // 最大启动次数地址
-    unsigned int max_startup_address;
-    int max_startup_count;
     unsigned int log_tail_address;
     void ProcessLogData(LogBuff & buff);
 
