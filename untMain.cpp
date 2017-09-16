@@ -1526,6 +1526,16 @@ void __fastcall TForm1::btnSelectClick(TObject *Sender)
         return;
     }
 
+    // 给原先的设备发送断链消息
+    if (udpControl->Active)
+    {
+        D1608Cmd cmd;
+        cmd.type = CMD_TYPE_PRESET;
+        cmd.id = GetOffsetOfData(&config_map.op_code.noop);
+        cmd.data.s_data_32 = 1;
+        SendCmd2(cmd);
+    }
+
     dst_ip = selected->SubItems->Strings[0];
     String broadcast_ip = selected->SubItems->Strings[1];
     device_cpuid = selected->SubItems->Strings[5];
@@ -1588,15 +1598,8 @@ void __fastcall TForm1::btnSelectClick(TObject *Sender)
     ini_file->WriteString("connection", "last_id", last_device_id);
     delete ini_file;
 
-    // 显示名称
-    if (selected->SubItems->Strings[3] != "")
-        lblDeviceName->Caption = selected->SubItems->Strings[3];
-    else             
-    {
-        lblDeviceName->Caption = lvDevice->Selected->SubItems->Strings[4]+"-"+lvDevice->Selected->SubItems->Strings[6];
-        if (lblDeviceName->Caption.Length() > 16)
-            lblDeviceName->Caption = lvDevice->Selected->SubItems->Strings[4];
-    }
+
+    lblDeviceName->Hide();
 
     edtMAC->Text = selected->SubItems->Strings[6];
 
@@ -1604,6 +1607,7 @@ void __fastcall TForm1::btnSelectClick(TObject *Sender)
     DeviceData * data = (DeviceData*)selected->Data;
     lblVersion->Caption = VersionToStr(data->data.version)+ " " +VersionToStr(version);
     lblDeviceInfo->Caption = "VERSION " + VersionToStr(data->data.version);
+    lblDeviceInfo->Hide();
 
     btnGetLog->Enabled = true;
 }
@@ -2836,7 +2840,8 @@ void __fastcall TForm1::tmWatchTimer(TObject *Sender)
 
     D1608Cmd cmd;
     cmd.type = CMD_TYPE_PRESET;
-    cmd.id = GetOffsetOfData(&config_map.op_code);
+    cmd.id = GetOffsetOfData(&config_map.op_code.noop);
+    cmd.data.s_data_32 = 0;
     SendCmd2(cmd);
 
     // 检测resize事件
@@ -2985,7 +2990,6 @@ void __fastcall TForm1::lvDeviceDblClick(TObject *Sender)
     TListItem * item = lvDevice->Selected;
     if (item != NULL)
     {
-        dst_ip = item->SubItems->Strings[0];
         btnSelect->Click();
     }
     lvDevice->Invalidate();
