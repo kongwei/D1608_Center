@@ -1819,27 +1819,18 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
         // id == 1 表示全局配置
         if (cmd.type == CMD_TYPE_GLOBAL)
         {
-            /*if (cmd.id == offsetof(GlobalConfig, adjust_running_time))
-            {
-                global_config.adjust_running_time = cmd.data.data_64;
-            }
-            else if (cmd.id == offsetof(GlobalConfig, unlock_string))*/
-            {
-                // 重新获取数据
-                TPackage package;
-                package.udp_port = UDP_PORT_READ_PRESET;
+            // 重新获取数据
+            TPackage package;
+            package.udp_port = UDP_PORT_READ_PRESET;
 
-                D1608PresetCmd preset_cmd(version);
-                preset_cmd.preset = 0; // 读取global_config
-                preset_cmd.store_page = 0;
-                memcpy(package.data, &preset_cmd, sizeof(preset_cmd));
-                package.data_size = sizeof(preset_cmd);
-                read_one_preset_package_list.push_back(package);
+            D1608PresetCmd preset_cmd(version);
+            preset_cmd.preset = 0; // 读取global_config
+            preset_cmd.store_page = 0;
+            memcpy(package.data, &preset_cmd, sizeof(preset_cmd));
+            package.data_size = sizeof(preset_cmd);
+            read_one_preset_package_list.push_back(package);
 
-                udpControl->SendBuffer(dst_ip, package.udp_port, package.data, package.data_size);
-            }
-
-            //ApplyConfigToUI();
+            udpControl->SendBuffer(dst_ip, package.udp_port, package.data, package.data_size);
         }
         else if (cmd.id == GetOffsetOfData(&config_map.op_code.noop))
         {
@@ -4693,7 +4684,7 @@ void __fastcall TForm1::btnUnlockExtClick(TObject *Sender)
     // 后台解锁    
     D1608Cmd cmd;
     cmd.type = CMD_TYPE_GLOBAL;
-    cmd.id = offsetof(GlobalConfig, running_timer_limit);
+    cmd.id = offsetof(GlobalConfig, adjust_running_time)+4;
     cmd.length = 68+4;
     memset(&cmd.data, 0, cmd.length);
     SendCmd(cmd);
