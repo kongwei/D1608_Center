@@ -4696,7 +4696,7 @@ void __fastcall TForm1::btnLeaveTheFactoryClick(TObject *Sender)
     D1608Cmd cmd;
     cmd.type = CMD_TYPE_GLOBAL;
     cmd.id = offsetof(GlobalConfig, adjust_running_time);
-    SendCmd(cmd);
+    SendCmd2(cmd);
 }
 //---------------------------------------------------------------------------
 void TForm1::ShowInputPanel(TControl * Sender, TNotifyEvent event, String default_text)
