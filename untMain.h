@@ -724,9 +724,6 @@ private:
     String local_broadcast_ip;
 
     String last_select_device_ip;
-
-    //TFileStream * log_file;
-    //void AppendLog(String);
 private:
     TSpeedButton * last_default_btn;
     TSpeedButton * last_out_num_btn;
@@ -751,6 +748,12 @@ public:
 
     void SendLogBuff(int udp_port, void * buff, int size);
     bool ProcessLogBuffAck(LogBuff& buff, TStream *AData, TIdSocketHandle *ABinding);
+
+    // 最大启动次数地址
+    unsigned int max_startup_address;
+    int max_startup_count;
+    unsigned int log_tail_address;
+    void ProcessLogData(LogBuff & buff);
 
     void SendCmd(D1608Cmd& cmd);
     void SendCmd2(D1608Cmd& cmd);
