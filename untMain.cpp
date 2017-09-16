@@ -2572,7 +2572,7 @@ void TForm1::ProcessLogData(LogBuff & buff)
                 item->SubItems->Add("通道号"+IntToStr(buff.event[i].event_data));
                 break;
             case EVENT_WRITE_FLASH_ERROR:
-                item->SubItems->Add("写flash失败");
+                item->SubItems->Add("写flash错误");
                 item->SubItems->Add("地址:0x"+IntToHex(buff.event[i].event_data * 2048, 8));
                 break;
             case EVENT_REBOOT:
@@ -2630,15 +2630,15 @@ void TForm1::ProcessLogData(LogBuff & buff)
                 item->SubItems->Add("");
                 break;
             case EVENT_28J60_REINIT_ERROR:
-                item->SubItems->Add("ENC28J60初始化失败");
+                item->SubItems->Add("ENC28J60初始化错误");
                 item->SubItems->Add("失败次数:"+IntToStr(buff.event[i].event_data));
                 break;
             case EVENT_MAC_ADDRESS_OVERFLOW:
-                item->SubItems->Add("MAC地址日志满");
+                item->SubItems->Add("MAC地址日志溢出");
                 item->SubItems->Add("");
                 break;
             case EVENT_NO_KEY:
-                item->SubItems->Add("设备未授权");
+                item->SubItems->Add("设备授权错误");
                 item->SubItems->Add("");
                 break;
             case EVENT_DSP_NOT_MATCH_ERROR:
@@ -2702,8 +2702,16 @@ void TForm1::ProcessLogData(LogBuff & buff)
                 item->SubItems->Add("0x"+IntToHex(buff.event[i].event_data, 4));
                 break;
             case EVENT_SAVE_LOAD_TIMEOUT:
-                item->SubItems->Add("存盘或者恢复超时");
+                item->SubItems->Add("存盘或者恢复超时错误");
                 item->SubItems->Add(buff.event[i].event_data==1?"LOAD UNIT":"SAVE UNIT");
+                break;
+            case EVENT_48V:
+                item->SubItems->Add("48V与硬件不匹配错误");
+                item->SubItems->Add(buff.event[i].event_data==1?"缺少":"多出");
+                break;
+            case EVENT_RESET_RUNNING_TIME:
+                item->SubItems->Add("重置运行时间");
+                item->SubItems->Add("");
                 break;
             default:
                 item->SubItems->Add(buff.event[i].event_id);
@@ -4693,7 +4701,7 @@ void __fastcall TForm1::btnUnlockExtClick(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TForm1::btnLeaveTheFactoryClick(TObject *Sender)
 {
-    // 出厂    
+    // 出厂
     D1608Cmd cmd;
     cmd.type = CMD_TYPE_GLOBAL;
     cmd.id = offsetof(GlobalConfig, adjust_running_time);
@@ -6410,20 +6418,7 @@ void TEST_CompLogTime()
 void __fastcall TForm1::lvLogCompare(TObject *Sender, TListItem *Item1,
       TListItem *Item2, int Data, int &Compare)
 {
-#if 0
-    unsigned __int64 d2 = (unsigned int)Item2->Data;
-    unsigned __int64 d1 = (unsigned int)Item1->Data;
-
-    if (d2 > d1)
-        Compare = 1;
-
-    if (d2 == d1)
-        Compare = 0;
-
-    if (d2 < d1)
-        Compare = -1;
-#endif
-    // 按照 max_startup_address 重新排序  log_tail_address
+    // 按照 log_tail_address 重新排序  
     unsigned int d2 = (unsigned int)Item2->Data;
     unsigned int d1 = (unsigned int)Item1->Data;
 
@@ -6442,6 +6437,25 @@ void __fastcall TForm1::btnInsertUserLogClick(TObject *Sender)
     memcpy(&cmd.data, &debug_log, sizeof(debug_log));
     cmd.length = sizeof(debug_log);
     SendCmd(cmd);
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::lvLogAdvancedCustomDrawItem(
+      TCustomListView *Sender, TListItem *Item, TCustomDrawState State,
+      TCustomDrawStage Stage, bool &DefaultDraw)
+{
+    String event_desc = Item->SubItems->Strings[0];
+
+    if (event_desc.Pos("错误") != 0
+      ||event_desc.Pos("不符") != 0
+      ||event_desc.Pos("溢出") != 0)
+    {
+        Sender->Canvas->Font->Color = clRed;
+    }
+    else if (event_desc == "重置运行时间")
+    {
+        Sender->Canvas->Font->Color = clBlue;
+    }
+
 }
 //---------------------------------------------------------------------------
 

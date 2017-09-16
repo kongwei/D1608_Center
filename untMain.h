@@ -716,6 +716,9 @@ __published:	// IDE-managed Components
     void __fastcall lvLogCompare(TObject *Sender, TListItem *Item1,
           TListItem *Item2, int Data, int &Compare);
     void __fastcall btnInsertUserLogClick(TObject *Sender);
+    void __fastcall lvLogAdvancedCustomDrawItem(TCustomListView *Sender,
+          TListItem *Item, TCustomDrawState State, TCustomDrawStage Stage,
+          bool &DefaultDraw);
 private:
     TIdUDPServer * udpSLPList[3];
 private:
