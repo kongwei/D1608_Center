@@ -92,7 +92,7 @@ struct DeviceData
 static int received_cmd_seq = 0;
 //------------------------------------------------
 // 版本兼容信息
-static UINT version = 0x01000003;  
+static UINT version = 0x01000004;  
 static UINT file_version = 0x00000000;
 // 返回YES或者下位机版本号
 // version_list以0结尾
@@ -1396,10 +1396,16 @@ void __fastcall TForm1::btnRefreshClick(TObject *Sender)
         }
         for (UINT i=0;i<ip_info.size() && i<3;i++)
         {
-            udpSLPList[i]->Bindings->Add();
-            udpSLPList[i]->Bindings->Items[0]->IP = ip_info[i].ip;
-            udpSLPList[i]->Bindings->Items[0]->Port = 0;
-            udpSLPList[i]->Active = true;
+            try
+            {
+                udpSLPList[i]->Bindings->Add();
+                udpSLPList[i]->Bindings->Items[0]->IP = ip_info[i].ip;
+                udpSLPList[i]->Bindings->Items[0]->Port = 0;
+                udpSLPList[i]->Active = true;
+            }
+            catch(...)
+            {
+            }
         }
     }
 #if 0
@@ -2464,12 +2470,26 @@ void TForm1::ProcessKeepAlive(int preset_id, unsigned __int64 timer)
     }
 
     // 显示时钟
-    unsigned __int64 running_time = (timer - global_config.adjust_running_time) / 1000;    // 单位：秒
+    unsigned __int64 running_time;
+    if (timer > global_config.adjust_running_time)
+        running_time = timer - global_config.adjust_running_time;
+    else
+        running_time = timer - global_config.adjust_running_time + MAX_TIMER_MS;
+
+    running_time = running_time / 1000; // 转换单位为秒
+
     int hour = running_time / 3600;
     int minute = running_time % 3600;
     minute = minute / 60;
     lblDeviceRunningTime->Caption = lblDeviceRunningTime->Caption.sprintf("%d:%02d", hour, minute);
-    //lblDeviceRunningTime->Caption = IntToStr(hour) + ":" + IntToStr(minute) + "";
+
+    // 显示未调整的时钟
+    running_time = timer / 1000;    // 单位：秒
+    hour = running_time / 3600;
+    minute = running_time % 3600;
+    minute = minute / 60;
+    lblDeviceRunningTime2->Caption = lblDeviceRunningTime2->Caption.sprintf("%d:%02d", hour, minute);
+
     if (cbRunningTimer->Checked)
     {
         int remain_time = global_config.running_timer_limit - running_time;
@@ -2489,7 +2509,7 @@ void TForm1::ProcessKeepAlive(int preset_id, unsigned __int64 timer)
 
     if (cbRebootCount->Checked)
     {
-        int remain_count = global_config.reboot_count_limit - (global_config.reboot_count - global_config.adjust_reboot_count);
+        int remain_count = global_config.reboot_count_limit - global_config.reboot_count;
         if (remain_count > 0)
         {
             edtRemainRebootCount->Text = remain_count;
@@ -4625,6 +4645,8 @@ void __fastcall TForm1::edtRunningTimerExit(TObject *Sender)
     try
     {
         float rt = edt->Text.ToDouble();
+        if (rt > 10000000)
+            rt = 10000000;
         running_timer = rt * 3600;
         edt->Text = FormatFloat("0.00", running_timer/3600.0);
     }
@@ -4640,7 +4662,10 @@ void __fastcall TForm1::edtRebootCountExit(TObject *Sender)
     try
     {
         int rt = edt->Text.ToInt();
+        if (rt > 10000)
+            rt = 10000;
         roboot_count = rt;
+        edt->Text = roboot_count;
     }
     catch(...)
     {

@@ -552,6 +552,7 @@ __published:	// IDE-managed Components
     TEdit *edtEventData;
     TEdit *edtEventTimer;
     TButton *btnInsertUserLog;
+    TLabel *lblDeviceRunningTime2;
     void __fastcall FormCreate(TObject *Sender);
     void __fastcall FormDestroy(TObject *Sender);
     void __fastcall btnRefreshClick(TObject *Sender);
