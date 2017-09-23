@@ -2602,6 +2602,10 @@ void TForm1::ProcessLogData(LogBuff & buff)
                     {
                         item->SubItems->Add("恢复出厂设置");
                     }
+                    else if (buff.event[i].event_data == 10)
+                    {
+                        item->SubItems->Add("进入升级程序");
+                    }
                     else
                     {
                         item->SubItems->Add(buff.event[i].event_data);
@@ -2678,6 +2682,10 @@ void TForm1::ProcessLogData(LogBuff & buff)
                     item->SubItems->Add("DA数量与配置不符");
                 item->SubItems->Add("现有数量："+IntToStr(buff.event[i].event_data%32));
                 break;
+            case EVENT_EACH_HOUR:
+                item->SubItems->Add("开机每小时标识");
+                item->SubItems->Add(IntToStr(buff.event[i].event_data));
+                break;
             case EVENT_TIME_1:
                 time1 = buff.event[i].event_data;
                 time2 = 0;
@@ -2724,6 +2732,10 @@ void TForm1::ProcessLogData(LogBuff & buff)
                 item->SubItems->Add("重置运行时间");
                 item->SubItems->Add("");
                 break;
+            case EVENT_IWDG_REBOOT:
+                item->SubItems->Add("看门狗异常(错误)");
+                item->SubItems->Add("");
+                break;
             default:
                 item->SubItems->Add(buff.event[i].event_id);
                 item->SubItems->Add(IntToHex(buff.event[i].event_data, 2));
@@ -2750,9 +2762,18 @@ void TForm1::ProcessLogData(LogBuff & buff)
                 time_base = 0;
             }
         }
-        else if (buff.event[i].event_id == -1 && buff.event[i].event_data == 0xFFFF)
+        else
         {
-            log_tail_address = buff.address + sizeof(Event)*i;
+            if (buff.event[i].event_id == -1 && buff.event[i].event_data == 0xFFFF)
+            {
+                log_tail_address = buff.address + sizeof(Event)*i;
+            }
+
+            TListItem * item = lvLog->Items->Insert(0);
+            item->Caption = IntToHex((int)(buff.address + i*sizeof(Event)), 8);
+            item->SubItems->Add(buff.event[i].event_id);
+            item->SubItems->Add(IntToHex(buff.event[i].event_data, 2));
+            item->Data = (void*)(buff.address + i*sizeof(Event));
         }
     }
 }
@@ -4645,8 +4666,8 @@ void __fastcall TForm1::edtRunningTimerExit(TObject *Sender)
     try
     {
         float rt = edt->Text.ToDouble();
-        if (rt > 10000000)
-            rt = 10000000;
+        if (rt > 10000)
+            rt = 10000;
         running_timer = rt * 3600;
         edt->Text = FormatFloat("0.00", running_timer/3600.0);
     }

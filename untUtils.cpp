@@ -176,7 +176,7 @@ static void DeleteLog(TStrings * log_data)
     delete tmp;
 }
 // Log File Utils
-void MergeLog(TStrings * append_data, TStrings * log_data)
+void MergeLogX(TStrings * append_data, TStrings * log_data)
 {
     DeleteMac(log_data);
     if (append_data->Count == 0)
@@ -208,7 +208,7 @@ void MergeLog(TStrings * append_data, TStrings * log_data)
         }
     }
 }
-// Log File Utils
+// Mac File Utils
 void MergeMac(TStrings * append_data, TStrings * log_data)
 {
     DeleteLog(log_data);
@@ -228,5 +228,53 @@ void MergeMac(TStrings * append_data, TStrings * log_data)
             }
         }
     }
+}
+
+// ≤‚ ‘log∫œ≤¢
+static TStrings * CreateList(String append_data[], int count)
+{
+    TStrings * ret = new TStringList;
+    for (int i=0;i<count;i++)
+    {
+        ret->Add(append_data[i]);
+    }
+
+    return ret;
+}
+static bool CompareList(TStrings * strs, String data[], int count)
+{
+    if (strs->Count != count)
+    {
+        return false;
+    }
+
+    for (int i=0;i<count;i++)
+    {
+        if (strs->Strings[i] != data[i])
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+void TEST_MergeLog_1()
+{
+    String append_data[] = {"5", "4", "3", "2", "1"};
+    String log_data[] = {"2", "1", "3", "2", "1"};
+    String result[] = {"5", "4", "3", "2", "1", "3", "2", "1"};
+
+    TStrings * a = CreateList(append_data, 5);
+    TStrings * l = CreateList(log_data, 5);
+
+    MergeLogX(a, l);
+
+    assert(CompareList(a, result, 8));
+}
+
+void MergeLog(TStrings * append_data, TStrings * log_data)
+{
+    //TEST_MergeLog_1();
+    MergeLogX(append_data, log_data);
 }
 
