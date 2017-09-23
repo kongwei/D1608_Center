@@ -118,9 +118,9 @@ static String GetLogWithoutTime(String log)
     tmpStr->Delimiter = '\t';
     tmpStr->DelimitedText = log;
 
-    if (tmpStr->Count > 3)
+    if (tmpStr->Count > 4)
     {
-        log = tmpStr->Strings[0] + "\t" + tmpStr->Strings[1] + "\t" + tmpStr->Strings[2];
+        log = tmpStr->Strings[0] + "\t" + tmpStr->Strings[1] + "\t" + tmpStr->Strings[2] + "\t" + tmpStr->Strings[3];
     }
 
     delete tmpStr;
