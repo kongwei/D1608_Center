@@ -1938,6 +1938,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
                                         buff.mac[i][3], buff.mac[i][4], buff.mac[i][5]);
                     item->SubItems->Add(mac_string);
                     item->SubItems->Add("");
+                    item->SubItems->Add("");
                 }
             }
             btnGetLog->Enabled = true;
@@ -2547,14 +2548,17 @@ void TForm1::ProcessLogData(LogBuff & buff)
             //item->Data = (void*)event_timer;
             item->Data = (void*)(buff.address + i*sizeof(Event));
 
+            item->Caption = IntToHex((int)(buff.address + i*sizeof(Event)), 8);
+
             int ms = event_timer % 10;  event_timer /= 10;
             int sec = event_timer % 60; event_timer /= 60;
             int min = event_timer % 60; event_timer /= 60;
 
-            item->Caption = IntToStr(event_timer)+":"
+            String item_caption = IntToStr(event_timer)+":"
                           + IntToStr(min)+":"
                           + IntToStr(sec)+"."
                           + IntToStr(ms);
+            item->SubItems->Add(item_caption);
 
             switch (buff.event[i].event_id)
             {
@@ -2771,6 +2775,7 @@ void TForm1::ProcessLogData(LogBuff & buff)
 
             TListItem * item = lvLog->Items->Insert(0);
             item->Caption = IntToHex((int)(buff.address + i*sizeof(Event)), 8);
+            item->SubItems->Add("");
             item->SubItems->Add(buff.event[i].event_id);
             item->SubItems->Add(IntToHex(buff.event[i].event_data, 2));
             item->Data = (void*)(buff.address + i*sizeof(Event));
@@ -6161,9 +6166,10 @@ void __fastcall TForm1::btnSaveLogClick(TObject *Sender)
             String line = lvLog->Items->Item[i]->Caption;
             line = line + "\t" + lvLog->Items->Item[i]->SubItems->Strings[0];
             line = line + "\t" + lvLog->Items->Item[i]->SubItems->Strings[1];
-            if (lvLog->Items->Item[i]->SubItems->Count > 2)
+            line = line + "\t" + lvLog->Items->Item[i]->SubItems->Strings[2];
+            if (lvLog->Items->Item[i]->SubItems->Count > 3)
             {
-                line = line + "\t" + lvLog->Items->Item[i]->SubItems->Strings[2];
+                line = line + "\t" + lvLog->Items->Item[i]->SubItems->Strings[3];
             }
             log_strs->Add(line);
         }
@@ -6439,8 +6445,8 @@ void __fastcall TForm1::lvDeviceCustomDrawItem(TCustomListView *Sender,
 
 static int CompLogTime(UINT a, UINT b, UINT tail, UINT size)
 {
-    if (a < tail) a = a+size;
-    if (b < tail) b = b+size;
+    if (a <= tail) a = a+size;
+    if (b <= tail) b = b+size;
 
     return a-b;
 }
@@ -6480,7 +6486,7 @@ void __fastcall TForm1::lvLogAdvancedCustomDrawItem(
       TCustomListView *Sender, TListItem *Item, TCustomDrawState State,
       TCustomDrawStage Stage, bool &DefaultDraw)
 {
-    String event_desc = Item->SubItems->Strings[0];
+    String event_desc = Item->SubItems->Strings[1];
 
     if (event_desc.Pos("´íÎó") != 0
       ||event_desc.Pos("²»·û") != 0
