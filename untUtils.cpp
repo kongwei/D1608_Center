@@ -129,7 +129,7 @@ static String GetLogWithoutTime(String log)
 }
 static int FindLogStr(TStrings * log, String str)
 {
-    for (int i=0;i<log->Count;i++)
+    for (int i=0;i<log->Count && i<3000/*限制一下，最多查找3000次*/;i++)
     {
         String log_str = GetLogWithoutTime(log->Strings[i]);
         str = GetLogWithoutTime(str);
