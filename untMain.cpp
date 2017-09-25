@@ -1920,12 +1920,18 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
         AData->ReadBuffer(&buff, sizeof(buff));
         if ((buff.address >= LOG_START_PAGE) && (buff.address < MAC_LIST_START_PAGE))
         {
-            ProcessLogData(buff);
+            int index = (buff.address - LOG_START_PAGE) / sizeof(Event);
+            memcpy(event_data_tmp+index, buff.event, sizeof(buff.event));
+            //ProcessLogData(buff);
         }
         else
         {
             if (buff.address == MAC_LIST_START_PAGE)
             {
+
+                ProcessLogData(buff.tail_address);
+
+/*
                 log_tail_address = buff.tail_address;
 
                 // 排序
@@ -1943,6 +1949,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
                         }
                     }
                 }
+*/
             }
 
             // MAC地址
@@ -2556,238 +2563,340 @@ void TForm1::ProcessKeepAlive(int preset_id, unsigned __int64 timer)
     lblDeviceInfo->Show();
     device_connected = true;
 }
+
+static TListItem* AppendLogData(TListView * lvLog, Event event, int address, String syn_time)
+{
+    TListItem * item = lvLog->Items->Add();
+    unsigned int event_timer = event.timer;
+    item->Data = (void*)address;
+
+    item->Caption = IntToHex(address, 8);
+
+    int ms = event_timer % 10;  event_timer /= 10;
+    int sec = event_timer % 60; event_timer /= 60;
+    int min = event_timer % 60; event_timer /= 60;
+
+    String item_caption = IntToStr(event_timer)+":"
+                  + IntToStr(min)+":"
+                  + IntToStr(sec)+"."
+                  + IntToStr(ms);
+    item->SubItems->Add(item_caption);
+
+    switch (event.event_id)
+    {
+    case EVENT_POWER_OFF:
+        item->SubItems->Add("关闭电源");
+        item->SubItems->Add("启动次数"+IntToStr(event.event_data));
+        break;
+    case EVENT_SYSTEM_LIMIT:
+        item->SubItems->Add("达到运行次数或时间限制");
+        item->SubItems->Add(event.event_data);
+        break;
+    case EVENT_SAVE_PRESET:
+        item->SubItems->Add("保存Preset");
+        item->SubItems->Add("Preset编号:"+IntToStr(event.event_data));
+        break;
+    case EVENT_POWER_SAVE_OK:
+        item->SubItems->Add("关机存盘成功");
+        item->SubItems->Add("下次启动次数"+IntToStr(event.event_data));
+        break;
+    case EVENT_INPUT_OVERFLOW:
+        item->SubItems->Add("input通道音量溢出");
+        item->SubItems->Add("通道号"+IntToStr(event.event_data));
+        break;
+    case EVENT_OUTPUT_OVERFLOW:
+        item->SubItems->Add("output通道音量溢出");
+        item->SubItems->Add("通道号"+IntToStr(event.event_data));
+        break;
+    case EVENT_WRITE_FLASH_ERROR:
+        item->SubItems->Add("写flash错误");
+        item->SubItems->Add("地址:0x"+IntToHex(event.event_data * 2048, 8));
+        break;
+    case EVENT_REBOOT:
+        if (event.event_data < 0x10)
+        {
+            item->SubItems->Add("上位机发起重启");
+            if (event.event_data == 0)
+            {
+                item->SubItems->Add("重启");
+            }
+            else if (event.event_data == 1)
+            {
+                item->SubItems->Add("清除PRESER");
+            }
+            else if (event.event_data == 2)
+            {
+                item->SubItems->Add("恢复出厂设置");
+            }
+            else if (event.event_data == 10)
+            {
+                item->SubItems->Add("进入升级程序");
+            }
+            else
+            {
+                item->SubItems->Add(event.event_data);
+            }
+        }
+        else
+        {
+            item->SubItems->Add("上电时清除");
+            if (event.event_data == 0x011)
+            {
+                item->SubItems->Add("清除PRESER");
+            }
+            else if (event.event_data == 0x12)
+            {
+                item->SubItems->Add("恢复出厂设置");
+            }
+            else
+            {
+                item->SubItems->Add(event.event_data);
+            }
+        }
+        break;
+    case EVENT_SAVE_PRESET_OK:
+        item->SubItems->Add("存盘完成");
+        {
+            String page_indexs = "存盘页";
+            if (event.event_data & 1) page_indexs = page_indexs + "1,";
+            if (event.event_data & 2) page_indexs = page_indexs + "2,";
+            if (event.event_data & 4) page_indexs = page_indexs + "3,";
+            if (event.event_data & 8) page_indexs = page_indexs + "4,";
+            if (event.event_data & 16) page_indexs = page_indexs + "5,";
+            item->SubItems->Add(page_indexs);
+        }
+        break;
+    case EVENT_CHECK_MD5_FAIL:
+        item->SubItems->Add("激活码错误");
+        item->SubItems->Add("");
+        break;
+    case EVENT_28J60_REINIT_ERROR:
+        item->SubItems->Add("ENC28J60初始化错误");
+        item->SubItems->Add("失败次数:"+IntToStr(event.event_data));
+        break;
+    case EVENT_MAC_ADDRESS_OVERFLOW:
+        item->SubItems->Add("MAC地址日志溢出");
+        item->SubItems->Add("");
+        break;
+    case EVENT_NO_KEY:
+        item->SubItems->Add("设备授权错误");
+        item->SubItems->Add("");
+        break;
+    case EVENT_DSP_NOT_MATCH_ERROR:
+        item->SubItems->Add("YSS920与配置不符");
+        if (event.event_data > 0x80)
+            item->SubItems->Add("缺少:"+IntToStr(event.event_data-0x80));
+        else
+            item->SubItems->Add("多出:"+IntToStr(event.event_data));
+        break;
+    case EVENT_LED_NUM_ERR:
+        item->SubItems->Add("LED控制芯片错误");
+        item->SubItems->Add(event.event_data);
+        break;
+    case EVENT_FILENAME_CHANGED:
+        item->SubItems->Add("导入/导出配置");
+        item->SubItems->Add("");
+        break;
+    case EVENT_SET_MAC_ADDRESS:
+        item->SubItems->Add("设置了MAC地址");
+        item->SubItems->Add(IntToHex(event.event_data, 6));
+        break;
+    case EVENT_ADDA_ERROR:
+        if (event.event_data > 32)
+            item->SubItems->Add("AD数量与配置不符");
+        else
+            item->SubItems->Add("DA数量与配置不符");
+        item->SubItems->Add("现有数量："+IntToStr(event.event_data%32));
+        break;
+    case EVENT_EACH_HOUR:
+        item->SubItems->Add("开机每小时标识");
+        item->SubItems->Add(IntToStr(event.event_data));
+        break;
+    case EVENT_TIME_1:
+        item->SubItems->Add("时间同步信息1");
+        item->SubItems->Add("0x"+IntToHex(event.event_data, 4));
+        break;
+    case EVENT_TIME_2:
+        item->SubItems->Add("时间同步信息2");
+        item->SubItems->Add("0x"+IntToHex(event.event_data, 4));
+        break;
+    case EVENT_TIME_3:
+        item->SubItems->Add("时间同步信息3");
+        item->SubItems->Add("0x"+IntToHex(event.event_data, 4));
+        break;
+    case EVENT_TIME_4:
+        item->SubItems->Add("时间同步信息4");
+        item->SubItems->Add("0x"+IntToHex(event.event_data, 4));
+        break;
+    case EVENT_SAVE_LOAD_TIMEOUT:
+        item->SubItems->Add("存盘或者恢复超时错误");
+        item->SubItems->Add(event.event_data==1?"LOAD UNIT":"SAVE UNIT");
+        break;
+    case EVENT_48V:
+        item->SubItems->Add("48V与硬件不匹配错误");
+        item->SubItems->Add(event.event_data==0?"缺少":"多出");
+        break;
+    case EVENT_RESET_RUNNING_TIME:
+        item->SubItems->Add("重置运行时间");
+        item->SubItems->Add("");
+        break;
+    case EVENT_IWDG_REBOOT:
+        item->SubItems->Add("看门狗异常(错误)");
+        item->SubItems->Add("");
+        break;
+    default:
+        item->SubItems->Add(event.event_id);
+        item->SubItems->Add(IntToHex(event.event_data, 2));
+        break;
+    }
+
+    // 时间信息放在最后处理
+    /*if (time_base != 0
+        && event.event_id != EVENT_TIME_1
+        && event.event_id != EVENT_TIME_2
+        && event.event_id != EVENT_TIME_3
+        && event.event_id != EVENT_TIME_4)
+    {
+        // 从2000-1-1为基准
+        double time_of_real = time_base + event.timer;
+        time_of_real = time_of_real / (24*3600*10);
+        time_of_real = time_of_real + TDateTime(2000, 1, 1);
+        TDateTime datetime_of_real = time_of_real;
+        item->SubItems->Add(datetime_of_real);
+    }*/
+
+    /*
+    // 关机后清除校准值。这样后续记录不在显示时间
+    if (event.event_id == EVENT_POWER_SAVE_OK)
+    {
+        time_base = 0;
+    }*/
+    item->SubItems->Add(syn_time);
+
+    return item;
+}
+void TForm1::ProcessLogData(int tail_address)
+{
+    int log_tail_index = (tail_address-LOG_START_PAGE) / sizeof(Event);
+    int last_log_index = 0;
+    // 移动日志，使得符合顺序，同时记录最后一条有效日志索引
+    for (int i=0;i<EVENT_POOL_SIZE;i++)
+    {
+        // 第i条记录在原始数据中的位置
+        int mapped_index = (log_tail_index-i-1) % EVENT_POOL_SIZE;
+        event_data[i] = event_data_tmp[mapped_index];
+
+        if (event_data[i].timer != 0xFFFFFFFF)
+        {
+            last_log_index = i;
+        }
+
+        // 同时清除同步时间
+        event_syn_timer[i] = "";
+    }
+
+    unsigned __int64 time_base = 0;
+    // 向下计算时间
+    for (int i=0;i<=last_log_index;i++)
+    {
+        // 计算同步时间
+        switch (event_data[i].event_id)
+        {
+            case EVENT_TIME_1:
+            {
+                if (i>=3 &&
+                    event_data[i-1].event_id == EVENT_TIME_2 &&
+                    event_data[i-2].event_id == EVENT_TIME_3 &&
+                    event_data[i-3].event_id == EVENT_TIME_4)
+                {
+                    time_base = event_data[i].event_data;
+                    time_base = time_base << 16 | event_data[i-1].event_data;
+                    time_base = time_base << 16 | event_data[i-2].event_data;
+                    time_base = time_base << 16 | event_data[i-3].event_data;
+
+                    // 记录时间
+                    // 从2000-1-1为基准
+                    double time_of_real = time_base + event_data[i].timer;
+                    time_of_real = time_of_real / (24*3600*10);
+                    time_of_real = time_of_real + TDateTime(2000, 1, 1);
+                    TDateTime datetime_of_real = time_of_real;
+                    event_syn_timer[i] = datetime_of_real;
+                }
+                break;
+            }
+        case EVENT_POWER_SAVE_OK:
+        case EVENT_POWER_OFF:
+        case EVENT_TIME_2:
+        case EVENT_TIME_3:
+        case EVENT_TIME_4:
+            time_base = 0;
+            break;
+        default:
+            if (time_base != 0)
+            {
+                // 从2000-1-1为基准
+                double time_of_real = time_base + event_data[i].timer;
+                time_of_real = time_of_real / (24*3600*10);
+                time_of_real = time_of_real + TDateTime(2000, 1, 1);
+                TDateTime datetime_of_real = time_of_real;
+                event_syn_timer[i] = datetime_of_real;
+            }
+            break;
+        }
+    }
+
+    // 向上计算时间
+    for (int i=last_log_index;i>=0;i--)
+    {
+        // 计算同步时间
+        switch (event_data[i].event_id)
+        {
+            case EVENT_TIME_1:
+            {
+                if (i>=3 &&
+                    event_data[i-1].event_id == EVENT_TIME_2 &&
+                    event_data[i-2].event_id == EVENT_TIME_3 &&
+                    event_data[i-3].event_id == EVENT_TIME_4)
+                {
+                    time_base = event_data[i].event_data;
+                    time_base = time_base << 16 | event_data[i-1].event_data;
+                    time_base = time_base << 16 | event_data[i-2].event_data;
+                    time_base = time_base << 16 | event_data[i-3].event_data;
+                }
+                break;
+            }
+        default:
+            if (time_base != 0 && event_syn_timer[i]=="")
+            {
+                // 从2000-1-1为基准
+                double time_of_real = time_base + event_data[i].timer;
+                time_of_real = time_of_real / (24*3600*10);
+                time_of_real = time_of_real + TDateTime(2000, 1, 1);
+                TDateTime datetime_of_real = time_of_real;
+                event_syn_timer[i] = datetime_of_real;
+            }
+            break;
+        }
+    }
+
+    for (int i=0;i<=last_log_index;i++)
+    {
+        int address = tail_address + i*sizeof(Event);
+        if (address > LOG_START_PAGE+LOG_SIZE)
+            address -= LOG_START_PAGE+LOG_SIZE;
+        AppendLogData(lvLog, event_data[i], address, event_syn_timer[i]);
+    }
+}
 void TForm1::ProcessLogData(LogBuff & buff)
 {
-    static unsigned __int64 time_base;
-    static unsigned short time1=0, time2=0, time3=0, time4=0;
+    //static unsigned __int64 time_base;
+    //static unsigned short time1=0, time2=0, time3=0, time4=0;
     // 日志
     for (int i=0;i<128;i++)
     {
         if (buff.event[i].timer != 0xFFFFFFFF)
         {
-            TListItem * item = lvLog->Items->Add();
-            unsigned int event_timer = buff.event[i].timer;
-            //item->Data = (void*)event_timer;
-            item->Data = (void*)(buff.address + i*sizeof(Event));
-
-            item->Caption = IntToHex((int)(buff.address + i*sizeof(Event)), 8);
-
-            int ms = event_timer % 10;  event_timer /= 10;
-            int sec = event_timer % 60; event_timer /= 60;
-            int min = event_timer % 60; event_timer /= 60;
-
-            String item_caption = IntToStr(event_timer)+":"
-                          + IntToStr(min)+":"
-                          + IntToStr(sec)+"."
-                          + IntToStr(ms);
-            item->SubItems->Add(item_caption);
-
-            switch (buff.event[i].event_id)
-            {
-            case EVENT_POWER_OFF:
-                item->SubItems->Add("关闭电源");
-                item->SubItems->Add("启动次数"+IntToStr(buff.event[i].event_data));
-                break;
-            case EVENT_SYSTEM_LIMIT:
-                item->SubItems->Add("达到运行次数或时间限制");
-                item->SubItems->Add(buff.event[i].event_data);
-                break;
-            case EVENT_SAVE_PRESET:
-                item->SubItems->Add("保存Preset");
-                item->SubItems->Add("Preset编号:"+IntToStr(buff.event[i].event_data));
-                break;
-            case EVENT_POWER_SAVE_OK:
-                item->SubItems->Add("关机存盘成功");
-                item->SubItems->Add("下次启动次数"+IntToStr(buff.event[i].event_data));
-                break;
-            case EVENT_INPUT_OVERFLOW:
-                item->SubItems->Add("input通道音量溢出");
-                item->SubItems->Add("通道号"+IntToStr(buff.event[i].event_data));
-                break;
-            case EVENT_OUTPUT_OVERFLOW:
-                item->SubItems->Add("output通道音量溢出");
-                item->SubItems->Add("通道号"+IntToStr(buff.event[i].event_data));
-                break;
-            case EVENT_WRITE_FLASH_ERROR:
-                item->SubItems->Add("写flash错误");
-                item->SubItems->Add("地址:0x"+IntToHex(buff.event[i].event_data * 2048, 8));
-                break;
-            case EVENT_REBOOT:
-                if (buff.event[i].event_data < 0x10)
-                {
-                    item->SubItems->Add("上位机发起重启");
-                    if (buff.event[i].event_data == 0)
-                    {
-                        item->SubItems->Add("重启");
-                    }
-                    else if (buff.event[i].event_data == 1)
-                    {
-                        item->SubItems->Add("清除PRESER");
-                    }
-                    else if (buff.event[i].event_data == 2)
-                    {
-                        item->SubItems->Add("恢复出厂设置");
-                    }
-                    else if (buff.event[i].event_data == 10)
-                    {
-                        item->SubItems->Add("进入升级程序");
-                    }
-                    else
-                    {
-                        item->SubItems->Add(buff.event[i].event_data);
-                    }
-                }
-                else
-                {
-                    item->SubItems->Add("上电时清除");
-                    if (buff.event[i].event_data == 0x011)
-                    {
-                        item->SubItems->Add("清除PRESER");
-                    }
-                    else if (buff.event[i].event_data == 0x12)
-                    {
-                        item->SubItems->Add("恢复出厂设置");
-                    }
-                    else
-                    {
-                        item->SubItems->Add(buff.event[i].event_data);
-                    }
-                }
-                break;
-            case EVENT_SAVE_PRESET_OK:
-                item->SubItems->Add("存盘完成");
-                {
-                    String page_indexs = "存盘页";
-                    if (buff.event[i].event_data & 1) page_indexs = page_indexs + "1,";
-                    if (buff.event[i].event_data & 2) page_indexs = page_indexs + "2,";
-                    if (buff.event[i].event_data & 4) page_indexs = page_indexs + "3,";
-                    if (buff.event[i].event_data & 8) page_indexs = page_indexs + "4,";
-                    if (buff.event[i].event_data & 16) page_indexs = page_indexs + "5,";
-                    item->SubItems->Add(page_indexs);
-                }
-                break;
-            case EVENT_CHECK_MD5_FAIL:
-                item->SubItems->Add("激活码错误");
-                item->SubItems->Add("");
-                break;
-            case EVENT_28J60_REINIT_ERROR:
-                item->SubItems->Add("ENC28J60初始化错误");
-                item->SubItems->Add("失败次数:"+IntToStr(buff.event[i].event_data));
-                break;
-            case EVENT_MAC_ADDRESS_OVERFLOW:
-                item->SubItems->Add("MAC地址日志溢出");
-                item->SubItems->Add("");
-                break;
-            case EVENT_NO_KEY:
-                item->SubItems->Add("设备授权错误");
-                item->SubItems->Add("");
-                break;
-            case EVENT_DSP_NOT_MATCH_ERROR:
-                item->SubItems->Add("YSS920与配置不符");
-                if (buff.event[i].event_data > 0x80)
-                    item->SubItems->Add("缺少:"+IntToStr(buff.event[i].event_data-0x80));
-                else
-                    item->SubItems->Add("多出:"+IntToStr(buff.event[i].event_data));
-                break;
-            case EVENT_LED_NUM_ERR:
-                item->SubItems->Add("LED控制芯片错误");
-                item->SubItems->Add(buff.event[i].event_data);
-                break;
-            case EVENT_FILENAME_CHANGED:
-                item->SubItems->Add("导入/导出配置");
-                item->SubItems->Add("");
-                break;
-            case EVENT_SET_MAC_ADDRESS:
-                item->SubItems->Add("设置了MAC地址");
-                item->SubItems->Add(IntToHex(buff.event[i].event_data, 6));
-                break;
-            case EVENT_ADDA_ERROR:
-                if (buff.event[i].event_data > 32)
-                    item->SubItems->Add("AD数量与配置不符");
-                else
-                    item->SubItems->Add("DA数量与配置不符");
-                item->SubItems->Add("现有数量："+IntToStr(buff.event[i].event_data%32));
-                break;
-            case EVENT_EACH_HOUR:
-                item->SubItems->Add("开机每小时标识");
-                item->SubItems->Add(IntToStr(buff.event[i].event_data));
-                break;
-            case EVENT_TIME_1:
-                time1 = buff.event[i].event_data;
-                time2 = 0;
-                time3 = 0;
-                time4 = 0;
-
-                item->SubItems->Add("时间同步信息1");
-                item->SubItems->Add("0x"+IntToHex(buff.event[i].event_data, 4));
-                break;
-            case EVENT_TIME_2:
-                time2 = buff.event[i].event_data;
-
-                item->SubItems->Add("时间同步信息2");
-                item->SubItems->Add("0x"+IntToHex(buff.event[i].event_data, 4));
-                break;
-            case EVENT_TIME_3:
-                time3 = buff.event[i].event_data;
-
-                item->SubItems->Add("时间同步信息3");
-                item->SubItems->Add("0x"+IntToHex(buff.event[i].event_data, 4));
-                break;
-            case EVENT_TIME_4:
-                time4 = buff.event[i].event_data;
-
-                item->SubItems->Add("时间同步信息4");
-                item->SubItems->Add("0x"+IntToHex(buff.event[i].event_data, 4));
-
-                // 事件中记录的是差值, 时间都是以100ms为单位
-
-                // 显示修正后的时间
-                time_base = time1;
-                time_base = time_base << 16 | time2;
-                time_base = time_base << 16 | time3;
-                time_base = time_base << 16 | time4;
-                break;
-            case EVENT_SAVE_LOAD_TIMEOUT:
-                item->SubItems->Add("存盘或者恢复超时错误");
-                item->SubItems->Add(buff.event[i].event_data==1?"LOAD UNIT":"SAVE UNIT");
-                break;
-            case EVENT_48V:
-                item->SubItems->Add("48V与硬件不匹配错误");
-                item->SubItems->Add(buff.event[i].event_data==0?"缺少":"多出");
-                break;
-            case EVENT_RESET_RUNNING_TIME:
-                item->SubItems->Add("重置运行时间");
-                item->SubItems->Add("");
-                break;
-            case EVENT_IWDG_REBOOT:
-                item->SubItems->Add("看门狗异常(错误)");
-                item->SubItems->Add("");
-                break;
-            default:
-                item->SubItems->Add(buff.event[i].event_id);
-                item->SubItems->Add(IntToHex(buff.event[i].event_data, 2));
-                break;
-            }
-
-            if (time_base != 0
-                && buff.event[i].event_id != EVENT_TIME_1
-                && buff.event[i].event_id != EVENT_TIME_2
-                && buff.event[i].event_id != EVENT_TIME_3
-                && buff.event[i].event_id != EVENT_TIME_4)
-            {
-                // 从2000-1-1为基准
-                double time_of_real = time_base + buff.event[i].timer;
-                time_of_real = time_of_real / (24*3600*10);
-                time_of_real = time_of_real + TDateTime(2000, 1, 1);
-                TDateTime datetime_of_real = time_of_real;
-                item->SubItems->Add(datetime_of_real);
-            }
-
-            // 关机后清除校准值。这样后续记录不在显示时间
-            if (buff.event[i].event_id == EVENT_POWER_SAVE_OK)
-            {
-                time_base = 0;
-            }
+            AppendLogData(lvLog, buff.event[i], buff.address + i*sizeof(Event), "");
         }
         else
         {

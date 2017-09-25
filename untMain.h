@@ -752,16 +752,23 @@ public:
     int sendcmd_delay_count;
     vector<TPackage> sendcmd_list;
 
+    void SendCmd(D1608Cmd& cmd);
+    void SendCmd2(D1608Cmd& cmd);
+    bool ProcessSendCmdAck(D1608Cmd& cmd, TStream *AData, TIdSocketHandle *ABinding);
+
+private:
+#define EVENT_POOL_SIZE (LOG_SIZE/sizeof(Event))
+    Event event_data[EVENT_POOL_SIZE];
+    Event event_data_tmp[EVENT_POOL_SIZE];
+    String event_syn_timer[EVENT_POOL_SIZE];
+    
     void SendLogBuff(int udp_port, void * buff, int size);
     bool ProcessLogBuffAck(LogBuff& buff, TStream *AData, TIdSocketHandle *ABinding);
 
     // 最大启动次数地址
     unsigned int log_tail_address;
+    void ProcessLogData(int tail_address);
     void ProcessLogData(LogBuff & buff);
-
-    void SendCmd(D1608Cmd& cmd);
-    void SendCmd2(D1608Cmd& cmd);
-    bool ProcessSendCmdAck(D1608Cmd& cmd, TStream *AData, TIdSocketHandle *ABinding);
 //----------------------------------
 private:
     PanelAgent* panel_agent;
