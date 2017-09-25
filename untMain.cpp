@@ -1927,6 +1927,22 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             if (buff.address == MAC_LIST_START_PAGE)
             {
                 log_tail_address = buff.tail_address;
+
+                // 排序
+                lvLog->AlphaSort();
+
+                if (cbRemoveEmptyLog->Checked)
+                {
+                    // 从后向前找到第一条非空数据，保留，其他都删除
+                    for (int i=lvLog->Items->Count-1; i>=0; i--)
+                    {
+                        String event_timer = lvLog->Items->Item[i]->SubItems->Strings[0];
+                        if (event_timer == "")
+                        {
+                            lvLog->Items->Delete(i);
+                        }
+                    }
+                }
             }
 
             // MAC地址
@@ -1960,7 +1976,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             }
             lblLogCount->Caption = "日志数量："+IntToStr(log_count) + "   MAC数量："+IntToStr(mac_count);
 
-            lvLog->AlphaSort();
+            //lvLog->AlphaSort();
         }
 
         if (!ProcessLogBuffAck(buff, AData, ABinding))
@@ -2772,7 +2788,7 @@ void TForm1::ProcessLogData(LogBuff & buff)
                 time_base = 0;
             }
         }
-        /*else
+        else
         {
             TListItem * item = lvLog->Items->Add();
             item->Caption = IntToHex((int)(buff.address + i*sizeof(Event)), 8);
@@ -2780,7 +2796,7 @@ void TForm1::ProcessLogData(LogBuff & buff)
             item->SubItems->Add(buff.event[i].event_id);
             item->SubItems->Add(IntToHex(buff.event[i].event_data, 2));
             item->Data = (void*)(buff.address + i*sizeof(Event));
-        }*/
+        }
     }
 }
 bool TForm1::ProcessLogBuffAck(LogBuff& buff, TStream *AData, TIdSocketHandle *ABinding)
