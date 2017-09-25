@@ -2718,33 +2718,34 @@ void TForm1::ProcessLogData(LogBuff & buff)
                 time3 = 0;
                 time4 = 0;
 
-                item->SubItems->Add("时间校准信息1");
+                item->SubItems->Add("时间同步信息1");
                 item->SubItems->Add("0x"+IntToHex(buff.event[i].event_data, 4));
                 break;
             case EVENT_TIME_2:
                 time2 = buff.event[i].event_data;
 
-                item->SubItems->Add("时间校准信息2");
+                item->SubItems->Add("时间同步信息2");
                 item->SubItems->Add("0x"+IntToHex(buff.event[i].event_data, 4));
                 break;
             case EVENT_TIME_3:
                 time3 = buff.event[i].event_data;
 
-                item->SubItems->Add("时间校准信息3");
+                item->SubItems->Add("时间同步信息3");
                 item->SubItems->Add("0x"+IntToHex(buff.event[i].event_data, 4));
                 break;
             case EVENT_TIME_4:
                 time4 = buff.event[i].event_data;
+
+                item->SubItems->Add("时间同步信息4");
+                item->SubItems->Add("0x"+IntToHex(buff.event[i].event_data, 4));
+
+                // 事件中记录的是差值, 时间都是以100ms为单位
 
                 // 显示修正后的时间
                 time_base = time1;
                 time_base = time_base << 16 | time2;
                 time_base = time_base << 16 | time3;
                 time_base = time_base << 16 | time4;
-                // 事件中记录的是差值, 时间都是以100ms为单位
-
-                item->SubItems->Add("时间校准信息4");
-                item->SubItems->Add("0x"+IntToHex(buff.event[i].event_data, 4));
                 break;
             case EVENT_SAVE_LOAD_TIMEOUT:
                 item->SubItems->Add("存盘或者恢复超时错误");
@@ -2752,7 +2753,7 @@ void TForm1::ProcessLogData(LogBuff & buff)
                 break;
             case EVENT_48V:
                 item->SubItems->Add("48V与硬件不匹配错误");
-                item->SubItems->Add(buff.event[i].event_data==1?"缺少":"多出");
+                item->SubItems->Add(buff.event[i].event_data==0?"缺少":"多出");
                 break;
             case EVENT_RESET_RUNNING_TIME:
                 item->SubItems->Add("重置运行时间");
