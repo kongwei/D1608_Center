@@ -75,7 +75,6 @@ extern "C"{
         __int8 gateway[4];
         __int16 port;
     };*/
-#pragma pack()
 
 typedef struct
 {
@@ -91,7 +90,9 @@ struct LogBuff
         Event event[128];
         MacCode mac[128];
     };
+    unsigned __int64 tail_address;
 };
+#pragma pack()
 
 
 //---------------------------------------------------------------------------
@@ -860,7 +861,6 @@ private:
     void SetIOChannelNum();
 
     void CloseDspDetail();
-
 private:
     WNDPROC old_pnlSystem_proc;
     static LRESULT new_pnlSystem_proc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp);

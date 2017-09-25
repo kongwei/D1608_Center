@@ -1405,6 +1405,7 @@ void __fastcall TForm1::btnRefreshClick(TObject *Sender)
             }
             catch(...)
             {
+                udpSLPList[i]->Active = false;
             }
         }
     }
@@ -1923,6 +1924,11 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
         }
         else
         {
+            if (buff.address == MAC_LIST_START_PAGE)
+            {
+                log_tail_address = buff.tail_address;
+            }
+
             // MAC地址
             for (int i=0;i<128;i++)
             {
@@ -1947,10 +1953,10 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             int mac_count = 0;
             for (int i=0;i<lvLog->Items->Count;i++)
             {
-                if (lvLog->Items->Item[i]->Caption != "")
-                    log_count++;
-                else
+                if (lvLog->Items->Item[i]->Caption == "")
                     mac_count++;
+                else if (lvLog->Items->Item[i]->SubItems->Strings[0] != "")
+                    log_count++;
             }
             lblLogCount->Caption = "日志数量："+IntToStr(log_count) + "   MAC数量："+IntToStr(mac_count);
 
@@ -2543,7 +2549,7 @@ void TForm1::ProcessLogData(LogBuff & buff)
     {
         if (buff.event[i].timer != 0xFFFFFFFF)
         {
-            TListItem * item = lvLog->Items->Insert(0);
+            TListItem * item = lvLog->Items->Add();
             unsigned int event_timer = buff.event[i].timer;
             //item->Data = (void*)event_timer;
             item->Data = (void*)(buff.address + i*sizeof(Event));
@@ -2766,20 +2772,15 @@ void TForm1::ProcessLogData(LogBuff & buff)
                 time_base = 0;
             }
         }
-        else
+        /*else
         {
-            if (buff.event[i].event_id == -1 && buff.event[i].event_data == 0xFFFF)
-            {
-                log_tail_address = buff.address + sizeof(Event)*i;
-            }
-
-            TListItem * item = lvLog->Items->Insert(0);
+            TListItem * item = lvLog->Items->Add();
             item->Caption = IntToHex((int)(buff.address + i*sizeof(Event)), 8);
             item->SubItems->Add("");
             item->SubItems->Add(buff.event[i].event_id);
             item->SubItems->Add(IntToHex(buff.event[i].event_data, 2));
             item->Data = (void*)(buff.address + i*sizeof(Event));
-        }
+        }*/
     }
 }
 bool TForm1::ProcessLogBuffAck(LogBuff& buff, TStream *AData, TIdSocketHandle *ABinding)
@@ -6445,8 +6446,8 @@ void __fastcall TForm1::lvDeviceCustomDrawItem(TCustomListView *Sender,
 
 static int CompLogTime(UINT a, UINT b, UINT tail, UINT size)
 {
-    if (a <= tail) a = a+size;
-    if (b <= tail) b = b+size;
+    if (a < tail) a = a+size;
+    if (b < tail) b = b+size;
 
     return a-b;
 }
