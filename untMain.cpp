@@ -1915,75 +1915,57 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
     }
     else if (ABinding->PeerPort == UDP_PORT_READ_LOG)
     {
-        LogBuff buff;
+        LogBuff buff = {0};
 
-        AData->ReadBuffer(&buff, sizeof(buff));
-        if ((buff.address >= LOG_START_PAGE) && (buff.address < MAC_LIST_START_PAGE))
+        if (AData->Size == sizeof(buff)-8 || AData->Size ==sizeof(buff))
         {
-            int index = (buff.address - LOG_START_PAGE) / sizeof(Event);
-            memcpy(event_data_tmp+index, buff.event, sizeof(buff.event));
-            //ProcessLogData(buff);
-        }
-        else
-        {
-            if (buff.address == MAC_LIST_START_PAGE)
+            AData->ReadBuffer(&buff, AData->Size);
+
+            if ((buff.address >= LOG_START_PAGE) && (buff.address < MAC_LIST_START_PAGE))
             {
-
-                ProcessLogData(buff.tail_address);
-
-/*
-                log_tail_address = buff.tail_address;
-
-                // 排序
-                lvLog->AlphaSort();
-
-                if (cbRemoveEmptyLog->Checked)
+                int index = (buff.address - LOG_START_PAGE) / sizeof(Event);
+                memcpy(event_data_tmp+index, buff.event, sizeof(buff.event));
+            }
+            else
+            {
+                if (buff.address == MAC_LIST_START_PAGE)
                 {
-                    // 从后向前找到第一条非空数据，保留，其他都删除
-                    for (int i=lvLog->Items->Count-1; i>=0; i--)
+                    ProcessLogData(buff.tail_address);
+                }
+
+                // MAC地址
+                for (int i=0;i<128;i++)
+                {
+                    if (memcmp(buff.mac[i], "\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF", 8) != 0)
                     {
-                        String event_timer = lvLog->Items->Item[i]->SubItems->Strings[0];
-                        if (event_timer == "")
-                        {
-                            lvLog->Items->Delete(i);
-                        }
+                        TListItem * item = lvLog->Items->Add();
+
+                        item->Caption = "";
+                        item->SubItems->Add("mac");
+                        String mac_string;
+                        mac_string.sprintf("%0X-%0X-%0X-%0X-%0X-%0X",
+                                            buff.mac[i][0], buff.mac[i][1], buff.mac[i][2],
+                                            buff.mac[i][3], buff.mac[i][4], buff.mac[i][5]);
+                        item->SubItems->Add(mac_string);
+                        item->SubItems->Add("");
+                        item->SubItems->Add("");
                     }
                 }
-*/
-            }
+                btnGetLog->Enabled = true;
 
-            // MAC地址
-            for (int i=0;i<128;i++)
-            {
-                if (memcmp(buff.mac[i], "\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF", 8) != 0)
+                int log_count = 0;
+                int mac_count = 0;
+                for (int i=0;i<lvLog->Items->Count;i++)
                 {
-                    TListItem * item = lvLog->Items->Add();
-
-                    item->Caption = "";
-                    item->SubItems->Add("mac");
-                    String mac_string;
-                    mac_string.sprintf("%0X-%0X-%0X-%0X-%0X-%0X",
-                                        buff.mac[i][0], buff.mac[i][1], buff.mac[i][2],
-                                        buff.mac[i][3], buff.mac[i][4], buff.mac[i][5]);
-                    item->SubItems->Add(mac_string);
-                    item->SubItems->Add("");
-                    item->SubItems->Add("");
+                    if (lvLog->Items->Item[i]->Caption == "")
+                        mac_count++;
+                    else if (lvLog->Items->Item[i]->SubItems->Strings[0] != "")
+                        log_count++;
                 }
-            }
-            btnGetLog->Enabled = true;
+                lblLogCount->Caption = "日志数量："+IntToStr(log_count) + "   MAC数量："+IntToStr(mac_count);
 
-            int log_count = 0;
-            int mac_count = 0;
-            for (int i=0;i<lvLog->Items->Count;i++)
-            {
-                if (lvLog->Items->Item[i]->Caption == "")
-                    mac_count++;
-                else if (lvLog->Items->Item[i]->SubItems->Strings[0] != "")
-                    log_count++;
+                //lvLog->AlphaSort();
             }
-            lblLogCount->Caption = "日志数量："+IntToStr(log_count) + "   MAC数量："+IntToStr(mac_count);
-
-            //lvLog->AlphaSort();
         }
 
         if (!ProcessLogBuffAck(buff, AData, ABinding))
@@ -2744,6 +2726,10 @@ static TListItem* AppendLogData(TListView * lvLog, Event event, int address, Str
         item->SubItems->Add("看门狗异常(错误)");
         item->SubItems->Add("");
         break;
+    case EVENT_POWER_SAVE_ERROR:
+        item->SubItems->Add("掉电存盘错误");
+        item->SubItems->Add("");
+        break;
     default:
         item->SubItems->Add(event.event_id);
         item->SubItems->Add(IntToHex(event.event_data, 2));
@@ -2875,6 +2861,10 @@ void TForm1::ProcessLogData(int tail_address)
                 TDateTime datetime_of_real = time_of_real;
                 event_syn_timer[i] = datetime_of_real;
             }
+            if (event_data[i].event_id == EVENT_POWER_SAVE_OK || event_data[i].event_id == EVENT_POWER_OFF)
+            {
+                time_base = 0;
+            }
             break;
         }
     }
@@ -2885,28 +2875,6 @@ void TForm1::ProcessLogData(int tail_address)
         if (address > LOG_START_PAGE+LOG_SIZE)
             address -= LOG_START_PAGE+LOG_SIZE;
         AppendLogData(lvLog, event_data[i], address, event_syn_timer[i]);
-    }
-}
-void TForm1::ProcessLogData(LogBuff & buff)
-{
-    //static unsigned __int64 time_base;
-    //static unsigned short time1=0, time2=0, time3=0, time4=0;
-    // 日志
-    for (int i=0;i<128;i++)
-    {
-        if (buff.event[i].timer != 0xFFFFFFFF)
-        {
-            AppendLogData(lvLog, buff.event[i], buff.address + i*sizeof(Event), "");
-        }
-        else
-        {
-            TListItem * item = lvLog->Items->Add();
-            item->Caption = IntToHex((int)(buff.address + i*sizeof(Event)), 8);
-            item->SubItems->Add("");
-            item->SubItems->Add(buff.event[i].event_id);
-            item->SubItems->Add(IntToHex(buff.event[i].event_data, 2));
-            item->Data = (void*)(buff.address + i*sizeof(Event));
-        }
     }
 }
 bool TForm1::ProcessLogBuffAck(LogBuff& buff, TStream *AData, TIdSocketHandle *ABinding)

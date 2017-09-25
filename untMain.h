@@ -768,7 +768,6 @@ private:
     // 最大启动次数地址
     unsigned int log_tail_address;
     void ProcessLogData(int tail_address);
-    void ProcessLogData(LogBuff & buff);
 //----------------------------------
 private:
     PanelAgent* panel_agent;
