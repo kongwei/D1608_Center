@@ -2760,6 +2760,18 @@ static TListItem* AppendLogData(TListView * lvLog, Event event, int address, Str
         item->SubItems->Add("掉电存盘错误");
         item->SubItems->Add("");
         break;
+    case EVENT_28J60_VERSION_ERROR:
+        item->SubItems->Add("28J60版本号错误");
+        item->SubItems->Add(IntToStr(event.event_data));
+        break;
+    case EVENT_UPGRADE_DATE:
+        item->SubItems->Add("升级时版本日期");
+        item->SubItems->Add("");
+        break;
+    case EVENT_UPGRADE_TIME:
+        item->SubItems->Add("升级时版本时间");
+        item->SubItems->Add(IntToHex(event.event_data, 4));
+        break;
     default:
         item->SubItems->Add(event.event_id);
         item->SubItems->Add(IntToHex(event.event_data, 2));
