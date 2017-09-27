@@ -1842,7 +1842,8 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
         else if (cmd.id == GetOffsetOfData(&config_map.op_code.noop))
         {
             ProcessWatchLevel(cmd.data.keep_alive.watch_level, cmd.data.keep_alive.watch_level_comp);
-            ProcessVote(cmd.data.keep_alive.adc, cmd.data.keep_alive.adc_init);
+            if (cmd.length == sizeof(config_map.op_code))
+                ProcessVote(cmd.data.keep_alive.adc, cmd.data.keep_alive.adc_init);
             ProcessKeepAlive(cmd.data.keep_alive.switch_preset, cmd.data.keep_alive.set_time_ex);
 
             //memo_debug->Lines->Add("广播消息序号:"+IntToStr(cmd.data.keep_alive.seq)+":"+IntToStr(received_cmd_seq));
@@ -2798,7 +2799,7 @@ void TForm1::ProcessLogData(int tail_address)
     for (int i=0;i<EVENT_POOL_SIZE;i++)
     {
         // 第i条记录在原始数据中的位置
-        int mapped_index = (log_tail_index-i-1) % EVENT_POOL_SIZE;
+        int mapped_index = (log_tail_index-i-1+EVENT_POOL_SIZE) % EVENT_POOL_SIZE;
         event_data[i] = event_data_tmp[mapped_index];
 
         if (event_data[i].timer != 0xFFFFFFFF)
