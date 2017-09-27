@@ -1802,11 +1802,11 @@ void __fastcall TForm1::ToogleEQ(TObject *Sender)
     config_map.input_dsp[dsp_id-1].eq_switch = btn->Down;
 }
 //---------------------------------------------------------------------------
-int CalcVot1(unsigned __int16 true_data1, float rdown, float r_up)
+float CalcVot1(float true_data1, float rdown, float r_up)
 {
     return true_data1 * (rdown+r_up) / rdown / 10;
 }
-int CalcVot2(unsigned __int16 v, unsigned __int16 x_true_data, float rx_up, float rx_down)
+float CalcVot2(float v, float x_true_data, float rx_up, float rx_down)
 {
     float xv = x_true_data - (v - x_true_data) * rx_down / rx_up;
     return xv / 10;
@@ -1842,7 +1842,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
         else if (cmd.id == GetOffsetOfData(&config_map.op_code.noop))
         {
             ProcessWatchLevel(cmd.data.keep_alive.watch_level, cmd.data.keep_alive.watch_level_comp);
-            ProcessVote(cmd.data.keep_alive.adc);
+            ProcessVote(cmd.data.keep_alive.adc, cmd.data.keep_alive.adc_init);
             ProcessKeepAlive(cmd.data.keep_alive.switch_preset, cmd.data.keep_alive.set_time_ex);
 
             //memo_debug->Lines->Add("广播消息序号:"+IntToStr(cmd.data.keep_alive.seq)+":"+IntToStr(received_cmd_seq));
@@ -2291,7 +2291,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
     }
 }
 //---------------------------------------------------------------------------
-void TForm1::CalcAllVote(ADC_Data & adc_data)
+void TForm1::CalcAllVote(ADC_Data_Float & adc_data)
 {
     VoteParam vote_param;
     if (global_config.vote_param._5vd_up != 0 && !IsNan(global_config.vote_param._5vd_up))
@@ -2315,25 +2315,54 @@ void TForm1::CalcAllVote(ADC_Data & adc_data)
     adc_data._x16va = CalcVot2(adc_data._16va*10 , adc_data._x16va , vote_param._x16va_up,  vote_param._x16va_down);
     adc_data._x12va = CalcVot2(adc_data._12va*10 , adc_data._x12va , vote_param._x12va_up,  vote_param._x12va_down);
 }
-void TForm1::ProcessVote(short adc[ADC_NUM])
-{
-    __int16 data[16];
 
+static ADC_Data_Float AdjustAdcDataByBootAdcData(ADC_Data true_data, ADC_Data boot_adc_data)
+{
+    ADC_Data_Float result;
+
+    result._2_5v   = true_data._2_5v  ;
+    result.base    = true_data.base   ;
+    result._5vd    = true_data._5vd   ;
+    result._8vdc   = true_data._8vdc  ;
+    result._8vac   = true_data._8vac  ;
+    result._8va    = true_data._8va   ;
+    result._x16vac = true_data._x16vac;
+    result._x16va  = true_data._x16va ;
+    result._46vc   = true_data._46vc  ;
+    result._48va   = true_data._48va  ;
+    result._46va   = true_data._46va  ;
+    result._5va    = true_data._5va   ;
+    result._x12va  = true_data._x12va ;
+    result._12va   = true_data._12va  ;
+    result._16va   = true_data._16va  ;
+    result._16vac  = true_data._16vac ;
+
+	result._8vdc   = result._8vdc * boot_adc_data._8va / boot_adc_data._8vdc;
+	result._8vac   = result._8vac * boot_adc_data._8va / boot_adc_data._8vac;
+	result._x16vac = result._x16vac * boot_adc_data._x16va / boot_adc_data._x16vac;
+	result._46vc   = result._46vc * boot_adc_data._48va / boot_adc_data._46vc;
+	result._16vac  = result._16vac * boot_adc_data._16va / boot_adc_data._16vac;
+
+    return result;
+}
+void TForm1::ProcessVote(short adc[ADC_NUM], ADC_Data adc_init)
+{
+    for (int i=0; i<ADC_NUM; i++)
+    {
+        ValueListEditor1->Cells[1][i+1] = adc[i];
+    }
+
+    __int16 data[16];
     // 计算检测到的电压 3.3v ~ 4096
     for (int i=0; i<ADC_NUM; i++)
     {
         data[i] = adc[i] * 2500 / adc[1];
     }
 
-    for (int i=0; i<ADC_NUM; i++)
-    {
-        ValueListEditor1->Cells[1][i+1] = adc[i];
-    }
 
     int org_base = adc[1];
-    ADC_Data * true_data = (ADC_Data *)data;
-
-    ADC_Data calc_data;
+    ADC_Data_Float true_data = AdjustAdcDataByBootAdcData(*(ADC_Data*)data, adc_init);
+    ADC_Data_Float calc_data;
 
     // 正电压检测：
     //      ra = 4
@@ -2343,12 +2372,12 @@ void TForm1::ProcessVote(short adc[ADC_NUM])
     //      -5v  rc=4  rd=15
     //      -12v rc=10 rd=15
     //      -16v rc=15 rd=20
-    calc_data = *true_data;
-    calc_data._2_5v  = true_data->_2_5v / 10;
+    calc_data = true_data;
+    calc_data._2_5v  = true_data._2_5v / 10;
     calc_data.base   = 2500 / 10;
     CalcAllVote(calc_data);
 
-    __int16 * xcalc_data = (__int16 *)&calc_data;
+    float * xcalc_data = (float *)&calc_data;
     for (int i=0; i<ADC_NUM; i++)
     {
         double vot = xcalc_data[i] / 100.0f;
@@ -2871,7 +2900,7 @@ void TForm1::ProcessLogData(int tail_address)
 
     for (int i=0;i<=last_log_index;i++)
     {
-        int address = tail_address + i*sizeof(Event);
+        int address = tail_address + LOG_START_PAGE+LOG_SIZE - i*sizeof(Event);
         if (address > LOG_START_PAGE+LOG_SIZE)
             address -= LOG_START_PAGE+LOG_SIZE;
         AppendLogData(lvLog, event_data[i], address, event_syn_timer[i]);
