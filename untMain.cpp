@@ -63,7 +63,7 @@ struct SmcConfig
     UINT file_version;
     char pad1[2048-sizeof(GlobalConfig) - sizeof(UINT)];
     ConfigMapX all_config_map[PRESET_NUM];
-    char pad2[80*1024-sizeof(ConfigMap)*PRESET_NUM];
+    char pad2[80*1024-sizeof(ConfigMapX)*PRESET_NUM];
     char device_flash_dump[128*1024];
 };
 static SmcConfig smc_config;
@@ -2901,7 +2901,7 @@ void TForm1::ProcessLogData(int tail_address)
 
     for (int i=0;i<=last_log_index;i++)
     {
-        int address = tail_address + LOG_START_PAGE+LOG_SIZE - i*sizeof(Event);
+        int address = tail_address + LOG_START_PAGE+LOG_SIZE - (i+1)*sizeof(Event);
         if (address > LOG_START_PAGE+LOG_SIZE)
             address -= LOG_START_PAGE+LOG_SIZE;
         AppendLogData(lvLog, event_data[i], address, event_syn_timer[i]);
