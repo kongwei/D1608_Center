@@ -76,12 +76,6 @@ extern "C"{
         __int16 port;
     };*/
 
-typedef struct
-{
-    unsigned int timer;
-    short event_id;
-    unsigned short event_data;
-}Event;
 typedef unsigned char MacCode[8];
 struct LogBuff
 {
@@ -574,6 +568,7 @@ __published:	// IDE-managed Components
     TButton *btnInsertUserLog;
     TLabel *lblDeviceRunningTime2;
     TButton *Button1;
+    TButton *btnDisconnect;
     void __fastcall FormCreate(TObject *Sender);
     void __fastcall FormDestroy(TObject *Sender);
     void __fastcall btnRefreshClick(TObject *Sender);
@@ -741,6 +736,7 @@ __published:	// IDE-managed Components
     void __fastcall lvLogAdvancedCustomDrawItem(TCustomListView *Sender,
           TListItem *Item, TCustomDrawState State, TCustomDrawStage Stage,
           bool &DefaultDraw);
+    void __fastcall btnDisconnectClick(TObject *Sender);
 private:
     TIdUDPServer * udpSLPList[3];
 private:
@@ -749,6 +745,8 @@ private:
     String local_broadcast_ip;
 
     String last_select_device_ip;
+
+    bool is_disconnect;
 private:
     TSpeedButton * last_default_btn;
     TSpeedButton * last_out_num_btn;
@@ -776,10 +774,45 @@ public:
     bool ProcessSendCmdAck(D1608Cmd& cmd, TStream *AData, TIdSocketHandle *ABinding);
 
 private:
-#define EVENT_POOL_SIZE (LOG_SIZE/sizeof(Event))
     Event event_data[EVENT_POOL_SIZE];
     Event event_data_tmp[EVENT_POOL_SIZE];
     String event_syn_timer[EVENT_POOL_SIZE];
+
+    void ProcessMACLog(LogBuff & buff)
+    {
+        // MAC地址
+        for (int i=0;i<128;i++)
+        {
+            if (memcmp(buff.mac[i], "\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF", 8) != 0)
+            {
+                TListItem * item = lvLog->Items->Add();
+
+                item->Caption = "";
+                item->SubItems->Add("mac");
+                String mac_string;
+                mac_string.sprintf("%0X-%0X-%0X-%0X-%0X-%0X",
+                                    buff.mac[i][0], buff.mac[i][1], buff.mac[i][2],
+                                    buff.mac[i][3], buff.mac[i][4], buff.mac[i][5]);
+                item->SubItems->Add(mac_string);
+                item->SubItems->Add("");
+                item->SubItems->Add("");
+            }
+        }
+    }
+
+    void CalcLogMacCount()
+    {
+        int log_count = 0;
+        int mac_count = 0;
+        for (int i=0;i<lvLog->Items->Count;i++)
+        {
+            if (lvLog->Items->Item[i]->Caption == "")
+                mac_count++;
+            else if (lvLog->Items->Item[i]->SubItems->Strings[0] != "")
+                log_count++;
+        }
+        lblLogCount->Caption = "日志数量："+IntToStr(log_count) + "   MAC数量："+IntToStr(mac_count);
+    }
     
     void SendLogBuff(int udp_port, void * buff, int size);
     bool ProcessLogBuffAck(LogBuff& buff, TStream *AData, TIdSocketHandle *ABinding);

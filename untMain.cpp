@@ -57,6 +57,15 @@ void operator <<(ConfigMap & result, ConfigMapX config_map)
     memcpy(&result, &config_map, sizeof(config_map));
 }
 // 用于复制设备的flaah数据
+struct OldSmcConfig
+{
+    GlobalConfig global_config;
+    UINT file_version;
+    char pad1[2048-sizeof(GlobalConfig) - sizeof(UINT)];
+    ConfigMapX all_config_map[PRESET_NUM];
+    char pad2[80*1024-sizeof(ConfigMap)*PRESET_NUM];
+    char device_flash_dump[128*1024];
+};
 struct SmcConfig
 {
     GlobalConfig global_config;
@@ -93,7 +102,7 @@ static int received_cmd_seq = 0;
 //------------------------------------------------
 // 版本兼容信息
 static UINT version = 0x01000004;  
-static UINT file_version = 0x00000000;
+static UINT file_version = 0x00000001;
 // 返回YES或者下位机版本号
 // version_list以0结尾
 String IsCompatibility(T_slp_pack slp_pack)
@@ -918,6 +927,7 @@ __fastcall TForm1::TForm1(TComponent* Owner)
     // 读取配置
     TIniFile * ini_file = new TIniFile(ExtractFilePath(Application->ExeName) + "SMC.ini");
     last_device_id = ini_file->ReadString("connection", "last_id", "");
+    is_disconnect = ini_file->ReadBool("connection", "is_disconnect", false);
     delete ini_file;
 
     // 需要初始化完成后才开启SLP，否则自动连接后会立即调整界面，导致Input面板还未初始化时就做调整，这样就会出现异常。
@@ -1505,7 +1515,7 @@ void __fastcall TForm1::udpSLPUDPRead(TObject *Sender,
         item->Data = data;
     }
 
-    if (!udpControl->Active)
+    if (!udpControl->Active && !is_disconnect)
     {
         if ((last_device_id == "") || (last_device_id == mac) || ( Now() > startup_time+10.0/3600/24 ))
         {
@@ -1542,6 +1552,8 @@ void __fastcall TForm1::btnSelectClick(TObject *Sender)
         cmd.data.s_data_32 = 1;
         SendCmd2(cmd);
     }
+
+    is_disconnect = false;
 
     dst_ip = selected->SubItems->Strings[0];
     String broadcast_ip = selected->SubItems->Strings[1];
@@ -1603,6 +1615,7 @@ void __fastcall TForm1::btnSelectClick(TObject *Sender)
     // 记录在配置文件里
     TIniFile * ini_file = new TIniFile(ExtractFilePath(Application->ExeName) + "SMC.ini");
     ini_file->WriteString("connection", "last_id", last_device_id);
+    ini_file->WriteBool("connection", "is_disconnect", is_disconnect);
     delete ini_file;
 
 
@@ -1651,6 +1664,10 @@ void __fastcall TForm1::tmSLPTimer(TObject *Sender)
                         slp_pack.oled_debug = 0xFF;
                     else
                         slp_pack.oled_debug = cbLanDebugOled->Checked;
+
+                    double app_time = Now()-TDateTime(2000,1,1);
+                    app_time = app_time * 24 * 3600 * 10;
+                    slp_pack.set_time_ex = app_time;
 
                     udpSLPList[i]->SendBuffer("255.255.255.255", UDP_PORT_SLP, &slp_pack, sizeof(slp_pack));
                 }
@@ -1933,39 +1950,11 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
                 {
                     ProcessLogData(buff.tail_address);
                 }
+                ProcessMACLog(buff);
 
-                // MAC地址
-                for (int i=0;i<128;i++)
-                {
-                    if (memcmp(buff.mac[i], "\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF", 8) != 0)
-                    {
-                        TListItem * item = lvLog->Items->Add();
-
-                        item->Caption = "";
-                        item->SubItems->Add("mac");
-                        String mac_string;
-                        mac_string.sprintf("%0X-%0X-%0X-%0X-%0X-%0X",
-                                            buff.mac[i][0], buff.mac[i][1], buff.mac[i][2],
-                                            buff.mac[i][3], buff.mac[i][4], buff.mac[i][5]);
-                        item->SubItems->Add(mac_string);
-                        item->SubItems->Add("");
-                        item->SubItems->Add("");
-                    }
-                }
                 btnGetLog->Enabled = true;
 
-                int log_count = 0;
-                int mac_count = 0;
-                for (int i=0;i<lvLog->Items->Count;i++)
-                {
-                    if (lvLog->Items->Item[i]->Caption == "")
-                        mac_count++;
-                    else if (lvLog->Items->Item[i]->SubItems->Strings[0] != "")
-                        log_count++;
-                }
-                lblLogCount->Caption = "日志数量："+IntToStr(log_count) + "   MAC数量："+IntToStr(mac_count);
-
-                //lvLog->AlphaSort();
+                CalcLogMacCount();
             }
         }
 
@@ -2613,11 +2602,11 @@ static TListItem* AppendLogData(TListView * lvLog, Event event, int address, Str
         item->SubItems->Add("下次启动次数"+IntToStr(event.event_data));
         break;
     case EVENT_INPUT_OVERFLOW:
-        item->SubItems->Add("input通道音量溢出");
+        item->SubItems->Add("input通道音量满");
         item->SubItems->Add("通道号"+IntToStr(event.event_data));
         break;
     case EVENT_OUTPUT_OVERFLOW:
-        item->SubItems->Add("output通道音量溢出");
+        item->SubItems->Add("output通道音量满");
         item->SubItems->Add("通道号"+IntToStr(event.event_data));
         break;
     case EVENT_WRITE_FLASH_ERROR:
@@ -2683,7 +2672,7 @@ static TListItem* AppendLogData(TListView * lvLog, Event event, int address, Str
         item->SubItems->Add("");
         break;
     case EVENT_28J60_REINIT_ERROR:
-        item->SubItems->Add("ENC28J60初始化错误");
+        item->SubItems->Add("ENC28J60初始化告警");
         item->SubItems->Add("失败次数:"+IntToStr(event.event_data));
         break;
     case EVENT_MAC_ADDRESS_OVERFLOW:
@@ -2766,7 +2755,7 @@ static TListItem* AppendLogData(TListView * lvLog, Event event, int address, Str
         break;
     case EVENT_UPGRADE_DATE:
         item->SubItems->Add("升级时版本日期");
-        item->SubItems->Add("");
+        item->SubItems->Add(IntToHex(event.event_data, 4));
         break;
     case EVENT_UPGRADE_TIME:
         item->SubItems->Add("升级时版本时间");
@@ -2860,7 +2849,7 @@ void TForm1::ProcessLogData(int tail_address)
             time_base = 0;
             break;
         default:
-            if (time_base != 0)
+            if (time_base > 0 && time_base < 0x00FFFFFFFFFFFFFF)
             {
                 // 从2000-1-1为基准
                 double time_of_real = time_base + event_data[i].timer;
@@ -2894,7 +2883,7 @@ void TForm1::ProcessLogData(int tail_address)
                 break;
             }
         default:
-            if (time_base != 0 && event_syn_timer[i]=="")
+            if (time_base > 0 && time_base < 0x00FFFFFFFFFFFFFF && event_syn_timer[i]=="")
             {
                 // 从2000-1-1为基准
                 double time_of_real = time_base + event_data[i].timer;
@@ -3001,18 +2990,32 @@ void TForm1::ProcessWatchLevel(int watch_level[INPUT_DSP_NUM + OUTPUT_DSP_NUM], 
 //---------------------------------------------------------------------------
 void __fastcall TForm1::tmWatchTimer(TObject *Sender)
 {
-    // stroe或者open状态
-    if (pbBackup->Visible)
+    bool _disconnected;
+    if (is_disconnect)
     {
-        return;
-    }
-
-    // keep alive
-    if ((keep_live_count < 5) && udpControl->Active)
-    {
-        keep_live_count++;
+        _disconnected = true;
     }
     else
+    {
+        // stroe或者open状态
+        if (pbBackup->Visible)
+        {
+            return;
+        }
+
+        // keep alive
+        if ((keep_live_count < 5) && udpControl->Active)
+        {
+            keep_live_count++;
+            _disconnected = false;
+        }
+        else
+        {
+            _disconnected = true;
+        }
+    }
+
+    if (_disconnected)
     {
         udpControl->Active = false;
         sendcmd_list.empty();
@@ -5980,7 +5983,31 @@ void __fastcall TForm1::btnLoadFileToFlashClick(TObject *Sender)
             return;
         }
 
-        file->ReadBuffer(&smc_config, sizeof(smc_config));
+        int tmp_file_version;
+        file->Seek(sizeof(GlobalConfig), soFromBeginning);
+        file->Read(&tmp_file_version, sizeof(tmp_file_version));
+        file->Seek(0, soFromBeginning);
+
+        if (tmp_file_version == 0 && file->Size == sizeof(OldSmcConfig))
+        {
+            OldSmcConfig old_smc_config;
+            memset(&old_smc_config, 0, sizeof(old_smc_config));
+            file->ReadBuffer(&old_smc_config, sizeof(old_smc_config));
+
+            smc_config.global_config = old_smc_config.global_config;
+            smc_config.file_version = file_version;//替换成新版本文件  old_smc_config.file_version;
+
+            for (int i=0;i<PRESET_NUM;i++)
+            {
+                smc_config.all_config_map[i] = old_smc_config.all_config_map[i];
+            }
+
+            memcpy(smc_config.device_flash_dump, old_smc_config.device_flash_dump, 128*1024);
+        }
+        else
+        {
+            file->ReadBuffer(&smc_config, sizeof(smc_config));
+        }
 
         // 文件版本判断
         if (smc_config.file_version != file_version)
@@ -6010,6 +6037,28 @@ void __fastcall TForm1::btnLoadFileToFlashClick(TObject *Sender)
             SetPresetId(global_config.active_preset_id);
             CloseDspDetail();
             tmDelayUpdateUITimer(NULL);
+
+            // 读取日志
+            memcpy(event_data_tmp, smc_config.device_flash_dump+PRESET_SIZE, LOG_SIZE);
+            Event * tail = GetLogPtr(event_data_tmp);
+            ProcessLogData((tail - event_data_tmp)*sizeof(Event)+LOG_START_PAGE);  // TODO: 需要分析地址
+
+            LogBuff buff;
+            memcpy(&buff, smc_config.device_flash_dump+PRESET_SIZE+LOG_SIZE, sizeof(buff));
+            ProcessMACLog(buff);
+            memcpy(&buff, smc_config.device_flash_dump+PRESET_SIZE+LOG_SIZE+sizeof(buff), sizeof(buff));
+            ProcessMACLog(buff);
+
+            CalcLogMacCount();
+
+
+
+
+
+
+
+
+
         }
         else
         {
@@ -6636,6 +6685,28 @@ void __fastcall TForm1::lvLogAdvancedCustomDrawItem(
         Sender->Canvas->Font->Color = clBlue;
     }
 
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::btnDisconnectClick(TObject *Sender)
+{
+    is_disconnect = true;
+    TIniFile * ini_file = new TIniFile(ExtractFilePath(Application->ExeName) + "SMC.ini");
+    ini_file->WriteBool("connection", "is_disconnect", is_disconnect);
+    delete ini_file;
+
+    // 给原先的设备发送断链消息
+    if (udpControl->Active)
+    {
+        D1608Cmd cmd;
+        cmd.type = CMD_TYPE_PRESET;
+        cmd.id = GetOffsetOfData(&config_map.op_code.noop);
+        cmd.data.s_data_32 = 1;
+        SendCmd2(cmd);
+    }
+
+    REAL_INPUT_DSP_NUM = 16;
+    REAL_OUTPUT_DSP_NUM = 16;
+    need_resize = true;
 }
 //---------------------------------------------------------------------------
 

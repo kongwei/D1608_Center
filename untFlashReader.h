@@ -67,4 +67,15 @@ struct TPackage
     int data_size;
 };
 
+#pragma pack(1)
+typedef struct
+{
+    unsigned int timer;
+    short event_id;
+    unsigned short event_data;
+}Event;
+#pragma pack()
+#define EVENT_POOL_SIZE (LOG_SIZE/sizeof(Event))
+Event * GetLogPtr(Event log_data[EVENT_POOL_SIZE]);
+
 #endif

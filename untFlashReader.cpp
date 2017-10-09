@@ -154,3 +154,77 @@ void LoadGlobalConfig(GlobalConfig& global_config, unsigned char* flash_dump_dat
 		ResetGlobalConfig(global_config);
 	}
 }
+
+//---------------------------------------------
+Event * current_event_ptr = NULL;
+static Event * ReRangeEventPoint(Event * p)
+{
+	if (p >= (Event *)(LOG_START_PAGE+LOG_SIZE))
+	{
+		p = (Event *)(LOG_START_PAGE);
+	}
+	return p;
+}
+static void MoveNextEventPtr()
+{
+	// move to next page
+	current_event_ptr = ReRangeEventPoint(current_event_ptr+1);
+}
+// 计算 Log 位置
+Event * GetLogPtr(Event log_data[EVENT_POOL_SIZE])
+{
+	uint64_t last_timer;
+	short last_power_on_count;
+	Event * event_ptr;
+	short last_save_ok_count = 0;
+
+    current_event_ptr = log_data;
+
+	// 遍历
+	for (event_ptr = log_data;
+		event_ptr<log_data+EVENT_POOL_SIZE;
+		event_ptr++)
+	{
+		if (event_ptr->timer!=0xFFFFFFFF && event_ptr->event_id == EVENT_POWER_OFF)
+		{
+			if (last_power_on_count < event_ptr->event_data)
+			{
+				last_power_on_count = event_ptr->event_data;
+				last_timer = event_ptr->timer;
+				current_event_ptr = event_ptr;
+			}
+		}
+		else if (event_ptr->timer!=0xFFFFFFFF && event_ptr->event_id == EVENT_POWER_SAVE_OK)
+		{
+			if (last_save_ok_count < event_ptr->event_data)
+			{
+				last_save_ok_count = event_ptr->event_data;
+			}
+		}
+	}
+	
+	last_timer *= 100;
+	
+	if (current_event_ptr == (Event *)LOG_START_PAGE)
+	{
+		// 从后向前找到一个有数据的日志
+		for (event_ptr = (Event *)(LOG_START_PAGE+LOG_SIZE-sizeof(Event));
+			event_ptr>=(Event *)LOG_START_PAGE;
+			event_ptr--)
+		{
+			if (event_ptr->timer!=0xFFFFFFFF)
+			{
+				current_event_ptr = ReRangeEventPoint(event_ptr + 1);
+				break;
+			}
+		}
+	}
+	else
+	{
+		while(current_event_ptr->timer!=0xFFFFFFFF)
+			MoveNextEventPtr();
+	}
+
+    return current_event_ptr;
+}
+
