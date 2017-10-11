@@ -2864,7 +2864,7 @@ void TForm1::ProcessLogData(int tail_address)
     for (int i=0;i<=last_log_index;i++)
     {
         int address = tail_address + LOG_SIZE - (i+1)*sizeof(Event);
-        if (address > LOG_START_PAGE+LOG_SIZE)
+        if (address >= LOG_START_PAGE+LOG_SIZE)
             address -= LOG_SIZE;
         AppendLogData(lvLog, event_data[i], address, event_syn_timer[i]);
     }
