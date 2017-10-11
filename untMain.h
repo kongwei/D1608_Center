@@ -730,8 +730,6 @@ __published:	// IDE-managed Components
     void __fastcall cbLedTestClick(TObject *Sender);
     void __fastcall lvDeviceCustomDrawItem(TCustomListView *Sender,
           TListItem *Item, TCustomDrawState State, bool &DefaultDraw);
-    void __fastcall lvLogCompare(TObject *Sender, TListItem *Item1,
-          TListItem *Item2, int Data, int &Compare);
     void __fastcall btnInsertUserLogClick(TObject *Sender);
     void __fastcall lvLogAdvancedCustomDrawItem(TCustomListView *Sender,
           TListItem *Item, TCustomDrawState State, TCustomDrawStage Stage,
@@ -746,7 +744,7 @@ private:
 
     String last_select_device_ip;
 
-    bool is_disconnect;
+    bool is_manual_disconnect;
 private:
     TSpeedButton * last_default_btn;
     TSpeedButton * last_out_num_btn;
@@ -841,7 +839,21 @@ private:
     void __fastcall SetFileDirty(bool dirty_flag);
 
     void __fastcall UpdateCaption();
-
+    void __fastcall UpdateBuildTime();
+    void __fastcall UpdateDeviceType()
+    {
+        char * device_type;
+        if (global_config.device_type[0] == '*')
+        {
+            edtDeviceType->Color = clRed;
+            edtDeviceType->Text = global_config.device_type+1;
+        }
+        else
+        {
+            edtDeviceType->Color = clWindow;
+            edtDeviceType->Text = global_config.device_type;
+        }
+    }
 public:		// User declarations
     __fastcall TForm1(TComponent* Owner);
 

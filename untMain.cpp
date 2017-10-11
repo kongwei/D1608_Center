@@ -70,7 +70,10 @@ struct SmcConfig
 {
     GlobalConfig global_config;
     UINT file_version;
-    char pad1[2048-sizeof(GlobalConfig) - sizeof(UINT)];
+    UINT device_version;
+    UINT cpu_id[3];
+    unsigned char mac[6];
+    char pad1[2048-sizeof(GlobalConfig) - sizeof(UINT)-sizeof(UINT)-sizeof(UINT)*3-6];
     ConfigMapX all_config_map[PRESET_NUM];
     char pad2[80*1024-sizeof(ConfigMapX)*PRESET_NUM];
     char device_flash_dump[128*1024];
@@ -97,6 +100,7 @@ struct DeviceData
     int count;
     T_slp_pack data;
 };
+DeviceData last_connection;
 
 static int received_cmd_seq = 0;
 //------------------------------------------------
@@ -927,7 +931,7 @@ __fastcall TForm1::TForm1(TComponent* Owner)
     // 读取配置
     TIniFile * ini_file = new TIniFile(ExtractFilePath(Application->ExeName) + "SMC.ini");
     last_device_id = ini_file->ReadString("connection", "last_id", "");
-    is_disconnect = ini_file->ReadBool("connection", "is_disconnect", false);
+    is_manual_disconnect = ini_file->ReadBool("connection", "is_disconnect", false);
     delete ini_file;
 
     // 需要初始化完成后才开启SLP，否则自动连接后会立即调整界面，导致Input面板还未初始化时就做调整，这样就会出现异常。
@@ -1123,23 +1127,7 @@ void __fastcall TForm1::FormCreate(TObject *Sender)
     // Label->Caption
 
     mmLog->Text = Now();
-#if 0
-    if (FileExists("SMC.log"))
-    {
-        try{
-            log_file = new TFileStream("SMC.log", fmOpenWrite|fmShareDenyWrite);
-            log_file->Seek(0, soFromEnd);
-        }
-        catch(...)
-        {
-            log_file = new TFileStream("SMC"+Now().FormatString("yymmdd_hhnnss")+".log", fmCreate);
-        }
-    }
-    else
-    {
-        log_file = new TFileStream("SMC.log", fmCreate);
-    }                       
-#endif
+
     //tsSearch->Show();
     this->Repaint();
 
@@ -1460,12 +1448,7 @@ void __fastcall TForm1::udpSLPUDPRead(TObject *Sender,
         display_device_name = display_device_name + "-" + slp_pack.sn;
     }
 
-    String cpu_id;
-    unsigned char * px = (unsigned char*)slp_pack.cpu_id;
-    for (int i=0;i<12;i++)
-    {
-        cpu_id = cpu_id + IntToHex(px[i], 2);
-    }
+    String cpu_id = GetCpuIdString(slp_pack.cpu_id);
 
     TListItem * item = NULL;
     // 查找是否列表中已经存在
@@ -1515,7 +1498,7 @@ void __fastcall TForm1::udpSLPUDPRead(TObject *Sender,
         item->Data = data;
     }
 
-    if (!udpControl->Active && !is_disconnect)
+    if (!udpControl->Active && !is_manual_disconnect)
     {
         if ((last_device_id == "") || (last_device_id == mac) || ( Now() > startup_time+10.0/3600/24 ))
         {
@@ -1553,7 +1536,7 @@ void __fastcall TForm1::btnSelectClick(TObject *Sender)
         SendCmd2(cmd);
     }
 
-    is_disconnect = false;
+    is_manual_disconnect = false;
 
     dst_ip = selected->SubItems->Strings[0];
     String broadcast_ip = selected->SubItems->Strings[1];
@@ -1615,7 +1598,7 @@ void __fastcall TForm1::btnSelectClick(TObject *Sender)
     // 记录在配置文件里
     TIniFile * ini_file = new TIniFile(ExtractFilePath(Application->ExeName) + "SMC.ini");
     ini_file->WriteString("connection", "last_id", last_device_id);
-    ini_file->WriteBool("connection", "is_disconnect", is_disconnect);
+    ini_file->WriteBool("connection", "is_disconnect", is_manual_disconnect);
     delete ini_file;
 
 
@@ -1623,10 +1606,10 @@ void __fastcall TForm1::btnSelectClick(TObject *Sender)
 
     edtMAC->Text = selected->SubItems->Strings[6];
 
-    // 从数据中获取版本信息            
-    DeviceData * data = (DeviceData*)selected->Data;
-    lblVersion->Caption = VersionToStr(data->data.version)+ " " +VersionToStr(version);
-    lblDeviceInfo->Caption = "VERSION " + VersionToStr(data->data.version);
+    // 从数据中获取版本信息
+    last_connection = *(DeviceData*)selected->Data;
+    lblVersion->Caption = VersionToStr(last_connection.data.version)+ " " +VersionToStr(version);
+    lblDeviceInfo->Caption = "VERSION " + VersionToStr(last_connection.data.version);
     lblDeviceInfo->Hide();
 
     btnGetLog->Enabled = true;
@@ -2024,31 +2007,9 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
 
             UpdateCaption();
 
-            char * device_type;
-            if (global_config.device_type[0] == '*')
-            {
-                edtDeviceType->Color = clRed;
-                device_type = global_config.device_type+1;
-            }
-            else
-            {
-                edtDeviceType->Color = clWindow;
-                device_type = global_config.device_type;
-            }
-            
-            // 显示版本信息
-            edtDeviceType->Text = device_type;
+            UpdateDeviceType();
 
-            try
-            {
-                edtStartBuildTime->Text = DateTime2Str(GetDateTimeFromMarco(global_config.start_build_time));
-            }
-            catch(...)
-            {
-                edtStartBuildTime->Text = global_config.start_build_time;
-            }
-            edtStartBuildTime->Text = edtStartBuildTime->Text+"\t" + AppBuildTime2Str(global_config.build_time) + "\t";
-            edtStartBuildTime->Text = edtStartBuildTime->Text + DateTime2Str(GetDateTimeFromMarco(compile_time));
+            UpdateBuildTime();
 
             //edtBuildTime->Text = global_config.build_time;
             edtDeviceName->Text = global_config.d1616_name;
@@ -2902,9 +2863,9 @@ void TForm1::ProcessLogData(int tail_address)
 
     for (int i=0;i<=last_log_index;i++)
     {
-        int address = tail_address + LOG_START_PAGE+LOG_SIZE - (i+1)*sizeof(Event);
+        int address = tail_address + LOG_SIZE - (i+1)*sizeof(Event);
         if (address > LOG_START_PAGE+LOG_SIZE)
-            address -= LOG_START_PAGE+LOG_SIZE;
+            address -= LOG_SIZE;
         AppendLogData(lvLog, event_data[i], address, event_syn_timer[i]);
     }
 }
@@ -2991,7 +2952,7 @@ void TForm1::ProcessWatchLevel(int watch_level[INPUT_DSP_NUM + OUTPUT_DSP_NUM], 
 void __fastcall TForm1::tmWatchTimer(TObject *Sender)
 {
     bool _disconnected;
-    if (is_disconnect)
+    if (is_manual_disconnect)
     {
         _disconnected = true;
     }
@@ -3022,8 +2983,11 @@ void __fastcall TForm1::tmWatchTimer(TObject *Sender)
         shape_live->Hide();
         shape_link->Hide();
         shape_power->Hide();
-        lblDeviceName->Hide();
-        lblDeviceInfo->Hide();
+        if (!is_manual_disconnect)
+        {
+            lblDeviceName->Hide();
+            lblDeviceInfo->Hide();
+        }
         // Level Meter归零
         for (int i=0;i<32;i++)
         {
@@ -4539,6 +4503,20 @@ void __fastcall TForm1::UpdateCaption()
     }
 }
 //---------------------------------------------------------------------------
+void __fastcall TForm1::UpdateBuildTime()
+{
+    try
+    {
+        edtStartBuildTime->Text = DateTime2Str(GetDateTimeFromMarco(global_config.start_build_time));
+    }
+    catch(...)
+    {
+        edtStartBuildTime->Text = global_config.start_build_time;
+    }
+    edtStartBuildTime->Text = edtStartBuildTime->Text+"\t" + AppBuildTime2Str(global_config.build_time) + "\t";
+    edtStartBuildTime->Text = edtStartBuildTime->Text + DateTime2Str(GetDateTimeFromMarco(compile_time));
+}
+//---------------------------------------------------------------------------
 void __fastcall TForm1::StoreClick(TObject *Sender)
 {
     if (udpControl->Active)
@@ -5930,6 +5908,9 @@ void __fastcall TForm1::btnSaveFlashToFileClick(TObject *Sender)
 
             memset(smc_config.device_flash_dump, 0, sizeof(smc_config.device_flash_dump));
             smc_config.file_version = file_version;
+            smc_config.device_version = last_connection.data.version;
+            memcpy(smc_config.cpu_id, last_connection.data.cpu_id, sizeof(smc_config.cpu_id));
+            memcpy(smc_config.mac, last_connection.data.mac, sizeof(smc_config.mac));
 
             for (int address=PRESET_START_PAGE;address<0x8000000+256*1024;address+=1024)
             {
@@ -6039,9 +6020,10 @@ void __fastcall TForm1::btnLoadFileToFlashClick(TObject *Sender)
             tmDelayUpdateUITimer(NULL);
 
             // 读取日志
+            lvLog->Clear();
             memcpy(event_data_tmp, smc_config.device_flash_dump+PRESET_SIZE, LOG_SIZE);
             Event * tail = GetLogPtr(event_data_tmp);
-            ProcessLogData((tail - event_data_tmp)*sizeof(Event)+LOG_START_PAGE);  // TODO: 需要分析地址
+            ProcessLogData((tail - event_data_tmp)*sizeof(Event)+LOG_START_PAGE);
 
             LogBuff buff;
             memcpy(&buff, smc_config.device_flash_dump+PRESET_SIZE+LOG_SIZE, sizeof(buff));
@@ -6051,14 +6033,33 @@ void __fastcall TForm1::btnLoadFileToFlashClick(TObject *Sender)
 
             CalcLogMacCount();
 
+            // 读取设备信息
+            last_connection.data.version = smc_config.device_version;
+            memcpy(last_connection.data.cpu_id, smc_config.cpu_id, sizeof(smc_config.cpu_id));
+            memcpy(last_connection.data.mac, smc_config.mac, sizeof(smc_config.mac));
+            // 更新到界面
+            lblVersion->Caption = VersionToStr(last_connection.data.version)+ " " +VersionToStr(version);
+            lblDeviceInfo->Caption = "VERSION " + VersionToStr(last_connection.data.version);
+            lblDeviceInfo->Show();
+            UpdateDeviceType();
+            UpdateBuildTime();
+            edtDeviceType->Text = global_config.device_type;
+            String mac;
+                mac.sprintf("%02X:%02X:%02X:%02X:%02X:%02X",
+                    last_connection.data.mac[0],
+                    last_connection.data.mac[1],
+                    last_connection.data.mac[2],
+                    last_connection.data.mac[3],
+                    last_connection.data.mac[4],
+                    last_connection.data.mac[5]);
+                edtMAC->Text = mac;
 
+            // device_cpuid用于日志存盘
+            device_cpuid = GetCpuIdString(last_connection.data.cpu_id);
 
-
-
-
-
-
-
+            const T_sn_pack * sn_pack_on_flash = (T_sn_pack*)(smc_config.device_flash_dump+(SN_START_PAGE-PRESET_START_PAGE)+active_code_length);
+            lblDeviceName->Caption = sn_pack_on_flash->sn;
+            lblDeviceName->Show();
         }
         else
         {
@@ -6369,24 +6370,39 @@ void __fastcall TForm1::btnSaveLogClick(TObject *Sender)
     String path = ExtractFilePath(Application->ExeName);
 
     // 合并日志
-    if (FileExists(path+device_cpuid+".log"))
+    if (FileExists(path+device_cpuid+".csv"))
     {
         // 合并日志
         TStrings * log_data = new TStringList();
-        log_data->LoadFromFile(path+device_cpuid+".log");
+        log_data->LoadFromFile(path+device_cpuid+".csv");
+
+        // 删除抬头
+        if (log_data->Count > 0 && log_data->Strings[0].Pos("地址")!=0)
+        {
+            log_data->Delete(0);
+        }
+
         MergeLog(log_strs, log_data);
         delete log_data;
 
         // 合并mac
         TStrings * mac_data = new TStringList();
-        mac_data->LoadFromFile(path+device_cpuid+".log");
+        mac_data->LoadFromFile(path+device_cpuid+".csv");
         MergeMac(mac_strs, mac_data);
         delete mac_data;
     }
 
     log_strs->AddStrings(mac_strs);
 
-    log_strs->SaveToFile(path+device_cpuid+".log");
+    // 追加抬头
+    String head = lvLog->Column[0]->Caption + "\t"
+                + lvLog->Column[1]->Caption + "\t"
+                + lvLog->Column[2]->Caption + "\t"
+                + lvLog->Column[3]->Caption + "\t"
+                + lvLog->Column[4]->Caption;
+    log_strs->Insert(0, head);
+
+    log_strs->SaveToFile(path+device_cpuid+".csv");
 
     delete log_strs;
     delete mac_strs;
@@ -6644,16 +6660,6 @@ void TEST_CompLogTime()
     assert(CompLogTime(534,  50, 500, 1000) < 0);
     assert(CompLogTime( 34,  34, 500, 1000) == 0);
 }
-void __fastcall TForm1::lvLogCompare(TObject *Sender, TListItem *Item1,
-      TListItem *Item2, int Data, int &Compare)
-{
-    // 按照 log_tail_address 重新排序  
-    unsigned int d2 = (unsigned int)Item2->Data;
-    unsigned int d1 = (unsigned int)Item1->Data;
-
-    Compare = CompLogTime(d2, d1, log_tail_address, MAC_LIST_START_PAGE - LOG_START_PAGE);
-}
-//---------------------------------------------------------------------------
 void __fastcall TForm1::btnInsertUserLogClick(TObject *Sender)
 {
     DebugLog debug_log;
@@ -6689,9 +6695,9 @@ void __fastcall TForm1::lvLogAdvancedCustomDrawItem(
 //---------------------------------------------------------------------------
 void __fastcall TForm1::btnDisconnectClick(TObject *Sender)
 {
-    is_disconnect = true;
+    is_manual_disconnect = true;
     TIniFile * ini_file = new TIniFile(ExtractFilePath(Application->ExeName) + "SMC.ini");
-    ini_file->WriteBool("connection", "is_disconnect", is_disconnect);
+    ini_file->WriteBool("connection", "is_disconnect", is_manual_disconnect);
     delete ini_file;
 
     // 给原先的设备发送断链消息

@@ -11,5 +11,7 @@ String AppBuildTime2Str(String app_build_time);
 
 void MergeLog(TStrings * append_data, TStrings * log_data);
 void MergeMac(TStrings * append_data, TStrings * log_data);
+
+String GetCpuIdString(unsigned int cpu_id[3]);
 //---------------------------------------------------------------------------
 #endif

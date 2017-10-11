@@ -277,4 +277,15 @@ void MergeLog(TStrings * append_data, TStrings * log_data)
     //TEST_MergeLog_1();
     MergeLogX(append_data, log_data);
 }
+//----------------------------------------------
+String GetCpuIdString(unsigned int cpu_id[3])
+{
+    String result = "";
+    unsigned char * px = (unsigned char*)cpu_id;
+    for (int i=0;i<12;i++)
+    {
+        result = result + IntToHex(px[i], 2);
+    }
+    return result;
+}
 
