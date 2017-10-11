@@ -569,6 +569,9 @@ __published:	// IDE-managed Components
     TLabel *lblDeviceRunningTime2;
     TButton *Button1;
     TButton *btnDisconnect;
+    TLabel *lblCpuId;
+    TLabel *lblSn;
+    TLabel *lblConfigFilename;
     void __fastcall FormCreate(TObject *Sender);
     void __fastcall FormDestroy(TObject *Sender);
     void __fastcall btnRefreshClick(TObject *Sender);

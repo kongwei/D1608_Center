@@ -1613,6 +1613,10 @@ void __fastcall TForm1::btnSelectClick(TObject *Sender)
     lblDeviceInfo->Hide();
 
     btnGetLog->Enabled = true;
+
+    lblCpuId->Caption = "cpu id: "+device_cpuid;
+    lblSn->Caption = "sn: " + String(last_connection.data.sn);
+    lblConfigFilename->Caption = "file: --";
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::tmSLPTimer(TObject *Sender)
@@ -6043,7 +6047,6 @@ void __fastcall TForm1::btnLoadFileToFlashClick(TObject *Sender)
             lblDeviceInfo->Show();
             UpdateDeviceType();
             UpdateBuildTime();
-            edtDeviceType->Text = global_config.device_type;
             String mac;
                 mac.sprintf("%02X:%02X:%02X:%02X:%02X:%02X",
                     last_connection.data.mac[0],
@@ -6060,6 +6063,10 @@ void __fastcall TForm1::btnLoadFileToFlashClick(TObject *Sender)
             const T_sn_pack * sn_pack_on_flash = (T_sn_pack*)(smc_config.device_flash_dump+(SN_START_PAGE-PRESET_START_PAGE)+active_code_length);
             lblDeviceName->Caption = sn_pack_on_flash->sn;
             lblDeviceName->Show();
+
+            lblCpuId->Caption = "cpu id: "+device_cpuid;
+            lblSn->Caption = "sn: " + String(sn_pack_on_flash->sn);
+            lblConfigFilename->Caption = "file: " + String(sn_pack_on_flash->name2);
         }
         else
         {
