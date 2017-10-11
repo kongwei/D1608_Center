@@ -6370,11 +6370,11 @@ void __fastcall TForm1::btnSaveLogClick(TObject *Sender)
     String path = ExtractFilePath(Application->ExeName);
 
     // 合并日志
-    if (FileExists(path+device_cpuid+".csv"))
+    if (FileExists(path+device_cpuid+".log"))
     {
         // 合并日志
         TStrings * log_data = new TStringList();
-        log_data->LoadFromFile(path+device_cpuid+".csv");
+        log_data->LoadFromFile(path+device_cpuid+".log");
 
         // 删除抬头
         if (log_data->Count > 0 && log_data->Strings[0].Pos("地址")!=0)
@@ -6387,7 +6387,7 @@ void __fastcall TForm1::btnSaveLogClick(TObject *Sender)
 
         // 合并mac
         TStrings * mac_data = new TStringList();
-        mac_data->LoadFromFile(path+device_cpuid+".csv");
+        mac_data->LoadFromFile(path+device_cpuid+".log");
         MergeMac(mac_strs, mac_data);
         delete mac_data;
     }
@@ -6402,7 +6402,7 @@ void __fastcall TForm1::btnSaveLogClick(TObject *Sender)
                 + lvLog->Column[4]->Caption;
     log_strs->Insert(0, head);
 
-    log_strs->SaveToFile(path+device_cpuid+".csv");
+    log_strs->SaveToFile(path+device_cpuid+".log");
 
     delete log_strs;
     delete mac_strs;
