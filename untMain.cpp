@@ -211,7 +211,7 @@ void GetLocalIpListEx(vector<IpInfo> & ip_info)
 
     String szMark;
 
-    PIP_ADAPTER_INFO pAdapterInfo;  
+    PIP_ADAPTER_INFO pAdapterInfo = NULL;  
     PIP_ADAPTER_INFO pAdapter = NULL;   
   
     pAdapterInfo = ( IP_ADAPTER_INFO * ) malloc( sizeof( IP_ADAPTER_INFO ) );  
@@ -243,6 +243,7 @@ void GetLocalIpListEx(vector<IpInfo> & ip_info)
             }  
             pAdapter = pAdapter->Next;
         }
+        free(pAdapterInfo);
     }
 }
 
@@ -941,6 +942,30 @@ __fastcall TForm1::TForm1(TComponent* Owner)
     tmSLP->Enabled = true;
 }
 //---------------------------------------------------------------------------
+__fastcall TForm1::~TForm1()
+{
+    for (int i=0;i<lvDevice->Items->Count;i++)
+    {
+        TListItem * item = lvDevice->Items->Item[i];
+        DeviceData * data = (DeviceData*)item->Data;
+        if (data != NULL)
+        {
+            delete data;
+            item->Data = 0;
+        }
+    }
+    for (int i=0;i<16;i++)
+    {
+        if (MixPicture[i] != NULL)
+        {
+            delete MixPicture[i];
+            MixPicture[i] = NULL;
+        }
+    }
+    delete panel_agent;
+    delete paint_agent;
+}
+//---------------------------------------------------------------------------
 LRESULT TForm1::new_pnlSystem_proc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
 {
     LRESULT r = CallWindowProc(Form1->old_pnlSystem_proc, hwnd, msg, wp, lp);
@@ -1177,25 +1202,6 @@ void __fastcall TForm1::FormCreate(TObject *Sender)
     lblVersion->Caption = "-------- " +VersionToStr(version);
 }
 //---------------------------------------------------------------------------
-void __fastcall TForm1::FormDestroy(TObject *Sender)
-{
-#if 0
-    if (log_file)
-    {
-        delete log_file;
-        log_file = NULL;
-    }
-#endif
-    for (int i=0;i<REAL_OUTPUT_DSP_NUM;i++)
-    {
-        if (MixPicture[i] != NULL)
-            delete MixPicture[i];
-    }
-    delete panel_agent;
-    delete paint_agent;
-
-}
-//---------------------------------------------------------------------------
 void TForm1::SendCmd2(D1608Cmd& cmd)
 {
     unsigned __int8 * p = (unsigned __int8*)&cmd;
@@ -1344,6 +1350,7 @@ void __fastcall TForm1::btnRefreshClick(TObject *Sender)
         if (data->count == 0)
         {
             lvDevice->Items->Delete(i);
+            delete data;
         }
     }
 
@@ -1536,11 +1543,13 @@ void __fastcall TForm1::btnSelectClick(TObject *Sender)
         SendCmd2(cmd);
     }
 
+
     is_manual_disconnect = false;
 
     dst_ip = selected->SubItems->Strings[0];
     String broadcast_ip = selected->SubItems->Strings[1];
     device_cpuid = selected->SubItems->Strings[5];
+        lvLog->Clear();
 
     sendcmd_list.clear();
     // 初始化socket
@@ -1653,7 +1662,7 @@ void __fastcall TForm1::tmSLPTimer(TObject *Sender)
                         slp_pack.oled_debug = cbLanDebugOled->Checked;
 
                     double app_time = Now()-TDateTime(2000,1,1);
-                    app_time = app_time * 24 * 3600 * 10;
+                    app_time = app_time * 24 * 3600 * 1000;
                     slp_pack.set_time_ex = app_time;
 
                     udpSLPList[i]->SendBuffer("255.255.255.255", UDP_PORT_SLP, &slp_pack, sizeof(slp_pack));
@@ -2035,14 +2044,15 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             lblPresetFileName->Caption = global_config.import_filename;
 
             // 显示preset名称
-            clbAvaliablePreset->Items->Strings[0] = global_config.preset_name[0][0] ? global_config.preset_name[0] : "PRESET1";
-            clbAvaliablePreset->Items->Strings[1] = global_config.preset_name[1][0] ? global_config.preset_name[1] : "PRESET2";
-            clbAvaliablePreset->Items->Strings[2] = global_config.preset_name[2][0] ? global_config.preset_name[2] : "PRESET3";
-            clbAvaliablePreset->Items->Strings[3] = global_config.preset_name[3][0] ? global_config.preset_name[3] : "PRESET4";
-            clbAvaliablePreset->Items->Strings[4] = global_config.preset_name[4][0] ? global_config.preset_name[4] : "PRESET5";
-            clbAvaliablePreset->Items->Strings[5] = global_config.preset_name[5][0] ? global_config.preset_name[5] : "PRESET6";
-            clbAvaliablePreset->Items->Strings[6] = global_config.preset_name[6][0] ? global_config.preset_name[6] : "PRESET7";
-            clbAvaliablePreset->Items->Strings[7] = global_config.preset_name[7][0] ? global_config.preset_name[7] : "PRESET8";
+            clbAvaliablePreset->Clear();
+            clbAvaliablePreset->Items->Add(global_config.preset_name[0][0] ? global_config.preset_name[0] : "PRESET1");
+            clbAvaliablePreset->Items->Add(global_config.preset_name[1][0] ? global_config.preset_name[1] : "PRESET2");
+            clbAvaliablePreset->Items->Add(global_config.preset_name[2][0] ? global_config.preset_name[2] : "PRESET3");
+            clbAvaliablePreset->Items->Add(global_config.preset_name[3][0] ? global_config.preset_name[3] : "PRESET4");
+            clbAvaliablePreset->Items->Add(global_config.preset_name[4][0] ? global_config.preset_name[4] : "PRESET5");
+            clbAvaliablePreset->Items->Add(global_config.preset_name[5][0] ? global_config.preset_name[5] : "PRESET6");
+            clbAvaliablePreset->Items->Add(global_config.preset_name[6][0] ? global_config.preset_name[6] : "PRESET7");
+            clbAvaliablePreset->Items->Add(global_config.preset_name[7][0] ? global_config.preset_name[7] : "PRESET8");
 
             // 版本校验
             if (global_config.version >= offsetof(GlobalConfig, ad_da_card))
@@ -2725,6 +2735,28 @@ static TListItem* AppendLogData(TListView * lvLog, Event event, int address, Str
     case EVENT_UPGRADE_TIME:
         item->SubItems->Add("升级时版本时间");
         item->SubItems->Add(IntToHex(event.event_data, 4));
+        break;
+    case EVENT_MCU_CLK_ERR:
+        if (event.event_data == 0)
+        {
+            item->SubItems->Add("时钟校准");
+            item->SubItems->Add("正常");
+        }
+        else if (event.event_data == 1)
+        {
+            item->SubItems->Add("时钟校准警告");
+            item->SubItems->Add("设备时钟快5%以上");
+        }
+        else if (event.event_data == 2)
+        {
+            item->SubItems->Add("时钟校准警告");
+            item->SubItems->Add("设备时钟慢5%以上");
+        }
+        else
+        {
+            item->SubItems->Add("时钟校准异常数据");
+            item->SubItems->Add(IntToHex(event.event_data, 2));
+        }
         break;
     default:
         item->SubItems->Add(event.event_id);
@@ -6023,20 +6055,6 @@ void __fastcall TForm1::btnLoadFileToFlashClick(TObject *Sender)
             CloseDspDetail();
             tmDelayUpdateUITimer(NULL);
 
-            // 读取日志
-            lvLog->Clear();
-            memcpy(event_data_tmp, smc_config.device_flash_dump+PRESET_SIZE, LOG_SIZE);
-            Event * tail = GetLogPtr(event_data_tmp);
-            ProcessLogData((tail - event_data_tmp)*sizeof(Event)+LOG_START_PAGE);
-
-            LogBuff buff;
-            memcpy(&buff, smc_config.device_flash_dump+PRESET_SIZE+LOG_SIZE, sizeof(buff));
-            ProcessMACLog(buff);
-            memcpy(&buff, smc_config.device_flash_dump+PRESET_SIZE+LOG_SIZE+sizeof(buff), sizeof(buff));
-            ProcessMACLog(buff);
-
-            CalcLogMacCount();
-
             // 读取设备信息
             last_connection.data.version = smc_config.device_version;
             memcpy(last_connection.data.cpu_id, smc_config.cpu_id, sizeof(smc_config.cpu_id));
@@ -6059,6 +6077,7 @@ void __fastcall TForm1::btnLoadFileToFlashClick(TObject *Sender)
 
             // device_cpuid用于日志存盘
             device_cpuid = GetCpuIdString(last_connection.data.cpu_id);
+                lvLog->Clear();
 
             const T_sn_pack * sn_pack_on_flash = (T_sn_pack*)(smc_config.device_flash_dump+(SN_START_PAGE-PRESET_START_PAGE)+active_code_length);
             lblDeviceName->Caption = sn_pack_on_flash->sn;
@@ -6067,6 +6086,20 @@ void __fastcall TForm1::btnLoadFileToFlashClick(TObject *Sender)
             lblCpuId->Caption = "cpu id: "+device_cpuid;
             lblSn->Caption = "sn: " + String(sn_pack_on_flash->sn);
             lblConfigFilename->Caption = "file: " + String(sn_pack_on_flash->name2);
+
+            // 读取日志
+            lvLog->Clear();
+            memcpy(event_data_tmp, smc_config.device_flash_dump+PRESET_SIZE, LOG_SIZE);
+            Event * tail = GetLogPtr(event_data_tmp);
+            ProcessLogData((tail - event_data_tmp)*sizeof(Event)+LOG_START_PAGE);
+
+            LogBuff buff;
+            memcpy(&buff, smc_config.device_flash_dump+PRESET_SIZE+LOG_SIZE, sizeof(buff));
+            ProcessMACLog(buff);
+            memcpy(&buff, smc_config.device_flash_dump+PRESET_SIZE+LOG_SIZE+sizeof(buff), sizeof(buff));
+            ProcessMACLog(buff);
+
+            CalcLogMacCount();
         }
         else
         {

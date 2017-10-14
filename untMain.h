@@ -573,7 +573,6 @@ __published:	// IDE-managed Components
     TLabel *lblSn;
     TLabel *lblConfigFilename;
     void __fastcall FormCreate(TObject *Sender);
-    void __fastcall FormDestroy(TObject *Sender);
     void __fastcall btnRefreshClick(TObject *Sender);
     void __fastcall udpSLPUDPRead(TObject *Sender, TStream *AData,
           TIdSocketHandle *ABinding);
@@ -859,6 +858,7 @@ private:
     }
 public:		// User declarations
     __fastcall TForm1(TComponent* Owner);
+    __fastcall ~TForm1();
 
     TPanel * watch_panel_inner[17+16];
 
