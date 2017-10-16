@@ -88,26 +88,6 @@ struct LogBuff
 };
 #pragma pack()
 
-typedef struct
-{
-    float _2_5v;        // ADC_0
-    float base;         // ADC_1
-    float _5vd;         // ADC_2
-    float _8vdc;        // ADC_3
-    float _8vac;        // ADC_4
-    float _8va;         // ADC_5
-    float _x16vac;      // ADC_6
-    float _x16va;       // ADC_7
-    float _46vc;        // ADC_8
-    float _48va;        // ADC_9
-    float _46va;        // ADC_10
-    float _5va;         // ADC_11
-    float _x12va;       // ADC_12
-    float _12va;        // ADC_13
-    float _16va;        // ADC_14
-    float _16vac;       // ADC_15
-}ADC_Data_Float;
-
 //---------------------------------------------------------------------------
 class TForm1 : public TForm
 {
@@ -892,9 +872,9 @@ public:		// User declarations
 
 private:
     VoteParam default_vote_param;
-    void CalcAllVote(ADC_Data_Float & adc_data);
+    void CalcAllVote(ADC_Data_Ex & adc_data);
     void ProcessKeepAlive(int preset_id, unsigned __int64 timer);
-    void ProcessVote(short adc[ADC_NUM], ADC_Data adc_init);
+    void ProcessVote(short adcx[ADC_NUM], ADC_Data adc_init, double adc_ex[ADC_NUM]);
     void ProcessWatchLevel(int watch_level[INPUT_DSP_NUM + OUTPUT_DSP_NUM], int watch_level_comp[OUTPUT_DSP_NUM]);
 private:
     void UpdateWatchLevel(int i, int value, int comp_value=-100)
