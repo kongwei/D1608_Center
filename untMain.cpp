@@ -1815,15 +1815,6 @@ void __fastcall TForm1::ToogleEQ(TObject *Sender)
     config_map.input_dsp[dsp_id-1].eq_switch = btn->Down;
 }
 //---------------------------------------------------------------------------
-double CalcVot1(double true_data1, double rdown, double r_up)
-{
-    return true_data1 * (rdown+r_up) / rdown;
-}
-double CalcVot2(double v, double x_true_data, double rx_up, double rx_down)
-{
-    double xv = x_true_data - (v - x_true_data) * rx_down / rx_up;
-    return xv;
-} 
 String IntOrZeroSring(int value)
 {
     return String((value>0?value:0));
@@ -2258,27 +2249,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
 //---------------------------------------------------------------------------
 void TForm1::CalcAllVote(ADC_Data_Ex & adc_data)
 {
-    VoteParam vote_param;
-    if (global_config.vote_param._5vd_up != 0 && !IsNan(global_config.vote_param._5vd_up))
-        vote_param = global_config.vote_param;
-    else
-        vote_param = default_vote_param;
 
-    adc_data._5vd   = CalcVot1(adc_data._5vd  , vote_param._5vd_down,    vote_param._5vd_up);
-    adc_data._8vdc  = CalcVot1(adc_data._8vdc , vote_param._8vdc_down,   vote_param._8vdc_up);
-    adc_data._8vac  = CalcVot1(adc_data._8vac , vote_param._8vac_down,   vote_param._8vac_up);
-    adc_data._8va   = CalcVot1(adc_data._8va  , vote_param._8va_down,    vote_param._8va_up);
-    adc_data._46vc  = CalcVot1(adc_data._46vc , vote_param._46vc_down,   vote_param._46vc_up);
-    adc_data._48va  = CalcVot1(adc_data._48va , vote_param._48va_down,   vote_param._48va_up);
-    adc_data._46va  = CalcVot1(adc_data._46va , vote_param._46va_down,   vote_param._46va_up);
-    adc_data._5va   = CalcVot1(adc_data. _5va , vote_param. _5va_down,   vote_param. _5va_up);
-    adc_data._12va  = CalcVot1(adc_data._12va , vote_param._12va_down,   vote_param._12va_up);
-    adc_data._16va  = CalcVot1(adc_data._16va , vote_param._16va_down,   vote_param._16va_up);
-    adc_data._16vac = CalcVot1(adc_data._16vac, vote_param._16vac_down,  vote_param._16vac_up);
-
-    adc_data._x16vac= CalcVot2(adc_data._16vac, adc_data._x16vac, vote_param._x16vac_up, vote_param._x16vac_down);
-    adc_data._x16va = CalcVot2(adc_data._16va , adc_data._x16va , vote_param._x16va_up,  vote_param._x16va_down);
-    adc_data._x12va = CalcVot2(adc_data._12va , adc_data._x12va , vote_param._x12va_up,  vote_param._x12va_down);
 }
 
 static ADC_Data_Ex AdjustAdcDataByBootAdcData(ADC_Data true_data, ADC_Data boot_adc_data)
@@ -2322,7 +2293,7 @@ static ADC_Data_Ex AdjustAdcDataByBootAdcDataEx(ADC_Data_Ex true_data, ADC_Data 
 
     return result;
 }
-void TForm1::ProcessVote(short adcx[ADC_NUM], ADC_Data adc_init, double adc_ex[ADC_NUM])
+void TForm1::ProcessVote(short adcx[ADC_NUM], ADC_Data adc_init, ADC_DATA_TYPE adc_ex[ADC_NUM])
 {
     // 打印出原始值
     for (int i=0; i<ADC_NUM; i++)
@@ -2330,22 +2301,13 @@ void TForm1::ProcessVote(short adcx[ADC_NUM], ADC_Data adc_init, double adc_ex[A
         ValueListEditor1->Cells[1][i+1] = String::FormatFloat("0.00 ", adc_ex[i]);
     }
 
-    // 用2.5v校准
-    double org_base = adc_ex[1];
-    double data[16];
-    for (int i=0; i<ADC_NUM; i++)
-    {
-        data[i] = adc_ex[i] * 2500 / org_base;
-    }
-
     // 用上电电压校准
-    ADC_Data_Ex calc_data = AdjustAdcDataByBootAdcDataEx(*(ADC_Data_Ex*)data, adc_init);
-    CalcAllVote(calc_data);
+    ADC_Data_Ex calc_data = *(ADC_Data_Ex*)adc_ex;
 
-    double * xcalc_data = (double *)&calc_data;
+    ADC_DATA_TYPE * xcalc_data = (ADC_DATA_TYPE *)&calc_data;
     for (int i=0; i<ADC_NUM; i++)
     {
-        double vot = xcalc_data[i] / 1000.0f;
+        ADC_DATA_TYPE vot = xcalc_data[i] / 1000.0f;
         ValueListEditor2->Cells[1][i+1] = String::FormatFloat("0.00 ", vot);
     }
 
@@ -2358,7 +2320,7 @@ void TForm1::ProcessVote(short adcx[ADC_NUM], ADC_Data adc_init, double adc_ex[A
 
     //====================================================================
     lbl2_5V->Caption = String::FormatFloat("0.00 ", calc_data._2_5v / 1000.0);
-    lbl3_3V->Caption = String::FormatFloat("0.00 ", (4096.0/org_base)*2.5);
+    /////lbl3_3V->Caption = String::FormatFloat("0.00 ", (4096.0/org_base)*2.5);
     lbl3_3Vd->Caption = String::FormatFloat("0.00 ", (calc_data._2_5v+75) / 1000.0);
     lbl5Va->Caption = String::FormatFloat("0.00 ", calc_data._5va / 1000.0);
     lbl5Vd->Caption = String::FormatFloat("0.00 ", calc_data._5vd / 1000.0);
@@ -2372,7 +2334,7 @@ void TForm1::ProcessVote(short adcx[ADC_NUM], ADC_Data adc_init, double adc_ex[A
 
     //====================================================================
     cg2_5V->Progress = calc_data._2_5v / 10.0;
-    cg3_3V->Progress = (4096.0/org_base)*2500 / 10.0;
+    //////cg3_3V->Progress = (4096.0/org_base)*2500 / 10.0;
     cg3_3Vd->Progress = calc_data._2_5v / 10.0+75;
     cg5Va->Progress = calc_data._5va / 10.0;
     cg5Vd->Progress = calc_data._5vd / 10.0;
