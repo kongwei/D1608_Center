@@ -2325,12 +2325,12 @@ void TForm1::ProcessVote(ADC_DATA_TYPE adc_ex[ADC_NUM])
     lbl3_3Vd->Caption = String::FormatFloat("0.00 ", (calc_data._2_5v+75) / 1000.0);
     lbl5Va->Caption = String::FormatFloat("0.00 ", calc_data._5va / 1000.0);
     lbl5Vd->Caption = String::FormatFloat("0.00 ", calc_data._5vd / 1000.0);
-    lbl8Va->Caption = String::FormatFloat("0.00 ", calc_data._8va / 1000.0);
-    lbl8Vd->Caption = String::FormatFloat("0.00 ", calc_data._8vdc / 1000.0);
+    lbl8Vac->Caption = String::FormatFloat("0.00 ", calc_data._8vac / 1000.0);
+    lbl8Vdc->Caption = String::FormatFloat("0.00 ", calc_data._8vdc / 1000.0);
     lbl12Va->Caption = String::FormatFloat("0.00 ", calc_data._12va / 1000.0);
     lbl_12Va->Caption = String::FormatFloat("0.00 ", calc_data._x12va / 1000.0);
-    lbl16Va->Caption = String::FormatFloat("0.00 ", calc_data._16va / 1000.0);
-    lbl_16Va->Caption = String::FormatFloat("0.00 ", calc_data._x16va / 1000.0);
+    lbl16Vac->Caption = String::FormatFloat("0.00 ", calc_data._16vac / 1000.0);
+    lbl_16Vac->Caption = String::FormatFloat("0.00 ", calc_data._x16vac / 1000.0);
     lbl46Va->Caption = String::FormatFloat("0.00 ", calc_data._46va / 1000.0);
 
     //====================================================================

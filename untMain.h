@@ -315,9 +315,9 @@ __published:	// IDE-managed Components
     TSpeedButton *SpeedButton6;
     TLabel *lbl5Vd;
     TLabel *lbl12Va;
-    TLabel *lbl16Va;
-    TLabel *lbl_16Va;
-    TLabel *lbl8Va;
+    TLabel *lbl16Vac;
+    TLabel *lbl_16Vac;
+    TLabel *lbl8Vac;
     TLabel *lbl46Va;
     TLabel *Label48;
     TLabel *Label49;
@@ -336,7 +336,7 @@ __published:	// IDE-managed Components
     TLabel *lbl2_5V;
     TLabel *lbl3_3Vd;
     TLabel *lbl5Va;
-    TLabel *lbl8Vd;
+    TLabel *lbl8Vdc;
     TLabel *lbl3_3V;
     TLabel *lbl_12Va;
     TLabel *lbl2_5mA;
