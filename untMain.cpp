@@ -1847,7 +1847,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
         {
             ProcessWatchLevel(cmd.data.keep_alive.watch_level, cmd.data.keep_alive.watch_level_comp);
             if (cmd.length == sizeof(config_map.op_code))
-                ProcessVote(cmd.data.keep_alive.adc, cmd.data.keep_alive.adc_init, cmd.data.keep_alive.adc_ex);
+                ProcessVote(cmd.data.keep_alive.adc_ex);
             ProcessKeepAlive(cmd.data.keep_alive.switch_preset, cmd.data.keep_alive.set_time_ex);
 
             //memo_debug->Lines->Add("广播消息序号:"+IntToStr(cmd.data.keep_alive.seq)+":"+IntToStr(received_cmd_seq));
@@ -2294,7 +2294,7 @@ static ADC_Data_Ex AdjustAdcDataByBootAdcDataEx(ADC_Data_Ex true_data, ADC_Data 
 
     return result;
 }
-void TForm1::ProcessVote(short adcx[ADC_NUM], ADC_Data adc_init, ADC_DATA_TYPE adc_ex[ADC_NUM])
+void TForm1::ProcessVote(ADC_DATA_TYPE adc_ex[ADC_NUM])
 {
     // 打印出原始值
     for (int i=0; i<ADC_NUM; i++)
