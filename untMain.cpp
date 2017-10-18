@@ -2251,7 +2251,7 @@ void TForm1::CalcAllVote(ADC_Data_Ex & adc_data)
 {
 
 }
-
+#if 0
 static ADC_Data_Ex AdjustAdcDataByBootAdcData(ADC_Data true_data, ADC_Data boot_adc_data)
 {
     ADC_Data_Ex result;
@@ -2281,6 +2281,7 @@ static ADC_Data_Ex AdjustAdcDataByBootAdcData(ADC_Data true_data, ADC_Data boot_
 
     return result;
 }
+#endif
 static ADC_Data_Ex AdjustAdcDataByBootAdcDataEx(ADC_Data_Ex true_data, ADC_Data boot_adc_data)
 {
     ADC_Data_Ex result = true_data;
@@ -2320,7 +2321,7 @@ void TForm1::ProcessVote(short adcx[ADC_NUM], ADC_Data adc_init, ADC_DATA_TYPE a
 
     //====================================================================
     lbl2_5V->Caption = String::FormatFloat("0.00 ", calc_data._2_5v / 1000.0);
-    /////lbl3_3V->Caption = String::FormatFloat("0.00 ", (4096.0/org_base)*2.5);
+    lbl3_3V->Caption = String::FormatFloat("0.00 ", calc_data.base / 1000.0);
     lbl3_3Vd->Caption = String::FormatFloat("0.00 ", (calc_data._2_5v+75) / 1000.0);
     lbl5Va->Caption = String::FormatFloat("0.00 ", calc_data._5va / 1000.0);
     lbl5Vd->Caption = String::FormatFloat("0.00 ", calc_data._5vd / 1000.0);
@@ -2334,7 +2335,7 @@ void TForm1::ProcessVote(short adcx[ADC_NUM], ADC_Data adc_init, ADC_DATA_TYPE a
 
     //====================================================================
     cg2_5V->Progress = calc_data._2_5v / 10.0;
-    //////cg3_3V->Progress = (4096.0/org_base)*2500 / 10.0;
+    cg3_3V->Progress = calc_data.base / 10.0;
     cg3_3Vd->Progress = calc_data._2_5v / 10.0+75;
     cg5Va->Progress = calc_data._5va / 10.0;
     cg5Vd->Progress = calc_data._5vd / 10.0;
