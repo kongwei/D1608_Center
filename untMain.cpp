@@ -2509,16 +2509,14 @@ static TListItem* AppendLogData(TListView * lvLog, Event event, int address, Str
     unsigned int event_timer = event.timer;
     item->Data = (void*)address;
 
-    item->Caption = IntToHex(address, 8);
+    item->Caption = "0x"+IntToHex(address, 8);
 
     int ms = event_timer % 10;  event_timer /= 10;
     int sec = event_timer % 60; event_timer /= 60;
     int min = event_timer % 60; event_timer /= 60;
 
-    String item_caption = IntToStr(event_timer)+":"
-                  + IntToStr(min)+":"
-                  + IntToStr(sec)+"."
-                  + IntToStr(ms);
+    String item_caption;
+    item_caption.sprintf("_%d:%02d:%02d.%d", event_timer, min, sec, ms);
     item->SubItems->Add(item_caption);
 
     switch (event.event_id)
