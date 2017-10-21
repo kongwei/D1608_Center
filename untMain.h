@@ -871,10 +871,9 @@ public:		// User declarations
     TAdvTrackBar* mix_level_trackbar[17];
 
 private:
-    VoteParam default_vote_param;
     void CalcAllVote(ADC_Data_Ex & adc_data);
     void ProcessKeepAlive(int preset_id, unsigned __int64 timer);
-    void ProcessVote(ADC_DATA_TYPE adc_ex[ADC_NUM]);
+    void ProcessVote(ADC_Data_Ex adc_ex);
     void ProcessWatchLevel(int watch_level[INPUT_DSP_NUM + OUTPUT_DSP_NUM], int watch_level_comp[OUTPUT_DSP_NUM]);
 private:
     void UpdateWatchLevel(int i, int value, int comp_value=-100)
