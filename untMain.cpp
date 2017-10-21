@@ -2300,11 +2300,11 @@ void TForm1::ProcessVote(ADC_Data_Ex adc_ex)
 
     lblDiff->Caption = adc_ex._8vdc-adc_ex._8vad;
 
-    // TTTTT
-    //ValueListEditor2->Cells[1][18] = String::FormatFloat("0.00 ", (adc_ex._8vad - adc_ex._8vac) / default_vote_param._8v_current);
-    //ValueListEditor2->Cells[1][19] = String::FormatFloat("0.00 ", (adc_ex._50vp - adc_ex._50vpc) / default_vote_param._48v_current);
-    //ValueListEditor2->Cells[1][20] = String::FormatFloat("0.00 ", (adc_ex._16va - adc_ex._16vac) / default_vote_param._16v_current);
-    //ValueListEditor2->Cells[1][21] = String::FormatFloat("0.00 ", (adc_ex._x16vac - adc_ex._x16va) / default_vote_param._x16v_current);
+    ValueListEditor2->Cells[1][18] = String::FormatFloat("0.00 ", adc_ex._8va_current);
+    ValueListEditor2->Cells[1][19] = String::FormatFloat("0.00 ", adc_ex._8vd_current);
+    ValueListEditor2->Cells[1][20] = String::FormatFloat("0.00 ", adc_ex._16v_current);
+    ValueListEditor2->Cells[1][21] = String::FormatFloat("0.00 ", adc_ex._x16v_current);
+    ValueListEditor2->Cells[1][22] = String::FormatFloat("0.00 ", adc_ex._50v_current);
 
     //====================================================================
     lbl2_5V->Caption = String::FormatFloat("0.00 ", adc_ex._2_5v / 1000.0);
@@ -2354,18 +2354,23 @@ void TForm1::ProcessVote(ADC_Data_Ex adc_ex)
 
     //====================================================================
     lbl2_5mA->Caption = "-- ";
-    /*lbl3_3mA->Caption = IntOrZeroSring((int)((adc_ex._8vad - adc_ex._8vdc) / default_vote_param._8v_current * 0.1)) + " ";   //8Vd * 0.10
-    lbl3_3mAd->Caption = IntOrZeroSring((int)((adc_ex._8vad - adc_ex._8vdc) / default_vote_param._8v_current * 0.85)) + " "; //8Vd * 0.85
-    lbl5mAa->Caption = IntOrZeroSring((int)((adc_ex._8vad - adc_ex._8vac) / default_vote_param._8v_current)) + " ";          // 8Va
-    lbl5mAd->Caption = IntOrZeroSring((int)((adc_ex._8vad - adc_ex._8vdc) / default_vote_param._8v_current * 0.05)) + " ";   // 8Vd * 0.05
-    lbl8mAa->Caption = IntOrZeroSring((int)((adc_ex._8vad - adc_ex._8vac) / default_vote_param._8v_current)) + " ";
-    lbl8mAd->Caption = IntOrZeroSring((int)((adc_ex._8vad - adc_ex._8vdc) / default_vote_param._8v_current)) + " ";
-    lbl12mAa->Caption = IntOrZeroSring((adc_ex._16va - adc_ex._16vac) / default_vote_param._16v_current) + " ";               // 16Va
-    lbl_12mAa->Caption = IntOrZeroSring((adc_ex._x16vac - adc_ex._x16va) / default_vote_param._x16v_current) + " ";            // -16Va
-    lbl16mAa->Caption = IntOrZeroSring((adc_ex._16va - adc_ex._16vac) / default_vote_param._16v_current) + " ";
-    lbl_16mAa->Caption = IntOrZeroSring((adc_ex._x16vac - adc_ex._x16va) / default_vote_param._x16v_current) + " ";
-    lbl46mAa->Caption = IntOrZeroSring((adc_ex._50vp - adc_ex._50vpc) / default_vote_param._48v_current) + " ";
-    */
+    ValueListEditor2->Cells[1][18] = String::FormatFloat("0.00 ", adc_ex._8va_current);
+    ValueListEditor2->Cells[1][19] = String::FormatFloat("0.00 ", adc_ex._8vd_current);
+    ValueListEditor2->Cells[1][20] = String::FormatFloat("0.00 ", adc_ex._16v_current);
+    ValueListEditor2->Cells[1][21] = String::FormatFloat("0.00 ", adc_ex._x16v_current);
+    ValueListEditor2->Cells[1][22] = String::FormatFloat("0.00 ", adc_ex._50v_current);
+
+    lbl3_3mA->Caption = IntOrZeroSring((int)(adc_ex._8vd_current * 0.1)) + " ";   //8Vd * 0.10
+    lbl3_3mAd->Caption = IntOrZeroSring((int)(adc_ex._8vd_current * 0.85)) + " "; //8Vd * 0.85
+    lbl5mAa->Caption = IntOrZeroSring((int)(adc_ex._8va_current)) + " ";          // 8Va
+    lbl5mAd->Caption = IntOrZeroSring((int)(adc_ex._8vd_current * 0.05)) + " ";   // 8Vd * 0.05
+    lbl8mAa->Caption = IntOrZeroSring((int)(adc_ex._8va_current)) + " ";
+    lbl8mAd->Caption = IntOrZeroSring((int)(adc_ex._8vd_current)) + " ";
+    lbl12mAa->Caption = IntOrZeroSring(adc_ex._16v_current) + " ";               // 16Va
+    lbl_12mAa->Caption = IntOrZeroSring(adc_ex._x16v_current) + " ";            // -16Va
+    lbl16mAa->Caption = IntOrZeroSring(adc_ex._16v_current) + " ";
+    lbl_16mAa->Caption = IntOrZeroSring(adc_ex._x16v_current) + " ";
+    lbl46mAa->Caption = IntOrZeroSring(adc_ex._50v_current) + " ";
 }
 //---------------------------------------------------------------------------
 bool TForm1::ProcessSendCmdAck(D1608Cmd& cmd, TStream *AData, TIdSocketHandle *ABinding)
