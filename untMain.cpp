@@ -609,20 +609,20 @@ __fastcall TForm1::TForm1(TComponent* Owner)
     default_vote_param._8vdc_down = 4.75;
     default_vote_param._8vac_up = 10;
     default_vote_param._8vac_down = 4.75;
-    default_vote_param._8va_up = 10;
-    default_vote_param._8va_down = 4.75;
+    default_vote_param._8vad_up = 10;
+    default_vote_param._8vad_down = 4.75;
     default_vote_param._16vac_up = 20;
     default_vote_param._16vac_down = 3.32;
     default_vote_param._x16vac_up = 14.7;
     default_vote_param._x16vac_down = 20;
     default_vote_param._x16va_up = 14.7;
     default_vote_param._x16va_down = 20;
-    default_vote_param._46vc_up = 75;
-    default_vote_param._46vc_down = 4.75;
-    default_vote_param._48va_up = 75;
-    default_vote_param._48va_down = 4.75;
-    default_vote_param._46va_up = 75;
-    default_vote_param._46va_down = 4.75;
+    default_vote_param._50vpc_up = 75;
+    default_vote_param._50vpc_down = 4.75;
+    default_vote_param._50vp_up = 75;
+    default_vote_param._50vp_down = 4.75;
+    default_vote_param._48vp_up = 75;
+    default_vote_param._48vp_down = 4.75;
     default_vote_param._5va_up = 6.81;
     default_vote_param._5va_down = 6.81;
     default_vote_param._12va_up = 14.7;
@@ -2286,10 +2286,10 @@ static ADC_Data_Ex AdjustAdcDataByBootAdcDataEx(ADC_Data_Ex true_data, ADC_Data 
 {
     ADC_Data_Ex result = true_data;
 
-	result._8vdc   = true_data._8vdc * boot_adc_data._8va / boot_adc_data._8vdc;
-	result._8vac   = true_data._8vac * boot_adc_data._8va / boot_adc_data._8vac;
+	result._8vdc   = true_data._8vdc * boot_adc_data._8vad / boot_adc_data._8vdc;
+	result._8vac   = true_data._8vac * boot_adc_data._8vad / boot_adc_data._8vac;
 	result._x16vac = true_data._x16vac * boot_adc_data._x16va / boot_adc_data._x16vac;
-	result._46vc   = true_data._46vc * boot_adc_data._48va / boot_adc_data._46vc;
+	result._50vpc   = true_data._50vpc * boot_adc_data._50vp / boot_adc_data._50vpc;
 	result._16vac  = true_data._16vac * boot_adc_data._16va / boot_adc_data._16vac;
 
     return result;
@@ -2312,10 +2312,10 @@ void TForm1::ProcessVote(ADC_DATA_TYPE adc_ex[ADC_NUM])
         ValueListEditor2->Cells[1][i+1] = String::FormatFloat("0.00 ", vot);
     }
 
-    lblDiff->Caption = calc_data._8vdc-calc_data._8va;
+    lblDiff->Caption = calc_data._8vdc-calc_data._8vad;
 
-    ValueListEditor2->Cells[1][18] = String::FormatFloat("0.00 ", (calc_data._8va - calc_data._8vac) / default_vote_param._8v_current);
-    ValueListEditor2->Cells[1][19] = String::FormatFloat("0.00 ", (calc_data._48va - calc_data._46vc) / default_vote_param._48v_current);
+    ValueListEditor2->Cells[1][18] = String::FormatFloat("0.00 ", (calc_data._8vad - calc_data._8vac) / default_vote_param._8v_current);
+    ValueListEditor2->Cells[1][19] = String::FormatFloat("0.00 ", (calc_data._50vp - calc_data._50vpc) / default_vote_param._48v_current);
     ValueListEditor2->Cells[1][20] = String::FormatFloat("0.00 ", (calc_data._16va - calc_data._16vac) / default_vote_param._16v_current);
     ValueListEditor2->Cells[1][21] = String::FormatFloat("0.00 ", (calc_data._x16vac - calc_data._x16va) / default_vote_param._x16v_current);
 
@@ -2331,7 +2331,7 @@ void TForm1::ProcessVote(ADC_DATA_TYPE adc_ex[ADC_NUM])
     lbl_12Va->Caption = String::FormatFloat("0.00 ", calc_data._x12va / 1000.0);
     lbl16Vac->Caption = String::FormatFloat("0.00 ", calc_data._16vac / 1000.0);
     lbl_16Vac->Caption = String::FormatFloat("0.00 ", calc_data._x16vac / 1000.0);
-    lbl46Va->Caption = String::FormatFloat("0.00 ", calc_data._46va / 1000.0);
+    lbl46Va->Caption = String::FormatFloat("0.00 ", calc_data._48vp / 1000.0);
 
     //====================================================================
     cg2_5V->Progress = calc_data._2_5v / 10.0;
@@ -2339,13 +2339,13 @@ void TForm1::ProcessVote(ADC_DATA_TYPE adc_ex[ADC_NUM])
     cg3_3Vd->Progress = calc_data._2_5v / 10.0+75;
     cg5Va->Progress = calc_data._5va / 10.0;
     cg5Vd->Progress = calc_data._5vd / 10.0;
-    cg8Va->Progress = calc_data._8va / 10.0;
+    cg8Va->Progress = calc_data._8vad / 10.0;
     cg8Vd->Progress = calc_data._8vdc / 10.0;
     cg12Va->Progress = calc_data._12va / 10.0;
     cg_12Va->Progress = calc_data._x12va / 10.0 + 2400;
     cg16Va->Progress = calc_data._16va / 10.0;
     cg_16Va->Progress = calc_data._x16va / 10.0 + 3200;
-    cg46Va->Progress = calc_data._46va / 10.0;
+    cg46Va->Progress = calc_data._48vp / 10.0;
 
     // ²¹³äµ½ÇúÏßÍ¼
     if (active_adc != NULL)
@@ -2367,17 +2367,17 @@ void TForm1::ProcessVote(ADC_DATA_TYPE adc_ex[ADC_NUM])
 
     //====================================================================
     lbl2_5mA->Caption = "-- ";
-    lbl3_3mA->Caption = IntOrZeroSring((int)((calc_data._8va - calc_data._8vdc) / default_vote_param._8v_current * 0.1)) + " ";   //8Vd * 0.10
-    lbl3_3mAd->Caption = IntOrZeroSring((int)((calc_data._8va - calc_data._8vdc) / default_vote_param._8v_current * 0.85)) + " "; //8Vd * 0.85
-    lbl5mAa->Caption = IntOrZeroSring((int)((calc_data._8va - calc_data._8vac) / default_vote_param._8v_current)) + " ";          // 8Va
-    lbl5mAd->Caption = IntOrZeroSring((int)((calc_data._8va - calc_data._8vdc) / default_vote_param._8v_current * 0.05)) + " ";   // 8Vd * 0.05
-    lbl8mAa->Caption = IntOrZeroSring((int)((calc_data._8va - calc_data._8vac) / default_vote_param._8v_current)) + " ";
-    lbl8mAd->Caption = IntOrZeroSring((int)((calc_data._8va - calc_data._8vdc) / default_vote_param._8v_current)) + " ";
+    lbl3_3mA->Caption = IntOrZeroSring((int)((calc_data._8vad - calc_data._8vdc) / default_vote_param._8v_current * 0.1)) + " ";   //8Vd * 0.10
+    lbl3_3mAd->Caption = IntOrZeroSring((int)((calc_data._8vad - calc_data._8vdc) / default_vote_param._8v_current * 0.85)) + " "; //8Vd * 0.85
+    lbl5mAa->Caption = IntOrZeroSring((int)((calc_data._8vad - calc_data._8vac) / default_vote_param._8v_current)) + " ";          // 8Va
+    lbl5mAd->Caption = IntOrZeroSring((int)((calc_data._8vad - calc_data._8vdc) / default_vote_param._8v_current * 0.05)) + " ";   // 8Vd * 0.05
+    lbl8mAa->Caption = IntOrZeroSring((int)((calc_data._8vad - calc_data._8vac) / default_vote_param._8v_current)) + " ";
+    lbl8mAd->Caption = IntOrZeroSring((int)((calc_data._8vad - calc_data._8vdc) / default_vote_param._8v_current)) + " ";
     lbl12mAa->Caption = IntOrZeroSring((calc_data._16va - calc_data._16vac) / default_vote_param._16v_current) + " ";               // 16Va
     lbl_12mAa->Caption = IntOrZeroSring((calc_data._x16vac - calc_data._x16va) / default_vote_param._x16v_current) + " ";            // -16Va
     lbl16mAa->Caption = IntOrZeroSring((calc_data._16va - calc_data._16vac) / default_vote_param._16v_current) + " ";
     lbl_16mAa->Caption = IntOrZeroSring((calc_data._x16vac - calc_data._x16va) / default_vote_param._x16v_current) + " ";
-    lbl46mAa->Caption = IntOrZeroSring((calc_data._48va - calc_data._46vc) / default_vote_param._48v_current) + " ";
+    lbl46mAa->Caption = IntOrZeroSring((calc_data._50vp - calc_data._50vpc) / default_vote_param._48v_current) + " ";
 }
 //---------------------------------------------------------------------------
 bool TForm1::ProcessSendCmdAck(D1608Cmd& cmd, TStream *AData, TIdSocketHandle *ABinding)

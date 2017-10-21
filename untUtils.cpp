@@ -114,6 +114,7 @@ String AppBuildTime2Str(String app_build_time)
 //--------------------------------------
 static String GetLogWithoutTime(String log)
 {
+#if 0
     TStrings * tmpStr = new TStringList();
     tmpStr->Delimiter = '\t';
     tmpStr->DelimitedText = log;
@@ -124,7 +125,7 @@ static String GetLogWithoutTime(String log)
     }
 
     delete tmpStr;
-
+#endif
     return log;
 }
 static int FindLogStr(TStrings * log, String str)
