@@ -1126,25 +1126,25 @@ void __fastcall TForm1::FormCreate(TObject *Sender)
     cg3_3Vd->MaxValue = 330+75;
     cg5Va->MaxValue = 500+75;
     cg5Vd->MaxValue = 500+75;
-    cg8Va->MaxValue = 800+75;
-    cg8Vd->MaxValue = 800+75;
+    cg8Vac->MaxValue = 800+75;
+    cg8Vdc->MaxValue = 800+75;
     cg12Va->MaxValue = 1200+75;
     cg_12Va->MaxValue = 1200+75;
-    cg16Va->MaxValue = 1600+75;
-    cg_16Va->MaxValue = 1600+75;
-    cg46Va->MaxValue = 4800+75;
+    cg16Vac->MaxValue = 1600+75;
+    cg_16Vac->MaxValue = 1600+75;
+    cg48Vp->MaxValue = 4800+75;
 
     cg3_3V->MinValue = 330-75;
     cg3_3Vd->MinValue = 330-75;
     cg5Va->MinValue = 500-75;
     cg5Vd->MinValue = 500-75;
-    cg8Va->MinValue = 800-75;
-    cg8Vd->MinValue = 800-75;
+    cg8Vac->MinValue = 800-75;
+    cg8Vdc->MinValue = 800-75;
     cg12Va->MinValue = 1200-75;
     cg_12Va->MinValue = 1200-75;
-    cg16Va->MinValue = 1600-75;
-    cg_16Va->MinValue = 1600-75;
-    cg46Va->MinValue = 4800-75;
+    cg16Vac->MinValue = 1600-75;
+    cg_16Vac->MinValue = 1600-75;
+    cg48Vp->MinValue = 4800-75;
 
     // 加载LOGO图片
     if (FileExists("logo.bmp"))
@@ -2035,6 +2035,32 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
                 cbPresetAutoSaved->Checked = ((global_config.auto_saved == 1) || (global_config.auto_saved == 0xFF));
                 cbLedTest->Checked = (global_config.led_test == 1);
             }
+
+            // 更新adc_range
+            // 设置最大最小值
+            cg3_3V->MaxValue  = global_config.adc_range.vote_3v3m_up     * 10;
+            cg3_3Vd->MaxValue = global_config.adc_range.vote_3v3_up      * 10;
+            cg5Va->MaxValue   = global_config.adc_range.vote_5va_up      * 10;
+            cg5Vd->MaxValue   = global_config.adc_range.vote_5vd_up      * 10;
+            cg8Vac->MaxValue   = global_config.adc_range.vote_8vac_up     * 10;
+            cg8Vdc->MaxValue   = global_config.adc_range.vote_8vdc_up     * 10;
+            cg12Va->MaxValue  = global_config.adc_range.vote_12va_up     * 10;
+            cg_12Va->MaxValue = global_config.adc_range.vote_x12va_up    * 10;
+            cg16Vac->MaxValue  = global_config.adc_range.vote_x16vac_up   * 10;
+            cg_16Vac->MaxValue = global_config.adc_range.vote_x16vac_up   * 10;
+            cg48Vp->MaxValue  = global_config.adc_range.vote_48vp_up     * 10;
+
+            cg3_3V->MinValue  = global_config.adc_range.vote_3v3m_down   * 10;             
+            cg3_3Vd->MinValue = global_config.adc_range.vote_3v3_down    * 10;             
+            cg5Va->MinValue   = global_config.adc_range.vote_5va_down    * 10;             
+            cg5Vd->MinValue   = global_config.adc_range.vote_5vd_down    * 10;             
+            cg8Vac->MinValue   = global_config.adc_range.vote_8vac_down   * 10;
+            cg8Vdc->MinValue   = global_config.adc_range.vote_8vdc_down   * 10;
+            cg12Va->MinValue  = global_config.adc_range.vote_12va_down   * 10;             
+            cg_12Va->MinValue = global_config.adc_range.vote_x12va_down  * 10;             
+            cg16Vac->MinValue  = global_config.adc_range.vote_x16vac_down * 10;
+            cg_16Vac->MinValue = global_config.adc_range.vote_x16vac_down * 10;
+            cg48Vp->MinValue  = global_config.adc_range.vote_48vp_down   * 10;   
         }
         else
         {
@@ -2320,20 +2346,20 @@ void TForm1::ProcessVote(ADC_Data_Ex adc_ex, ADC_Data_Ex adc_ex_max, ADC_Data_Ex
     lbl_12Va->Caption = String::FormatFloat("0.00 ", adc_ex._x12va / 1000.0);
     lbl16Vac->Caption = String::FormatFloat("0.00 ", adc_ex._16vac / 1000.0);
     lbl_16Vac->Caption = String::FormatFloat("0.00 ", adc_ex._x16vac / 1000.0);
-    lbl46Va->Caption = String::FormatFloat("0.00 ", adc_ex._48vp / 1000.0);
+    lbl48Vp->Caption = String::FormatFloat("0.00 ", adc_ex._48vp / 1000.0);
 
     //====================================================================
     cg3_3V->Progress = adc_ex.base / 10.0;
     cg3_3Vd->Progress = adc_ex._3_3vd / 10.0;
     cg5Va->Progress = adc_ex._5va / 10.0;
     cg5Vd->Progress = adc_ex._5vd / 10.0;
-    cg8Va->Progress = adc_ex._8vad / 10.0;
-    cg8Vd->Progress = adc_ex._8vdc / 10.0;
+    cg8Vac->Progress = adc_ex._8vad / 10.0;
+    cg8Vdc->Progress = adc_ex._8vdc / 10.0;
     cg12Va->Progress = adc_ex._12va / 10.0;
     cg_12Va->Progress = adc_ex._x12va / 10.0 + 2400;
-    cg16Va->Progress = adc_ex._16va / 10.0;
-    cg_16Va->Progress = adc_ex._x16va / 10.0 + 3200;
-    cg46Va->Progress = adc_ex._48vp / 10.0;
+    cg16Vac->Progress = adc_ex._16va / 10.0;
+    cg_16Vac->Progress = adc_ex._x16va / 10.0 + 3200;
+    cg48Vp->Progress = adc_ex._48vp / 10.0;
 
     // 补充到曲线图
     if (active_adc != NULL)
@@ -5264,17 +5290,66 @@ void __fastcall TForm1::lbl5VdClick(TObject *Sender)
     shape_active_adc->Top = control->Top;
     shape_active_adc->Show();
 
-    line_value = control->Tag / 10.0;
     Series1->Clear();
     lineUpLimit->Clear();
     lineDownLimit->Clear();
     Chart1->BottomAxis->SetMinMax(0, 100);
 
-    // 纵坐标范围设定为+-1V
-    Chart1->LeftAxis->SetMinMax(line_value*1.1, line_value*0.9);
-
-    up_line_value = line_value*1.05;
-    down_line_value = line_value*0.95;
+    if (control == lbl3_3V)
+    {
+        up_line_value = cg3_3V->MaxValue;
+        down_line_value = cg3_3V->MinValue;
+    }
+    else  if (control == lbl3_3Vd)
+    {
+        up_line_value = cg3_3Vd->MaxValue;
+        down_line_value = cg3_3Vd->MinValue;
+    }
+    else  if (control == lbl5Va)
+    {
+        up_line_value = cg5Va->MaxValue;
+        down_line_value = cg5Va->MinValue;
+    }
+    else  if (control == lbl5Vd)
+    {
+        up_line_value = cg5Vd->MaxValue;
+        down_line_value = cg5Vd->MinValue;
+    }
+    else  if (control == lbl8Vac)
+    {
+        up_line_value = cg8Vac->MaxValue;
+        down_line_value = cg8Vac->MinValue;
+    }
+    else  if (control == lbl8Vdc)
+    {
+        up_line_value = cg8Vdc->MaxValue;
+        down_line_value = cg8Vdc->MinValue;
+    }
+    else  if (control == lbl12Va)
+    {
+        up_line_value = cg12Va->MaxValue;
+        down_line_value = cg12Va->MinValue;
+    }
+    else  if (control == lbl_12Va)
+    {
+        up_line_value = cg_12Va->MaxValue;
+        down_line_value = cg_12Va->MinValue;
+    }
+    else  if (control == lbl16Vac)
+    {
+        up_line_value = cg16Vac->MaxValue;
+        down_line_value = cg16Vac->MinValue;
+    }
+    else  if (control == lbl_16Vac)
+    {
+        up_line_value = cg_16Vac->MaxValue;
+        down_line_value = cg_16Vac->MinValue;
+    }
+    else  if (control == lbl48Vp)
+    {
+        up_line_value = cg48Vp->MaxValue;
+        down_line_value = cg48Vp->MinValue;
+    }
 
     for (int i=0;i<100;i++)
     {
@@ -5282,6 +5357,11 @@ void __fastcall TForm1::lbl5VdClick(TObject *Sender)
         lineDownLimit->AddXY(i, down_line_value, "b", clRed);
         Series1->AddNull("");
     }
+
+    // 纵坐标范围设定为+-1V
+    float up_range = up_line_value+(up_line_value-down_line_value)/2;
+    float down_range = down_line_value-(up_line_value-down_line_value)/2;
+    Chart1->LeftAxis->SetMinMax(down_range, up_range);
 
     active_adc = (TLabel*)Sender;
 }

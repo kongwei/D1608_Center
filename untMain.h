@@ -318,7 +318,7 @@ __published:	// IDE-managed Components
     TLabel *lbl16Vac;
     TLabel *lbl_16Vac;
     TLabel *lbl8Vac;
-    TLabel *lbl46Va;
+    TLabel *lbl48Vp;
     TLabel *Label48;
     TLabel *Label49;
     TLabel *lbl5mAd;
@@ -363,13 +363,13 @@ __published:	// IDE-managed Components
     TCGauge *cg3_3Vd;
     TCGauge *cg5Va;
     TCGauge *cg5Vd;
-    TCGauge *cg8Va;
-    TCGauge *cg8Vd;
+    TCGauge *cg8Vac;
+    TCGauge *cg8Vdc;
     TCGauge *cg12Va;
     TCGauge *cg_12Va;
-    TCGauge *cg16Va;
-    TCGauge *cg_16Va;
-    TCGauge *cg46Va;
+    TCGauge *cg16Vac;
+    TCGauge *cg_16Vac;
+    TCGauge *cg48Vp;
     TShape *shape_active_adc;
     TTimer *tmLed;
     TShape *shape_live;
@@ -904,7 +904,6 @@ private:
     void __fastcall after_output_panel_dsp_numClick(TObject *Sender);
 
     // 电压检测标准值
-    float line_value;
     TLabel* active_adc;
     float up_line_value;
     float down_line_value;
