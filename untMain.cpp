@@ -1116,8 +1116,6 @@ void __fastcall TForm1::FormCreate(TObject *Sender)
     // Panel->Left
     // Label->Caption
 
-    mmLog->Text = Now();
-
     //tsSearch->Show();
     this->Repaint();
 
@@ -1810,7 +1808,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
         {
             ProcessWatchLevel(cmd.data.keep_alive.watch_level, cmd.data.keep_alive.watch_level_comp);
             if (cmd.length == sizeof(config_map.op_code))
-                ProcessVote(cmd.data.keep_alive.adc_ex);
+                ProcessVote(cmd.data.keep_alive.adc_ex, cmd.data.keep_alive.adc_ex_max, cmd.data.keep_alive.adc_ex_min);
             ProcessKeepAlive(cmd.data.keep_alive.switch_preset, cmd.data.keep_alive.set_time_ex);
 
             //memo_debug->Lines->Add("广播消息序号:"+IntToStr(cmd.data.keep_alive.seq)+":"+IntToStr(received_cmd_seq));
@@ -2257,7 +2255,34 @@ static ADC_Data_Ex AdjustAdcDataByBootAdcDataEx(ADC_Data_Ex true_data, ADC_Data 
 
     return result;
 }
-void TForm1::ProcessVote(ADC_Data_Ex adc_ex)
+
+static void UpdateAdc_ValueListEditor(TValueListEditor * vls, ADC_Data_Ex data)
+{
+    // 用上电电压校准
+    vls->Cells[1][0 +1] = String::FormatFloat("0.00 ", data._3_3vd  / 1000.0f);
+    vls->Cells[1][1 +1] = String::FormatFloat("0.00 ", data.base    / 1000.0f);
+    vls->Cells[1][2 +1] = String::FormatFloat("0.00 ", data._5vd    / 1000.0f);
+    vls->Cells[1][3 +1] = String::FormatFloat("0.00 ", data._8vdc   / 1000.0f);
+    vls->Cells[1][4 +1] = String::FormatFloat("0.00 ", data._8vac   / 1000.0f);
+    vls->Cells[1][5 +1] = String::FormatFloat("0.00 ", data._8vad   / 1000.0f);
+    vls->Cells[1][6 +1] = String::FormatFloat("0.00 ", data._x16vac / 1000.0f);
+    vls->Cells[1][7 +1] = String::FormatFloat("0.00 ", data._x16va  / 1000.0f);
+    vls->Cells[1][8 +1] = String::FormatFloat("0.00 ", data._50vpc  / 1000.0f);
+    vls->Cells[1][9 +1] = String::FormatFloat("0.00 ", data._50vp   / 1000.0f);
+    vls->Cells[1][10+1] = String::FormatFloat("0.00 ", data._48vp   / 1000.0f);
+    vls->Cells[1][11+1] = String::FormatFloat("0.00 ", data._5va    / 1000.0f);
+    vls->Cells[1][12+1] = String::FormatFloat("0.00 ", data._x12va  / 1000.0f);
+    vls->Cells[1][13+1] = String::FormatFloat("0.00 ", data._12va   / 1000.0f);
+    vls->Cells[1][14+1] = String::FormatFloat("0.00 ", data._16va   / 1000.0f);
+    vls->Cells[1][15+1] = String::FormatFloat("0.00 ", data._16vac  / 1000.0f);
+
+    vls->Cells[1][18] = String::FormatFloat("0.00 ", data._8va_current);
+    vls->Cells[1][19] = String::FormatFloat("0.00 ", data._8vd_current);
+    vls->Cells[1][20] = String::FormatFloat("0.00 ", data._16v_current);
+    vls->Cells[1][21] = String::FormatFloat("0.00 ", data._x16v_current);
+    vls->Cells[1][22] = String::FormatFloat("0.00 ", data._50v_current);
+}
+void TForm1::ProcessVote(ADC_Data_Ex adc_ex, ADC_Data_Ex adc_ex_max, ADC_Data_Ex adc_ex_min)
 {
     // 打印出原始值
     ValueListEditor1->Cells[1][0 +1] = String::FormatFloat("0.00 ", adc_ex._3_3vd );
@@ -2277,32 +2302,12 @@ void TForm1::ProcessVote(ADC_Data_Ex adc_ex)
     ValueListEditor1->Cells[1][14+1] = String::FormatFloat("0.00 ", adc_ex._16va  );
     ValueListEditor1->Cells[1][15+1] = String::FormatFloat("0.00 ", adc_ex._16vac );
 
-    // 用上电电压校准
-    ValueListEditor2->Cells[1][0 +1] = String::FormatFloat("0.00 ", adc_ex._3_3vd  / 1000.0f);
-    ValueListEditor2->Cells[1][1 +1] = String::FormatFloat("0.00 ", adc_ex.base    / 1000.0f);
-    ValueListEditor2->Cells[1][2 +1] = String::FormatFloat("0.00 ", adc_ex._5vd    / 1000.0f);
-    ValueListEditor2->Cells[1][3 +1] = String::FormatFloat("0.00 ", adc_ex._8vdc   / 1000.0f);
-    ValueListEditor2->Cells[1][4 +1] = String::FormatFloat("0.00 ", adc_ex._8vac   / 1000.0f);
-    ValueListEditor2->Cells[1][5 +1] = String::FormatFloat("0.00 ", adc_ex._8vad   / 1000.0f);
-    ValueListEditor2->Cells[1][6 +1] = String::FormatFloat("0.00 ", adc_ex._x16vac / 1000.0f);
-    ValueListEditor2->Cells[1][7 +1] = String::FormatFloat("0.00 ", adc_ex._x16va  / 1000.0f);
-    ValueListEditor2->Cells[1][8 +1] = String::FormatFloat("0.00 ", adc_ex._50vpc  / 1000.0f);
-    ValueListEditor2->Cells[1][9 +1] = String::FormatFloat("0.00 ", adc_ex._50vp   / 1000.0f);
-    ValueListEditor2->Cells[1][10+1] = String::FormatFloat("0.00 ", adc_ex._48vp   / 1000.0f);
-    ValueListEditor2->Cells[1][11+1] = String::FormatFloat("0.00 ", adc_ex._5va    / 1000.0f);
-    ValueListEditor2->Cells[1][12+1] = String::FormatFloat("0.00 ", adc_ex._x12va  / 1000.0f);
-    ValueListEditor2->Cells[1][13+1] = String::FormatFloat("0.00 ", adc_ex._12va   / 1000.0f);
-    ValueListEditor2->Cells[1][14+1] = String::FormatFloat("0.00 ", adc_ex._16va   / 1000.0f);
-    ValueListEditor2->Cells[1][15+1] = String::FormatFloat("0.00 ", adc_ex._16vac  / 1000.0f);
+    UpdateAdc_ValueListEditor(ValueListEditor2, adc_ex);
+    UpdateAdc_ValueListEditor(vleAdcMax, adc_ex_max);
+    UpdateAdc_ValueListEditor(vleAdcMin, adc_ex_min);
 
 
     lblDiff->Caption = adc_ex._8vdc-adc_ex._8vad;
-
-    ValueListEditor2->Cells[1][18] = String::FormatFloat("0.00 ", adc_ex._8va_current);
-    ValueListEditor2->Cells[1][19] = String::FormatFloat("0.00 ", adc_ex._8vd_current);
-    ValueListEditor2->Cells[1][20] = String::FormatFloat("0.00 ", adc_ex._16v_current);
-    ValueListEditor2->Cells[1][21] = String::FormatFloat("0.00 ", adc_ex._x16v_current);
-    ValueListEditor2->Cells[1][22] = String::FormatFloat("0.00 ", adc_ex._50v_current);
 
     //====================================================================
     lbl3_3V->Caption = String::FormatFloat("0.00 ", adc_ex.base / 1000.0);

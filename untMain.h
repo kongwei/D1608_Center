@@ -531,7 +531,6 @@ __published:	// IDE-managed Components
     TLabel *lblVersion;
     TButton *btnSelect;
     TButton *btnRefresh;
-    TMemo *mmLog;
     TCheckBox *cbLedTest;
     TAction *aStore;
     TIdUDPServer *udpSLP1;
@@ -549,6 +548,8 @@ __published:	// IDE-managed Components
     TLabel *lblCpuId;
     TLabel *lblSn;
     TLabel *lblConfigFilename;
+    TValueListEditor *vleAdcMin;
+    TValueListEditor *vleAdcMax;
     void __fastcall FormCreate(TObject *Sender);
     void __fastcall btnRefreshClick(TObject *Sender);
     void __fastcall udpSLPUDPRead(TObject *Sender, TStream *AData,
@@ -870,7 +871,7 @@ public:		// User declarations
 private:
     void CalcAllVote(ADC_Data_Ex & adc_data);
     void ProcessKeepAlive(int preset_id, unsigned __int64 timer);
-    void ProcessVote(ADC_Data_Ex adc_ex);
+    void ProcessVote(ADC_Data_Ex adc_ex, ADC_Data_Ex adc_ex_max, ADC_Data_Ex adc_ex_min);
     void ProcessWatchLevel(int watch_level[INPUT_DSP_NUM + OUTPUT_DSP_NUM], int watch_level_comp[OUTPUT_DSP_NUM]);
 private:
     void UpdateWatchLevel(int i, int value, int comp_value=-100)
