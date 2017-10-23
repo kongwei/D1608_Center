@@ -112,29 +112,51 @@ String AppBuildTime2Str(String app_build_time)
 }
 
 //--------------------------------------
-static String GetLogWithoutTime(String log)
+static bool IsEqualBefore4Tabs(String string1, String string2)
 {
-#if 0
-    TStrings * tmpStr = new TStringList();
-    tmpStr->Delimiter = '\t';
-    tmpStr->DelimitedText = log;
-
-    if (tmpStr->Count > 4)
+    char * str1 = string1.c_str();
+    char * str2 = string2.c_str();
+    
+    int tab_count = 0;
+    while ((*str1 != '\0') && (*str2 != '\0') && (*str1==*str2) && (tab_count < 4))
     {
-        log = tmpStr->Strings[0] + "\t" + tmpStr->Strings[1] + "\t" + tmpStr->Strings[2] + "\t" + tmpStr->Strings[3];
+        if (*str1 == '\t')
+        {
+            tab_count++;
+        }
+
+        str1++;
+        str2++;
     }
 
-    delete tmpStr;
-#endif
-    return log;
+    return (tab_count >= 3);
+}
+static int GetThirdTabIndex(String str)
+{
+    char *p = str.c_str();
+    int tab_count = 0;
+
+    while (*p != '\0')
+    {
+        if (*p == '\t')
+            tab_count++;
+
+        if (tab_count == 4)
+            return (p-str.c_str());
+
+        p++;
+    }
+
+    if (tab_count == 3)
+        return str.Length();
+
+    return 0;
 }
 static int FindLogStr(TStrings * log, String str)
 {
     for (int i=0;i<log->Count && i<3000/*限制一下，最多查找3000次*/;i++)
     {
-        String log_str = GetLogWithoutTime(log->Strings[i]);
-        str = GetLogWithoutTime(str);
-        if (log_str == str)
+        if (IsEqualBefore4Tabs(log->Strings[i], str))
             return i;
     }
 
@@ -259,7 +281,7 @@ static bool CompareList(TStrings * strs, String data[], int count)
 
     return true;
 }
-void TEST_MergeLog_1()
+static void TEST_MergeLog_1()
 {
     String append_data[] = {"5", "4", "3", "2", "1"};
     String log_data[] = {"2", "1", "3", "2", "1"};
@@ -272,10 +294,19 @@ void TEST_MergeLog_1()
 
     assert(CompareList(a, result, 8));
 }
-
+static void TEST_CompareLog()
+{
+    // 尾巴不一样
+    assert(IsEqualBefore4Tabs("1\t1\t1\t1\t11111", "1\t1\t1\t1\t22222"));
+    // 没有尾巴
+    assert(IsEqualBefore4Tabs("1\t1\t1\t1", "1\t1\t1\t1\t22222"));
+    // 前面数据不一样
+    assert(!IsEqualBefore4Tabs("1\t2\t1\t1\t11111", "1\t1\t1\t1\t22222"));
+}
 void MergeLog(TStrings * append_data, TStrings * log_data)
 {
     //TEST_MergeLog_1();
+    //TEST_CompareLog();
     MergeLogX(append_data, log_data);
 }
 //----------------------------------------------
