@@ -1124,7 +1124,6 @@ void __fastcall TForm1::FormCreate(TObject *Sender)
     pnlMix->BringToFront();
 
     // 设置最大最小值
-    cg2_5V->MaxValue = 330+75;
     cg3_3V->MaxValue = 330+75;
     cg3_3Vd->MaxValue = 330+75;
     cg5Va->MaxValue = 500+75;
@@ -1137,7 +1136,6 @@ void __fastcall TForm1::FormCreate(TObject *Sender)
     cg_16Va->MaxValue = 1600+75;
     cg46Va->MaxValue = 4800+75;
 
-    cg2_5V->MinValue = 330-75;
     cg3_3V->MinValue = 330-75;
     cg3_3Vd->MinValue = 330-75;
     cg5Va->MinValue = 500-75;
@@ -2262,7 +2260,7 @@ static ADC_Data_Ex AdjustAdcDataByBootAdcDataEx(ADC_Data_Ex true_data, ADC_Data 
 void TForm1::ProcessVote(ADC_Data_Ex adc_ex)
 {
     // 打印出原始值
-    ValueListEditor1->Cells[1][0 +1] = String::FormatFloat("0.00 ", adc_ex._2_5v  );
+    ValueListEditor1->Cells[1][0 +1] = String::FormatFloat("0.00 ", adc_ex._3_3vd );
     ValueListEditor1->Cells[1][1 +1] = String::FormatFloat("0.00 ", adc_ex.base   );
     ValueListEditor1->Cells[1][2 +1] = String::FormatFloat("0.00 ", adc_ex._5vd   );
     ValueListEditor1->Cells[1][3 +1] = String::FormatFloat("0.00 ", adc_ex._8vdc  );
@@ -2280,7 +2278,7 @@ void TForm1::ProcessVote(ADC_Data_Ex adc_ex)
     ValueListEditor1->Cells[1][15+1] = String::FormatFloat("0.00 ", adc_ex._16vac );
 
     // 用上电电压校准
-    ValueListEditor2->Cells[1][0 +1] = String::FormatFloat("0.00 ", adc_ex._2_5v   / 1000.0f);
+    ValueListEditor2->Cells[1][0 +1] = String::FormatFloat("0.00 ", adc_ex._3_3vd  / 1000.0f);
     ValueListEditor2->Cells[1][1 +1] = String::FormatFloat("0.00 ", adc_ex.base    / 1000.0f);
     ValueListEditor2->Cells[1][2 +1] = String::FormatFloat("0.00 ", adc_ex._5vd    / 1000.0f);
     ValueListEditor2->Cells[1][3 +1] = String::FormatFloat("0.00 ", adc_ex._8vdc   / 1000.0f);
@@ -2307,9 +2305,8 @@ void TForm1::ProcessVote(ADC_Data_Ex adc_ex)
     ValueListEditor2->Cells[1][22] = String::FormatFloat("0.00 ", adc_ex._50v_current);
 
     //====================================================================
-    lbl2_5V->Caption = String::FormatFloat("0.00 ", adc_ex._2_5v / 1000.0);
     lbl3_3V->Caption = String::FormatFloat("0.00 ", adc_ex.base / 1000.0);
-    lbl3_3Vd->Caption = String::FormatFloat("0.00 ", (adc_ex._2_5v) / 1000.0);
+    lbl3_3Vd->Caption = String::FormatFloat("0.00 ", adc_ex._3_3vd / 1000.0);
     lbl5Va->Caption = String::FormatFloat("0.00 ", adc_ex._5va / 1000.0);
     lbl5Vd->Caption = String::FormatFloat("0.00 ", adc_ex._5vd / 1000.0);
     lbl8Vac->Caption = String::FormatFloat("0.00 ", adc_ex._8vac / 1000.0);
@@ -2321,9 +2318,8 @@ void TForm1::ProcessVote(ADC_Data_Ex adc_ex)
     lbl46Va->Caption = String::FormatFloat("0.00 ", adc_ex._48vp / 1000.0);
 
     //====================================================================
-    cg2_5V->Progress = adc_ex._2_5v / 10.0;
     cg3_3V->Progress = adc_ex.base / 10.0;
-    cg3_3Vd->Progress = adc_ex._2_5v / 10.0;
+    cg3_3Vd->Progress = adc_ex._3_3vd / 10.0;
     cg5Va->Progress = adc_ex._5va / 10.0;
     cg5Vd->Progress = adc_ex._5vd / 10.0;
     cg8Va->Progress = adc_ex._8vad / 10.0;
@@ -2353,7 +2349,6 @@ void TForm1::ProcessVote(ADC_Data_Ex adc_ex)
     }
 
     //====================================================================
-    lbl2_5mA->Caption = "-- ";
     ValueListEditor2->Cells[1][18] = String::FormatFloat("0.00 ", adc_ex._8va_current);
     ValueListEditor2->Cells[1][19] = String::FormatFloat("0.00 ", adc_ex._8vd_current);
     ValueListEditor2->Cells[1][20] = String::FormatFloat("0.00 ", adc_ex._16v_current);

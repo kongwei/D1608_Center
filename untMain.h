@@ -333,13 +333,11 @@ __published:	// IDE-managed Components
     TSpeedButton *SpeedButton10;
     TSpeedButton *SpeedButton11;
     TSpeedButton *SpeedButton12;
-    TLabel *lbl2_5V;
     TLabel *lbl3_3Vd;
     TLabel *lbl5Va;
     TLabel *lbl8Vdc;
     TLabel *lbl3_3V;
     TLabel *lbl_12Va;
-    TLabel *lbl2_5mA;
     TLabel *lbl3_3mAd;
     TLabel *lbl5mAa;
     TLabel *lbl8mAd;
@@ -361,7 +359,6 @@ __published:	// IDE-managed Components
     TLineSeries *Series1;
     TLineSeries *lineDownLimit;
     TLineSeries *lineUpLimit;
-    TCGauge *cg2_5V;
     TCGauge *cg3_3V;
     TCGauge *cg3_3Vd;
     TCGauge *cg5Va;
