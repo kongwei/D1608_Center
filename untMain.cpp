@@ -2038,29 +2038,29 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
 
             // 更新adc_range
             // 设置最大最小值
-            cg3_3V->MaxValue  = global_config.adc_range.vote_3v3m_up     * 10;
-            cg3_3Vd->MaxValue = global_config.adc_range.vote_3v3_up      * 10;
-            cg5Va->MaxValue   = global_config.adc_range.vote_5va_up      * 10;
-            cg5Vd->MaxValue   = global_config.adc_range.vote_5vd_up      * 10;
-            cg8Vac->MaxValue   = global_config.adc_range.vote_8vac_up     * 10;
-            cg8Vdc->MaxValue   = global_config.adc_range.vote_8vdc_up     * 10;
-            cg12Va->MaxValue  = global_config.adc_range.vote_12va_up     * 10;
-            cg_12Va->MaxValue = global_config.adc_range.vote_x12va_up    * 10;
-            cg16Vac->MaxValue  = global_config.adc_range.vote_x16vac_up   * 10;
-            cg_16Vac->MaxValue = global_config.adc_range.vote_x16vac_up   * 10;
-            cg48Vp->MaxValue  = global_config.adc_range.vote_48vp_up     * 10;
+            cg3_3V->MaxValue  = global_config.adc_range.vote_3v3m_up     ;
+            cg3_3Vd->MaxValue = global_config.adc_range.vote_3v3_up      ;
+            cg5Va->MaxValue   = global_config.adc_range.vote_5va_up      ;
+            cg5Vd->MaxValue   = global_config.adc_range.vote_5vd_up      ;
+            cg8Vac->MaxValue   = global_config.adc_range.vote_8vac_up    ;
+            cg8Vdc->MaxValue   = global_config.adc_range.vote_8vdc_up    ;
+            cg12Va->MaxValue  = global_config.adc_range.vote_12va_up     ;
+            cg_12Va->MaxValue = global_config.adc_range.vote_x12va_up    ;
+            cg16Vac->MaxValue  = global_config.adc_range.vote_x16vac_up  ;
+            cg_16Vac->MaxValue = global_config.adc_range.vote_x16vac_up  ;
+            cg48Vp->MaxValue  = global_config.adc_range.vote_48vp_up     ;
 
-            cg3_3V->MinValue  = global_config.adc_range.vote_3v3m_down   * 10;             
-            cg3_3Vd->MinValue = global_config.adc_range.vote_3v3_down    * 10;             
-            cg5Va->MinValue   = global_config.adc_range.vote_5va_down    * 10;             
-            cg5Vd->MinValue   = global_config.adc_range.vote_5vd_down    * 10;             
-            cg8Vac->MinValue   = global_config.adc_range.vote_8vac_down   * 10;
-            cg8Vdc->MinValue   = global_config.adc_range.vote_8vdc_down   * 10;
-            cg12Va->MinValue  = global_config.adc_range.vote_12va_down   * 10;             
-            cg_12Va->MinValue = global_config.adc_range.vote_x12va_down  * 10;             
-            cg16Vac->MinValue  = global_config.adc_range.vote_x16vac_down * 10;
-            cg_16Vac->MinValue = global_config.adc_range.vote_x16vac_down * 10;
-            cg48Vp->MinValue  = global_config.adc_range.vote_48vp_down   * 10;   
+            cg3_3V->MinValue  = global_config.adc_range.vote_3v3m_down   ;
+            cg3_3Vd->MinValue = global_config.adc_range.vote_3v3_down    ;
+            cg5Va->MinValue   = global_config.adc_range.vote_5va_down    ;
+            cg5Vd->MinValue   = global_config.adc_range.vote_5vd_down    ;
+            cg8Vac->MinValue   = global_config.adc_range.vote_8vac_down  ;
+            cg8Vdc->MinValue   = global_config.adc_range.vote_8vdc_down  ;
+            cg12Va->MinValue  = global_config.adc_range.vote_12va_down   ;
+            cg_12Va->MinValue = global_config.adc_range.vote_x12va_down  ;
+            cg16Vac->MinValue  = global_config.adc_range.vote_x16vac_down;
+            cg_16Vac->MinValue = global_config.adc_range.vote_x16vac_down;
+            cg48Vp->MinValue  = global_config.adc_range.vote_48vp_down   ;   
         }
         else
         {
@@ -2234,41 +2234,6 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
     }
 }
 //---------------------------------------------------------------------------
-void TForm1::CalcAllVote(ADC_Data_Ex & adc_data)
-{
-
-}
-#if 0
-static ADC_Data_Ex AdjustAdcDataByBootAdcData(ADC_Data true_data, ADC_Data boot_adc_data)
-{
-    ADC_Data_Ex result;
-
-    result._2_5v   = true_data._2_5v  ;
-    result.base    = true_data.base   ;
-    result._5vd    = true_data._5vd   ;
-    result._8vdc   = true_data._8vdc  ;
-    result._8vac   = true_data._8vac  ;
-    result._8va    = true_data._8va   ;
-    result._x16vac = true_data._x16vac;
-    result._x16va  = true_data._x16va ;
-    result._46vc   = true_data._46vc  ;
-    result._48va   = true_data._48va  ;
-    result._46va   = true_data._46va  ;
-    result._5va    = true_data._5va   ;
-    result._x12va  = true_data._x12va ;
-    result._12va   = true_data._12va  ;
-    result._16va   = true_data._16va  ;
-    result._16vac  = true_data._16vac ;
-
-	result._8vdc   = result._8vdc * boot_adc_data._8va / boot_adc_data._8vdc;
-	result._8vac   = result._8vac * boot_adc_data._8va / boot_adc_data._8vac;
-	result._x16vac = result._x16vac * boot_adc_data._x16va / boot_adc_data._x16vac;
-	result._46vc   = result._46vc * boot_adc_data._48va / boot_adc_data._46vc;
-	result._16vac  = result._16vac * boot_adc_data._16va / boot_adc_data._16vac;
-
-    return result;
-}
-#endif
 static ADC_Data_Ex AdjustAdcDataByBootAdcDataEx(ADC_Data_Ex true_data, ADC_Data boot_adc_data)
 {
     ADC_Data_Ex result = true_data;
@@ -2525,8 +2490,8 @@ void TForm1::ProcessKeepAlive(int preset_id, unsigned __int64 timer)
 static String GetNameOfAdc(int index)
 {
     String adc_name[ADC_NUM] = {
-        "2_5v",
-        "base",
+        "3.3vd",
+        "3.3vm",
         "5vd",
         "8vdc",
         "8vac",
@@ -5350,6 +5315,9 @@ void __fastcall TForm1::lbl5VdClick(TObject *Sender)
         up_line_value = cg48Vp->MaxValue;
         down_line_value = cg48Vp->MinValue;
     }
+
+    up_line_value = up_line_value / 1000;
+    down_line_value = down_line_value / 1000;
 
     for (int i=0;i<100;i++)
     {
