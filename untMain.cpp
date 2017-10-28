@@ -105,8 +105,8 @@ DeviceData last_connection;
 static int received_cmd_seq = 0;
 //------------------------------------------------
 // 版本兼容信息
-static UINT version = 0x01000004;  
-static UINT file_version = 0x00000001;
+static UINT version = 0x02000002;
+static UINT file_version = 0x00000002;
 // 返回YES或者下位机版本号
 // version_list以0结尾
 String IsCompatibility(T_slp_pack slp_pack)
@@ -1110,6 +1110,7 @@ void __fastcall TForm1::FormCreate(TObject *Sender)
     memo_debug->Lines->Add(GetTime()+"ConfigMap:" + IntToStr(sizeof(ConfigMap)));
     memo_debug->Lines->Add(GetTime()+"mix_mute:" + IntToStr(sizeof(config_map.master_mix.mix_mute)));
     memo_debug->Lines->Add(GetTime()+"NotStorageCmd:" + IntToStr(sizeof(NotStorageCmd)));
+    memo_debug->Lines->Add(GetTime()+"GlobalConfig:" + IntToStr(sizeof(GlobalConfig)));
 
     // 根据数量初始化控制器
     // Panel->Tag
@@ -1120,31 +1121,6 @@ void __fastcall TForm1::FormCreate(TObject *Sender)
     this->Repaint();
 
     pnlMix->BringToFront();
-
-    // 设置最大最小值
-    cg3_3V->MaxValue = 330+75;
-    cg3_3Vd->MaxValue = 330+75;
-    cg5Va->MaxValue = 500+75;
-    cg5Vd->MaxValue = 500+75;
-    cg8Vac->MaxValue = 800+75;
-    cg8Vdc->MaxValue = 800+75;
-    cg12Va->MaxValue = 1200+75;
-    cg_12Va->MaxValue = 1200+75;
-    cg16Vac->MaxValue = 1600+75;
-    cg_16Vac->MaxValue = 1600+75;
-    cg48Vp->MaxValue = 4800+75;
-
-    cg3_3V->MinValue = 330-75;
-    cg3_3Vd->MinValue = 330-75;
-    cg5Va->MinValue = 500-75;
-    cg5Vd->MinValue = 500-75;
-    cg8Vac->MinValue = 800-75;
-    cg8Vdc->MinValue = 800-75;
-    cg12Va->MinValue = 1200-75;
-    cg_12Va->MinValue = 1200-75;
-    cg16Vac->MinValue = 1600-75;
-    cg_16Vac->MinValue = 1600-75;
-    cg48Vp->MinValue = 4800-75;
 
     // 加载LOGO图片
     if (FileExists("logo.bmp"))
@@ -1375,18 +1351,8 @@ void __fastcall TForm1::btnRefreshClick(TObject *Sender)
             }
         }
     }
-#if 0
-    for (int i=0;i<lvDevice->Items->Count;i++)
-    {
-        TListItem * find_item = lvDevice->Items->Item[i];
-        if (find_item->SubItems->Strings[6] == last_device_id)
-        {
-            find_item->Selected = true;
-            break;
-        }
-    }
-#endif
-    if (lvDevice->Selected != NULL)
+
+    if ((lvDevice->Selected != NULL) && (lvDevice->Selected->SubItems->Strings[6] == last_device_id))
     {
         if (lvDevice->Selected->SubItems->Strings[3] != "")
             lblDeviceName->Caption = lvDevice->Selected->SubItems->Strings[3];
@@ -1532,22 +1498,21 @@ void __fastcall TForm1::btnSelectClick(TObject *Sender)
     cmd.length = 8;
     udpControl->SendBuffer(dst_ip, UDP_PORT_CONTROL, &cmd, sizeof(cmd));
 
-    // 获取下位机PRESET数据，同时这个消息作为下位机认可的消息
-    TPackage package;
-    package.udp_port = UDP_PORT_READ_PRESET;
-
     StartReadOnePackage(0xFF);
     restor_delay_count = 15;
     tmDelayBackup->Enabled = true;
 
+    // 获取下位机PRESET数据，同时这个消息作为下位机认可的消息
+    TPackage package;
+    package.udp_port = UDP_PORT_READ_PRESET;
     D1608PresetCmd preset_cmd(version);
     preset_cmd.preset = 0; // 读取global_config
     preset_cmd.store_page = 0;
     memcpy(package.data, &preset_cmd, sizeof(preset_cmd));
     package.data_size = sizeof(preset_cmd);
-    read_one_preset_package_list.push_back(package);
-
-    udpControl->SendBuffer(dst_ip, package.udp_port, package.data, package.data_size);
+    read_one_preset_package_list.insert(read_one_preset_package_list.begin(), package);
+    if (read_one_preset_package_list.size() == 1)
+        udpControl->SendBuffer(dst_ip, package.udp_port, package.data, package.data_size);
 
     // 发送上位机时间, 单位100ms, 从2000年1月1日开始计算
 #if 0
@@ -1570,7 +1535,6 @@ void __fastcall TForm1::btnSelectClick(TObject *Sender)
     ini_file->WriteString("connection", "last_id", last_device_id);
     ini_file->WriteBool("connection", "is_disconnect", is_manual_disconnect);
     delete ini_file;
-
 
     lblDeviceName->Hide();
 
@@ -1800,9 +1764,10 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             preset_cmd.store_page = 0;
             memcpy(package.data, &preset_cmd, sizeof(preset_cmd));
             package.data_size = sizeof(preset_cmd);
-            read_one_preset_package_list.push_back(package);
+            read_one_preset_package_list.insert(read_one_preset_package_list.begin(), package);
 
-            udpControl->SendBuffer(dst_ip, package.udp_port, package.data, package.data_size);
+            if (read_one_preset_package_list.size() == 1)
+                udpControl->SendBuffer(dst_ip, package.udp_port, package.data, package.data_size);
         }
         else if (cmd.id == GetOffsetOfData(&config_map.op_code.noop))
         {
@@ -2035,32 +2000,6 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
                 cbPresetAutoSaved->Checked = ((global_config.auto_saved == 1) || (global_config.auto_saved == 0xFF));
                 cbLedTest->Checked = (global_config.led_test == 1);
             }
-
-            // 更新adc_range
-            // 设置最大最小值
-            cg3_3V->MaxValue  = global_config.adc_range.vote_3v3m_up     ;
-            cg3_3Vd->MaxValue = global_config.adc_range.vote_3v3_up      ;
-            cg5Va->MaxValue   = global_config.adc_range.vote_5va_up      ;
-            cg5Vd->MaxValue   = global_config.adc_range.vote_5vd_up      ;
-            cg8Vac->MaxValue   = global_config.adc_range.vote_8vac_up    ;
-            cg8Vdc->MaxValue   = global_config.adc_range.vote_8vdc_up    ;
-            cg12Va->MaxValue  = global_config.adc_range.vote_12va_up     ;
-            cg_12Va->MaxValue = global_config.adc_range.vote_x12va_up    ;
-            cg16Vac->MaxValue  = global_config.adc_range.vote_x16vac_up  ;
-            cg_16Vac->MaxValue = global_config.adc_range.vote_x16vac_up  ;
-            cg48Vp->MaxValue  = global_config.adc_range.vote_48vp_up     ;
-
-            cg3_3V->MinValue  = global_config.adc_range.vote_3v3m_down   ;
-            cg3_3Vd->MinValue = global_config.adc_range.vote_3v3_down    ;
-            cg5Va->MinValue   = global_config.adc_range.vote_5va_down    ;
-            cg5Vd->MinValue   = global_config.adc_range.vote_5vd_down    ;
-            cg8Vac->MinValue   = global_config.adc_range.vote_8vac_down  ;
-            cg8Vdc->MinValue   = global_config.adc_range.vote_8vdc_down  ;
-            cg12Va->MinValue  = global_config.adc_range.vote_12va_down   ;
-            cg_12Va->MinValue = global_config.adc_range.vote_x12va_down  ;
-            cg16Vac->MinValue  = global_config.adc_range.vote_x16vac_down;
-            cg_16Vac->MinValue = global_config.adc_range.vote_x16vac_down;
-            cg48Vp->MinValue  = global_config.adc_range.vote_48vp_down   ;   
         }
         else
         {
@@ -2250,49 +2189,31 @@ static ADC_Data_Ex AdjustAdcDataByBootAdcDataEx(ADC_Data_Ex true_data, ADC_Data 
 static void UpdateAdc_ValueListEditor(TValueListEditor * vls, ADC_Data_Ex data)
 {
     // 用上电电压校准
-    vls->Cells[1][0 +1] = String::FormatFloat("0.00 ", data._3_3vd  / 1000.0f);
-    vls->Cells[1][1 +1] = String::FormatFloat("0.00 ", data.base    / 1000.0f);
-    vls->Cells[1][2 +1] = String::FormatFloat("0.00 ", data._5vd    / 1000.0f);
-    vls->Cells[1][3 +1] = String::FormatFloat("0.00 ", data._8vdc   / 1000.0f);
-    vls->Cells[1][4 +1] = String::FormatFloat("0.00 ", data._8vac   / 1000.0f);
-    vls->Cells[1][5 +1] = String::FormatFloat("0.00 ", data._8vad   / 1000.0f);
-    vls->Cells[1][6 +1] = String::FormatFloat("0.00 ", data._x16vac / 1000.0f);
-    vls->Cells[1][7 +1] = String::FormatFloat("0.00 ", data._x16va  / 1000.0f);
-    vls->Cells[1][8 +1] = String::FormatFloat("0.00 ", data._50vpc  / 1000.0f);
-    vls->Cells[1][9 +1] = String::FormatFloat("0.00 ", data._50vp   / 1000.0f);
-    vls->Cells[1][10+1] = String::FormatFloat("0.00 ", data._48vp   / 1000.0f);
-    vls->Cells[1][11+1] = String::FormatFloat("0.00 ", data._5va    / 1000.0f);
-    vls->Cells[1][12+1] = String::FormatFloat("0.00 ", data._x12va  / 1000.0f);
-    vls->Cells[1][13+1] = String::FormatFloat("0.00 ", data._12va   / 1000.0f);
-    vls->Cells[1][14+1] = String::FormatFloat("0.00 ", data._16va   / 1000.0f);
-    vls->Cells[1][15+1] = String::FormatFloat("0.00 ", data._16vac  / 1000.0f);
+    vls->Cells[1][0 +1] = String::FormatFloat("0.00000 ", data._3_3vd  / 1000.0f);
+    vls->Cells[1][1 +1] = String::FormatFloat("0.00000 ", data.base    / 1000.0f);
+    vls->Cells[1][2 +1] = String::FormatFloat("0.00000 ", data._5vd    / 1000.0f);
+    vls->Cells[1][3 +1] = String::FormatFloat("0.00000 ", data._8vdc   / 1000.0f);
+    vls->Cells[1][4 +1] = String::FormatFloat("0.00000 ", data._8vac   / 1000.0f);
+    vls->Cells[1][5 +1] = String::FormatFloat("0.00000 ", data._8vad   / 1000.0f);
+    vls->Cells[1][6 +1] = String::FormatFloat("0.00000 ", data._x16vac / 1000.0f);
+    vls->Cells[1][7 +1] = String::FormatFloat("0.00000 ", data._x16va  / 1000.0f);
+    vls->Cells[1][8 +1] = String::FormatFloat("0.00000 ", data._50vpc  / 1000.0f);
+    vls->Cells[1][9 +1] = String::FormatFloat("0.00000 ", data._50vp   / 1000.0f);
+    vls->Cells[1][10+1] = String::FormatFloat("0.00000 ", data._48vp   / 1000.0f);
+    vls->Cells[1][11+1] = String::FormatFloat("0.00000 ", data._5va    / 1000.0f);
+    vls->Cells[1][12+1] = String::FormatFloat("0.00000 ", data._x12va  / 1000.0f);
+    vls->Cells[1][13+1] = String::FormatFloat("0.00000 ", data._12va   / 1000.0f);
+    vls->Cells[1][14+1] = String::FormatFloat("0.00000 ", data._16va   / 1000.0f);
+    vls->Cells[1][15+1] = String::FormatFloat("0.00000 ", data._16vac  / 1000.0f);
 
-    vls->Cells[1][18] = String::FormatFloat("0.00 ", data._8va_current);
-    vls->Cells[1][19] = String::FormatFloat("0.00 ", data._8vd_current);
-    vls->Cells[1][20] = String::FormatFloat("0.00 ", data._16v_current);
-    vls->Cells[1][21] = String::FormatFloat("0.00 ", data._x16v_current);
-    vls->Cells[1][22] = String::FormatFloat("0.00 ", data._50v_current);
+    vls->Cells[1][18] = String::FormatFloat("0.00000 ", data._8va_current);
+    vls->Cells[1][19] = String::FormatFloat("0.00000 ", data._8vd_current);
+    vls->Cells[1][20] = String::FormatFloat("0.00000 ", data._16v_current);
+    vls->Cells[1][21] = String::FormatFloat("0.00000 ", data._x16v_current);
+    vls->Cells[1][22] = String::FormatFloat("0.00000 ", data._50v_current);
 }
 void TForm1::ProcessVote(ADC_Data_Ex adc_ex, ADC_Data_Ex adc_ex_max, ADC_Data_Ex adc_ex_min)
 {
-    // 打印出原始值
-    ValueListEditor1->Cells[1][0 +1] = String::FormatFloat("0.00 ", adc_ex._3_3vd );
-    ValueListEditor1->Cells[1][1 +1] = String::FormatFloat("0.00 ", adc_ex.base   );
-    ValueListEditor1->Cells[1][2 +1] = String::FormatFloat("0.00 ", adc_ex._5vd   );
-    ValueListEditor1->Cells[1][3 +1] = String::FormatFloat("0.00 ", adc_ex._8vdc  );
-    ValueListEditor1->Cells[1][4 +1] = String::FormatFloat("0.00 ", adc_ex._8vac  );
-    ValueListEditor1->Cells[1][5 +1] = String::FormatFloat("0.00 ", adc_ex._8vad  );
-    ValueListEditor1->Cells[1][6 +1] = String::FormatFloat("0.00 ", adc_ex._x16vac);
-    ValueListEditor1->Cells[1][7 +1] = String::FormatFloat("0.00 ", adc_ex._x16va );
-    ValueListEditor1->Cells[1][8 +1] = String::FormatFloat("0.00 ", adc_ex._50vpc );
-    ValueListEditor1->Cells[1][9 +1] = String::FormatFloat("0.00 ", adc_ex._50vp  );
-    ValueListEditor1->Cells[1][10+1] = String::FormatFloat("0.00 ", adc_ex._48vp  );
-    ValueListEditor1->Cells[1][11+1] = String::FormatFloat("0.00 ", adc_ex._5va   );
-    ValueListEditor1->Cells[1][12+1] = String::FormatFloat("0.00 ", adc_ex._x12va );
-    ValueListEditor1->Cells[1][13+1] = String::FormatFloat("0.00 ", adc_ex._12va  );
-    ValueListEditor1->Cells[1][14+1] = String::FormatFloat("0.00 ", adc_ex._16va  );
-    ValueListEditor1->Cells[1][15+1] = String::FormatFloat("0.00 ", adc_ex._16vac );
-
     UpdateAdc_ValueListEditor(ValueListEditor2, adc_ex);
     UpdateAdc_ValueListEditor(vleAdcMax, adc_ex_max);
     UpdateAdc_ValueListEditor(vleAdcMin, adc_ex_min);
@@ -2314,18 +2235,19 @@ void TForm1::ProcessVote(ADC_Data_Ex adc_ex, ADC_Data_Ex adc_ex_max, ADC_Data_Ex
     lbl48Vp->Caption = String::FormatFloat("0.00 ", adc_ex._48vp / 1000.0);
 
     //====================================================================
-    cg3_3V->Progress = adc_ex.base / 10.0;
-    cg3_3Vd->Progress = adc_ex._3_3vd / 10.0;
-    cg5Va->Progress = adc_ex._5va / 10.0;
-    cg5Vd->Progress = adc_ex._5vd / 10.0;
-    cg8Vac->Progress = adc_ex._8vad / 10.0;
-    cg8Vdc->Progress = adc_ex._8vdc / 10.0;
-    cg12Va->Progress = adc_ex._12va / 10.0;
-    cg_12Va->Progress = adc_ex._x12va / 10.0 + 2400;
-    cg16Vac->Progress = adc_ex._16va / 10.0;
-    cg_16Vac->Progress = adc_ex._x16va / 10.0 + 3200;
-    cg48Vp->Progress = adc_ex._48vp / 10.0;
+    lbl3_3mA->Caption = IntOrZeroSring((int)(adc_ex._8vd_current * 0.1)) + " ";   //8Vd * 0.10
+    lbl3_3mAd->Caption = IntOrZeroSring((int)(adc_ex._8vd_current * 0.85)) + " "; //8Vd * 0.85
+    lbl5mAa->Caption = IntOrZeroSring((int)(adc_ex._8va_current)) + " ";          // 8Va
+    lbl5mAd->Caption = IntOrZeroSring((int)(adc_ex._8vd_current * 0.05)) + " ";   // 8Vd * 0.05
+    lbl8mAa->Caption = IntOrZeroSring((int)(adc_ex._8va_current)) + " ";
+    lbl8mAd->Caption = IntOrZeroSring((int)(adc_ex._8vd_current)) + " ";
+    lbl12mAa->Caption = IntOrZeroSring(adc_ex._16v_current) + " ";               // 16Va
+    lbl_12mAa->Caption = IntOrZeroSring(adc_ex._x16v_current) + " ";            // -16Va
+    lbl16mAa->Caption = IntOrZeroSring(adc_ex._16v_current) + " ";
+    lbl_16mAa->Caption = IntOrZeroSring(adc_ex._x16v_current) + " ";
+    lbl46mAa->Caption = IntOrZeroSring(adc_ex._50v_current) + " ";
 
+    //====================================================================
     // 补充到曲线图
     if (active_adc != NULL)
     {
@@ -2343,25 +2265,6 @@ void TForm1::ProcessVote(ADC_Data_Ex adc_ex, ADC_Data_Ex adc_ex_max, ADC_Data_Ex
         {
         }
     }
-
-    //====================================================================
-    ValueListEditor2->Cells[1][18] = String::FormatFloat("0.00 ", adc_ex._8va_current);
-    ValueListEditor2->Cells[1][19] = String::FormatFloat("0.00 ", adc_ex._8vd_current);
-    ValueListEditor2->Cells[1][20] = String::FormatFloat("0.00 ", adc_ex._16v_current);
-    ValueListEditor2->Cells[1][21] = String::FormatFloat("0.00 ", adc_ex._x16v_current);
-    ValueListEditor2->Cells[1][22] = String::FormatFloat("0.00 ", adc_ex._50v_current);
-
-    lbl3_3mA->Caption = IntOrZeroSring((int)(adc_ex._8vd_current * 0.1)) + " ";   //8Vd * 0.10
-    lbl3_3mAd->Caption = IntOrZeroSring((int)(adc_ex._8vd_current * 0.85)) + " "; //8Vd * 0.85
-    lbl5mAa->Caption = IntOrZeroSring((int)(adc_ex._8va_current)) + " ";          // 8Va
-    lbl5mAd->Caption = IntOrZeroSring((int)(adc_ex._8vd_current * 0.05)) + " ";   // 8Vd * 0.05
-    lbl8mAa->Caption = IntOrZeroSring((int)(adc_ex._8va_current)) + " ";
-    lbl8mAd->Caption = IntOrZeroSring((int)(adc_ex._8vd_current)) + " ";
-    lbl12mAa->Caption = IntOrZeroSring(adc_ex._16v_current) + " ";               // 16Va
-    lbl_12mAa->Caption = IntOrZeroSring(adc_ex._x16v_current) + " ";            // -16Va
-    lbl16mAa->Caption = IntOrZeroSring(adc_ex._16v_current) + " ";
-    lbl_16mAa->Caption = IntOrZeroSring(adc_ex._x16v_current) + " ";
-    lbl46mAa->Caption = IntOrZeroSring(adc_ex._50v_current) + " ";
 }
 //---------------------------------------------------------------------------
 bool TForm1::ProcessSendCmdAck(D1608Cmd& cmd, TStream *AData, TIdSocketHandle *ABinding)
@@ -5262,58 +5165,58 @@ void __fastcall TForm1::lbl5VdClick(TObject *Sender)
 
     if (control == lbl3_3V)
     {
-        up_line_value = cg3_3V->MaxValue;
-        down_line_value = cg3_3V->MinValue;
+        up_line_value = global_config.adc_range.vote_3v3m_up;
+        down_line_value = global_config.adc_range.vote_3v3m_down;
     }
     else  if (control == lbl3_3Vd)
     {
-        up_line_value = cg3_3Vd->MaxValue;
-        down_line_value = cg3_3Vd->MinValue;
+        up_line_value = global_config.adc_range.vote_3v3_up;
+        down_line_value = global_config.adc_range.vote_3v3_down;
     }
     else  if (control == lbl5Va)
     {
-        up_line_value = cg5Va->MaxValue;
-        down_line_value = cg5Va->MinValue;
+        up_line_value = global_config.adc_range.vote_5va_up;
+        down_line_value = global_config.adc_range.vote_5va_down;
     }
     else  if (control == lbl5Vd)
     {
-        up_line_value = cg5Vd->MaxValue;
-        down_line_value = cg5Vd->MinValue;
+        up_line_value = global_config.adc_range.vote_5vd_up;
+        down_line_value = global_config.adc_range.vote_5vd_down;
     }
     else  if (control == lbl8Vac)
     {
-        up_line_value = cg8Vac->MaxValue;
-        down_line_value = cg8Vac->MinValue;
+        up_line_value = global_config.adc_range.vote_8vac_up;
+        down_line_value = global_config.adc_range.vote_8vac_down;
     }
     else  if (control == lbl8Vdc)
     {
-        up_line_value = cg8Vdc->MaxValue;
-        down_line_value = cg8Vdc->MinValue;
+        up_line_value = global_config.adc_range.vote_8vdc_up;
+        down_line_value = global_config.adc_range.vote_8vdc_down;
     }
     else  if (control == lbl12Va)
     {
-        up_line_value = cg12Va->MaxValue;
-        down_line_value = cg12Va->MinValue;
+        up_line_value = global_config.adc_range.vote_12va_up;
+        down_line_value = global_config.adc_range.vote_12va_down;
     }
     else  if (control == lbl_12Va)
     {
-        up_line_value = cg_12Va->MaxValue;
-        down_line_value = cg_12Va->MinValue;
+        up_line_value = global_config.adc_range.vote_x12va_up;
+        down_line_value = global_config.adc_range.vote_x12va_down;
     }
     else  if (control == lbl16Vac)
     {
-        up_line_value = cg16Vac->MaxValue;
-        down_line_value = cg16Vac->MinValue;
+        up_line_value = global_config.adc_range.vote_16vac_up;
+        down_line_value = global_config.adc_range.vote_16vac_down;
     }
     else  if (control == lbl_16Vac)
     {
-        up_line_value = cg_16Vac->MaxValue;
-        down_line_value = cg_16Vac->MinValue;
+        up_line_value = global_config.adc_range.vote_x16vac_up;
+        down_line_value = global_config.adc_range.vote_x16vac_down;
     }
     else  if (control == lbl48Vp)
     {
-        up_line_value = cg48Vp->MaxValue;
-        down_line_value = cg48Vp->MinValue;
+        up_line_value = global_config.adc_range.vote_48vp_up;
+        down_line_value = global_config.adc_range.vote_48vp_down;
     }
 
     up_line_value = up_line_value / 1000;

@@ -199,36 +199,38 @@ static void DeleteLog(TStrings * log_data)
     delete tmp;
 }
 // Log File Utils
-void MergeLogX(TStrings * append_data, TStrings * log_data)
+void MergeLogX(TStrings * current_log_data, TStrings * log_file_data)
 {
-    DeleteMac(log_data);
-    if (append_data->Count == 0)
+    DeleteMac(log_file_data);
+    if (current_log_data->Count == 0)
     {
-        append_data->AddStrings(log_data);
+        current_log_data->AddStrings(log_file_data);
     }
     else
     {
         // 在log_data中查找
-        String first_data = append_data->Strings[append_data->Count - 1];
-        int index_of_first_data = FindLogStr(log_data, first_data);
+        String first_data = current_log_data->Strings[current_log_data->Count - 1];
+        int index_of_first_data = FindLogStr(log_file_data, first_data);
 
-        //  校验一下，是不是从 0 ~ index_of_first_data 都在 log_data里
+        //  校验一下，是不是从 0 ~ index_of_first_data 都在 log_file_data 里
         for (int i=0;i<index_of_first_data;i++)
         {
-            String old_log_str = log_data->Strings[i];
-            if (FindLogStr(append_data, old_log_str) == -1)
+            String old_log_str = log_file_data->Strings[i];
+            if (FindLogStr(current_log_data, old_log_str) == -1)
             {
                 // 日志文件无法合并，直接追加
                 index_of_first_data = -1;
-                log_data->Insert(0, "日志文件无法合并");
+                log_file_data->Insert(0, "日志文件无法合并");
                 break;
             }
         }
 
-        for (int i=index_of_first_data+1;i<log_data->Count;i++)
+        // 删除 current_log_data 最后的  index_of_first_data+1 条数据
+        for (int i=0;i<=index_of_first_data;i++)
         {
-            append_data->Add(log_data->Strings[i]);
+            current_log_data->Delete(current_log_data->Count-1);
         }
+        current_log_data->AddStrings(log_file_data);
     }
 }
 // Mac File Utils
@@ -303,11 +305,11 @@ static void TEST_CompareLog()
     // 前面数据不一样
     assert(!IsEqualBefore4Tabs("1\t2\t1\t1\t11111", "1\t1\t1\t1\t22222"));
 }
-void MergeLog(TStrings * append_data, TStrings * log_data)
+void MergeLog(TStrings * current_log_data, TStrings * log_file_data)
 {
     //TEST_MergeLog_1();
     //TEST_CompareLog();
-    MergeLogX(append_data, log_data);
+    MergeLogX(current_log_data, log_file_data);
 }
 //----------------------------------------------
 String GetCpuIdString(unsigned int cpu_id[3])
