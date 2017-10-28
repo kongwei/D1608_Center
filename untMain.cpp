@@ -2392,7 +2392,7 @@ void TForm1::ProcessKeepAlive(int preset_id, unsigned __int64 timer)
 
 static String GetNameOfAdc(int index)
 {
-    String adc_name[ADC_NUM] = {
+    String adc_name[21] = {
         "3.3vd",
         "3.3vm",
         "5vd",
@@ -2408,7 +2408,12 @@ static String GetNameOfAdc(int index)
         "x12va",
         "12va",
         "16va",
-        "16vac"
+        "16vac",
+        "8va_current",
+        "8vd_current",
+        "16v_current",
+        "x16v_current",
+        "50v_current"
     };
 
     if (index < ADC_NUM)
