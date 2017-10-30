@@ -39,6 +39,7 @@ struct IpInfo
 {
     String ip;
     DWORD mask;
+    bool is_dhcp;
 };
 vector<IpInfo> ip_info;
 
@@ -211,7 +212,7 @@ void GetLocalIpListEx(vector<IpInfo> & ip_info)
 
     String szMark;
 
-    PIP_ADAPTER_INFO pAdapterInfo = NULL;  
+    PIP_ADAPTER_INFO pAdapterInfo = NULL;
     PIP_ADAPTER_INFO pAdapter = NULL;   
   
     pAdapterInfo = ( IP_ADAPTER_INFO * ) malloc( sizeof( IP_ADAPTER_INFO ) );  
@@ -227,16 +228,19 @@ void GetLocalIpListEx(vector<IpInfo> & ip_info)
 
     if (GetAdaptersInfo( pAdapterInfo, &ulOutBufLen) == NO_ERROR)
     {   
-        pAdapter = pAdapterInfo;   
-        while (pAdapter)   
-        {  
-            PIP_ADDR_STRING pIPAddr;  
-            pIPAddr = &pAdapter->IpAddressList;  
-            while (pIPAddr)  
+        pAdapter = pAdapterInfo;
+        while (pAdapter)
+        {
+            PIP_ADDR_STRING pIPAddr;
+            pIPAddr = &pAdapter->IpAddressList;
+            while (pIPAddr)
             {
                 IpInfo ip;
                 ip.ip = pIPAddr->IpAddress.String;
                 ip.mask = inet_addr(pIPAddr->IpMask.String);
+                ip.is_dhcp = pAdapter->DhcpEnabled
+                         && (pAdapter->DhcpServer.IpAddress.String[0]!='0')
+                         && (pAdapter->DhcpServer.IpAddress.String[0]!='\0')
                 if (ip.ip != "0.0.0.0" && ip.mask != INADDR_NONE)
                     ip_info.push_back(ip);
                 pIPAddr = pIPAddr->Next;  
@@ -275,6 +279,7 @@ void GetLocalIpList(vector<IpInfo> & ip_info)
             IpInfo ip;
             ip.ip = inet_ntoa(*(in_addr*)pPtr[i]);
             ip.mask = DEFAULT_MASK;
+            ip.is_dhcp = false;
             ip_info.push_back(ip);
             i++;
         }
@@ -284,7 +289,7 @@ void GetLocalIpList(vector<IpInfo> & ip_info)
     }
 }
 
-DWORD GetMaskOfIp(String ip)
+static DWORD GetMaskOfIp(String ip)
 {
     for (UINT i=0;i<ip_info.size();i++)
     {
@@ -293,6 +298,16 @@ DWORD GetMaskOfIp(String ip)
     }
 
     return DEFAULT_MASK;
+}
+static bool GetDhcpOfIp(String ip)
+{
+    for (UINT i=0;i<ip_info.size();i++)
+    {
+        if (ip_info[i].ip == ip)
+            return ip_info[i].is_dhcp;
+    }
+
+    return false;
 }
 static String CmdLog(D1608Cmd cmd)
 {
@@ -1573,6 +1588,9 @@ void __fastcall TForm1::tmSLPTimer(TObject *Sender)
                         memcpy(slp_pack.ip, "ver", 3);
                     else
                         memcpy(slp_pack.ip, "rep", 3);
+
+                    if (GetDhcpOfIp(ip))
+                        slp_pack.ip[3] = '_';
 
                     slp_pack.mask = GetMaskOfIp(ip);
 
