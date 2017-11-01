@@ -690,6 +690,10 @@ __published:	// IDE-managed Components
           TListItem *Item, TCustomDrawState State, TCustomDrawStage Stage,
           bool &DefaultDraw);
     void __fastcall btnDisconnectClick(TObject *Sender);
+    void __fastcall vleAdcMaxDrawCell(TObject *Sender, int ACol, int ARow,
+          const TRect &Rect, TGridDrawState State);
+    void __fastcall vleAdcMinDrawCell(TObject *Sender, int ACol, int ARow,
+          const TRect &Rect, TGridDrawState State);
 private:
     TIdUDPServer * udpSLPList[3];
 private:
@@ -848,6 +852,8 @@ private:
     void ProcessKeepAlive(int preset_id, unsigned __int64 timer);
     void ProcessVote(ADC_Data_Ex adc_ex, ADC_Data_Ex adc_ex_max, ADC_Data_Ex adc_ex_min);
     void ProcessWatchLevel(int watch_level[INPUT_DSP_NUM + OUTPUT_DSP_NUM], int watch_level_comp[OUTPUT_DSP_NUM]);
+    ADC_Data_Ex adc_ex_max;
+    ADC_Data_Ex adc_ex_min;
 private:
     void UpdateWatchLevel(int i, int value, int comp_value=-100)
     {

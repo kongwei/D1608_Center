@@ -240,7 +240,7 @@ void GetLocalIpListEx(vector<IpInfo> & ip_info)
                 ip.mask = inet_addr(pIPAddr->IpMask.String);
                 ip.is_dhcp = pAdapter->DhcpEnabled
                          && (pAdapter->DhcpServer.IpAddress.String[0]!='0')
-                         && (pAdapter->DhcpServer.IpAddress.String[0]!='\0')
+                         && (pAdapter->DhcpServer.IpAddress.String[0]!='\0');
                 if (ip.ip != "0.0.0.0" && ip.mask != INADDR_NONE)
                     ip_info.push_back(ip);
                 pIPAddr = pIPAddr->Next;  
@@ -1845,6 +1845,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
                 else if ((cmd.last_same_id_seq <= received_cmd_seq) && (cmd.last_same_id_seq > 0))
                 {
                     received_cmd_seq = cmd.seq;
+                    memo_debug->Lines->Add(GetTime()+" 相同消息不连续(警告)。" + CmdLog(cmd));
                 }
                 else
                 {
@@ -1853,7 +1854,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
                     received_cmd_seq = 0;
                 }
             }
-            memo_debug->Lines->Add(GetTime()+"Reply：" + CmdLog(cmd));
+            //memo_debug->Lines->Add(GetTime()+"Reply：" + CmdLog(cmd));
             // 如果是当前调节的数据，需要忽略
             if (!ProcessSendCmdAck(cmd, AData, ABinding))//(last_cmd.id != cmd.id /*|| !paint_agent->IsMouseDown()*/)
             {
@@ -2232,6 +2233,8 @@ static void UpdateAdc_ValueListEditor(TValueListEditor * vls, ADC_Data_Ex data)
 }
 void TForm1::ProcessVote(ADC_Data_Ex adc_ex, ADC_Data_Ex adc_ex_max, ADC_Data_Ex adc_ex_min)
 {
+    this->adc_ex_max = adc_ex_max;
+    this->adc_ex_min = adc_ex_min;
     UpdateAdc_ValueListEditor(ValueListEditor2, adc_ex);
     UpdateAdc_ValueListEditor(vleAdcMax, adc_ex_max);
     UpdateAdc_ValueListEditor(vleAdcMin, adc_ex_min);
@@ -2434,7 +2437,7 @@ static String GetNameOfAdc(int index)
         "50v_current"
     };
 
-    if (index < ADC_NUM)
+    if (index < 21)
         return adc_name[index];
     else
         return IntToStr(index);
@@ -6697,6 +6700,98 @@ void __fastcall TForm1::btnDisconnectClick(TObject *Sender)
     REAL_INPUT_DSP_NUM = 16;
     REAL_OUTPUT_DSP_NUM = 16;
     need_resize = true;
+}
+//---------------------------------------------------------------------------
+class TValueListEditorEx : public TValueListEditor
+{
+public:
+    virtual void __fastcall DrawCell(int ACol, int ARow, const Types::TRect &ARect, Grids::TGridDrawState AState)
+    {
+        TValueListEditor::DrawCell(ACol, ARow, ARect, AState);
+    }
+};
+void __fastcall TForm1::vleAdcMaxDrawCell(TObject *Sender, int ACol,
+      int ARow, const TRect &Rect, TGridDrawState State)
+{
+    float data = 0;
+    float range = 0;
+
+    switch(ARow-1)
+    {
+    case 0 :        data = this->adc_ex_max._3_3vd       ;        range = global_config.adc_range.vote_3v3_up;                 break;
+    case 1 :        data = this->adc_ex_max.base         ;        range = global_config.adc_range.vote_3v3m_up;                break;
+    case 2 :        data = this->adc_ex_max._5vd         ;        range = global_config.adc_range.vote_5vd_up;                 break;
+    case 3 :        data = this->adc_ex_max._8vdc        ;        range = global_config.adc_range.vote_8vdc_up;                break;
+    case 4 :        data = this->adc_ex_max._8vac        ;        range = global_config.adc_range.vote_8vac_up;                break;
+    case 5 :        data = this->adc_ex_max._8vad        ;        range = global_config.adc_range.vote_8vad_up;                break;
+    case 6 :        data = this->adc_ex_max._x16vac      ;        range = global_config.adc_range.vote_x16vac_up;              break;
+    case 7 :        data = this->adc_ex_max._x16va       ;        range = global_config.adc_range.vote_x16va_up;               break;
+    case 8 :        data = this->adc_ex_max._50vpc       ;        range = global_config.adc_range.vote_50vpc_up;               break;
+    case 9 :        data = this->adc_ex_max._50vp        ;        range = global_config.adc_range.vote_50vp_up;                break;
+    case 10:        data = this->adc_ex_max._48vp        ;        range = global_config.adc_range.vote_48vp_up;                break;
+    case 11:        data = this->adc_ex_max._5va         ;        range = global_config.adc_range.vote_5va_up;                 break;
+    case 12:        data = this->adc_ex_max._x12va       ;        range = global_config.adc_range.vote_x12va_up;               break;
+    case 13:        data = this->adc_ex_max._12va        ;        range = global_config.adc_range.vote_12va_up;                break;
+    case 14:        data = this->adc_ex_max._16va        ;        range = global_config.adc_range.vote_16va_up;                break;
+    case 15:        data = this->adc_ex_max._16vac       ;        range = global_config.adc_range.vote_16vac_up;               break;
+    case 17:        data = this->adc_ex_max._8va_current ;        range = global_config.adc_range.current_8vd_up;              break;
+    case 18:        data = this->adc_ex_max._8vd_current ;        range = global_config.adc_range.current_8vd_up;              break;
+    case 19:        data = this->adc_ex_max._16v_current ;        range = global_config.adc_range.current_16v_up;              break;
+    case 20:        data = this->adc_ex_max._x16v_current;        range = global_config.adc_range.current_x16v_up;             break;
+    case 21:        data = this->adc_ex_max._50v_current ;        range = global_config.adc_range.current_50v_up;              break;
+    }
+
+    if (data > range)
+    {
+        TValueListEditorEx * src_obj = ((TValueListEditorEx*)Sender);
+        src_obj->OnDrawCell = NULL;
+        src_obj->Canvas->Font->Color = clRed;
+        src_obj->Canvas->Rectangle(Rect);
+        src_obj->DrawCell(ACol, ARow, Rect, State);
+        src_obj->OnDrawCell = vleAdcMaxDrawCell;
+    }
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::vleAdcMinDrawCell(TObject *Sender, int ACol,
+      int ARow, const TRect &Rect, TGridDrawState State)
+{
+    float data = 0;
+    float range = 0;
+
+    switch(ARow-1)
+    {
+    case 0 :        data = this->adc_ex_min._3_3vd       ;        range = global_config.adc_range.vote_3v3_down;                 break;
+    case 1 :        data = this->adc_ex_min.base         ;        range = global_config.adc_range.vote_3v3m_down;                break;
+    case 2 :        data = this->adc_ex_min._5vd         ;        range = global_config.adc_range.vote_5vd_down;                 break;
+    case 3 :        data = this->adc_ex_min._8vdc        ;        range = global_config.adc_range.vote_8vdc_down;                break;
+    case 4 :        data = this->adc_ex_min._8vac        ;        range = global_config.adc_range.vote_8vac_down;                break;
+    case 5 :        data = this->adc_ex_min._8vad        ;        range = global_config.adc_range.vote_8vad_down;                break;
+    case 6 :        data = this->adc_ex_min._x16vac      ;        range = global_config.adc_range.vote_x16vac_down;              break;
+    case 7 :        data = this->adc_ex_min._x16va       ;        range = global_config.adc_range.vote_x16va_down;               break;
+    case 8 :        data = this->adc_ex_min._50vpc       ;        range = global_config.adc_range.vote_50vpc_down;               break;
+    case 9 :        data = this->adc_ex_min._50vp        ;        range = global_config.adc_range.vote_50vp_down;                break;
+    case 10:        data = this->adc_ex_min._48vp        ;        range = global_config.adc_range.vote_48vp_down;                break;
+    case 11:        data = this->adc_ex_min._5va         ;        range = global_config.adc_range.vote_5va_down;                 break;
+    case 12:        data = this->adc_ex_min._x12va       ;        range = global_config.adc_range.vote_x12va_down;               break;
+    case 13:        data = this->adc_ex_min._12va        ;        range = global_config.adc_range.vote_12va_down;                break;
+    case 14:        data = this->adc_ex_min._16va        ;        range = global_config.adc_range.vote_16va_down;                break;
+    case 15:        data = this->adc_ex_min._16vac       ;        range = global_config.adc_range.vote_16vac_down;               break;
+    case 17:        data = this->adc_ex_min._8va_current ;        range = global_config.adc_range.current_8vd_down;              break;
+    case 18:        data = this->adc_ex_min._8vd_current ;        range = global_config.adc_range.current_8vd_down;              break;
+    case 19:        data = this->adc_ex_min._16v_current ;        range = global_config.adc_range.current_16v_down;              break;
+    case 20:        data = this->adc_ex_min._x16v_current;        range = global_config.adc_range.current_x16v_down;             break;
+    case 21:        data = this->adc_ex_min._50v_current ;        range = global_config.adc_range.current_50v_down;              break;
+    }
+
+    if (data < range)
+    {
+        TValueListEditorEx * src_obj = ((TValueListEditorEx*)Sender);
+        src_obj->OnDrawCell = NULL;
+        src_obj->Canvas->Font->Color = clRed;
+        src_obj->Canvas->Rectangle(Rect);
+        src_obj->DrawCell(ACol, ARow, Rect, State);
+        src_obj->OnDrawCell = vleAdcMinDrawCell;
+    }
 }
 //---------------------------------------------------------------------------
 
