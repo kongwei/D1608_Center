@@ -2659,11 +2659,11 @@ static TListItem* AppendLogData(TListView * lvLog, Event event, int address, Str
         }
         break;
     case EVENT_VOTE_UP_OVERFLOW:
-        item->SubItems->Add("电压/电流超过上限");
+        item->SubItems->Add("电压/电流超过上限错误");
         item->SubItems->Add(GetNameOfAdc(event.event_data));
         break;
     case EVENT_VOTE_DOWN_OVERFLOW:
-        item->SubItems->Add("电压/电流低于下限");
+        item->SubItems->Add("电压/电流低于下限错误");
         item->SubItems->Add(GetNameOfAdc(event.event_data));
         break;
 
