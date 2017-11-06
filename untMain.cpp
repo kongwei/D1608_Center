@@ -1789,17 +1789,19 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
         }
         else if (cmd.id == GetOffsetOfData(&config_map.op_code.noop))
         {
-            ProcessWatchLevel(cmd.data.keep_alive.watch_level, cmd.data.keep_alive.watch_level_comp);
-            if (cmd.length == sizeof(config_map.op_code))
-                ProcessVote(cmd.data.keep_alive.adc_ex, cmd.data.keep_alive.adc_ex_max, cmd.data.keep_alive.adc_ex_min);
-            ProcessKeepAlive(cmd.data.keep_alive.switch_preset, cmd.data.keep_alive.set_time_ex);
-
             //memo_debug->Lines->Add("广播消息序号:"+IntToStr(cmd.data.keep_alive.seq)+":"+IntToStr(received_cmd_seq));
             if ((cmd.data.keep_alive.seq>received_cmd_seq) && (received_cmd_seq!=0))
             {
                 // 断开连接
                 memo_debug->Lines->Add(GetTime()+"同步发现消息序号不匹配" + IntToStr(cmd.data.keep_alive.seq) + "," + IntToStr(received_cmd_seq));
                 keep_live_count++;
+            }
+            else
+            {
+                ProcessWatchLevel(cmd.data.keep_alive.watch_level, cmd.data.keep_alive.watch_level_comp);
+                if (cmd.length == sizeof(config_map.op_code))
+                    ProcessVote(cmd.data.keep_alive.adc_ex, cmd.data.keep_alive.adc_ex_max, cmd.data.keep_alive.adc_ex_min);
+                ProcessKeepAlive(cmd.data.keep_alive.switch_preset, cmd.data.keep_alive.set_time_ex);
             }
         }
         else if (cmd.id == GetOffsetOfData(&config_map.op_code.switch_preset))
@@ -2920,6 +2922,7 @@ void __fastcall TForm1::tmWatchTimer(TObject *Sender)
             UpdateWatchLevel(i, -49);
         }
         device_connected = false;
+        received_cmd_seq = 0;
     }
 
     D1608Cmd cmd;
