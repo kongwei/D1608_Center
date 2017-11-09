@@ -6797,4 +6797,24 @@ void __fastcall TForm1::vleAdcMinDrawCell(TObject *Sender, int ACol,
     }
 }
 //---------------------------------------------------------------------------
+void __fastcall TForm1::btnCopyVoteDataToClipClick(TObject *Sender)
+{
+    String vote_data_str = "";
+    for (int i=0;i<ValueListEditor2->RowCount;i++)
+    {
+        String name = ValueListEditor2->Cells[0][i];
+        String cur_data = ValueListEditor2->Cells[1][i];
+        String max = vleAdcMax->Cells[1][i];
+        String min = vleAdcMin->Cells[1][i];
+        vote_data_str = vote_data_str + name + "\t"
+                        + cur_data + "\t"
+                        + max + "\t"
+                        + min + "\n";
+    }
+
+    mmVoteData2Clip->Text = vote_data_str;
+    mmVoteData2Clip->SelectAll();
+    mmVoteData2Clip->CopyToClipboard();
+}
+//---------------------------------------------------------------------------
 

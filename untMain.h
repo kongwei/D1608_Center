@@ -525,6 +525,8 @@ __published:	// IDE-managed Components
     TLabel *lblConfigFilename;
     TValueListEditor *vleAdcMin;
     TValueListEditor *vleAdcMax;
+    TButton *btnCopyVoteDataToClip;
+    TMemo *mmVoteData2Clip;
     void __fastcall FormCreate(TObject *Sender);
     void __fastcall btnRefreshClick(TObject *Sender);
     void __fastcall udpSLPUDPRead(TObject *Sender, TStream *AData,
@@ -694,6 +696,7 @@ __published:	// IDE-managed Components
           const TRect &Rect, TGridDrawState State);
     void __fastcall vleAdcMinDrawCell(TObject *Sender, int ACol, int ARow,
           const TRect &Rect, TGridDrawState State);
+    void __fastcall btnCopyVoteDataToClipClick(TObject *Sender);
 private:
     TIdUDPServer * udpSLPList[3];
 private:
