@@ -527,6 +527,8 @@ __published:	// IDE-managed Components
     TValueListEditor *vleAdcMax;
     TButton *btnCopyVoteDataToClip;
     TMemo *mmVoteData2Clip;
+    TSpeedButton *btnClearDataAndTime;
+    TEdit *edtDeviceFullName;
     void __fastcall FormCreate(TObject *Sender);
     void __fastcall btnRefreshClick(TObject *Sender);
     void __fastcall udpSLPUDPRead(TObject *Sender, TStream *AData,
@@ -697,6 +699,9 @@ __published:	// IDE-managed Components
     void __fastcall vleAdcMinDrawCell(TObject *Sender, int ACol, int ARow,
           const TRect &Rect, TGridDrawState State);
     void __fastcall btnCopyVoteDataToClipClick(TObject *Sender);
+    void __fastcall btnClearDataAndTimeClick(TObject *Sender);
+    void __fastcall input_panel_trackbarMouseMove(TObject *Sender,
+          TShiftState Shift, int X, int Y);
 private:
     TIdUDPServer * udpSLPList[3];
 private:
@@ -737,7 +742,34 @@ private:
     Event event_data[EVENT_POOL_SIZE];
     Event event_data_tmp[EVENT_POOL_SIZE];
     String event_syn_timer[EVENT_POOL_SIZE];
-
+    static String InnerMacInfo(String mac_string)
+    {
+        if (mac_string == "00-5A-39-FF-49-28")
+        {
+            return "LX无线";
+        }
+        else if (mac_string == "00-E0-4C-39-17-31")
+        {
+            return "LX独立网卡";
+        }
+        else if (mac_string == "74-D0-2B-95-48-02")
+        {
+            return "LEL无线网卡";
+        }
+        else if (mac_string == "00-E0-4C-15-1B-C0")
+        {
+            return "LEL单独网卡";
+        }
+        else if (mac_string == "10-0B-A9-2F-55-90")
+        {
+            return "KW无线网卡";
+        }
+        else if (mac_string == "10-0B-A9-2F-55-91")
+        {
+            return "KW有线网卡";
+        }
+        return "";
+    }
     void ProcessMACLog(LogBuff & buff)
     {
         // MAC地址
@@ -750,11 +782,11 @@ private:
                 item->Caption = "";
                 item->SubItems->Add("mac");
                 String mac_string;
-                mac_string.sprintf("%0X-%0X-%0X-%0X-%0X-%0X",
+                mac_string.sprintf("%02X-%02X-%02X-%02X-%02X-%02X",
                                     buff.mac[i][0], buff.mac[i][1], buff.mac[i][2],
                                     buff.mac[i][3], buff.mac[i][4], buff.mac[i][5]);
                 item->SubItems->Add(mac_string);
-                item->SubItems->Add("");
+                item->SubItems->Add(InnerMacInfo(mac_string));
                 item->SubItems->Add("");
             }
         }

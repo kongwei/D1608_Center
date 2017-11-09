@@ -28,6 +28,8 @@
 
 #define DEFAULT_MASK 0x00FFFFFF
 
+static String inner_mac[5] = {"10-0B-A9-2F-55-90", "00-5A-39-FF-49-28","00-E0-4C-39-17-31","74-D0-2B-95-48-02","00-E0-4C-15-1B-C0"};
+
 const String compile_time = __DATE__ " " __TIME__;
 
 static String GetTime()
@@ -369,6 +371,7 @@ static TAdvTrackBar * CopyInputPanelTrackbar(TAdvTrackBar * src_trackbar, int ds
     trackbar->OnKeyDown = src_trackbar->OnKeyDown;
     trackbar->OnEnter = src_trackbar->OnEnter;
     trackbar->OnExit = src_trackbar->OnExit;
+    trackbar->OnMouseMove = src_trackbar->OnMouseMove;
 
     trackbar->Buttons->Size = src_trackbar->Buttons->Size;
     trackbar->Buttons->Spacing = src_trackbar->Buttons->Spacing;
@@ -549,7 +552,7 @@ static TSpeedButton * CopyPnlMixButton(TSpeedButton * src_btn, int dsp_id, Graph
 
     return dsp_btn;
 }
-static TAdvTrackBar * CopyPnlMixTrackbar(TAdvTrackBar * src_trackbar, int dsp_id)
+/*static TAdvTrackBar * CopyPnlMixTrackbar(TAdvTrackBar * src_trackbar, int dsp_id)
 {
     TAdvTrackBar * trackbar = new TAdvTrackBar(src_trackbar->Parent);
     trackbar->Parent = src_trackbar->Parent;
@@ -558,6 +561,7 @@ static TAdvTrackBar * CopyPnlMixTrackbar(TAdvTrackBar * src_trackbar, int dsp_id
     trackbar->OnKeyDown = src_trackbar->OnKeyDown;
     trackbar->OnEnter = src_trackbar->OnEnter;
     trackbar->OnExit = src_trackbar->OnExit;
+    trackbar->OnMouseMove = src_trackbar->OnMouseMove;
 
     trackbar->Buttons->Size = src_trackbar->Buttons->Size;
     trackbar->Buttons->Spacing = src_trackbar->Buttons->Spacing;
@@ -587,8 +591,8 @@ static TAdvTrackBar * CopyPnlMixTrackbar(TAdvTrackBar * src_trackbar, int dsp_id
     trackbar->OnChange(trackbar);
 
     return trackbar;
-}
-static TEdit * CopyPnlMixEdit(TEdit * src_edit, int dsp_id)
+}*/
+/*static TEdit * CopyPnlMixEdit(TEdit * src_edit, int dsp_id)
 {
     TEdit * edit = new TEdit(src_edit->Parent);
     edit->BoundsRect = src_edit->BoundsRect;
@@ -603,7 +607,7 @@ static TEdit * CopyPnlMixEdit(TEdit * src_edit, int dsp_id)
     edit->Tag = dsp_id;
     SetWindowLong(edit->Handle, GWL_STYLE, GetWindowLong(edit->Handle, GWL_STYLE) | ES_RIGHT);
     return edit;
-}
+}*/
 static void CreatePnlMix(int panel_id, TForm1 * form)
 {
     form->mix_mute_btn[panel_id-1] = CopyInputPanelButton(form->pnlmix_mute, panel_id);
@@ -1081,9 +1085,8 @@ void __fastcall TForm1::FormCreate(TObject *Sender)
     local_mac_list = GetMacList();
 
     // 是否调试PC
-    String inner_mac[5] = {"10-0B-A9-2F-55-90", "00-5A-39-FF-49-28","00-E0-4C-39-17-31","74-D0-2B-95-48-02","00-E0-4C-15-1B-C0"};
     is_inner_pc = false;
-    for (int i=0;i<5;i++)
+    for (int i=0;i<sizeof(inner_mac)/sizeof(String);i++)
     {                       
         if (local_mac_list.Pos(inner_mac[i]) > 0)
         {
@@ -1101,6 +1104,10 @@ void __fastcall TForm1::FormCreate(TObject *Sender)
         btnUnlockExt->Show();
         btnLeaveTheFactory->Show();
         cbLedTest->Show();
+
+        btnClearDataAndTime->Show();
+
+        edtDeviceFullName->Show();
     }
 
     pnlOperator->Show();
@@ -1373,7 +1380,8 @@ void __fastcall TForm1::btnRefreshClick(TObject *Sender)
             lblDeviceName->Caption = lvDevice->Selected->SubItems->Strings[3];
         else
         {
-            lblDeviceName->Caption = lvDevice->Selected->SubItems->Strings[4]+"-"+lvDevice->Selected->SubItems->Strings[6];
+            lblDeviceName->Caption = lvDevice->Selected->SubItems->Strings[4]+"-"+lvDevice->Selected->SubItems->Strings[7];
+            edtDeviceFullName->Text = lvDevice->Selected->SubItems->Strings[4]+"-"+lvDevice->Selected->SubItems->Strings[7];
             if (lblDeviceName->Caption.Length() > 16)
                 lblDeviceName->Caption = lvDevice->Selected->SubItems->Strings[4];
         }
@@ -2065,7 +2073,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
 
         if (read_one_preset_package_list.empty())
         {
-            if (preset_id == cur_preset_id)
+            if (preset_id == cur_preset_id || preset_id==0)
                 config_map = all_config_map[cur_preset_id-1];
             tmDelayUpdateUI->Enabled = false;
             ApplyConfigToUI();
@@ -4660,6 +4668,12 @@ void __fastcall TForm1::btnSetLockClick(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TForm1::btnUnlockClick(TObject *Sender)
 {
+    if (edtUnlockPassword->Text == "")
+    {
+        ShowMessage("请输入密码");
+        return;
+    }
+
     D1608Cmd cmd;
     cmd.type = CMD_TYPE_GLOBAL;
     cmd.id = offsetof(GlobalConfig, unlock_string);
@@ -6815,6 +6829,37 @@ void __fastcall TForm1::btnCopyVoteDataToClipClick(TObject *Sender)
     mmVoteData2Clip->Text = vote_data_str;
     mmVoteData2Clip->SelectAll();
     mmVoteData2Clip->CopyToClipboard();
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::btnClearDataAndTimeClick(TObject *Sender)
+{
+    if (Application->MessageBox("本操作会恢复出厂设置，确认操作吗？", "确认恢复出厂设置操作", MB_OKCANCEL|MB_ICONWARNING) != IDOK)
+    {
+        return;
+    }
+
+    {
+        // 出厂
+        D1608Cmd cmd;
+        cmd.type = CMD_TYPE_GLOBAL;
+        cmd.id = offsetof(GlobalConfig, adjust_running_time);
+        SendCmd2(cmd);
+    }
+    {
+        D1608Cmd cmd;
+        cmd.type = CMD_TYPE_PRESET;
+        cmd.id = offsetof(ConfigMap, op_code.reboot);
+        cmd.data.data_32 = 0x82;
+        cmd.length = 4;
+        SendCmd2(cmd);
+    }
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::input_panel_trackbarMouseMove(TObject *Sender,
+      TShiftState Shift, int X, int Y)
+{
+    TAdvTrackBar * trackbar = (TAdvTrackBar*)Sender;
+    trackbar->SetFocus();
 }
 //---------------------------------------------------------------------------
 
