@@ -2676,9 +2676,18 @@ static TListItem* AppendLogData(TListView * lvLog, Event event, int address, Str
         item->SubItems->Add("电压/电流低于下限错误");
         item->SubItems->Add(GetNameOfAdc(event.event_data));
         break;
-
-    //#define EVENT_MAX_JOB_TIME 35
-
+    case EVENT_MAX_JOB_TIME:
+        item->SubItems->Add("任务处理时间过长");
+        item->SubItems->Add(IntToStr(event.event_data));
+        break;
+    case EVENT_ERR_JOB_FUNC_PTR:
+        item->SubItems->Add("任务队列出现空指针错误");
+        item->SubItems->Add("");
+        break;
+    case EVENT_ERR_WRITE_LOG:
+        item->SubItems->Add("写日志失败错误");
+        item->SubItems->Add(IntToStr(event.event_data));
+        break;
     default:
         item->SubItems->Add(event.event_id);
         item->SubItems->Add(IntToHex(event.event_data, 2));
