@@ -742,6 +742,7 @@ private:
     Event event_data[EVENT_POOL_SIZE];
     Event event_data_tmp[EVENT_POOL_SIZE];
     String event_syn_timer[EVENT_POOL_SIZE];
+
     static String InnerMacInfo(String mac_string)
     {
         if (mac_string == "00-5A-39-FF-49-28")
@@ -760,13 +761,33 @@ private:
         {
             return "LEL单独网卡";
         }
+        else if (mac_string == "00-5A-39-FF-49-28")
+        {
+            return "LEL单独网卡2";
+        }
         else if (mac_string == "10-0B-A9-2F-55-90")
         {
             return "KW无线网卡";
         }
-        else if (mac_string == "10-0B-A9-2F-55-91")
+        else if (mac_string == "F0-DE-F1-B0-9E-42")
         {
             return "KW有线网卡";
+        }
+        else if (mac_string == "38-2C-4A-BA-EF-54")
+        {
+            return "LX普通网卡";
+        }
+        else if (mac_string == "50-B7-C3-6F-83-47")
+        {
+            return "LX900X3D有线";
+        }
+        else if (mac_string == "00-18-DE-C9-8B-71")
+        {
+            return "T61无线";
+        }
+        else if (mac_string == "C4-85-08-E5-20-13")
+        {
+            return "LX900X3D无线";
         }
         return "";
     }

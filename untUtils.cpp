@@ -249,7 +249,7 @@ void MergeMac(TStrings * append_data, TStrings * log_data)
             String old_log_str = log_data->Strings[i];
             if (append_data->IndexOf(old_log_str) == -1)
             {
-                log_data->Add(old_log_str);
+                append_data->Add(old_log_str);
             }
         }
     }

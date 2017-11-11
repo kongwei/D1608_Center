@@ -6366,7 +6366,7 @@ void __fastcall TForm1::btnSaveLogClick(TObject *Sender)
         }
         else
         {
-            String line = "\t"+lvLog->Items->Item[i]->SubItems->Strings[0]+"\t"+lvLog->Items->Item[i]->SubItems->Strings[1];
+            String line = "\t"+lvLog->Items->Item[i]->SubItems->Strings[0]+"\t"+lvLog->Items->Item[i]->SubItems->Strings[1]+"\t"+lvLog->Items->Item[i]->SubItems->Strings[2];
             mac_strs->Add(line);
         }
     }
