@@ -53,6 +53,8 @@ static bool global_config_loaded = false;
 int REAL_INPUT_DSP_NUM = 16;
 int REAL_OUTPUT_DSP_NUM = 16;
 
+static vector<int> loose_msg_id;
+
 extern String GetMacList();
 
 void operator <<(ConfigMap & result, ConfigMapX config_map)
@@ -1245,7 +1247,6 @@ void TForm1::SendCmd(D1608Cmd& cmd)
         return;
     }
 
-#if 1
     // 需要发送的命令id是否在队列中
     if (sendcmd_list.size() > 1)
     {
@@ -1264,7 +1265,6 @@ void TForm1::SendCmd(D1608Cmd& cmd)
             }
         }
     }
-#endif
 
     TPackage package;
     package.udp_port = UDP_PORT_CONTROL;
@@ -1802,14 +1802,62 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             {
                 // 断开连接
                 memo_debug->Lines->Add(GetTime()+"同步发现消息序号不匹配" + IntToStr(cmd.data.keep_alive.seq) + "," + IntToStr(received_cmd_seq));
-                keep_live_count++;
+                // 通过MessageBuffer判断
+                for (int msg_id = received_cmd_seq+1; msg_id < cmd.data.keep_alive.seq; msg_id++)
+                {
+                    loose_msg_id.push_back(msg_id);
+                }
+                received_cmd_seq = cmd.data.keep_alive.seq;
             }
             else
             {
                 ProcessWatchLevel(cmd.data.keep_alive.watch_level, cmd.data.keep_alive.watch_level_comp);
                 if (cmd.length == sizeof(config_map.op_code))
                     ProcessVote(cmd.data.keep_alive.adc_ex, cmd.data.keep_alive.adc_ex_max, cmd.data.keep_alive.adc_ex_min);
-                ProcessKeepAlive(cmd.data.keep_alive.switch_preset, cmd.data.keep_alive.set_time_ex);
+            }
+            ProcessKeepAlive(cmd.data.keep_alive.switch_preset, cmd.data.keep_alive.set_time_ex);
+
+            if (loose_msg_id.size() != 0 && (cmd.length == sizeof(config_map.op_code)))
+            {
+                vector<int> tmp_loose_msg_id = loose_msg_id;
+                loose_msg_id.clear();
+
+                while (tmp_loose_msg_id.size() > 0)
+                {
+                    int msg_id = tmp_loose_msg_id.back();
+                    tmp_loose_msg_id.pop_back();
+
+                    int oldest_msg_id = cmd.data.keep_alive.msg_id[0];
+                    // 查询
+                    for (int i=0;i<RECORD_MSG_SIZE;i++)
+                    {
+                        if (msg_id == cmd.data.keep_alive.msg_id[i])
+                        {
+                            // 需要重新获取
+                            memo_debug->Lines->Add("需要重新获取"+ IntToStr(cmd.data.keep_alive.msg_id[i]));
+                            loose_msg_id.push_back(msg_id);
+                            
+                            if (udpControl->Active)
+                            {
+                                D1608Cmd tmp_cmd;
+                                tmp_cmd.id = cmd.data.keep_alive.cmd_id[i];
+                                tmp_cmd.length = 0;
+                                udpControl->SendBuffer(dst_ip, UDP_RESEND_CMD_REQ, &tmp_cmd, sizeof(tmp_cmd));
+                            }
+                        }
+                        if (oldest_msg_id > cmd.data.keep_alive.msg_id[i])
+                        {
+                            oldest_msg_id = cmd.data.keep_alive.msg_id[i];
+                        }
+                        // 其他忽略
+                    }
+                    if (msg_id < oldest_msg_id)
+                    {
+                        // 失联
+                        memo_debug->Lines->Add("失联");
+                        keep_live_count = 5;
+                    }
+                }
             }
         }
         else if (cmd.id == GetOffsetOfData(&config_map.op_code.switch_preset))
@@ -1859,9 +1907,12 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
                 }
                 else
                 {
+                    // 丢失了      [ received_cmd_seq, (cmd.seq-1) ] 的消息
                     memo_debug->Lines->Add(GetTime()+"消息序号不匹配" + IntToStr(cmd.seq) + "," + IntToStr(cmd.last_same_id_seq));
-                    keep_live_count = 5;
-                    received_cmd_seq = 0;
+                    for (int msg_id = received_cmd_seq+1; msg_id < cmd.seq; msg_id++)
+                    {
+                        loose_msg_id.push_back(msg_id);
+                    }
                 }
             }
             //memo_debug->Lines->Add(GetTime()+"Reply：" + CmdLog(cmd));
