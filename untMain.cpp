@@ -1908,7 +1908,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
                 else
                 {
                     // 丢失了      [ received_cmd_seq, (cmd.seq-1) ] 的消息
-                    memo_debug->Lines->Add(GetTime()+"消息序号不匹配" + IntToStr(cmd.seq) + "," + IntToStr(cmd.last_same_id_seq));
+                    memo_debug->Lines->Add(GetTime()+"消息序号不匹配" + IntToStr(cmd.seq) + "," + IntToStr(cmd.last_same_id_seq)+","+IntToStr(received_cmd_seq));
                     for (int msg_id = received_cmd_seq+1; msg_id < cmd.seq; msg_id++)
                     {
                         loose_msg_id.push_back(msg_id);
@@ -6704,7 +6704,7 @@ void __fastcall TForm1::cbLedTestClick(TObject *Sender)
 void __fastcall TForm1::lvDeviceCustomDrawItem(TCustomListView *Sender,
       TListItem *Item, TCustomDrawState State, bool &DefaultDraw)
 {
-    if (Item->SubItems->Strings[6] == last_device_id)
+    if (Item->SubItems->Strings[6] == last_device_id && !is_manual_disconnect)
         lvDevice->Canvas->Font->Color = clAqua;
 }
 //---------------------------------------------------------------------------
@@ -6764,6 +6764,8 @@ void __fastcall TForm1::btnDisconnectClick(TObject *Sender)
     ini_file->WriteBool("connection", "is_disconnect", is_manual_disconnect);
     delete ini_file;
 
+    last_device_id = "";
+
     // 给原先的设备发送断链消息
     if (udpControl->Active)
     {
@@ -6777,6 +6779,17 @@ void __fastcall TForm1::btnDisconnectClick(TObject *Sender)
     REAL_INPUT_DSP_NUM = 16;
     REAL_OUTPUT_DSP_NUM = 16;
     need_resize = true;
+
+    edtDeviceType->Text = "N/A";
+    edtCmdId->Text = "N/A";
+    edtDeviceFullName->Text = "N/A";
+    edtStartBuildTime->Text = "N/A";
+    lblDeviceRunningTime->Caption = "----";
+    lblDeviceRunningTime2->Caption = "----";
+    lblVersion->Caption = "-------- " +VersionToStr(version);
+
+    lblDeviceName->Caption = "";
+    lblDeviceInfo->Caption = "";
 }
 //---------------------------------------------------------------------------
 class TValueListEditorEx : public TValueListEditor
