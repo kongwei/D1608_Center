@@ -3771,7 +3771,7 @@ void __fastcall TForm1::WatchPaint(TObject *Sender)
         pb_watch->Canvas->FillRect(r);
 
         r.left+=2;
-        r.right-=2;     
+        r.right-=2;
 
         r.top = std::max(24-comp_level+1, 1);
         r.bottom = pb_watch->Height-1;
@@ -5536,13 +5536,42 @@ void __fastcall TForm1::dsp_delay_trackbarChange(TObject *Sender)
 {
     TAdvTrackBar* track = (TAdvTrackBar*)Sender;
     int value = track->Position;
-    //int dsp_num = track->Parent->Tag;
-    dsp_delay_edit->Text = value;
+    int dsp_num = track->Parent->Tag;
+    dsp_delay_edit->Text = value/1000.0;
+
+    if (dsp_num < 100)
+    {
+        if (config_map.input_dsp[dsp_num-1].level_b != value)
+        {
+            // input channel
+            D1608Cmd cmd;
+            cmd.id = GetOffsetOfData(&config_map.input_dsp[dsp_num-1].delay);
+            cmd.data.data_32 = value;
+            cmd.length = 4;
+            SendCmd(cmd);
+
+            config_map.input_dsp[dsp_num-1].delay = value;
+        }
+    }
+    else
+    {
+        if (config_map.output_dsp[dsp_num-101].level_b != value)
+        {
+            // output channel
+            D1608Cmd cmd;
+            cmd.id = GetOffsetOfData(&config_map.output_dsp[dsp_num-101].delay);
+            cmd.data.data_32 = value;
+            cmd.length = 4;
+            SendCmd(cmd);
+
+            config_map.output_dsp[dsp_num-101].delay = value;
+        }
+    }
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::dsp_delay_editKeyDown(TObject *Sender, WORD &Key,
       TShiftState Shift)
-{
+{ 
     if (Key == VK_RETURN)
     {
         try{
