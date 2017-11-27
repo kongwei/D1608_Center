@@ -1805,7 +1805,12 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
                 // 通过MessageBuffer判断
                 for (int msg_id = received_cmd_seq+1; msg_id < cmd.data.keep_alive.seq; msg_id++)
                 {
-                    loose_msg_id.push_back(msg_id);
+                    vector<int>::iterator result = find(loose_msg_id.begin( ), loose_msg_id.end( ), msg_id);
+                    if ( result == loose_msg_id.end( ) )
+                    {
+                        memo_debug->Lines->Add("需要同步消息: "+IntToStr(msg_id));
+                        loose_msg_id.push_back(msg_id);
+                    }
                 }
                 received_cmd_seq = cmd.data.keep_alive.seq;
             }
@@ -1898,11 +1903,9 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             {
                 if ((cmd.seq <= received_cmd_seq+1) || (received_cmd_seq==0))
                 {
-                    received_cmd_seq = cmd.seq;
                 }
                 else if ((cmd.last_same_id_seq <= received_cmd_seq) && (cmd.last_same_id_seq > 0))
                 {
-                    received_cmd_seq = cmd.seq;
                     memo_debug->Lines->Add(GetTime()+" 相同消息不连续(警告)。" + CmdLog(cmd));
                 }
                 else
@@ -1911,9 +1914,17 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
                     memo_debug->Lines->Add(GetTime()+"消息序号不匹配" + IntToStr(cmd.seq) + "," + IntToStr(cmd.last_same_id_seq)+","+IntToStr(received_cmd_seq));
                     for (int msg_id = received_cmd_seq+1; msg_id < cmd.seq; msg_id++)
                     {
-                        loose_msg_id.push_back(msg_id);
+                        vector<int>::iterator result = find(loose_msg_id.begin( ), loose_msg_id.end( ), msg_id);
+                        if ( result == loose_msg_id.end( ) )
+                        {
+                            memo_debug->Lines->Add("需要同步消息: "+IntToStr(msg_id));
+                            loose_msg_id.push_back(msg_id);
+                        }
                     }
                 }
+                received_cmd_seq = cmd.seq;
+                if (keep_live_count<5)
+                    keep_live_count = 0;
             }
             //memo_debug->Lines->Add(GetTime()+"Reply：" + CmdLog(cmd));
             // 如果是当前调节的数据，需要忽略
@@ -2463,7 +2474,8 @@ void TForm1::ProcessKeepAlive(int preset_id, unsigned __int64 timer)
     }
     edtLockedString1->Text = global_config.locked_string;
 
-    keep_live_count = 0;
+    if (keep_live_count<5)
+        keep_live_count = 0;
     shape_live->Show();
     shape_link->Show();
     shape_power->Show();
@@ -2991,6 +3003,17 @@ void __fastcall TForm1::tmWatchTimer(TObject *Sender)
         }
         device_connected = false;
         received_cmd_seq = 0;
+
+        edtDeviceType->Text = "N/A";
+        edtCmdId->Text = "N/A";
+        edtDeviceFullName->Text = "N/A";
+        edtStartBuildTime->Text = "N/A";
+        lblDeviceRunningTime->Caption = "----";
+        lblDeviceRunningTime2->Caption = "----";
+        lblVersion->Caption = "-------- " +VersionToStr(version);
+
+        lblDeviceName->Caption = "";
+        lblDeviceInfo->Caption = "";
     }
 
     D1608Cmd cmd;
