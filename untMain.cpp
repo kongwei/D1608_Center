@@ -1803,7 +1803,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
                 // 断开连接
                 memo_debug->Lines->Add(GetTime()+"同步发现消息序号不匹配" + IntToStr(cmd.data.keep_alive.seq) + "," + IntToStr(received_cmd_seq));
                 // 通过MessageBuffer判断
-                for (int msg_id = received_cmd_seq+1; msg_id < cmd.data.keep_alive.seq; msg_id++)
+                for (int msg_id = received_cmd_seq+1; msg_id <= cmd.data.keep_alive.seq; msg_id++)
                 {
                     vector<int>::iterator result = find(loose_msg_id.begin( ), loose_msg_id.end( ), msg_id);
                     if ( result == loose_msg_id.end( ) )
@@ -1839,7 +1839,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
                         if (msg_id == cmd.data.keep_alive.msg_id[i])
                         {
                             // 需要重新获取
-                            memo_debug->Lines->Add("需要重新获取"+ IntToStr(cmd.data.keep_alive.msg_id[i]));
+                            memo_debug->Lines->Add("需要重新获取"+ IntToStr(cmd.data.keep_alive.msg_id[i])+", cmd_id:"+ IntToStr(cmd.data.keep_alive.cmd_id[i]));
                             loose_msg_id.push_back(msg_id);
                             
                             if (udpControl->Active)
@@ -1921,12 +1921,14 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
                             loose_msg_id.push_back(msg_id);
                         }
                     }
+                    // 立即处理
+                    tmWatch->OnTimer(NULL);
                 }
                 received_cmd_seq = cmd.seq;
                 if (keep_live_count<5)
                     keep_live_count = 0;
             }
-            //memo_debug->Lines->Add(GetTime()+"Reply：" + CmdLog(cmd));
+            memo_debug->Lines->Add(GetTime()+"Reply：" + CmdLog(cmd));
             // 如果是当前调节的数据，需要忽略
             if (!ProcessSendCmdAck(cmd, AData, ABinding))//(last_cmd.id != cmd.id /*|| !paint_agent->IsMouseDown()*/)
             {
@@ -2200,6 +2202,9 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             pbBackup->Position = pbBackup->Max - package_list.size();
             restor_delay_count = 15;
             tmDelayBackup->Enabled = true;
+
+            lblDeviceName->Show();
+            lblDeviceName->Caption = "PC TO UNIT......";
         }
     }
     else if (ABinding->PeerPort == UDP_PORT_READ_FLASH)
@@ -2260,6 +2265,9 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             pbBackup->Position = pbBackup->Max - package_list.size();
             restor_delay_count = 15;
             tmDelayBackup->Enabled = true;
+
+            lblDeviceName->Show();
+            lblDeviceName->Caption = "UNIT TO PC......";
         }
     }
 }
@@ -2373,15 +2381,15 @@ bool TForm1::ProcessSendCmdAck(D1608Cmd& cmd, TStream *AData, TIdSocketHandle *A
         return false;
 
     D1608Cmd* package_cmd = (D1608Cmd*)package.data;
+    if (cmd.type != package_cmd->type)
+        return false;
+
     if (cmd.id != package_cmd->id)
         return false;
     if (cmd.length != package_cmd->length)
     {
         memo_debug->Lines->Add(GetTime()+"消息长度不匹配");
-        //return;
     }
-    if (cmd.type != package_cmd->type)
-        return false;
     if (memcmp(&cmd.data, &package_cmd->data, package_cmd->length) == 0)
     {
         memo_debug->Lines->Add(GetTime()+"消息匹配:"+IntToStr(cmd.id)+"|"+IntToStr(cmd.data.data_32));
@@ -2398,9 +2406,10 @@ bool TForm1::ProcessSendCmdAck(D1608Cmd& cmd, TStream *AData, TIdSocketHandle *A
                 memo_debug->Lines->Add(GetTime()+IntToHex((int)&cmd1, 8)+"继续下一个消息:"+IntToStr(cmd1.id)+"|"+IntToStr(cmd1.data.data_32));
             }
         }
-        return true;
     }
-    return false;
+
+    // 只要消息一致就认为匹配，不修改界面数据
+    return true;
 }
 void TForm1::ProcessKeepAlive(int preset_id, unsigned __int64 timer)
 {
@@ -3343,6 +3352,8 @@ void __fastcall TForm1::MasterVolumeChange(TObject *Sender)
 {
     TAdvTrackBar* track = (TAdvTrackBar*)Sender;
     int value = track->Position;
+
+    memo_debug->Lines->Add("master推子: "+IntToStr(value));
 
     if (master_panel_level_edit != NULL)
     {
