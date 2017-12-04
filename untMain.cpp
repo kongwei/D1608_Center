@@ -3608,7 +3608,7 @@ void __fastcall TForm1::input_panel_level_editKeyDown(TObject *Sender,
         }catch(...){
         }
 
-        InputVolumeChange(input_level_trackbar[dsp_num-1]);
+        //InputVolumeChange(input_level_trackbar[dsp_num-1]);
         edt->SelectAll();
         edt->OnClick = input_panel_level_editClick;
     }
@@ -3645,7 +3645,7 @@ void __fastcall TForm1::output_panel_level_editKeyDown(TObject *Sender,
         }catch(...){
         }
 
-        OutputVolumeChange(output_level_trackbar[dsp_num-1]);
+        //OutputVolumeChange(output_level_trackbar[dsp_num-1]);
         edt->SelectAll();
         edt->OnClick = input_panel_level_editClick;
     }
@@ -3677,7 +3677,7 @@ void __fastcall TForm1::master_panel_level_editKeyDown(TObject *Sender,
         }catch(...){
         }
 
-        MasterVolumeChange(master_panel_trackbar);
+        //MasterVolumeChange(master_panel_trackbar);
         edt->SelectAll();
         edt->OnClick = input_panel_level_editClick;
     }
@@ -3974,7 +3974,7 @@ void __fastcall TForm1::pnlmix_level_editKeyDown(TObject *Sender,
         }catch(...){
         }
 
-        pnlmix_level_trackbarChange(mix_level_trackbar[dsp_num-1]);
+        //pnlmix_level_trackbarChange(mix_level_trackbar[dsp_num-1]);
         edt->SelectAll();
         edt->OnClick = input_panel_level_editClick;
     }
