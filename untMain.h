@@ -729,7 +729,7 @@ private:
     int eq_q[11];
 
     // 部分刷新界面的函数
-    void OnFeedbackData(unsigned int cmd_id, int length);
+    void OnFeedbackData(unsigned int cmd_id);
 public:
     int sendcmd_delay_count;
     vector<TPackage> sendcmd_list;
@@ -930,6 +930,7 @@ private:
     unsigned __int64 running_timer;
     int roboot_count;
 
+    int tmWatch_count;
     // 0-3 正常； 4 初始化； >=5 失联
     int keep_live_count;
     bool device_connected;

@@ -91,6 +91,149 @@ static Word enter_key = VK_RETURN;
 static BLENDFUNCTION blend = {AC_SRC_OVER, 0, 200, 0};
 static TTime startup_time;
 
+//===================================
+static int CmdDataLength(unsigned int cmd_id)
+{
+	int result = 1;
+	int ObjectIndex = -1;
+	if ((cmd_id >= GetOffsetOfData(&config_map.input_dsp))
+		&& (cmd_id < sizeof(config_map.input_dsp)+GetOffsetOfData(&config_map.input_dsp)))
+	{
+		ObjectIndex = (cmd_id - GetOffsetOfData(&config_map.input_dsp)) / sizeof(config_map.input_dsp[0]);
+		
+		if (cmd_id == GetOffsetOfData(&config_map.input_dsp[ObjectIndex].eq_switch))
+		{
+		}
+// 		else if (cmd_id == GetOffsetOfData(&config_map.input_dsp[ObjectIndex].comp_switch))
+// 		{
+// 		}
+// 		else if (cmd_id == GetOffsetOfData(&config_map.input_dsp[ObjectIndex].auto_switch))
+// 		{
+// 		}
+		else if (cmd_id == GetOffsetOfData(&config_map.input_dsp[ObjectIndex].invert_switch))
+		{
+		}
+		else if (cmd_id == GetOffsetOfData(&config_map.input_dsp[ObjectIndex].noise_switch))
+		{
+		}
+		else if (cmd_id == GetOffsetOfData(&config_map.input_dsp[ObjectIndex].mute_switch))
+		{
+		}
+		else if (cmd_id == GetOffsetOfData(&config_map.input_dsp[ObjectIndex].phantom_switch))
+		{
+		}
+		else if (cmd_id == GetOffsetOfData((char*)&config_map.input_dsp[ObjectIndex].level_a))
+		{
+			result = 2;
+		}
+		else if (cmd_id == GetOffsetOfData((char*)&config_map.input_dsp[ObjectIndex].level_b))
+		{
+			result = 2;
+		}
+		else if (cmd_id == GetOffsetOfData((char*)&config_map.input_dsp[ObjectIndex].gain))
+		{
+		}
+// 		else if (cmd_id == GetOffsetOfData((char*)&config_map.input_dsp[ObjectIndex].delay))
+// 		{
+// 		}
+		else if (cmd_id >= GetOffsetOfData(&config_map.input_dsp[ObjectIndex].filter)
+			&& (cmd_id < GetOffsetOfData(&config_map.input_dsp[ObjectIndex].filter) + sizeof(config_map.input_dsp[ObjectIndex].filter)))
+		{
+			result = sizeof(FilterConfigMap);
+		}
+		else if (cmd_id == GetOffsetOfData((char*)&config_map.input_dsp[ObjectIndex].dsp_name))
+		{
+		}
+	}
+	else if ((cmd_id >= GetOffsetOfData(&config_map.output_dsp))
+		&& (cmd_id < sizeof(config_map.output_dsp)+GetOffsetOfData(&config_map.output_dsp)))
+	{
+		// output
+		ObjectIndex = (cmd_id - GetOffsetOfData(&config_map.output_dsp)) / sizeof(config_map.output_dsp[0]);
+
+		if (cmd_id == GetOffsetOfData(&config_map.output_dsp[ObjectIndex].eq_switch))
+		{
+		}
+		else if (cmd_id == GetOffsetOfData(&config_map.output_dsp[ObjectIndex].comp_switch))
+		{
+		}
+		else if (cmd_id == GetOffsetOfData(&config_map.output_dsp[ObjectIndex].invert_switch))
+		{
+		}
+		else if (cmd_id == GetOffsetOfData(&config_map.output_dsp[ObjectIndex].mute_switch))
+		{
+		}
+		else if (cmd_id == GetOffsetOfData((char*)&config_map.output_dsp[ObjectIndex].level_a))
+		{
+			result = 2;
+		}
+		else if (cmd_id == GetOffsetOfData((char*)&config_map.output_dsp[ObjectIndex].level_b))
+		{
+			result = 2;
+		}
+		else if (cmd_id == GetOffsetOfData((char*)&config_map.output_dsp[ObjectIndex].gain))
+		{
+		}
+		else if (cmd_id == GetOffsetOfData((char*)&config_map.output_dsp[ObjectIndex].ratio))
+		{
+			result = 4;
+		}
+		else if (cmd_id == GetOffsetOfData((char*)&config_map.output_dsp[ObjectIndex].threshold))
+		{
+			result = 4;
+		}
+		else if (cmd_id == GetOffsetOfData((char*)&config_map.output_dsp[ObjectIndex].attack_time))
+		{
+			result = 4;
+		}
+		else if (cmd_id == GetOffsetOfData((char*)&config_map.output_dsp[ObjectIndex].release_time))
+		{
+			result = 4;
+		}
+		else if (cmd_id == GetOffsetOfData((char*)&config_map.output_dsp[ObjectIndex].comp_gain))
+		{
+			result = 4;
+		}
+		else if (cmd_id == GetOffsetOfData((char*)&config_map.output_dsp[ObjectIndex].auto_time))
+		{
+			result = 4;
+		}
+		else if (cmd_id >= GetOffsetOfData(&config_map.output_dsp[ObjectIndex].filter)
+			&& (cmd_id < GetOffsetOfData(&config_map.output_dsp[ObjectIndex].filter) + sizeof(config_map.output_dsp[ObjectIndex].filter)))
+		{
+			result = sizeof(FilterConfigMap);
+		}
+		else if (cmd_id == GetOffsetOfData((char*)&config_map.output_dsp[ObjectIndex].dsp_name))
+		{
+		}
+	}
+	else if ((cmd_id >= GetOffsetOfData(&config_map.master_mix))
+		&& (cmd_id < GetOffsetOfData((void*)&config_map.master_mix.mix)))
+	{
+		if (cmd_id == GetOffsetOfData(&config_map.master_mix.mute_switch))
+		{
+		}
+		else if (cmd_id == GetOffsetOfData((char*)&config_map.master_mix.level_a))
+		{
+			result = 4;
+		}
+	}
+	else if ((cmd_id >= GetOffsetOfData((char*)&config_map.master_mix.mix))
+		&& (cmd_id < sizeof(config_map.master_mix.mix)+GetOffsetOfData((char*)&config_map.master_mix.mix)))
+	{
+			result = 2;
+	}
+	else if ((cmd_id >= GetOffsetOfData((char*)&config_map.master_mix.mix_mute))
+		&& (cmd_id < sizeof(config_map.master_mix.mix_mute)+GetOffsetOfData((char*)&config_map.master_mix.mix_mute)))
+	{
+	}
+	
+	return result;
+}
+//====================================
+
+
+
 enum CHANEL_TYPE {ctNone, ctInput, ctOutput};
 struct Channel
 {
@@ -136,7 +279,6 @@ String VersionToStr(UINT version_value)
     return str_version;
 }
 //------------------------------------------------
-
 unsigned int GetOffsetOfData(void * p_data)
 {
     static char * p_config_map = (char*)&config_map;
@@ -1829,30 +1971,43 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
 
                 while (tmp_loose_msg_id.size() > 0)
                 {
-                    int msg_id = tmp_loose_msg_id.back();
+                    unsigned int msg_id = tmp_loose_msg_id.back();
                     tmp_loose_msg_id.pop_back();
 
-                    int oldest_msg_id = cmd.data.keep_alive.msg_id[0];
+                    unsigned int oldest_msg_id = cmd.data.keep_alive.syn_msg_buf[0].msg_id;
                     // 查询
                     for (int i=0;i<RECORD_MSG_SIZE;i++)
                     {
-                        if (msg_id == cmd.data.keep_alive.msg_id[i])
+                        SynMsg syn_msg = cmd.data.keep_alive.syn_msg_buf[i];
+                        if (msg_id == syn_msg.msg_id)
                         {
+                            memo_debug->Lines->Add(GetTime()+"补充遗漏消息：" + IntToStr(syn_msg.msg_id) + ", cmd_id:" + IntToStr(syn_msg.cmd_id) + ", data:" + IntToStr(syn_msg.data.data_32));
+                            // 如果是当前调节的数据，需要忽略
+                            // 不管如何都更新界面 if (!ProcessSendCmdAck(cmd, AData, ABinding))//(last_cmd.id != cmd.id /*|| !paint_agent->IsMouseDown()*/)
+                            {
+                                int msg_data_length = CmdDataLength(syn_msg.cmd_id);
+                                memcpy(((char*)(&config_map))+syn_msg.cmd_id, (char*)&syn_msg.data, msg_data_length);
+                                OnFeedbackData(syn_msg.cmd_id);
+                            }
+
+
+#if 0
                             // 需要重新获取
-                            memo_debug->Lines->Add("需要重新获取"+ IntToStr(cmd.data.keep_alive.msg_id[i])+", cmd_id:"+ IntToStr(cmd.data.keep_alive.cmd_id[i]));
+                            memo_debug->Lines->Add("需要重新获取"+ IntToStr(cmd.data.keep_alive.syn_msg_buf[i].msg_id)+", cmd_id:"+ IntToStr(cmd.data.keep_alive.syn_msg_buf[i].cmd_id));
                             loose_msg_id.push_back(msg_id);
                             
                             if (udpControl->Active)
                             {
                                 D1608Cmd tmp_cmd;
-                                tmp_cmd.id = cmd.data.keep_alive.cmd_id[i];
+                                tmp_cmd.id = cmd.data.keep_alive.syn_msg_buf[i].cmd_id;
                                 tmp_cmd.length = 0;
                                 udpControl->SendBuffer(dst_ip, UDP_RESEND_CMD_REQ, &tmp_cmd, sizeof(tmp_cmd));
                             }
+#endif
                         }
-                        if (oldest_msg_id > cmd.data.keep_alive.msg_id[i])
+                        if (oldest_msg_id > cmd.data.keep_alive.syn_msg_buf[i].msg_id)
                         {
-                            oldest_msg_id = cmd.data.keep_alive.msg_id[i];
+                            oldest_msg_id = cmd.data.keep_alive.syn_msg_buf[i].msg_id;
                         }
                         // 其他忽略
                     }
@@ -1922,7 +2077,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
                         }
                     }
                     // 立即处理
-                    tmWatch->OnTimer(NULL);
+                    tmWatch_count = 100;
                 }
                 received_cmd_seq = cmd.seq;
                 if (keep_live_count<5)
@@ -1933,7 +2088,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             if (!ProcessSendCmdAck(cmd, AData, ABinding))//(last_cmd.id != cmd.id /*|| !paint_agent->IsMouseDown()*/)
             {
                 memcpy(((char*)(&config_map))+cmd.id, (char*)&cmd.data, cmd.length);
-                OnFeedbackData(cmd.id, cmd.length);
+                OnFeedbackData(cmd.id);
             }
         }
     }
@@ -2968,6 +3123,13 @@ void TForm1::ProcessWatchLevel(int watch_level[INPUT_DSP_NUM + OUTPUT_DSP_NUM], 
 //---------------------------------------------------------------------------
 void __fastcall TForm1::tmWatchTimer(TObject *Sender)
 {
+    tmWatch_count++;
+    if (tmWatch_count < 100)
+        return;
+
+    // 重置并触发
+    tmWatch_count = 0;
+
     bool _disconnected;
     if (is_manual_disconnect)
     {
@@ -4288,7 +4450,7 @@ void __fastcall TForm1::ApplyConfigToUI()
 
     on_loading = false;
 }
-void TForm1::OnFeedbackData(unsigned int cmd_id, int length)
+void TForm1::OnFeedbackData(unsigned int cmd_id)
 {
     on_loading = true;
 
