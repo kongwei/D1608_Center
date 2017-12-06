@@ -133,9 +133,10 @@ static int CmdDataLength(unsigned int cmd_id)
 		else if (cmd_id == GetOffsetOfData((char*)&config_map.input_dsp[ObjectIndex].gain))
 		{
 		}
-// 		else if (cmd_id == GetOffsetOfData((char*)&config_map.input_dsp[ObjectIndex].delay))
-// 		{
-// 		}
+ 		else if (cmd_id == GetOffsetOfData((char*)&config_map.input_dsp[ObjectIndex].delay))
+ 		{
+            result = 4;
+ 		}
 		else if (cmd_id >= GetOffsetOfData(&config_map.input_dsp[ObjectIndex].filter)
 			&& (cmd_id < GetOffsetOfData(&config_map.input_dsp[ObjectIndex].filter) + sizeof(config_map.input_dsp[ObjectIndex].filter)))
 		{
@@ -2913,6 +2914,14 @@ static TListItem* AppendLogData(TListView * lvLog, Event event, int address, Str
         break;
     case EVENT_ERR_WRITE_LOG:
         item->SubItems->Add("写日志失败错误");
+        item->SubItems->Add(IntToStr(event.event_data));
+        break;
+    case EVENT_ERR_28J60_SENDDATA:
+        item->SubItems->Add("28J60发出报文出错");
+        item->SubItems->Add(IntToStr(event.event_data));
+        break;
+    case EVENT_ERR_EXTERN_RAM:
+        item->SubItems->Add("延时RAM检测出现错误");
         item->SubItems->Add(IntToStr(event.event_data));
         break;
     default:
