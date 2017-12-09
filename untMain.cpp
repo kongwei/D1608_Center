@@ -28,6 +28,8 @@
 
 #define DEFAULT_MASK 0x00FFFFFF
 
+#define CONTROL_TIMEOUT_COUNT 5
+
 static String inner_mac[5] = {"10-0B-A9-2F-55-90", "00-5A-39-FF-49-28","00-E0-4C-39-17-31","74-D0-2B-95-48-02","00-E0-4C-15-1B-C0"};
 
 const String compile_time = __DATE__ " " __TIME__;
@@ -251,7 +253,7 @@ struct DeviceData
 };
 DeviceData last_connection;
 
-static int received_cmd_seq = 0;
+static int received_cmd_seq = 1;
 //------------------------------------------------
 // 版本兼容信息
 static UINT version = 0x02000002;
@@ -320,7 +322,7 @@ VersionFunction TForm1::GetVersionConfig()
     if (global_config_loaded && String(global_config.version_function.name) == "")
     {
         ShowMessage("读取配置表失败");
-        keep_live_count = 5;
+        keep_live_count = CONTROL_TIMEOUT_COUNT;
     }
     return global_config.version_function;
 }
@@ -1054,8 +1056,8 @@ __fastcall TForm1::TForm1(TComponent* Owner)
     on_loading = false;
 
     // 私有变量初始化
-    keep_live_count = 5;
-    received_cmd_seq = 0;
+    keep_live_count = CONTROL_TIMEOUT_COUNT;
+    received_cmd_seq = 1;
     device_connected = false;
 
     // 读取配置
@@ -1278,6 +1280,7 @@ void __fastcall TForm1::FormCreate(TObject *Sender)
     memo_debug->Lines->Add(GetTime()+"mix_mute:" + IntToStr(sizeof(config_map.master_mix.mix_mute)));
     memo_debug->Lines->Add(GetTime()+"NotStorageCmd:" + IntToStr(sizeof(NotStorageCmd)));
     memo_debug->Lines->Add(GetTime()+"GlobalConfig:" + IntToStr(sizeof(GlobalConfig)));
+    memo_debug->Lines->Add(GetTime()+"D1608:" + IntToStr(sizeof(D1608Cmd)));
 
     // 根据数量初始化控制器
     // Panel->Tag
@@ -1317,7 +1320,7 @@ void TForm1::SendCmd2(D1608Cmd& cmd)
     }
     edtDebug->Text = cmd_text;
 
-    if (on_loading || !udpControl->Active || keep_live_count >= 5)
+    if (on_loading || !udpControl->Active || keep_live_count >= CONTROL_TIMEOUT_COUNT)
     {
         return;
     }
@@ -1381,7 +1384,7 @@ void TForm1::SendCmd(D1608Cmd& cmd)
         return;
     }
 
-    if (on_loading || !udpControl->Active || keep_live_count >= 5)
+    if (on_loading || !udpControl->Active || keep_live_count >= CONTROL_TIMEOUT_COUNT)
     {
         return;
     }
@@ -2016,7 +2019,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
                     {
                         // 失联
                         memo_debug->Lines->Add("失联");
-                        keep_live_count = 5;
+                        keep_live_count = CONTROL_TIMEOUT_COUNT;
                     }
                 }
             }
@@ -2036,8 +2039,8 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
                 cmd.data.data_32 = cmd.data.data_32 & 0x7F;
                 udpControl->SendBuffer(dst_ip, UDP_PORT_CONTROL, &cmd, sizeof(cmd));
             }
-            keep_live_count = 5;
-            received_cmd_seq = 0;
+            keep_live_count = CONTROL_TIMEOUT_COUNT;
+            received_cmd_seq = 1;
             {
                 sendcmd_list.empty();
                 shape_live->Hide();
@@ -2081,7 +2084,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
                     tmWatch_count = 100;
                 }
                 received_cmd_seq = cmd.seq;
-                if (keep_live_count<5)
+                if (keep_live_count<CONTROL_TIMEOUT_COUNT)
                     keep_live_count = 0;
             }
             memo_debug->Lines->Add(GetTime()+"Reply：" + CmdLog(cmd));
@@ -2360,7 +2363,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             tmDelayBackup->Enabled = true;
 
             lblDeviceName->Show();
-            lblDeviceName->Caption = "PC TO UNIT......";
+            lblDeviceName->Caption = "PC TO DEVICE......";
         }
     }
     else if (ABinding->PeerPort == UDP_PORT_READ_FLASH)
@@ -2423,7 +2426,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             tmDelayBackup->Enabled = true;
 
             lblDeviceName->Show();
-            lblDeviceName->Caption = "UNIT TO PC......";
+            lblDeviceName->Caption = "DEVICE TO PC......";
         }
     }
 }
@@ -2639,7 +2642,7 @@ void TForm1::ProcessKeepAlive(int preset_id, unsigned __int64 timer)
     }
     edtLockedString1->Text = global_config.locked_string;
 
-    if (keep_live_count<5)
+    if (keep_live_count<CONTROL_TIMEOUT_COUNT)
         keep_live_count = 0;
     shape_live->Show();
     shape_link->Show();
@@ -2844,7 +2847,7 @@ static TListItem* AppendLogData(TListView * lvLog, Event event, int address, Str
         break;
     case EVENT_SAVE_LOAD_TIMEOUT:
         item->SubItems->Add("存盘或者恢复超时错误");
-        item->SubItems->Add(event.event_data==1?"LOAD UNIT":"SAVE UNIT");
+        item->SubItems->Add(event.event_data==1?"PC TO DEVICE":"DEVICE TO PC");
         break;
     case EVENT_48V:
         item->SubItems->Add("48V与硬件不匹配错误");
@@ -3132,9 +3135,9 @@ void TForm1::ProcessWatchLevel(int watch_level[INPUT_DSP_NUM + OUTPUT_DSP_NUM], 
 //---------------------------------------------------------------------------
 void __fastcall TForm1::tmWatchTimer(TObject *Sender)
 {
-    tmWatch_count++;
-    if (tmWatch_count < 100)
-        return;
+    //tmWatch_count++;
+    //if (tmWatch_count < 100)
+    //    return;
 
     // 重置并触发
     tmWatch_count = 0;
@@ -3153,7 +3156,7 @@ void __fastcall TForm1::tmWatchTimer(TObject *Sender)
         }
 
         // keep alive
-        if ((keep_live_count < 5) && udpControl->Active)
+        if ((keep_live_count < CONTROL_TIMEOUT_COUNT) && udpControl->Active)
         {
             keep_live_count++;
             _disconnected = false;
@@ -3182,7 +3185,7 @@ void __fastcall TForm1::tmWatchTimer(TObject *Sender)
             UpdateWatchLevel(i, -49);
         }
         device_connected = false;
-        received_cmd_seq = 0;
+        received_cmd_seq = 1;
 
         edtDeviceType->Text = "N/A";
         edtCmdId->Text = "N/A";
@@ -3197,6 +3200,7 @@ void __fastcall TForm1::tmWatchTimer(TObject *Sender)
     }
 
     D1608Cmd cmd;
+    cmd.seq = received_cmd_seq;
     cmd.type = CMD_TYPE_PRESET;
     cmd.id = GetOffsetOfData(&config_map.op_code.noop);
     cmd.data.s_data_32 = 0;
@@ -6630,7 +6634,7 @@ void __fastcall TForm1::tmDelaySendCmdTimer(TObject *Sender)
         TPackage package = sendcmd_list.back();
 
         // 重试命令
-        received_cmd_seq = 0;
+        received_cmd_seq = 1;
         udpControl->SendBuffer(dst_ip, package.udp_port, package.data, package.data_size);
 
         // 备份 恢复 流程使用的延时计时器
