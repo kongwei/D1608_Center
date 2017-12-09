@@ -253,7 +253,7 @@ struct DeviceData
 };
 DeviceData last_connection;
 
-static int received_cmd_seq = 1;
+static unsigned int received_cmd_seq = 1;
 //------------------------------------------------
 // 版本兼容信息
 static UINT version = 0x02000002;
@@ -1919,7 +1919,59 @@ String IntOrZeroSring(int value)
 void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
       TIdSocketHandle *ABinding)
 {
-    if (ABinding->PeerPort == UDP_PORT_CONTROL)
+    if (ABinding->PeerPort == UDP_PORT_CONTROL+1)
+    {
+        SynMsg syn_msg_buf[RECORD_MSG_SIZE];
+        AData->ReadBuffer(&syn_msg_buf, std::min(sizeof(syn_msg_buf), AData->Size));
+
+
+        unsigned int oldest_msg_id = syn_msg_buf[0].msg_id;
+        unsigned int current_msg_id = syn_msg_buf[0].msg_id;
+
+        for (int i=0;i<RECORD_MSG_SIZE;i++)
+        {
+            SynMsg syn_msg = syn_msg_buf[i];
+            oldest_msg_id = min(oldest_msg_id, syn_msg.msg_id);
+            current_msg_id = max(current_msg_id, syn_msg.msg_id);
+        }
+        // 失联判断
+        if (received_cmd_seq < oldest_msg_id)
+        {
+            // 失联
+            memo_debug->Lines->Add("失联");
+            keep_live_count = CONTROL_TIMEOUT_COUNT;
+        }
+        else if (received_cmd_seq >= current_msg_id)
+        {
+            memo_debug->Lines->Add("syn do not need: device_msg_id="+IntToStr(current_msg_id)+", pc__msg_id="+IntToStr(received_cmd_seq));
+        }
+        else
+        {
+            memo_debug->Lines->Add("syn msg");
+            for (int i=0;i<RECORD_MSG_SIZE;i++)
+            {
+                SynMsg syn_msg = syn_msg_buf[i];
+                if (syn_msg.msg_id > received_cmd_seq)
+                {
+                    // 防止自己响应
+                    if (sendcmd_list.size() > 0)
+                    {
+                        TPackage package = sendcmd_list.back();
+                        D1608Cmd* package_cmd = (D1608Cmd*)package.data;
+                        if (syn_msg.cmd_id == package_cmd->id)
+                            continue;
+                    }
+
+                    int msg_data_length = CmdDataLength(syn_msg.cmd_id);
+                    memcpy(((char*)(&config_map))+syn_msg.cmd_id, (char*)&syn_msg.data, msg_data_length);
+                    OnFeedbackData(syn_msg.cmd_id);
+                    memo_debug->Lines->Add("syn cmd: " + IntToStr(syn_msg.cmd_id));
+                }
+            }
+        }
+        received_cmd_seq = current_msg_id;
+    }
+    else if (ABinding->PeerPort == UDP_PORT_CONTROL)
     {
         D1608Cmd cmd;
         AData->ReadBuffer(&cmd, std::min(sizeof(cmd), AData->Size));
@@ -1944,12 +1996,15 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
         else if (cmd.id == GetOffsetOfData(&config_map.op_code.noop))
         {
             //memo_debug->Lines->Add("广播消息序号:"+IntToStr(cmd.data.keep_alive.seq)+":"+IntToStr(received_cmd_seq));
-            if ((cmd.data.keep_alive.seq>received_cmd_seq) && (received_cmd_seq!=0))
+            if (received_cmd_seq != cmd.seq)
+                received_cmd_seq = cmd.data.keep_alive.seq;
+#if 0 // 20171209
+            if ((cmd.data.keep_alive.seq>received_cmd_seq) && (received_cmd_seq!=1))
             {
                 // 断开连接
                 memo_debug->Lines->Add(GetTime()+"同步发现消息序号不匹配" + IntToStr(cmd.data.keep_alive.seq) + "," + IntToStr(received_cmd_seq));
                 // 通过MessageBuffer判断
-                for (int msg_id = received_cmd_seq+1; msg_id <= cmd.data.keep_alive.seq; msg_id++)
+                for (UINT msg_id = received_cmd_seq+1; msg_id <= cmd.data.keep_alive.seq; msg_id++)
                 {
                     vector<int>::iterator result = find(loose_msg_id.begin( ), loose_msg_id.end( ), msg_id);
                     if ( result == loose_msg_id.end( ) )
@@ -1961,13 +2016,14 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
                 received_cmd_seq = cmd.data.keep_alive.seq;
             }
             else
+#endif
             {
                 ProcessWatchLevel(cmd.data.keep_alive.watch_level, cmd.data.keep_alive.watch_level_comp);
                 if (cmd.length == sizeof(config_map.op_code))
                     ProcessVote(cmd.data.keep_alive.adc_ex, cmd.data.keep_alive.adc_ex_max, cmd.data.keep_alive.adc_ex_min);
             }
             ProcessKeepAlive(cmd.data.keep_alive.switch_preset, cmd.data.keep_alive.set_time_ex);
-
+#if 0 //20171209
             if (loose_msg_id.size() != 0 && (cmd.length == sizeof(config_map.op_code)))
             {
                 vector<int> tmp_loose_msg_id = loose_msg_id;
@@ -2023,6 +2079,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
                     }
                 }
             }
+#endif
         }
         else if (cmd.id == GetOffsetOfData(&config_map.op_code.switch_preset))
         {
@@ -2060,10 +2117,10 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
         {
             if (cmd.seq != 0)
             {
-                if ((cmd.seq <= received_cmd_seq+1) || (received_cmd_seq==0))
+                if ((cmd.seq <= received_cmd_seq+1) || (received_cmd_seq==1))
                 {
                 }
-                else if ((cmd.last_same_id_seq <= received_cmd_seq) && (cmd.last_same_id_seq > 0))
+                else if ((cmd.last_same_id_seq <= received_cmd_seq) && (cmd.last_same_id_seq > 1))
                 {
                     memo_debug->Lines->Add(GetTime()+" 相同消息不连续(警告)。" + CmdLog(cmd));
                 }
@@ -2071,7 +2128,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
                 {
                     // 丢失了      [ received_cmd_seq, (cmd.seq-1) ] 的消息
                     memo_debug->Lines->Add(GetTime()+"消息序号不匹配" + IntToStr(cmd.seq) + "," + IntToStr(cmd.last_same_id_seq)+","+IntToStr(received_cmd_seq));
-                    for (int msg_id = received_cmd_seq+1; msg_id < cmd.seq; msg_id++)
+                    for (UINT msg_id = received_cmd_seq+1; msg_id < cmd.seq; msg_id++)
                     {
                         vector<int>::iterator result = find(loose_msg_id.begin( ), loose_msg_id.end( ), msg_id);
                         if ( result == loose_msg_id.end( ) )
