@@ -1667,6 +1667,10 @@ void __fastcall TForm1::btnSelectClick(TObject *Sender)
     cmd.length = 8;
     udpControl->SendBuffer(dst_ip, UDP_PORT_CONTROL, &cmd, sizeof(cmd));
 
+    // 发送一次任意消息，让windows可以通过审查
+    udpControl->SendBuffer(dst_ip, UDP_PORT_CONTROL+1, "1", 1);
+
+
     StartReadOnePackage(0xFF);
     restor_delay_count = 15;
     tmDelayBackup->Enabled = true;
@@ -1923,7 +1927,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
     {
         SynMsg syn_msg_buf[RECORD_MSG_SIZE];
         AData->ReadBuffer(&syn_msg_buf, std::min(sizeof(syn_msg_buf), AData->Size));
-
+        memo_debug->Lines->Add("recv syn msg");
 
         unsigned int oldest_msg_id = syn_msg_buf[0].msg_id;
         unsigned int current_msg_id = syn_msg_buf[0].msg_id;
@@ -1938,7 +1942,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
         if (received_cmd_seq < oldest_msg_id)
         {
             // 失联
-            memo_debug->Lines->Add("失联");
+            memo_debug->Lines->Add("失联: local="+IntToStr(received_cmd_seq)+", device="+IntToStr(oldest_msg_id)+"-"+IntToStr(current_msg_id));
             keep_live_count = CONTROL_TIMEOUT_COUNT;
         }
         else if (received_cmd_seq >= current_msg_id)
@@ -1995,9 +1999,9 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
         }
         else if (cmd.id == GetOffsetOfData(&config_map.op_code.noop))
         {
-            //memo_debug->Lines->Add("广播消息序号:"+IntToStr(cmd.data.keep_alive.seq)+":"+IntToStr(received_cmd_seq));
+            //memo_debug->Lines->Add("广播消息序号:"+IntToStr(cmd.seq)+":"+IntToStr(received_cmd_seq));
             if (received_cmd_seq != cmd.seq)
-                received_cmd_seq = cmd.data.keep_alive.seq;
+                received_cmd_seq = cmd.seq;
 #if 0 // 20171209
             if ((cmd.data.keep_alive.seq>received_cmd_seq) && (received_cmd_seq!=1))
             {
@@ -3263,6 +3267,11 @@ void __fastcall TForm1::tmWatchTimer(TObject *Sender)
     cmd.data.s_data_32 = 0;
     SendCmd2(cmd);
 
+    if (udpControl->Active)
+    {
+        // 发送一次任意消息，让windows可以通过审查
+        udpControl->SendBuffer(dst_ip, UDP_PORT_CONTROL+1, "1", 1);
+    }
     // 检测resize事件
     if (need_resize)
     {
@@ -5801,13 +5810,13 @@ void __fastcall TForm1::dsp_gain_editKeyDown(TObject *Sender, WORD &Key,
 void __fastcall TForm1::dsp_delay_trackbarChange(TObject *Sender)
 {
     TAdvTrackBar* track = (TAdvTrackBar*)Sender;
-    int value = track->Position;
+    UINT value = track->Position;
     int dsp_num = track->Parent->Tag;
     dsp_delay_edit->Text = value/1000.0;
 
     if (dsp_num < 100)
     {
-        if (config_map.input_dsp[dsp_num-1].level_b != value)
+        if (config_map.input_dsp[dsp_num-1].delay != value)
         {
             // input channel
             D1608Cmd cmd;
@@ -5821,7 +5830,7 @@ void __fastcall TForm1::dsp_delay_trackbarChange(TObject *Sender)
     }
     else
     {
-        if (config_map.output_dsp[dsp_num-101].level_b != value)
+        if (config_map.output_dsp[dsp_num-101].delay != value)
         {
             // output channel
             D1608Cmd cmd;
@@ -6691,7 +6700,6 @@ void __fastcall TForm1::tmDelaySendCmdTimer(TObject *Sender)
         TPackage package = sendcmd_list.back();
 
         // 重试命令
-        received_cmd_seq = 1;
         udpControl->SendBuffer(dst_ip, package.udp_port, package.data, package.data_size);
 
         // 备份 恢复 流程使用的延时计时器
