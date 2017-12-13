@@ -177,6 +177,10 @@ static int CmdDataLength(unsigned int cmd_id)
 		else if (cmd_id == GetOffsetOfData((char*)&config_map.output_dsp[ObjectIndex].gain))
 		{
 		}
+ 		else if (cmd_id == GetOffsetOfData((char*)&config_map.output_dsp[ObjectIndex].delay))
+ 		{
+			result = 4;
+ 		}
 		else if (cmd_id == GetOffsetOfData((char*)&config_map.output_dsp[ObjectIndex].ratio))
 		{
 			result = 4;
@@ -2779,11 +2783,11 @@ static TListItem* AppendLogData(TListView * lvLog, Event event, int address, Str
         item->SubItems->Add("下次启动次数"+IntToStr(event.event_data));
         break;
     case EVENT_INPUT_OVERFLOW:
-        item->SubItems->Add("input通道音量满");
+        item->SubItems->Add("input通道音量满警告");
         item->SubItems->Add("通道号"+IntToStr(event.event_data));
         break;
     case EVENT_OUTPUT_OVERFLOW:
-        item->SubItems->Add("output通道音量满");
+        item->SubItems->Add("output通道音量满警告");
         item->SubItems->Add("通道号"+IntToStr(event.event_data));
         break;
     case EVENT_WRITE_FLASH_ERROR:
@@ -2849,7 +2853,7 @@ static TListItem* AppendLogData(TListView * lvLog, Event event, int address, Str
         item->SubItems->Add("");
         break;
     case EVENT_28J60_REINIT_ERROR:
-        item->SubItems->Add("ENC28J60初始化告警");
+        item->SubItems->Add("ENC28J60初始化警告");
         item->SubItems->Add("失败次数:"+IntToStr(event.event_data));
         break;
     case EVENT_MAC_ADDRESS_OVERFLOW:
@@ -2861,7 +2865,7 @@ static TListItem* AppendLogData(TListView * lvLog, Event event, int address, Str
         item->SubItems->Add("");
         break;
     case EVENT_DSP_NOT_MATCH_ERROR:
-        item->SubItems->Add("YSS920与配置不符");
+        item->SubItems->Add("YSS920与配置不符错误");
         if (event.event_data > 0x80)
             item->SubItems->Add("缺少:"+IntToStr(event.event_data-0x80));
         else
@@ -2881,9 +2885,9 @@ static TListItem* AppendLogData(TListView * lvLog, Event event, int address, Str
         break;
     case EVENT_ADDA_ERROR:
         if (event.event_data > 32)
-            item->SubItems->Add("AD数量与配置不符");
+            item->SubItems->Add("AD数量与配置不符错误");
         else
-            item->SubItems->Add("DA数量与配置不符");
+            item->SubItems->Add("DA数量与配置不符错误");
         item->SubItems->Add("现有数量："+IntToStr(event.event_data%32));
         break;
     case EVENT_EACH_HOUR:
@@ -2911,7 +2915,7 @@ static TListItem* AppendLogData(TListView * lvLog, Event event, int address, Str
         item->SubItems->Add(event.event_data==1?"PC TO DEVICE":"DEVICE TO PC");
         break;
     case EVENT_48V:
-        item->SubItems->Add("48V与硬件不匹配错误");
+        item->SubItems->Add("48V与硬件不匹配");
         item->SubItems->Add(event.event_data==0?"缺少":"多出");
         break;
     case EVENT_RESET_RUNNING_TIME:
@@ -2946,12 +2950,12 @@ static TListItem* AppendLogData(TListView * lvLog, Event event, int address, Str
         }
         else if (event.event_data == 1)
         {
-            item->SubItems->Add("时钟校准警告");
+            item->SubItems->Add("时钟校准异常警告");
             item->SubItems->Add("设备时钟快5%以上");
         }
         else if (event.event_data == 2)
         {
-            item->SubItems->Add("时钟校准警告");
+            item->SubItems->Add("时钟校准异常警告");
             item->SubItems->Add("设备时钟慢5%以上");
         }
         else
@@ -2985,7 +2989,7 @@ static TListItem* AppendLogData(TListView * lvLog, Event event, int address, Str
         item->SubItems->Add(IntToStr(event.event_data));
         break;
     case EVENT_ERR_EXTERN_RAM:
-        item->SubItems->Add("延时RAM检测出现错误");
+        item->SubItems->Add("RAM检测错误");
         item->SubItems->Add(IntToStr(event.event_data));
         break;
     default:
@@ -3454,6 +3458,7 @@ void __fastcall TForm1::ToggleDSP(TObject *Sender)
 
             int dsp_num = btn->Tag;
             dsp_gain_trackbar->Position = config_map.input_dsp[dsp_num-1].level_b;
+            dsp_delay_trackbar->Position = config_map.input_dsp[dsp_num-1].delay;
             if (GetVersionConfig().is_48v)
             {
                 btnPhanton->Down = config_map.input_dsp[dsp_num-1].phantom_switch;
@@ -3468,7 +3473,7 @@ void __fastcall TForm1::ToggleDSP(TObject *Sender)
             PaintBox1->Left = 8;
             PaintBox1->Width = 753;
             pbComp->Hide();
-            
+
             // 隐藏COMP界面
             pnlComp->Enabled = false;
             pnlComp->Color = clGray;
@@ -3487,6 +3492,7 @@ void __fastcall TForm1::ToggleDSP(TObject *Sender)
 
             int dsp_num = btn->Tag-100;
             dsp_gain_trackbar->Position = config_map.output_dsp[dsp_num-1].level_b;
+            dsp_delay_trackbar->Position = config_map.output_dsp[dsp_num-1].delay;
             btnPhanton->Hide();
 
             // 调整PaintBox1的尺寸
@@ -5850,7 +5856,8 @@ void __fastcall TForm1::dsp_delay_editKeyDown(TObject *Sender, WORD &Key,
     if (Key == VK_RETURN)
     {
         try{
-            dsp_delay_trackbar->Position = dsp_delay_edit->Text.ToInt();
+            float value = dsp_delay_edit->Text.ToDouble()*1000;
+            dsp_delay_trackbar->Position = value;//dsp_delay_edit->Text.ToDouble()*1000;
         }catch(...){
         }
 
