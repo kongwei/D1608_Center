@@ -3053,6 +3053,7 @@ void TForm1::ProcessLogData(int tail_address)
             }
         case EVENT_POWER_SAVE_OK:
         case EVENT_POWER_OFF:
+        case EVENT_IWDG_REBOOT:
         case EVENT_TIME_2:
         case EVENT_TIME_3:
         case EVENT_TIME_4:
