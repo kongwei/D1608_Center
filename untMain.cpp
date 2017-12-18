@@ -1931,7 +1931,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
     {
         SynMsg syn_msg_buf[RECORD_MSG_SIZE];
         AData->ReadBuffer(&syn_msg_buf, std::min(sizeof(syn_msg_buf), AData->Size));
-        memo_debug->Lines->Add("recv syn msg");
+        //memo_debug->Lines->Add("recv syn msg");
 
         unsigned int oldest_msg_id = syn_msg_buf[0].msg_id;
         unsigned int current_msg_id = syn_msg_buf[0].msg_id;
@@ -1945,7 +1945,6 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
         // 失联判断
         if (received_cmd_seq < oldest_msg_id)
         {
-            // 失联
             memo_debug->Lines->Add("失联: local="+IntToStr(received_cmd_seq)+", device="+IntToStr(oldest_msg_id)+"-"+IntToStr(current_msg_id));
             keep_live_count = CONTROL_TIMEOUT_COUNT;
         }
@@ -1955,7 +1954,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
         }
         else
         {
-            memo_debug->Lines->Add("syn msg");
+            //memo_debug->Lines->Add("syn msg");
             for (int i=0;i<RECORD_MSG_SIZE;i++)
             {
                 SynMsg syn_msg = syn_msg_buf[i];
@@ -1973,11 +1972,14 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
                     int msg_data_length = CmdDataLength(syn_msg.cmd_id);
                     memcpy(((char*)(&config_map))+syn_msg.cmd_id, (char*)&syn_msg.data, msg_data_length);
                     OnFeedbackData(syn_msg.cmd_id);
-                    memo_debug->Lines->Add("syn cmd: " + IntToStr(syn_msg.cmd_id));
+                    //memo_debug->Lines->Add("syn cmd: " + IntToStr(syn_msg.cmd_id));
                 }
             }
         }
         received_cmd_seq = current_msg_id;
+
+        if (keep_live_count<CONTROL_TIMEOUT_COUNT)
+            keep_live_count = 0;
     }
     else if (ABinding->PeerPort == UDP_PORT_CONTROL)
     {
@@ -2006,88 +2008,10 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             //memo_debug->Lines->Add("广播消息序号:"+IntToStr(cmd.seq)+":"+IntToStr(received_cmd_seq));
             if (received_cmd_seq != cmd.seq)
                 received_cmd_seq = cmd.seq;
-#if 0 // 20171209
-            if ((cmd.data.keep_alive.seq>received_cmd_seq) && (received_cmd_seq!=1))
-            {
-                // 断开连接
-                memo_debug->Lines->Add(GetTime()+"同步发现消息序号不匹配" + IntToStr(cmd.data.keep_alive.seq) + "," + IntToStr(received_cmd_seq));
-                // 通过MessageBuffer判断
-                for (UINT msg_id = received_cmd_seq+1; msg_id <= cmd.data.keep_alive.seq; msg_id++)
-                {
-                    vector<int>::iterator result = find(loose_msg_id.begin( ), loose_msg_id.end( ), msg_id);
-                    if ( result == loose_msg_id.end( ) )
-                    {
-                        memo_debug->Lines->Add("需要同步消息: "+IntToStr(msg_id));
-                        loose_msg_id.push_back(msg_id);
-                    }
-                }
-                received_cmd_seq = cmd.data.keep_alive.seq;
-            }
-            else
-#endif
-            {
-                ProcessWatchLevel(cmd.data.keep_alive.watch_level, cmd.data.keep_alive.watch_level_comp);
-                if (cmd.length == sizeof(config_map.op_code))
-                    ProcessVote(cmd.data.keep_alive.adc_ex, cmd.data.keep_alive.adc_ex_max, cmd.data.keep_alive.adc_ex_min);
-            }
+            ProcessWatchLevel(cmd.data.keep_alive.watch_level, cmd.data.keep_alive.watch_level_comp);
+            if (cmd.length == sizeof(config_map.op_code))
+                ProcessVote(cmd.data.keep_alive.adc_ex, cmd.data.keep_alive.adc_ex_max, cmd.data.keep_alive.adc_ex_min);
             ProcessKeepAlive(cmd.data.keep_alive.switch_preset, cmd.data.keep_alive.set_time_ex);
-#if 0 //20171209
-            if (loose_msg_id.size() != 0 && (cmd.length == sizeof(config_map.op_code)))
-            {
-                vector<int> tmp_loose_msg_id = loose_msg_id;
-                loose_msg_id.clear();
-
-                while (tmp_loose_msg_id.size() > 0)
-                {
-                    unsigned int msg_id = tmp_loose_msg_id.back();
-                    tmp_loose_msg_id.pop_back();
-
-                    unsigned int oldest_msg_id = cmd.data.keep_alive.syn_msg_buf[0].msg_id;
-                    // 查询
-                    for (int i=0;i<RECORD_MSG_SIZE;i++)
-                    {
-                        SynMsg syn_msg = cmd.data.keep_alive.syn_msg_buf[i];
-                        if (msg_id == syn_msg.msg_id)
-                        {
-                            memo_debug->Lines->Add(GetTime()+"补充遗漏消息：" + IntToStr(syn_msg.msg_id) + ", cmd_id:" + IntToStr(syn_msg.cmd_id) + ", data:" + IntToStr(syn_msg.data.data_32));
-                            // 如果是当前调节的数据，需要忽略
-                            // 不管如何都更新界面 if (!ProcessSendCmdAck(cmd, AData, ABinding))//(last_cmd.id != cmd.id /*|| !paint_agent->IsMouseDown()*/)
-                            {
-                                int msg_data_length = CmdDataLength(syn_msg.cmd_id);
-                                memcpy(((char*)(&config_map))+syn_msg.cmd_id, (char*)&syn_msg.data, msg_data_length);
-                                OnFeedbackData(syn_msg.cmd_id);
-                            }
-
-
-#if 0
-                            // 需要重新获取
-                            memo_debug->Lines->Add("需要重新获取"+ IntToStr(cmd.data.keep_alive.syn_msg_buf[i].msg_id)+", cmd_id:"+ IntToStr(cmd.data.keep_alive.syn_msg_buf[i].cmd_id));
-                            loose_msg_id.push_back(msg_id);
-                            
-                            if (udpControl->Active)
-                            {
-                                D1608Cmd tmp_cmd;
-                                tmp_cmd.id = cmd.data.keep_alive.syn_msg_buf[i].cmd_id;
-                                tmp_cmd.length = 0;
-                                udpControl->SendBuffer(dst_ip, UDP_RESEND_CMD_REQ, &tmp_cmd, sizeof(tmp_cmd));
-                            }
-#endif
-                        }
-                        if (oldest_msg_id > cmd.data.keep_alive.syn_msg_buf[i].msg_id)
-                        {
-                            oldest_msg_id = cmd.data.keep_alive.syn_msg_buf[i].msg_id;
-                        }
-                        // 其他忽略
-                    }
-                    if (msg_id < oldest_msg_id)
-                    {
-                        // 失联
-                        memo_debug->Lines->Add("失联");
-                        keep_live_count = CONTROL_TIMEOUT_COUNT;
-                    }
-                }
-            }
-#endif
         }
         else if (cmd.id == GetOffsetOfData(&config_map.op_code.switch_preset))
         {
