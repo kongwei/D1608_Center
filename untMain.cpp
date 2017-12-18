@@ -2783,11 +2783,11 @@ static TListItem* AppendLogData(TListView * lvLog, Event event, int address, Str
         item->SubItems->Add("下次启动次数"+IntToStr(event.event_data));
         break;
     case EVENT_INPUT_OVERFLOW:
-        item->SubItems->Add("input通道音量满警告");
+        item->SubItems->Add("input通道音量满过载警告");
         item->SubItems->Add("通道号"+IntToStr(event.event_data));
         break;
     case EVENT_OUTPUT_OVERFLOW:
-        item->SubItems->Add("output通道音量满警告");
+        item->SubItems->Add("output通道音量满过载警告");
         item->SubItems->Add("通道号"+IntToStr(event.event_data));
         break;
     case EVENT_WRITE_FLASH_ERROR:
