@@ -2919,7 +2919,7 @@ static TListItem* AppendLogData(TListView * lvLog, Event event, int address, Str
         item->SubItems->Add(event.event_data==0?"缺少":"多出");
         break;
     case EVENT_RESET_RUNNING_TIME:
-        item->SubItems->Add("重置运行时间");
+        item->SubItems->Add("重置运行时间警告");
         item->SubItems->Add("");
         break;
     case EVENT_IWDG_REBOOT:
@@ -7055,17 +7055,14 @@ void __fastcall TForm1::lvLogAdvancedCustomDrawItem(
 {
     String event_desc = Item->SubItems->Strings[1];
 
-    if (event_desc.Pos("错误") != 0
-      ||event_desc.Pos("不符") != 0
-      ||event_desc.Pos("溢出") != 0)
+    if (event_desc.Pos("错误") != 0)
     {
         Sender->Canvas->Font->Color = clRed;
     }
-    else if (event_desc == "重置运行时间")
+    else if (event_desc.Pos("警告") != 0)
     {
         Sender->Canvas->Font->Color = clBlue;
     }
-
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::btnDisconnectClick(TObject *Sender)
