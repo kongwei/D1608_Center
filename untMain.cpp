@@ -28,7 +28,7 @@
 
 #define DEFAULT_MASK 0x00FFFFFF
 
-#define CONTROL_TIMEOUT_COUNT 5
+#define CONTROL_TIMEOUT_COUNT 2
 
 static String inner_mac[5] = {"10-0B-A9-2F-55-90", "00-5A-39-FF-49-28","00-E0-4C-39-17-31","74-D0-2B-95-48-02","00-E0-4C-15-1B-C0"};
 
@@ -257,7 +257,7 @@ struct DeviceData
 };
 DeviceData last_connection;
 
-static unsigned int received_cmd_seq = 1;
+static unsigned int received_cmd_seq = 0;
 //------------------------------------------------
 // 版本兼容信息
 static UINT version = 0x02000002;
@@ -1061,7 +1061,7 @@ __fastcall TForm1::TForm1(TComponent* Owner)
 
     // 私有变量初始化
     keep_live_count = CONTROL_TIMEOUT_COUNT;
-    received_cmd_seq = 1;
+    received_cmd_seq = 0;
     device_connected = false;
 
     // 读取配置
@@ -1075,6 +1075,31 @@ __fastcall TForm1::TForm1(TComponent* Owner)
     udpSLPList[1] = udpSLP1;
     udpSLPList[2] = udpSLP2;
     tmSLP->Enabled = true;
+
+    // 整理 TabOrder
+    for (int i=0;i<16;i++)
+    {
+        if (input_level_edit[i] != NULL)
+            input_level_edit[i]->TabOrder = 10+i;
+    }
+    master_panel_level_edit->TabOrder = 10+16+0;
+    for (int i=0;i<16;i++)
+    {
+        if (output_level_edit[i] != NULL)
+            output_level_edit[i]->TabOrder = 10+16+1+i;
+    }
+
+    for (int i=0;i<16;i++)
+    {
+        if (input_level_trackbar[i] != NULL)
+            input_level_trackbar[i]->TabOrder = 10+16+1+16+i;
+    }
+    master_panel_trackbar->TabOrder = 10+16+1+16+16+0;
+    for (int i=0;i<16;i++)
+    {
+        if (output_level_trackbar[i] != NULL)
+            output_level_trackbar[i]->TabOrder = 10+16+1+16+16+1+i;
+    }
 }
 //---------------------------------------------------------------------------
 __fastcall TForm1::~TForm1()
@@ -1927,7 +1952,7 @@ String IntOrZeroSring(int value)
 void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
       TIdSocketHandle *ABinding)
 {
-    if (ABinding->PeerPort == UDP_PORT_CONTROL+1)
+    if (ABinding->PeerPort == UDP_PORT_CONTROL+1 && received_cmd_seq != 0)
     {
         SynMsg syn_msg_buf[RECORD_MSG_SIZE];
         AData->ReadBuffer(&syn_msg_buf, std::min(sizeof(syn_msg_buf), AData->Size));
@@ -2029,7 +2054,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
                 udpControl->SendBuffer(dst_ip, UDP_PORT_CONTROL, &cmd, sizeof(cmd));
             }
             keep_live_count = CONTROL_TIMEOUT_COUNT;
-            received_cmd_seq = 1;
+            received_cmd_seq = 0;
             {
                 sendcmd_list.empty();
                 shape_live->Hide();
@@ -2049,7 +2074,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
         {
             if (cmd.seq != 0)
             {
-                if ((cmd.seq <= received_cmd_seq+1) || (received_cmd_seq==1))
+                if ((cmd.seq <= received_cmd_seq+1) || (received_cmd_seq==0))
                 {
                 }
                 else if ((cmd.last_same_id_seq <= received_cmd_seq) && (cmd.last_same_id_seq > 1))
@@ -2855,8 +2880,10 @@ static TListItem* AppendLogData(TListView * lvLog, Event event, int address, Str
         item->SubItems->Add("");
         break;
     case EVENT_28J60_VERSION_ERROR:
-        item->SubItems->Add("28J60版本号错误");
-        item->SubItems->Add(IntToStr(event.event_data));
+        {
+            item->SubItems->Add("28J60版本号错误");
+            item->SubItems->Add(IntToStr((event.event_data>>8)&0xFF)+" -> " + IntToStr(event.event_data&0xFF));
+        }
         break;
     case EVENT_UPGRADE_DATE:
         item->SubItems->Add("升级时版本日期");
@@ -2914,7 +2941,7 @@ static TListItem* AppendLogData(TListView * lvLog, Event event, int address, Str
         break;
     case EVENT_ERR_EXTERN_RAM:
         item->SubItems->Add("RAM检测错误");
-        item->SubItems->Add(IntToStr(event.event_data));
+        item->SubItems->Add(IntToHex(event.event_data, 4));
         break;
     default:
         item->SubItems->Add(event.event_id);
@@ -3175,7 +3202,7 @@ void __fastcall TForm1::tmWatchTimer(TObject *Sender)
             UpdateWatchLevel(i, -49);
         }
         device_connected = false;
-        received_cmd_seq = 1;
+        received_cmd_seq = 0;
 
         edtDeviceType->Text = "N/A";
         edtCmdId->Text = "N/A";
@@ -3525,7 +3552,7 @@ void __fastcall TForm1::MasterVolumeChange(TObject *Sender)
     TAdvTrackBar* track = (TAdvTrackBar*)Sender;
     int value = track->Position;
 
-    memo_debug->Lines->Add("master推子: "+IntToStr(value));
+    memo_debug->Lines->Add(GetTime()+"master推子: "+IntToStr(value)+" "+IntToStr(keep_live_count));
 
     if (master_panel_level_edit != NULL)
     {
@@ -6499,7 +6526,7 @@ void __fastcall TForm1::tmDelayBackupTimer(TObject *Sender)
             udpControl->SendBuffer(dst_ip, package.udp_port, package.data, package.data_size);
 
             // 备份 恢复 流程使用的延时计时器
-            memo_debug->Lines->Add(GetTime()+"retry syn");
+            memo_debug->Lines->Add(GetTime()+"retry package_list");
         }
         else if (read_one_preset_package_list.size() != 0)
         {
@@ -6507,7 +6534,7 @@ void __fastcall TForm1::tmDelayBackupTimer(TObject *Sender)
             udpControl->SendBuffer(dst_ip, package.udp_port, package.data, package.data_size);
 
             // 备份 恢复 流程使用的延时计时器
-            memo_debug->Lines->Add(GetTime()+"retry syn");
+            memo_debug->Lines->Add(GetTime()+"retry read_one_preset_package_list");
         }
         else
         {
@@ -7165,6 +7192,18 @@ void __fastcall TForm1::input_panel_trackbarMouseMove(TObject *Sender,
 {
     TAdvTrackBar * trackbar = (TAdvTrackBar*)Sender;
     trackbar->SetFocus();
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::btnCopyDebugLogClick(TObject *Sender)
+{
+    memo_debug->SelectAll();
+    memo_debug->CopyToClipboard();
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::btnCutDebugLogClick(TObject *Sender)
+{
+    memo_debug->SelectAll();
+    memo_debug->CutToClipboard();
 }
 //---------------------------------------------------------------------------
 

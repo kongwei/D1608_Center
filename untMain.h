@@ -529,6 +529,8 @@ __published:	// IDE-managed Components
     TMemo *mmVoteData2Clip;
     TSpeedButton *btnClearDataAndTime;
     TEdit *edtDeviceFullName;
+    TButton *btnCopyDebugLog;
+    TButton *btnCutDebugLog;
     void __fastcall FormCreate(TObject *Sender);
     void __fastcall btnRefreshClick(TObject *Sender);
     void __fastcall udpSLPUDPRead(TObject *Sender, TStream *AData,
@@ -702,6 +704,8 @@ __published:	// IDE-managed Components
     void __fastcall btnClearDataAndTimeClick(TObject *Sender);
     void __fastcall input_panel_trackbarMouseMove(TObject *Sender,
           TShiftState Shift, int X, int Y);
+    void __fastcall btnCopyDebugLogClick(TObject *Sender);
+    void __fastcall btnCutDebugLogClick(TObject *Sender);
 private:
     TIdUDPServer * udpSLPList[3];
 private:
