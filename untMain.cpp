@@ -28,7 +28,7 @@
 
 #define DEFAULT_MASK 0x00FFFFFF
 
-#define CONTROL_TIMEOUT_COUNT 2
+#define CONTROL_TIMEOUT_COUNT 5
 
 static String inner_mac[5] = {"10-0B-A9-2F-55-90", "00-5A-39-FF-49-28","00-E0-4C-39-17-31","74-D0-2B-95-48-02","00-E0-4C-15-1B-C0"};
 
@@ -1360,7 +1360,8 @@ void TForm1::SendCmd2(D1608Cmd& cmd)
 
     try
     {
-        udpControl->SendBuffer(dst_ip, UDP_PORT_CONTROL, &cmd, sizeof(cmd));
+        int send_size = offsetof(D1608Cmd, data) + cmd.length;    // sizeof(cmd)
+        udpControl->SendBuffer(dst_ip, UDP_PORT_CONTROL, &cmd, send_size);
     }
     catch(...)
     {
@@ -1444,7 +1445,7 @@ void TForm1::SendCmd(D1608Cmd& cmd)
     TPackage package;
     package.udp_port = UDP_PORT_CONTROL;
     memcpy(package.data, &cmd, sizeof(cmd));
-    package.data_size = sizeof(cmd);
+    package.data_size = offsetof(D1608Cmd, data) + cmd.length;    // sizeof(cmd)
 
     // 保存在队列中
     sendcmd_list.insert(sendcmd_list.begin(), package);
@@ -1665,6 +1666,7 @@ void __fastcall TForm1::btnSelectClick(TObject *Sender)
         cmd.type = CMD_TYPE_PRESET;
         cmd.id = GetOffsetOfData(&config_map.op_code.noop);
         cmd.data.s_data_32 = 1;
+        cmd.length = 4;
         SendCmd2(cmd);
     }
 
@@ -1694,7 +1696,7 @@ void __fastcall TForm1::btnSelectClick(TObject *Sender)
     cmd.id = GetOffsetOfData(&config_map.op_code.set_time_ex);
     cmd.data.data_64 = app_time;
     cmd.length = 8;
-    udpControl->SendBuffer(dst_ip, UDP_PORT_CONTROL, &cmd, sizeof(cmd));
+    SendCmd2(cmd);//udpControl->SendBuffer(dst_ip, UDP_PORT_CONTROL, &cmd, sizeof(cmd));
 
     // 发送一次任意消息，让windows可以通过审查
     udpControl->SendBuffer(dst_ip, UDP_PORT_CONTROL+1, "1", 1);
@@ -2030,6 +2032,9 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
         }
         else if (cmd.id == GetOffsetOfData(&config_map.op_code.noop))
         {
+            recv_keeplive_count++;
+            lblKeepLiveCheck->Caption = "发出："+IntToStr(send_keeplive_count)+" 接收："+IntToStr(recv_keeplive_count)+" 差值："+IntToStr(send_keeplive_count-recv_keeplive_count);
+
             //memo_debug->Lines->Add("广播消息序号:"+IntToStr(cmd.seq)+":"+IntToStr(received_cmd_seq));
             if (received_cmd_seq != cmd.seq)
                 received_cmd_seq = cmd.seq;
@@ -2051,7 +2056,8 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             if ((cmd.data.data_32 & 0x80) != 0)
             {
                 cmd.data.data_32 = cmd.data.data_32 & 0x7F;
-                udpControl->SendBuffer(dst_ip, UDP_PORT_CONTROL, &cmd, sizeof(cmd));
+                cmd.length = 4;
+                SendCmd2(cmd);  //udpControl->SendBuffer(dst_ip, UDP_PORT_CONTROL, &cmd, sizeof(cmd));
             }
             keep_live_count = CONTROL_TIMEOUT_COUNT;
             received_cmd_seq = 0;
@@ -2214,15 +2220,15 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             btnMonitor->Visible = GetVersionConfig().is_vote_check || is_inner_pc;
 
             int input_gain = GetVersionConfig().input_gain;
-            iMIC->Visible = input_gain & INPUT_GAIN_MIC;
-            i10dBv->Visible = input_gain & INPUT_GAIN_10dBv;
-            i22dBu->Visible = input_gain & INPUT_GAIN_22dBu;
-            i24dBu->Visible = input_gain & INPUT_GAIN_24dBu;
-            
+            iMIC->Visible = input_gain & INPUT_GAIN_MIC_VALUE;
+            i10dBv->Visible = input_gain & INPUT_GAIN_10dBv_VALUE;
+            i22dBu->Visible = input_gain & INPUT_GAIN_22dBu_VALUE;
+            i24dBu->Visible = input_gain & INPUT_GAIN_24dBu_VALUE;
+
             int output_gain = GetVersionConfig().output_gain;
-            o10dBv->Visible = output_gain & OUTPUT_GAIN_10dBv;
-            o22dBu->Visible = output_gain & OUTPUT_GAIN_22dBu;
-            o24dBu->Visible = output_gain & OUTPUT_GAIN_24dBu;
+            o10dBv->Visible = output_gain & OUTPUT_GAIN_10dBv_VALUE;
+            o22dBu->Visible = output_gain & OUTPUT_GAIN_22dBu_VALUE;
+            o24dBu->Visible = output_gain & OUTPUT_GAIN_24dBu_VALUE;
 
             lblPresetFileName->Caption = global_config.import_filename;
 
@@ -2347,25 +2353,6 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             pbBackup->Position = pbBackup->Max;
             pbBackup->Hide();
             this->Enabled = true;
-#if 0
-            // 发送一个重新加载preset的指令
-            if (preset_cmd.preset & 0x80)
-            {
-                D1608Cmd cmd;
-                cmd.id = GetOffsetOfData(&config_map.op_code.switch_preset);
-                cmd.data.data_32_array[0] = smc_config.global_config.active_preset_id;
-                cmd.data.data_32_array[1] = 1;
-                SendCmd2(cmd);
-            }
-            else if (cur_preset_id == clbAvaliablePreset->ItemIndex+1)
-            {
-                D1608Cmd cmd;
-                cmd.id = GetOffsetOfData(&config_map.op_code.switch_preset);
-                cmd.data.data_32_array[0] = cur_preset_id;
-                cmd.data.data_32_array[1] = 1;
-                SendCmd2(cmd);
-            }
-#endif
         }
         else
         {
@@ -2550,7 +2537,7 @@ bool TForm1::ProcessSendCmdAck(D1608Cmd& cmd, TStream *AData, TIdSocketHandle *A
 
     if (package.udp_port != ABinding->PeerPort)
         return false;
-    if (package.data_size != AData->Size)
+    if (package.data_size > AData->Size)
         return false;
 
     D1608Cmd* package_cmd = (D1608Cmd*)package.data;
@@ -2943,6 +2930,10 @@ static TListItem* AppendLogData(TListView * lvLog, Event event, int address, Str
         item->SubItems->Add("RAM检测错误");
         item->SubItems->Add(IntToHex(event.event_data, 4));
         break;
+    case EVENT_POWER_ON:
+        item->SubItems->Add("开启电源");
+        item->SubItems->Add("启动次数"+IntToStr(event.event_data));
+        break;
     default:
         item->SubItems->Add(event.event_id);
         item->SubItems->Add(IntToHex(event.event_data, 2));
@@ -3021,6 +3012,10 @@ void TForm1::ProcessLogData(int tail_address)
                 event_syn_timer[i] = datetime_of_real;
             }
             break;
+        }
+        if (event_data[i].event_id == EVENT_POWER_ON)
+        {
+            time_base = 0;
         }
     }
 
@@ -3221,7 +3216,9 @@ void __fastcall TForm1::tmWatchTimer(TObject *Sender)
     cmd.type = CMD_TYPE_PRESET;
     cmd.id = GetOffsetOfData(&config_map.op_code.noop);
     cmd.data.s_data_32 = 0;
+    cmd.length = 4;
     SendCmd2(cmd);
+    send_keeplive_count++;
 
     if (udpControl->Active)
     {
@@ -4788,6 +4785,7 @@ void __fastcall TForm1::RecallClick(TObject *Sender)
         D1608Cmd cmd;
         cmd.id = GetOffsetOfData(&config_map.op_code.switch_preset);
         cmd.data.data_32 = menu->Tag;
+        cmd.length = 4;
         SendCmd2(cmd);
 
         // 延时5秒后强制从本地内存更新到界面
@@ -5101,6 +5099,7 @@ void __fastcall TForm1::btnLeaveTheFactoryClick(TObject *Sender)
     D1608Cmd cmd;
     cmd.type = CMD_TYPE_GLOBAL;
     cmd.id = offsetof(GlobalConfig, adjust_running_time);
+    cmd.length = 0;
     SendCmd2(cmd);
 }
 //---------------------------------------------------------------------------
@@ -5474,14 +5473,12 @@ void __fastcall TForm1::SpeedButtonNoFrame2MouseDown(TObject *Sender,
         {
             pnlMist->Show();
             pnlMist->BringToFront();
+            // 自动读取日志
+            if (lvLog->Items->Count == 0 && udpControl->Active)
+            {
+                btnGetLog->Click();
+            }
         }
-        break;
-    case 5:
-        /*if (is_inner_pc)
-        {
-            pnlSearch->Show();
-            pnlSearch->BringToFront();
-        }*/
         break;
     }
 }
@@ -7175,6 +7172,7 @@ void __fastcall TForm1::btnClearDataAndTimeClick(TObject *Sender)
         D1608Cmd cmd;
         cmd.type = CMD_TYPE_GLOBAL;
         cmd.id = offsetof(GlobalConfig, adjust_running_time);
+        cmd.length = 0;
         SendCmd2(cmd);
     }
     {
@@ -7204,6 +7202,12 @@ void __fastcall TForm1::btnCutDebugLogClick(TObject *Sender)
 {
     memo_debug->SelectAll();
     memo_debug->CutToClipboard();
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::lblKeepLiveCheckDblClick(TObject *Sender)
+{
+    send_keeplive_count = 0;
+    recv_keeplive_count = 0;
 }
 //---------------------------------------------------------------------------
 

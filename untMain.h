@@ -531,6 +531,7 @@ __published:	// IDE-managed Components
     TEdit *edtDeviceFullName;
     TButton *btnCopyDebugLog;
     TButton *btnCutDebugLog;
+    TLabel *lblKeepLiveCheck;
     void __fastcall FormCreate(TObject *Sender);
     void __fastcall btnRefreshClick(TObject *Sender);
     void __fastcall udpSLPUDPRead(TObject *Sender, TStream *AData,
@@ -706,6 +707,7 @@ __published:	// IDE-managed Components
           TShiftState Shift, int X, int Y);
     void __fastcall btnCopyDebugLogClick(TObject *Sender);
     void __fastcall btnCutDebugLogClick(TObject *Sender);
+    void __fastcall lblKeepLiveCheckDblClick(TObject *Sender);
 private:
     TIdUDPServer * udpSLPList[3];
 private:
@@ -990,7 +992,9 @@ private:
     bool need_resize;
 
     VersionFunction GetVersionConfig();
-
+private:
+    int send_keeplive_count;
+    int recv_keeplive_count;
 };
 //---------------------------------------------------------------------------
 extern PACKAGE TForm1 *Form1;
