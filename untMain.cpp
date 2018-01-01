@@ -260,7 +260,7 @@ DeviceData last_connection;
 static unsigned int received_cmd_seq = 0;
 //------------------------------------------------
 // 版本兼容信息
-static UINT version = 0x02000002;
+static UINT version = 0x03000002;
 static UINT file_version = 0x00000002;
 // 返回YES或者下位机版本号
 // version_list以0结尾
@@ -1687,6 +1687,8 @@ void __fastcall TForm1::btnSelectClick(TObject *Sender)
     udpControl->Bindings->Items[0]->Port = 0;
     udpControl->Active = true;
 
+    lblCtrlPort->Caption = "端口号: "+IntToStr(udpControl->Bindings->Items[0]->Port);
+
     UpdateCaption();
 
     // 发送上位机时间
@@ -1712,8 +1714,8 @@ void __fastcall TForm1::btnSelectClick(TObject *Sender)
     D1608PresetCmd preset_cmd(version);
     preset_cmd.preset = 0; // 读取global_config
     preset_cmd.store_page = 0;
-    memcpy(package.data, &preset_cmd, sizeof(preset_cmd));
-    package.data_size = sizeof(preset_cmd);
+    memcpy(package.data, &preset_cmd, offsetof(D1608PresetCmd, data)/*sizeof(preset_cmd)*/);
+    package.data_size = offsetof(D1608PresetCmd, data)/*sizeof(preset_cmd)*/;
     read_one_preset_package_list.insert(read_one_preset_package_list.begin(), package);
     if (read_one_preset_package_list.size() == 1)
         udpControl->SendBuffer(dst_ip, package.udp_port, package.data, package.data_size);
@@ -1771,7 +1773,7 @@ void __fastcall TForm1::tmSLPTimer(TObject *Sender)
                 try{
                     udpSLPList[i]->Active = true;
                     String ip = udpSLPList[i]->Bindings->Items[0]->IP;
-                    T_slp_pack slp_pack = {0};
+                    T_slp_pack_Ex slp_pack = {0};
 
                     if (is_inner_pc)
                         memcpy(slp_pack.ip, "ver", 3);
@@ -2023,8 +2025,8 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             D1608PresetCmd preset_cmd(version);
             preset_cmd.preset = 0; // 读取global_config
             preset_cmd.store_page = 0;
-            memcpy(package.data, &preset_cmd, sizeof(preset_cmd));
-            package.data_size = sizeof(preset_cmd);
+            memcpy(package.data, &preset_cmd, offsetof(D1608PresetCmd, data)/*sizeof(preset_cmd)*/);
+            package.data_size = offsetof(D1608PresetCmd, data)/*sizeof(preset_cmd)*/;
             read_one_preset_package_list.insert(read_one_preset_package_list.begin(), package);
 
             if (read_one_preset_package_list.size() == 1)
@@ -2032,8 +2034,14 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
         }
         else if (cmd.id == GetOffsetOfData(&config_map.op_code.noop))
         {
+            static int last_diff = 0;
             recv_keeplive_count++;
             lblKeepLiveCheck->Caption = "发出："+IntToStr(send_keeplive_count)+" 接收："+IntToStr(recv_keeplive_count)+" 差值："+IntToStr(send_keeplive_count-recv_keeplive_count);
+            if (send_keeplive_count-recv_keeplive_count != last_diff)
+            {
+                memo_debug->Lines->Add(GetTime()+"保活序号差值变化:"+IntToStr(last_diff)+" -> "+IntToStr(send_keeplive_count-recv_keeplive_count));
+                last_diff = send_keeplive_count-recv_keeplive_count;
+            }
 
             //memo_debug->Lines->Add("广播消息序号:"+IntToStr(cmd.seq)+":"+IntToStr(received_cmd_seq));
             if (received_cmd_seq != cmd.seq)
@@ -2075,6 +2083,10 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
                 }
                 device_connected = false;
             }
+        }
+        else if (cmd.length == 2909)
+        {
+            memo_debug->Lines->Add("下位机认为失联");
         }
         else
         {
@@ -2188,7 +2200,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
         TPackage package = read_one_preset_package_list.back();
         if (package.udp_port != ABinding->PeerPort)
             return;
-        if (package.data_size != AData->Size)
+        if (package.data_size > AData->Size)
             return;
 
         D1608PresetCmd * send_preset_cmd = (D1608PresetCmd*)package.data;
@@ -2341,7 +2353,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
         TPackage package = package_list.back();
         if (package.udp_port != ABinding->PeerPort)
             return;
-        if (package.data_size != AData->Size)
+        if (package.data_size > AData->Size)
             return;
         if (memcmp(package.data, &preset_cmd, package.data_size) != 0)
             return;
@@ -2376,7 +2388,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
         TPackage package = package_list.back();
         if (package.udp_port != ABinding->PeerPort)
             return;
-        if (package.data_size != AData->Size)
+        if (package.data_size > AData->Size)
             return;
 
         FlashRW_Data * send_flash_rw_cmd = (FlashRW_Data*)package.data;
@@ -2684,9 +2696,8 @@ static String GetNameOfAdc(int index)
     else
         return IntToStr(index);
 }
-static TListItem* AppendLogData(TListView * lvLog, Event event, int address, String syn_time)
+static void AppendLogData( TListItem* item, Event event, int address, String syn_time)
 {
-    TListItem * item = lvLog->Items->Add();
     unsigned int event_timer = event.timer;
     item->Data = (void*)address;
 
@@ -2704,7 +2715,7 @@ static TListItem* AppendLogData(TListView * lvLog, Event event, int address, Str
     {
     case EVENT_POWER_OFF:
         item->SubItems->Add("关闭电源");
-        item->SubItems->Add("启动次数"+IntToStr(event.event_data));
+        item->SubItems->Add("下次启动次数"+IntToStr(event.event_data));
         break;
     case EVENT_SYSTEM_LIMIT:
         item->SubItems->Add("达到运行次数或时间限制");
@@ -2859,7 +2870,7 @@ static TListItem* AppendLogData(TListView * lvLog, Event event, int address, Str
         item->SubItems->Add("");
         break;
     case EVENT_IWDG_REBOOT:
-        item->SubItems->Add("看门狗异常(错误)");
+        item->SubItems->Add("上次运行期间看门狗异常错误");
         item->SubItems->Add("");
         break;
     case EVENT_POWER_SAVE_ERROR:
@@ -2932,7 +2943,7 @@ static TListItem* AppendLogData(TListView * lvLog, Event event, int address, Str
         break;
     case EVENT_POWER_ON:
         item->SubItems->Add("开启电源");
-        item->SubItems->Add("启动次数"+IntToStr(event.event_data));
+        item->SubItems->Add("本次启动次数"+IntToStr(event.event_data));
         break;
     default:
         item->SubItems->Add(event.event_id);
@@ -2941,8 +2952,6 @@ static TListItem* AppendLogData(TListView * lvLog, Event event, int address, Str
     }
 
     item->SubItems->Add(syn_time);
-
-    return item;
 }
 void TForm1::ProcessLogData(int tail_address)
 {
@@ -3062,7 +3071,7 @@ void TForm1::ProcessLogData(int tail_address)
         int address = tail_address + LOG_SIZE - (i+1)*sizeof(Event);
         if (address >= LOG_START_PAGE+LOG_SIZE)
             address -= LOG_SIZE;
-        AppendLogData(lvLog, event_data[i], address, event_syn_timer[i]);
+        AppendLogData(lvLog->Items->Add(), event_data[i], address, event_syn_timer[i]);
     }
 }
 bool TForm1::ProcessLogBuffAck(LogBuff& buff, TStream *AData, TIdSocketHandle *ABinding)
@@ -3070,7 +3079,7 @@ bool TForm1::ProcessLogBuffAck(LogBuff& buff, TStream *AData, TIdSocketHandle *A
     TPackage package = sendcmd_list.back();
     if (package.udp_port != ABinding->PeerPort)
         return false;
-    if (package.data_size != AData->Size)
+    if (package.data_size > AData->Size)
         return false;
 
     LogBuff* package_buff = (LogBuff*)package.data;
@@ -3304,7 +3313,7 @@ void __fastcall TForm1::ToogleOutputMix(TObject *Sender)
 
         pnlMix->Left = input_panel_dsp_btn->Left;//output_panel_number_btn->Left;//Width - 30 - pnlMix->Width;
 
-        pnlMix->Top = btn->Top + btn->Height + 10;//312;
+        pnlMix->Top = btn->Top;// + btn->Height + 10;//312;
         pnlMix->Show();
         pnlMix->Tag = btn->Tag;
 
@@ -4318,9 +4327,9 @@ void __fastcall TForm1::btnLoadPresetFromFileClick(TObject *Sender)
                 }
 
                 TPackage package;
-                memcpy(package.data, &preset_cmd, sizeof(preset_cmd));
+                memcpy(package.data, &preset_cmd, offsetof(D1608PresetCmd, data)/*sizeof(preset_cmd)*/);
                 package.udp_port = UDP_PORT_STORE_PRESET_PC2FLASH;
-                package.data_size = sizeof(preset_cmd);
+                package.data_size = offsetof(D1608PresetCmd, data)/*sizeof(preset_cmd)*/;
 
                 package_list.push_back(package);
             }
@@ -6400,9 +6409,9 @@ void __fastcall TForm1::btnLoadFileToFlashClick(TObject *Sender)
                 memcpy(preset_cmd.data, &smc_config.global_config, sizeof(smc_config.global_config));
 
                 TPackage package;
-                memcpy(package.data, &preset_cmd, sizeof(preset_cmd));
+                memcpy(package.data, &preset_cmd, offsetof(D1608PresetCmd, data)/*sizeof(preset_cmd)*/);
                 package.udp_port = UDP_PORT_STORE_PRESET_PC2FLASH;
-                package.data_size = sizeof(preset_cmd);
+                package.data_size = offsetof(D1608PresetCmd, data)/*sizeof(preset_cmd)*/;
 
                 package_list.push_back(package);
             }
@@ -6448,9 +6457,9 @@ void __fastcall TForm1::btnLoadFileToFlashClick(TObject *Sender)
                         }
 
                         TPackage package;
-                        memcpy(package.data, &preset_cmd, sizeof(preset_cmd));
+                        memcpy(package.data, &preset_cmd, offsetof(D1608PresetCmd, data)/*sizeof(preset_cmd)*/);
                         package.udp_port = UDP_PORT_STORE_PRESET_PC2FLASH;
-                        package.data_size = sizeof(preset_cmd);
+                        package.data_size = offsetof(D1608PresetCmd, data)/*sizeof(preset_cmd)*/;
 
                         package_list.push_back(package);
                     }
@@ -6463,9 +6472,9 @@ void __fastcall TForm1::btnLoadFileToFlashClick(TObject *Sender)
                 preset_cmd.preset = 0x89;
 
                 TPackage package;
-                memcpy(package.data, &preset_cmd, sizeof(preset_cmd));
+                memcpy(package.data, &preset_cmd, offsetof(D1608PresetCmd, data)/*sizeof(preset_cmd)*/);
                 package.udp_port = UDP_PORT_STORE_PRESET_PC2FLASH;
-                package.data_size = sizeof(preset_cmd);
+                package.data_size = offsetof(D1608PresetCmd, data)/*sizeof(preset_cmd)*/;
 
                 package_list.push_back(package);
             }
@@ -6937,8 +6946,8 @@ void TForm1::StartReadOnePackage(int preset_id)
 
         TPackage package;
         package.udp_port = UDP_PORT_READ_PRESET;
-        memcpy(package.data, &preset_cmd, sizeof(preset_cmd));
-        package.data_size = sizeof(preset_cmd);
+        memcpy(package.data, &preset_cmd, offsetof(D1608PresetCmd, data)/*sizeof(preset_cmd)*/);
+        package.data_size = offsetof(D1608PresetCmd, data)/*sizeof(preset_cmd)*/;
 
         read_one_preset_package_list.push_back(package);
     }
@@ -7208,6 +7217,11 @@ void __fastcall TForm1::lblKeepLiveCheckDblClick(TObject *Sender)
 {
     send_keeplive_count = 0;
     recv_keeplive_count = 0;
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::lvLogData(TObject *Sender, TListItem *Item)
+{
+    //
 }
 //---------------------------------------------------------------------------
 
