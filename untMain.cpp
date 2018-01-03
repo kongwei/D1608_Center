@@ -1701,10 +1701,6 @@ void __fastcall TForm1::btnSelectClick(TObject *Sender)
     cmd.length = 8;
     SendCmd2(cmd);//udpControl->SendBuffer(dst_ip, UDP_PORT_CONTROL, &cmd, sizeof(cmd));
 
-    // 发送一次任意消息，让windows可以通过审查
-    udpControl->SendBuffer(dst_ip, UDP_PORT_CONTROL+1, "1", 1);
-
-
     StartReadOnePackage(0xFF);
     restor_delay_count = 15;
     tmDelayBackup->Enabled = true;
@@ -1954,84 +1950,90 @@ String IntOrZeroSring(int value)
 {
     return String((value>0?value:0));
 }
-void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
-      TIdSocketHandle *ABinding)
+void TForm1::ProcessPackageMessageFeedback(D1608Cmd & cmd)
 {
-    if (ABinding->PeerPort == UDP_PORT_CONTROL+1 && received_cmd_seq != 0)
+    SynMsg * syn_msg_buf = cmd.data.syn_msg;
+
+    unsigned int oldest_msg_id = syn_msg_buf[0].msg_id;
+    unsigned int current_msg_id = syn_msg_buf[0].msg_id;
+
+    for (int i=0;i<RECORD_MSG_SIZE;i++)
     {
-        SynMsg syn_msg_buf[RECORD_MSG_SIZE];
-        AData->ReadBuffer(&syn_msg_buf, std::min(sizeof(syn_msg_buf), AData->Size));
-        //memo_debug->Lines->Add("recv syn msg");
-
-        unsigned int oldest_msg_id = syn_msg_buf[0].msg_id;
-        unsigned int current_msg_id = syn_msg_buf[0].msg_id;
-
+        SynMsg syn_msg = syn_msg_buf[i];
+        oldest_msg_id = min(oldest_msg_id, syn_msg.msg_id);
+        current_msg_id = max(current_msg_id, syn_msg.msg_id);
+    }
+    // 失联判断
+    if (received_cmd_seq < oldest_msg_id)
+    {
+        memo_debug->Lines->Add("失联: local="+IntToStr(received_cmd_seq)+", device="+IntToStr(oldest_msg_id)+"-"+IntToStr(current_msg_id));
+        keep_live_count = CONTROL_TIMEOUT_COUNT;
+    }
+    else if (received_cmd_seq >= current_msg_id)
+    {
+        memo_debug->Lines->Add("syn do not need: device_msg_id="+IntToStr(current_msg_id)+", pc__msg_id="+IntToStr(received_cmd_seq));
+    }
+    else
+    {
+        //memo_debug->Lines->Add("syn msg");
         for (int i=0;i<RECORD_MSG_SIZE;i++)
         {
             SynMsg syn_msg = syn_msg_buf[i];
-            oldest_msg_id = min(oldest_msg_id, syn_msg.msg_id);
-            current_msg_id = max(current_msg_id, syn_msg.msg_id);
-        }
-        // 失联判断
-        if (received_cmd_seq < oldest_msg_id)
-        {
-            memo_debug->Lines->Add("失联: local="+IntToStr(received_cmd_seq)+", device="+IntToStr(oldest_msg_id)+"-"+IntToStr(current_msg_id));
-            keep_live_count = CONTROL_TIMEOUT_COUNT;
-        }
-        else if (received_cmd_seq >= current_msg_id)
-        {
-            memo_debug->Lines->Add("syn do not need: device_msg_id="+IntToStr(current_msg_id)+", pc__msg_id="+IntToStr(received_cmd_seq));
-        }
-        else
-        {
-            //memo_debug->Lines->Add("syn msg");
-            for (int i=0;i<RECORD_MSG_SIZE;i++)
+            if (syn_msg.msg_id > received_cmd_seq)
             {
-                SynMsg syn_msg = syn_msg_buf[i];
-                if (syn_msg.msg_id > received_cmd_seq)
+                // 防止自己响应
+                if (sendcmd_list.size() > 0)
                 {
-                    // 防止自己响应
-                    if (sendcmd_list.size() > 0)
-                    {
-                        TPackage package = sendcmd_list.back();
-                        D1608Cmd* package_cmd = (D1608Cmd*)package.data;
-                        if (syn_msg.cmd_id == package_cmd->id)
-                            continue;
-                    }
-
-                    int msg_data_length = CmdDataLength(syn_msg.cmd_id);
-                    memcpy(((char*)(&config_map))+syn_msg.cmd_id, (char*)&syn_msg.data, msg_data_length);
-                    OnFeedbackData(syn_msg.cmd_id);
-                    //memo_debug->Lines->Add("syn cmd: " + IntToStr(syn_msg.cmd_id));
+                    TPackage package = sendcmd_list.back();
+                    D1608Cmd* package_cmd = (D1608Cmd*)package.data;
+                    if (syn_msg.cmd_id == package_cmd->id)
+                        continue;
                 }
+
+                int msg_data_length = CmdDataLength(syn_msg.cmd_id);
+                memcpy(((char*)(&config_map))+syn_msg.cmd_id, (char*)&syn_msg.data, msg_data_length);
+                OnFeedbackData(syn_msg.cmd_id);
+                //memo_debug->Lines->Add("syn cmd: " + IntToStr(syn_msg.cmd_id));
             }
         }
-        received_cmd_seq = current_msg_id;
-
-        if (keep_live_count<CONTROL_TIMEOUT_COUNT)
-            keep_live_count = 0;
-
-        if ( (double)(Now() - last_keeplive_time) > (1.0f/24/60/60) )
-        {
-            D1608Cmd cmd;
-            cmd.seq = received_cmd_seq;
-            cmd.type = CMD_TYPE_PRESET;
-            cmd.id = GetOffsetOfData(&config_map.op_code.noop);
-            cmd.data.s_data_32 = 0;
-            cmd.length = 4;
-            SendCmd2(cmd);
-            send_keeplive_count++;
-            last_keeplive_time = Now();
-            memo_debug->Lines->Add(GetTime()+"发送保活: " + IntToStr(keep_live_count));
-        }
     }
-    else if (ABinding->PeerPort == UDP_PORT_CONTROL)
+    received_cmd_seq = current_msg_id;
+
+    if (keep_live_count<CONTROL_TIMEOUT_COUNT)
+        keep_live_count = 0;
+
+    if ( (double)(Now() - last_keeplive_time) > (1.0f/24/60/60) )
+    {
+        D1608Cmd cmd;
+        cmd.seq = received_cmd_seq;
+        cmd.type = CMD_TYPE_PRESET;
+        cmd.id = GetOffsetOfData(&config_map.op_code.noop);
+        cmd.data.s_data_32 = 0;
+        cmd.length = 4;
+        SendCmd2(cmd);
+        send_keeplive_count++;
+        last_keeplive_time = Now();
+        memo_debug->Lines->Add(GetTime()+"发送保活: " + IntToStr(keep_live_count));
+    }
+}
+void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
+      TIdSocketHandle *ABinding)
+{
+    if (ABinding->PeerPort == UDP_PORT_CONTROL)
     {
         D1608Cmd cmd;
         AData->ReadBuffer(&cmd, std::min(sizeof(cmd), AData->Size));
 
+        if (cmd.type == CMD_TYPE_DATA_FEEDBACK)
+        {
+            // 没有初始化完毕，不处理数据回报
+            if (received_cmd_seq != 0)
+            {
+                ProcessPackageMessageFeedback(cmd);
+            }
+        }
         // id == 1 表示全局配置
-        if (cmd.type == CMD_TYPE_GLOBAL)
+        else if (cmd.type == CMD_TYPE_GLOBAL)
         {
             // 重新获取数据
             TPackage package;
@@ -3241,11 +3243,6 @@ void __fastcall TForm1::tmWatchTimer(TObject *Sender)
     send_keeplive_count++;
     last_keeplive_time = Now();
 
-    if (udpControl->Active)
-    {
-        // 发送一次任意消息，让windows可以通过审查
-        udpControl->SendBuffer(dst_ip, UDP_PORT_CONTROL+1, "1", 1);
-    }
     // 检测resize事件
     if (need_resize)
     {
