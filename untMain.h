@@ -710,6 +710,7 @@ __published:	// IDE-managed Components
     void __fastcall btnCutDebugLogClick(TObject *Sender);
     void __fastcall lblKeepLiveCheckDblClick(TObject *Sender);
     void __fastcall lvLogData(TObject *Sender, TListItem *Item);
+    void __fastcall output_panel_level_editEnter(TObject *Sender);
 private:
     TIdUDPServer * udpSLPList[3];
 private:
@@ -747,6 +748,7 @@ public:
     bool ProcessSendCmdAck(D1608Cmd& cmd, TStream *AData, TIdSocketHandle *ABinding);
 
 private:
+    int log_count;
     Event event_data[EVENT_POOL_SIZE];
     Event event_data_tmp[EVENT_POOL_SIZE];
     String event_syn_timer[EVENT_POOL_SIZE];
@@ -799,6 +801,9 @@ private:
         }
         return "";
     }
+
+    int mac_count;
+    MacCode mac_data[256];
     void ProcessMACLog(LogBuff & buff)
     {
         // MAC地址
@@ -806,6 +811,12 @@ private:
         {
             if (memcmp(buff.mac[i], "\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF", 8) != 0)
             {
+                memcpy(&mac_data[mac_count], buff.mac[i], sizeof(MacCode));
+                mac_count++;
+            }
+        }
+        /*
+
                 TListItem * item = lvLog->Items->Add();
 
                 item->Caption = "";
@@ -816,31 +827,17 @@ private:
                                     buff.mac[i][3], buff.mac[i][4], buff.mac[i][5]);
                 item->SubItems->Add(mac_string);
                 item->SubItems->Add(InnerMacInfo(mac_string));
-                item->SubItems->Add("");
-            }
-        }
+                item->SubItems->Add("");        */
+
+
     }
 
-    void CalcLogMacCount()
-    {
-        int log_count = 0;
-        int mac_count = 0;
-        for (int i=0;i<lvLog->Items->Count;i++)
-        {
-            if (lvLog->Items->Item[i]->Caption == "")
-                mac_count++;
-            else if (lvLog->Items->Item[i]->SubItems->Strings[0] != "")
-                log_count++;
-        }
-        lblLogCount->Caption = "日志数量："+IntToStr(log_count) + "   MAC数量："+IntToStr(mac_count);
-    }
-    
     void SendLogBuff(int udp_port, void * buff, int size);
     bool ProcessLogBuffAck(LogBuff& buff, TStream *AData, TIdSocketHandle *ABinding);
 
     // 最大启动次数地址
-    unsigned int log_tail_address;
-    void ProcessLogData(int tail_address);
+    unsigned int tail_address;
+    void ProcessLogData();
 //----------------------------------
 private:
     PanelAgent* panel_agent;
@@ -938,7 +935,6 @@ private:
     unsigned __int64 running_timer;
     int roboot_count;
 
-    int tmWatch_count;
     // 0-3 正常； 4 初始化； >=5 失联
     int keep_live_count;
     bool device_connected;
@@ -995,8 +991,12 @@ private:
 
     VersionFunction GetVersionConfig();
 private:
+    int broken_count;
     int send_keeplive_count;
     int recv_keeplive_count;
+    TTime last_keeplive_time;
+
+    void CloseControlLink(String reason);
 };
 //---------------------------------------------------------------------------
 extern PACKAGE TForm1 *Form1;

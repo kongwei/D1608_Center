@@ -1076,29 +1076,30 @@ __fastcall TForm1::TForm1(TComponent* Owner)
     udpSLPList[2] = udpSLP2;
     tmSLP->Enabled = true;
 
+    int base_order = 0;
     // 整理 TabOrder
     for (int i=0;i<16;i++)
     {
         if (input_level_edit[i] != NULL)
-            input_level_edit[i]->TabOrder = 10+i;
+            input_level_edit[i]->TabOrder = base_order+i;
     }
-    master_panel_level_edit->TabOrder = 10+16+0;
+    master_panel_level_edit->TabOrder = base_order+16+0;
     for (int i=0;i<16;i++)
     {
         if (output_level_edit[i] != NULL)
-            output_level_edit[i]->TabOrder = 10+16+1+i;
+            output_level_edit[i]->TabOrder = base_order+16+1+i;
     }
 
     for (int i=0;i<16;i++)
     {
         if (input_level_trackbar[i] != NULL)
-            input_level_trackbar[i]->TabOrder = 10+16+1+16+i;
+            input_level_trackbar[i]->TabOrder = base_order+16+1+16+i;
     }
-    master_panel_trackbar->TabOrder = 10+16+1+16+16+0;
+    master_panel_trackbar->TabOrder = base_order+16+1+16+16+0;
     for (int i=0;i<16;i++)
     {
         if (output_level_trackbar[i] != NULL)
-            output_level_trackbar[i]->TabOrder = 10+16+1+16+16+1+i;
+            output_level_trackbar[i]->TabOrder = base_order+16+1+16+16+1+i;
     }
 }
 //---------------------------------------------------------------------------
@@ -1365,7 +1366,7 @@ void TForm1::SendCmd2(D1608Cmd& cmd)
     }
     catch(...)
     {
-        udpControl->Active = false;
+        CloseControlLink("发送消息失败, SendCmd2");
     }
 // TODO: 上面修改了 return 之后，这一段失效了
 #if 0
@@ -1399,7 +1400,7 @@ void TForm1::SendLogBuff(int udp_port, void * buff, int size)
         }
         catch(...)
         {
-            udpControl->Active = false;
+            CloseControlLink("发送消息失败, SendLogBuff");
         }
         sendcmd_delay_count = 15;
     }
@@ -1680,7 +1681,7 @@ void __fastcall TForm1::btnSelectClick(TObject *Sender)
 
     sendcmd_list.clear();
     // 初始化socket
-    udpControl->Active = false;
+    CloseControlLink("准备连接到新的下位机, 重置连接");
     udpControl->Bindings->Clear();
     udpControl->Bindings->Add();
     udpControl->Bindings->Items[0]->IP = broadcast_ip;
@@ -2009,6 +2010,20 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
 
         if (keep_live_count<CONTROL_TIMEOUT_COUNT)
             keep_live_count = 0;
+
+        if ( (double)(Now() - last_keeplive_time) > (1.0f/24/60/60) )
+        {
+            D1608Cmd cmd;
+            cmd.seq = received_cmd_seq;
+            cmd.type = CMD_TYPE_PRESET;
+            cmd.id = GetOffsetOfData(&config_map.op_code.noop);
+            cmd.data.s_data_32 = 0;
+            cmd.length = 4;
+            SendCmd2(cmd);
+            send_keeplive_count++;
+            last_keeplive_time = Now();
+            memo_debug->Lines->Add(GetTime()+"发送保活: " + IntToStr(keep_live_count));
+        }
     }
     else if (ABinding->PeerPort == UDP_PORT_CONTROL)
     {
@@ -2032,11 +2047,15 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             if (read_one_preset_package_list.size() == 1)
                 udpControl->SendBuffer(dst_ip, package.udp_port, package.data, package.data_size);
         }
+        else if (cmd.length == 2909)
+        {
+            memo_debug->Lines->Add("下位机认为失联");
+        }
         else if (cmd.id == GetOffsetOfData(&config_map.op_code.noop))
         {
             static int last_diff = 0;
             recv_keeplive_count++;
-            lblKeepLiveCheck->Caption = "发出："+IntToStr(send_keeplive_count)+" 接收："+IntToStr(recv_keeplive_count)+" 差值："+IntToStr(send_keeplive_count-recv_keeplive_count);
+            lblKeepLiveCheck->Caption = "发出："+IntToStr(send_keeplive_count)+" 接收："+IntToStr(recv_keeplive_count)+" 差值："+IntToStr(send_keeplive_count-recv_keeplive_count)+" 断开链路次数:"+IntToStr(broken_count);
             if (send_keeplive_count-recv_keeplive_count != last_diff)
             {
                 memo_debug->Lines->Add(GetTime()+"保活序号差值变化:"+IntToStr(last_diff)+" -> "+IntToStr(send_keeplive_count-recv_keeplive_count));
@@ -2084,10 +2103,6 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
                 device_connected = false;
             }
         }
-        else if (cmd.length == 2909)
-        {
-            memo_debug->Lines->Add("下位机认为失联");
-        }
         else
         {
             if (cmd.seq != 0)
@@ -2112,8 +2127,6 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
                             loose_msg_id.push_back(msg_id);
                         }
                     }
-                    // 立即处理
-                    tmWatch_count = 100;
                 }
                 received_cmd_seq = cmd.seq;
                 if (keep_live_count<CONTROL_TIMEOUT_COUNT)
@@ -2145,13 +2158,20 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             {
                 if (buff.address == MAC_LIST_START_PAGE)
                 {
-                    ProcessLogData(buff.tail_address);
+                    tail_address = buff.tail_address;
+                    ProcessLogData();
+                    mac_count = 0;
                 }
+
                 ProcessMACLog(buff);
 
-                btnGetLog->Enabled = true;
+                if (buff.address == MAC_LIST_START_PAGE+1024)
+                {
+                    btnGetLog->Enabled = true;
+                    lvLog->Items->Count = log_count + mac_count;
 
-                CalcLogMacCount();
+                    lblLogCount->Caption = "日志数量："+IntToStr(log_count) + "   MAC数量："+IntToStr(mac_count);
+                }
             }
         }
 
@@ -2696,7 +2716,7 @@ static String GetNameOfAdc(int index)
     else
         return IntToStr(index);
 }
-static void AppendLogData( TListItem* item, Event event, int address, String syn_time)
+static void ApplyLogData( TListItem* item, Event event, int address, String syn_time)
 {
     unsigned int event_timer = event.timer;
     item->Data = (void*)address;
@@ -2945,6 +2965,10 @@ static void AppendLogData( TListItem* item, Event event, int address, String syn
         item->SubItems->Add("开启电源");
         item->SubItems->Add("本次启动次数"+IntToStr(event.event_data));
         break;
+    case EVENT_STACK_OVERFLOW:
+        item->SubItems->Add("栈溢出错误");
+        item->SubItems->Add(IntToStr(event.event_data));
+        break;
     default:
         item->SubItems->Add(event.event_id);
         item->SubItems->Add(IntToHex(event.event_data, 2));
@@ -2953,10 +2977,9 @@ static void AppendLogData( TListItem* item, Event event, int address, String syn
 
     item->SubItems->Add(syn_time);
 }
-void TForm1::ProcessLogData(int tail_address)
+void TForm1::ProcessLogData()
 {
     int log_tail_index = (tail_address-LOG_START_PAGE) / sizeof(Event);
-    int last_log_index = 0;
     // 移动日志，使得符合顺序，同时记录最后一条有效日志索引
     for (int i=0;i<EVENT_POOL_SIZE;i++)
     {
@@ -2966,7 +2989,7 @@ void TForm1::ProcessLogData(int tail_address)
 
         if (event_data[i].timer != 0xFFFFFFFF)
         {
-            last_log_index = i;
+            log_count = i+1;
         }
 
         // 同时清除同步时间
@@ -2975,7 +2998,7 @@ void TForm1::ProcessLogData(int tail_address)
 
     unsigned __int64 time_base = 0;
     // 向下计算时间
-    for (int i=0;i<=last_log_index;i++)
+    for (int i=0;i<log_count;i++)
     {
         // 计算同步时间
         switch (event_data[i].event_id)
@@ -3029,7 +3052,7 @@ void TForm1::ProcessLogData(int tail_address)
     }
 
     // 向上计算时间
-    for (int i=last_log_index;i>=0;i--)
+    for (int i=log_count-1;i>=0;i--)
     {
         // 计算同步时间
         switch (event_data[i].event_id)
@@ -3064,14 +3087,6 @@ void TForm1::ProcessLogData(int tail_address)
             }
             break;
         }
-    }
-
-    for (int i=0;i<=last_log_index;i++)
-    {
-        int address = tail_address + LOG_SIZE - (i+1)*sizeof(Event);
-        if (address >= LOG_START_PAGE+LOG_SIZE)
-            address -= LOG_SIZE;
-        AppendLogData(lvLog->Items->Add(), event_data[i], address, event_syn_timer[i]);
     }
 }
 bool TForm1::ProcessLogBuffAck(LogBuff& buff, TStream *AData, TIdSocketHandle *ABinding)
@@ -3156,12 +3171,7 @@ void TForm1::ProcessWatchLevel(int watch_level[INPUT_DSP_NUM + OUTPUT_DSP_NUM], 
 //---------------------------------------------------------------------------
 void __fastcall TForm1::tmWatchTimer(TObject *Sender)
 {
-    //tmWatch_count++;
-    //if (tmWatch_count < 100)
-    //    return;
-
-    // 重置并触发
-    tmWatch_count = 0;
+    memo_debug->Lines->Add(GetTime()+"保活计数器事件: " + (udpControl->Active?"link":"unlink"));
 
     bool _disconnected;
     if (is_manual_disconnect)
@@ -3180,6 +3190,7 @@ void __fastcall TForm1::tmWatchTimer(TObject *Sender)
         if ((keep_live_count < CONTROL_TIMEOUT_COUNT) && udpControl->Active)
         {
             keep_live_count++;
+            memo_debug->Lines->Add(GetTime()+"保活计数器++: " + IntToStr(keep_live_count));
             _disconnected = false;
         }
         else
@@ -3190,7 +3201,7 @@ void __fastcall TForm1::tmWatchTimer(TObject *Sender)
 
     if (_disconnected)
     {
-        udpControl->Active = false;
+        CloseControlLink("保活超时");
         sendcmd_list.empty();
         shape_live->Hide();
         shape_link->Hide();
@@ -3228,6 +3239,7 @@ void __fastcall TForm1::tmWatchTimer(TObject *Sender)
     cmd.length = 4;
     SendCmd2(cmd);
     send_keeplive_count++;
+    last_keeplive_time = Now();
 
     if (udpControl->Active)
     {
@@ -4851,8 +4863,6 @@ void __fastcall TForm1::btnGetLogClick(TObject *Sender)
     {
         SendLogBuff(UDP_PORT_READ_LOG, &buff, sizeof(buff));
     }
-
-    log_tail_address = LOG_START_PAGE;
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::btnGetDebugClick(TObject *Sender)
@@ -5462,6 +5472,8 @@ void __fastcall TForm1::SpeedButtonNoFrame2MouseDown(TObject *Sender,
     int tag = control->Tag;
     if (Button == mbRight)
         tag = tag + 3;
+
+    ActiveControl = NULL;
 
     switch (tag)
     {
@@ -6384,7 +6396,9 @@ void __fastcall TForm1::btnLoadFileToFlashClick(TObject *Sender)
             lvLog->Clear();
             memcpy(event_data_tmp, smc_config.device_flash_dump+PRESET_SIZE, LOG_SIZE);
             Event * tail = GetLogPtr(event_data_tmp);
-            ProcessLogData((tail - event_data_tmp)*sizeof(Event)+LOG_START_PAGE);
+            tail_address = (tail - event_data_tmp)*sizeof(Event)+LOG_START_PAGE;
+            ProcessLogData();
+            mac_count = 0;
 
             LogBuff buff;
             memcpy(&buff, smc_config.device_flash_dump+PRESET_SIZE+LOG_SIZE, sizeof(buff));
@@ -6392,7 +6406,9 @@ void __fastcall TForm1::btnLoadFileToFlashClick(TObject *Sender)
             memcpy(&buff, smc_config.device_flash_dump+PRESET_SIZE+LOG_SIZE+sizeof(buff), sizeof(buff));
             ProcessMACLog(buff);
 
-            CalcLogMacCount();
+            lvLog->Items->Count = log_count + mac_count;
+
+            lblLogCount->Caption = "日志数量："+IntToStr(log_count) + "   MAC数量："+IntToStr(mac_count);
         }
         else
         {
@@ -7215,13 +7231,47 @@ void __fastcall TForm1::btnCutDebugLogClick(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TForm1::lblKeepLiveCheckDblClick(TObject *Sender)
 {
+    broken_count = 0;
     send_keeplive_count = 0;
     recv_keeplive_count = 0;
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::lvLogData(TObject *Sender, TListItem *Item)
 {
-    //
+    if (Item->Index < log_count)
+    {
+        int address = tail_address + LOG_SIZE - (Item->Index+1)*sizeof(Event);
+        if (address >= LOG_START_PAGE+LOG_SIZE)
+            address -= LOG_SIZE;
+        ApplyLogData(Item, event_data[Item->Index], address, event_syn_timer[Item->Index]);
+    }
+    else
+    {
+        int mac_index = Item->Index - log_count;
+
+        Item->Caption = "";
+        Item->SubItems->Add("mac");
+        String mac_string;
+        mac_string.sprintf("%02X-%02X-%02X-%02X-%02X-%02X",
+                            mac_data[mac_index][0], mac_data[mac_index][1], mac_data[mac_index][2],
+                            mac_data[mac_index][3], mac_data[mac_index][4], mac_data[mac_index][5]);
+        Item->SubItems->Add(mac_string);
+        Item->SubItems->Add(InnerMacInfo(mac_string));
+        Item->SubItems->Add("");
+    }
+}
+//---------------------------------------------------------------------------
+void TForm1::CloseControlLink(String reason)
+{
+    memo_debug->Lines->Add(GetTime()+"上位机失关闭连接: " + reason);
+    udpControl->Active = false;
+    broken_count++;
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::output_panel_level_editEnter(TObject *Sender)
+{
+    TEdit * edt = (TEdit*)Sender;
+    edt->SelectAll();
 }
 //---------------------------------------------------------------------------
 
