@@ -1745,6 +1745,7 @@ void __fastcall TForm1::btnSelectClick(TObject *Sender)
 
     ClearUI();   
     edtDeviceFullName_data = selected->SubItems->Strings[4]+"-"+lvDevice->Selected->SubItems->Strings[7];
+    tmWatch->Enabled = false;
 
     // 从数据中获取版本信息
     last_connection = *(DeviceData*)selected->Data;
@@ -2361,6 +2362,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
 
             lblVersion->Caption = VersionToStr(last_connection.data.version)+ " " +VersionToStr(version);
             edtDeviceFullName->Text = edtDeviceFullName_data;
+            tmWatch->Enabled = true;
         }
         else
         {
