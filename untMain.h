@@ -852,7 +852,9 @@ private:
     }
     int mireg0;
 
+    String edtDeviceFullName_data;
     void __fastcall ApplyConfigToUI();
+    void __fastcall ClearUI();
 
     String preset_lib_filename;
     void __fastcall SetPresetLibFilename(String filename);

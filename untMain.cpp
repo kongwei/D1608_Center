@@ -1558,7 +1558,7 @@ void __fastcall TForm1::btnRefreshClick(TObject *Sender)
         else
         {
             lblDeviceName->Caption = lvDevice->Selected->SubItems->Strings[4]+"-"+lvDevice->Selected->SubItems->Strings[7];
-            edtDeviceFullName->Text = lvDevice->Selected->SubItems->Strings[4]+"-"+lvDevice->Selected->SubItems->Strings[7];
+            //edtDeviceFullName_data = lvDevice->Selected->SubItems->Strings[4]+"-"+lvDevice->Selected->SubItems->Strings[7];
             if (lblDeviceName->Caption.Length() > 16)
                 lblDeviceName->Caption = lvDevice->Selected->SubItems->Strings[4];
         }
@@ -1743,9 +1743,11 @@ void __fastcall TForm1::btnSelectClick(TObject *Sender)
 
     edtMAC->Text = selected->SubItems->Strings[6];
 
+    ClearUI();   
+    edtDeviceFullName_data = selected->SubItems->Strings[4]+"-"+lvDevice->Selected->SubItems->Strings[7];
+
     // 从数据中获取版本信息
     last_connection = *(DeviceData*)selected->Data;
-    lblVersion->Caption = VersionToStr(last_connection.data.version)+ " " +VersionToStr(version);
     lblDeviceInfo->Caption = "VERSION " + VersionToStr(last_connection.data.version);
     lblDeviceInfo->Hide();
 
@@ -2356,6 +2358,9 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             ApplyConfigToUI();
             CloseDspDetail();
             memo_debug->Lines->Add(GetTime()+"同步完成");
+
+            lblVersion->Caption = VersionToStr(last_connection.data.version)+ " " +VersionToStr(version);
+            edtDeviceFullName->Text = edtDeviceFullName_data;
         }
         else
         {
@@ -3221,16 +3226,7 @@ void __fastcall TForm1::tmWatchTimer(TObject *Sender)
         device_connected = false;
         received_cmd_seq = 0;
 
-        edtDeviceType->Text = "N/A";
-        edtCmdId->Text = "N/A";
-        edtDeviceFullName->Text = "N/A";
-        edtStartBuildTime->Text = "N/A";
-        lblDeviceRunningTime->Caption = "----";
-        lblDeviceRunningTime2->Caption = "----";
-        lblVersion->Caption = "-------- " +VersionToStr(version);
-
-        lblDeviceName->Caption = "";
-        lblDeviceInfo->Caption = "";
+        ClearUI();
     }
 
     D1608Cmd cmd;
@@ -4388,6 +4384,19 @@ static String OutputGain2String(int gain)
     }
 
     return "ERROR";
+}
+void __fastcall TForm1::ClearUI()
+{
+    edtDeviceType->Text = "N/A";
+    edtCmdId->Text = "N/A";
+    edtDeviceFullName->Text = "N/A";
+    edtStartBuildTime->Text = "N/A";
+    lblDeviceRunningTime->Caption = "----";
+    lblDeviceRunningTime2->Caption = "----";
+    lblVersion->Caption = "-------- " +VersionToStr(version);
+
+    lblDeviceName->Caption = "";
+    lblDeviceInfo->Caption = "";
 }
 void __fastcall TForm1::ApplyConfigToUI()
 {
@@ -7058,16 +7067,7 @@ void __fastcall TForm1::btnDisconnectClick(TObject *Sender)
     REAL_OUTPUT_DSP_NUM = 16;
     need_resize = true;
 
-    edtDeviceType->Text = "N/A";
-    edtCmdId->Text = "N/A";
-    edtDeviceFullName->Text = "N/A";
-    edtStartBuildTime->Text = "N/A";
-    lblDeviceRunningTime->Caption = "----";
-    lblDeviceRunningTime2->Caption = "----";
-    lblVersion->Caption = "-------- " +VersionToStr(version);
-
-    lblDeviceName->Caption = "";
-    lblDeviceInfo->Caption = "";
+    ClearUI();
 }
 //---------------------------------------------------------------------------
 class TValueListEditorEx : public TValueListEditor
