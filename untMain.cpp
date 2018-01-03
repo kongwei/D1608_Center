@@ -1711,8 +1711,8 @@ void __fastcall TForm1::btnSelectClick(TObject *Sender)
     D1608PresetCmd preset_cmd(version);
     preset_cmd.preset = 0; // 读取global_config
     preset_cmd.store_page = 0;
-    memcpy(package.data, &preset_cmd, offsetof(D1608PresetCmd, data)/*sizeof(preset_cmd)*/);
-    package.data_size = offsetof(D1608PresetCmd, data)/*sizeof(preset_cmd)*/;
+    memcpy(package.data, &preset_cmd, sizeof(preset_cmd));
+    package.data_size = sizeof(preset_cmd);
     read_one_preset_package_list.insert(read_one_preset_package_list.begin(), package);
     if (read_one_preset_package_list.size() == 1)
         udpControl->SendBuffer(dst_ip, package.udp_port, package.data, package.data_size);
@@ -6213,6 +6213,7 @@ void __fastcall TForm1::btnSaveFlashToFileClick(TObject *Sender)
     {
         if (!udpControl->Active)
         {
+            all_config_map[cur_preset_id-1] = config_map;
             // 脱机，保存为逻辑preset，后缀smc
             // 清除缓存数据
             memset(&smc_config, 0, sizeof(smc_config));
@@ -6433,9 +6434,9 @@ void __fastcall TForm1::btnLoadFileToFlashClick(TObject *Sender)
                 memcpy(preset_cmd.data, &smc_config.global_config, sizeof(smc_config.global_config));
 
                 TPackage package;
-                memcpy(package.data, &preset_cmd, offsetof(D1608PresetCmd, data)/*sizeof(preset_cmd)*/);
+                memcpy(package.data, &preset_cmd, sizeof(preset_cmd));
                 package.udp_port = UDP_PORT_STORE_PRESET_PC2FLASH;
-                package.data_size = offsetof(D1608PresetCmd, data)/*sizeof(preset_cmd)*/;
+                package.data_size = sizeof(preset_cmd);
 
                 package_list.push_back(package);
             }
@@ -6481,9 +6482,9 @@ void __fastcall TForm1::btnLoadFileToFlashClick(TObject *Sender)
                         }
 
                         TPackage package;
-                        memcpy(package.data, &preset_cmd, offsetof(D1608PresetCmd, data)/*sizeof(preset_cmd)*/);
+                        memcpy(package.data, &preset_cmd, sizeof(preset_cmd));
                         package.udp_port = UDP_PORT_STORE_PRESET_PC2FLASH;
-                        package.data_size = offsetof(D1608PresetCmd, data)/*sizeof(preset_cmd)*/;
+                        package.data_size = sizeof(preset_cmd);
 
                         package_list.push_back(package);
                     }
@@ -6970,8 +6971,8 @@ void TForm1::StartReadOnePackage(int preset_id)
 
         TPackage package;
         package.udp_port = UDP_PORT_READ_PRESET;
-        memcpy(package.data, &preset_cmd, offsetof(D1608PresetCmd, data)/*sizeof(preset_cmd)*/);
-        package.data_size = offsetof(D1608PresetCmd, data)/*sizeof(preset_cmd)*/;
+        memcpy(package.data, &preset_cmd, sizeof(preset_cmd));
+        package.data_size = sizeof(preset_cmd);
 
         read_one_preset_package_list.push_back(package);
     }
