@@ -2022,7 +2022,11 @@ void TForm1::ProcessPackageMessageFeedback(D1608Cmd & cmd)
 void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
       TIdSocketHandle *ABinding)
 {
-    if (ABinding->PeerPort == UDP_PORT_CONTROL)
+    if (ABinding->PeerPort == UDP_PORT_GET_DEBUG_INFO_EX)
+    {
+        memo_debug_ex->Lines->LoadFromStream(AData);
+    }
+    else if (ABinding->PeerPort == UDP_PORT_CONTROL)
     {
         D1608Cmd cmd;
         AData->ReadBuffer(&cmd, std::min(sizeof(cmd), AData->Size));
@@ -2751,8 +2755,15 @@ static void ApplyLogData( TListItem* item, Event event, int address, String syn_
         item->SubItems->Add(event.event_data);
         break;
     case EVENT_SAVE_PRESET:
-        item->SubItems->Add("保存Preset");
-        item->SubItems->Add("Preset编号:"+IntToStr(event.event_data));
+        if ((event.event_data & 0x80) == 0)
+        {
+            item->SubItems->Add("保存Preset");
+        }
+        else
+        {
+            item->SubItems->Add("LOAD UNIT");
+        }
+        item->SubItems->Add("Preset编号:"+IntToStr(event.event_data & 0x7F));
         break;
     case EVENT_POWER_SAVE_OK:
         item->SubItems->Add("关机存盘成功");
@@ -7272,6 +7283,11 @@ void __fastcall TForm1::output_panel_level_editEnter(TObject *Sender)
 {
     TEdit * edt = (TEdit*)Sender;
     edt->SelectAll();
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::cbDebugCmdChange(TObject *Sender)
+{
+    udpControl->Send(dst_ip, UDP_PORT_GET_DEBUG_INFO_EX, cbDebugCmd->Text);
 }
 //---------------------------------------------------------------------------
 

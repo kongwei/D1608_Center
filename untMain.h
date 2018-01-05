@@ -281,7 +281,6 @@ __published:	// IDE-managed Components
     TEdit *edtIp;
     TSpeedButton *btnSetIp;
     TValueListEditor *ValueListEditor2;
-    TLabel *Label17;
     TLabel *lblDiff;
     TListView *lvLog;
     TButton *btnGetLog;
@@ -533,6 +532,10 @@ __published:	// IDE-managed Components
     TButton *btnCutDebugLog;
     TLabel *lblKeepLiveCheck;
     TLabel *lblCtrlPort;
+    TButton *btnDebugInfoEx;
+    TMemo *memo_debug_ex;
+    TPanel *Panel2;
+    TComboBox *cbDebugCmd;
     void __fastcall FormCreate(TObject *Sender);
     void __fastcall btnRefreshClick(TObject *Sender);
     void __fastcall udpSLPUDPRead(TObject *Sender, TStream *AData,
@@ -711,6 +714,7 @@ __published:	// IDE-managed Components
     void __fastcall lblKeepLiveCheckDblClick(TObject *Sender);
     void __fastcall lvLogData(TObject *Sender, TListItem *Item);
     void __fastcall output_panel_level_editEnter(TObject *Sender);
+    void __fastcall cbDebugCmdChange(TObject *Sender);
 private:
     TIdUDPServer * udpSLPList[3];
 private:
@@ -783,10 +787,6 @@ private:
         {
             return "KW有线网卡";
         }
-        else if (mac_string == "38-2C-4A-BA-EF-54")
-        {
-            return "LX普通网卡";
-        }
         else if (mac_string == "50-B7-C3-6F-83-47")
         {
             return "LX900X3D有线";
@@ -799,6 +799,15 @@ private:
         {
             return "LX900X3D无线";
         }
+        else if (mac_string == "C4-85-08-E5-20-13")
+        {
+            return "LX900X3D无线";
+        }
+        else if (mac_string == "38-2C-4A-BA-EF-54")
+        {
+            return "LX板载网卡";
+        }
+
         return "";
     }
 
