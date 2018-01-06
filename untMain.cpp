@@ -30,7 +30,7 @@
 
 #define CONTROL_TIMEOUT_COUNT 5
 
-static String inner_mac[5] = {"10-0B-A9-2F-55-90", "00-5A-39-FF-49-28","00-E0-4C-39-17-31","74-D0-2B-95-48-02","00-E0-4C-15-1B-C0"};
+String inner_mac[6] = {"10-0B-A9-2F-55-90", "00-5A-39-FF-49-28","00-E0-4C-39-17-31","74-D0-2B-95-48-02","00-E0-4C-15-1B-C0", "38-2C-4A-BA-EF-54"};
 
 const String compile_time = __DATE__ " " __TIME__;
 
@@ -1263,12 +1263,15 @@ void __fastcall TForm1::FormCreate(TObject *Sender)
 
     // 是否调试PC
     is_inner_pc = false;
-    for (int i=0;i<sizeof(inner_mac)/sizeof(String);i++)
-    {                       
-        if (local_mac_list.Pos(inner_mac[i]) > 0)
-        {
-            is_inner_pc = true;
-            break;
+    if (ParamCount>0 && ParamStr(1)=="debug")
+    {
+        for (int i=0;i<sizeof(inner_mac)/sizeof(String);i++)
+        {                       
+            if (local_mac_list.Pos(inner_mac[i]) > 0)
+            {
+                is_inner_pc = true;
+                break;
+            }
         }
     }
 
@@ -1285,6 +1288,18 @@ void __fastcall TForm1::FormCreate(TObject *Sender)
         btnClearDataAndTime->Show();
 
         edtDeviceFullName->Show();
+        lblKeepLiveCheck->Show();
+        lblDeviceRunningTime2->Show();
+    }
+    else
+    {
+        // 最多开4个
+        HANDLE h_sem = CreateSemaphore(NULL, 4, 4, "MATRIX");
+        if (WaitForSingleObject(h_sem, 1) != WAIT_OBJECT_0)
+        {
+            ShowMessage("最多只能打开 4 个上位机");
+            Application->Terminate();
+        }
     }
 
     pnlOperator->Show();
@@ -7288,6 +7303,13 @@ void __fastcall TForm1::output_panel_level_editEnter(TObject *Sender)
 void __fastcall TForm1::cbDebugCmdChange(TObject *Sender)
 {
     udpControl->Send(dst_ip, UDP_PORT_GET_DEBUG_INFO_EX, cbDebugCmd->Text);
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::edtSelectAllAndCopy(TObject *Sender)
+{
+    TEdit * edt = (TEdit*)Sender;
+    edt->SelectAll();
+    edt->CopyToClipboard();
 }
 //---------------------------------------------------------------------------
 

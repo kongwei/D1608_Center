@@ -530,12 +530,12 @@ __published:	// IDE-managed Components
     TEdit *edtDeviceFullName;
     TButton *btnCopyDebugLog;
     TButton *btnCutDebugLog;
-    TLabel *lblKeepLiveCheck;
     TLabel *lblCtrlPort;
     TButton *btnDebugInfoEx;
     TMemo *memo_debug_ex;
     TPanel *Panel2;
     TComboBox *cbDebugCmd;
+    TLabel *lblKeepLiveCheck;
     void __fastcall FormCreate(TObject *Sender);
     void __fastcall btnRefreshClick(TObject *Sender);
     void __fastcall udpSLPUDPRead(TObject *Sender, TStream *AData,
@@ -715,6 +715,7 @@ __published:	// IDE-managed Components
     void __fastcall lvLogData(TObject *Sender, TListItem *Item);
     void __fastcall output_panel_level_editEnter(TObject *Sender);
     void __fastcall cbDebugCmdChange(TObject *Sender);
+    void __fastcall edtSelectAllAndCopy(TObject *Sender);
 private:
     TIdUDPServer * udpSLPList[3];
 private:
