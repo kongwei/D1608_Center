@@ -4345,9 +4345,9 @@ void __fastcall TForm1::btnLoadPresetFromFileClick(TObject *Sender)
                 }
 
                 TPackage package;
-                memcpy(package.data, &preset_cmd, offsetof(D1608PresetCmd, data)/*sizeof(preset_cmd)*/);
+                memcpy(package.data, &preset_cmd, sizeof(preset_cmd));
                 package.udp_port = UDP_PORT_STORE_PRESET_PC2FLASH;
-                package.data_size = offsetof(D1608PresetCmd, data)/*sizeof(preset_cmd)*/;
+                package.data_size = sizeof(preset_cmd);
 
                 package_list.push_back(package);
             }
@@ -6284,7 +6284,7 @@ void __fastcall TForm1::btnSaveFlashToFileClick(TObject *Sender)
                 TPackage package;
                 memcpy(package.data, &flash_rw, sizeof(flash_rw));
                 package.udp_port = UDP_PORT_READ_FLASH;
-                package.data_size = sizeof(flash_rw);
+                package.data_size = offsetof(FlashRW_Data, data);//sizeof(flash_rw);
 
                 package_list.push_back(package);
             }
@@ -6508,9 +6508,9 @@ void __fastcall TForm1::btnLoadFileToFlashClick(TObject *Sender)
                 preset_cmd.preset = 0x89;
 
                 TPackage package;
-                memcpy(package.data, &preset_cmd, offsetof(D1608PresetCmd, data)/*sizeof(preset_cmd)*/);
+                memcpy(package.data, &preset_cmd, sizeof(preset_cmd));
                 package.udp_port = UDP_PORT_STORE_PRESET_PC2FLASH;
-                package.data_size = offsetof(D1608PresetCmd, data)/*sizeof(preset_cmd)*/;
+                package.data_size = sizeof(preset_cmd);
 
                 package_list.push_back(package);
             }
