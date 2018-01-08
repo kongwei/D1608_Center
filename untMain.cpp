@@ -260,7 +260,7 @@ DeviceData last_connection;
 static unsigned int received_cmd_seq = 0;
 //------------------------------------------------
 // 版本兼容信息
-static UINT version = 0x03000002;
+static UINT version = 0x04000001;
 static UINT file_version = 0x00000002;
 // 返回YES或者下位机版本号
 // version_list以0结尾
