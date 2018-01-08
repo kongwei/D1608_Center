@@ -966,6 +966,8 @@ __fastcall TForm1::TForm1(TComponent* Owner)
     {
         TRect templet_image_rect = pnlmix_background->BoundsRect;
         templet_image_rect.Right = PANEL_WIDTH;
+        templet_image_rect.Bottom = templet_image_rect.Bottom - templet_image_rect.Top;
+        templet_image_rect.Top = 0;
 
         TRect dest_rect = TRect(i*PANEL_WIDTH,
                                 templet_image_rect.Top,
@@ -1263,7 +1265,10 @@ void __fastcall TForm1::FormCreate(TObject *Sender)
 
     // 是否调试PC
     is_inner_pc = false;
-    if (ParamCount>0 && ParamStr(1)=="debug")
+    if (ParamCount>0 && ParamStr(1)=="nodebug")
+    {
+    }
+    else
     {
         for (int i=0;i<sizeof(inner_mac)/sizeof(String);i++)
         {                       
@@ -3006,7 +3011,7 @@ static void ApplyLogData( TListItem* item, Event event, int address, String syn_
         break;
     default:
         item->SubItems->Add(event.event_id);
-        item->SubItems->Add(IntToHex(event.event_data, 2));
+        item->SubItems->Add("0x"+IntToHex(event.event_data, 2));
         break;
     }
 
@@ -3346,7 +3351,7 @@ void __fastcall TForm1::ToogleOutputMix(TObject *Sender)
 
         pnlMix->Left = input_panel_dsp_btn->Left;//output_panel_number_btn->Left;//Width - 30 - pnlMix->Width;
 
-        pnlMix->Top = btn->Top;// + btn->Height + 10;//312;
+        pnlMix->Top = btn->Top + 21;// + btn->Height + 10;//312;
         pnlMix->Show();
         pnlMix->Tag = btn->Tag;
 
@@ -6574,6 +6579,12 @@ void __fastcall TForm1::tmDelayBackupTimer(TObject *Sender)
         package_list.clear();
         pbBackup->Hide();
         this->Enabled = true;
+
+        // 如果存在读取preset失败，那么需要重新连接
+        if (read_one_preset_package_list.size() != 0)
+        {
+            udpControl->Active = false;
+        }
     }
     else if ((restor_delay_count%5) == 1)
     {
@@ -7310,6 +7321,11 @@ void __fastcall TForm1::edtSelectAllAndCopy(TObject *Sender)
     TEdit * edt = (TEdit*)Sender;
     edt->SelectAll();
     edt->CopyToClipboard();
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::SpeedButtonNoFrame1Click(TObject *Sender)
+{
+    CloseDspDetail();
 }
 //---------------------------------------------------------------------------
 

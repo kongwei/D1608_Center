@@ -277,7 +277,7 @@ void __fastcall PaintAgent::OnPaint(TObject * Sender)
 
     double point[1001];
     // »æÖÆÑ¡ÖÐfilterÍ¼Ïñ
-    if (!_filter_set.IsBandForbidden(_filter_set.GetActiveBand()) && !_filter_set.IsBypass(_filter_set.GetActiveBand()))
+    if (!_filter_set.IsBandForbidden(_filter_set.GetActiveBand()) /*&& !_filter_set.IsBypass(_filter_set.GetActiveBand())*/)
     {
         Coefficient::InitPointData(point);
         _filter_set.GetFilter(_filter_set.GetActiveBand())->AddToMiddle(point);

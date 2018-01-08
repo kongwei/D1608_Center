@@ -536,6 +536,9 @@ __published:	// IDE-managed Components
     TPanel *Panel2;
     TComboBox *cbDebugCmd;
     TLabel *lblKeepLiveCheck;
+    TLabel *Label17;
+    TSpeedButtonNoFrame *SpeedButtonNoFrame1;
+    TSpeedButtonNoFrame *SpeedButtonNoFrame3;
     void __fastcall FormCreate(TObject *Sender);
     void __fastcall btnRefreshClick(TObject *Sender);
     void __fastcall udpSLPUDPRead(TObject *Sender, TStream *AData,
@@ -716,6 +719,7 @@ __published:	// IDE-managed Components
     void __fastcall output_panel_level_editEnter(TObject *Sender);
     void __fastcall cbDebugCmdChange(TObject *Sender);
     void __fastcall edtSelectAllAndCopy(TObject *Sender);
+    void __fastcall SpeedButtonNoFrame1Click(TObject *Sender);
 private:
     TIdUDPServer * udpSLPList[3];
 private:
