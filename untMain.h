@@ -539,6 +539,7 @@ __published:	// IDE-managed Components
     TLabel *Label17;
     TSpeedButtonNoFrame *SpeedButtonNoFrame1;
     TSpeedButtonNoFrame *SpeedButtonNoFrame3;
+    TRadioGroup *rgLedTest;
     void __fastcall FormCreate(TObject *Sender);
     void __fastcall btnRefreshClick(TObject *Sender);
     void __fastcall udpSLPUDPRead(TObject *Sender, TStream *AData,
@@ -720,6 +721,7 @@ __published:	// IDE-managed Components
     void __fastcall cbDebugCmdChange(TObject *Sender);
     void __fastcall edtSelectAllAndCopy(TObject *Sender);
     void __fastcall SpeedButtonNoFrame1Click(TObject *Sender);
+    void __fastcall rgLedTestClick(TObject *Sender);
 private:
     TIdUDPServer * udpSLPList[3];
 private:

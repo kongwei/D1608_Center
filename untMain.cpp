@@ -7333,4 +7333,51 @@ void __fastcall TForm1::SpeedButtonNoFrame1Click(TObject *Sender)
     CloseDspDetail();
 }
 //---------------------------------------------------------------------------
+void __fastcall TForm1::rgLedTestClick(TObject *Sender)
+{
+    T_TestLedOled test_led_oled = {0};
+    test_led_oled.led_state[0].end = 1000;
+
+    switch (rgLedTest->ItemIndex)
+    {
+    case 0:     // ALL ON
+        test_led_oled.led_state[0].green = 0xFFFFFFFF;
+        test_led_oled.led_state[0].red = 0xFFFFFFFF;
+        break;
+    case 1:     // ALL OFF
+        test_led_oled.led_state[0].green = 0;
+        test_led_oled.led_state[0].red = 0;
+        break;
+    case 2:     // GREEN
+        test_led_oled.led_state[0].green = 0xFFFFFFFF;
+        test_led_oled.led_state[0].red = 0;
+        break;
+    case 3:     // RED
+        test_led_oled.led_state[0].green = 0;
+        test_led_oled.led_state[0].red = 0xFFFFFFFF;
+        break;
+    case 4:     // GREEN OFF
+        test_led_oled.led_state[0].green = 0x55555555;
+        test_led_oled.led_state[0].red = 0;
+        break;
+    case 5:     // OFF GREEN
+        test_led_oled.led_state[0].green = 0xaaaaaaaa;
+        test_led_oled.led_state[0].red = 0;
+        break;
+    case 6:     // RED OFF
+        test_led_oled.led_state[0].green = 0;
+        test_led_oled.led_state[0].red = 0x55555555;
+        break;
+    case 7:     // OFF RED
+        test_led_oled.led_state[0].green = 0;
+        test_led_oled.led_state[0].red = 0xaaaaaaaa;
+        break;
+    default:    // Closed
+        test_led_oled.led_state[0].end = 0;
+        break;
+    }
+
+    udpControl->SendBuffer(dst_ip, UDP_PORT_SET_LED_OLED_DEBUG, &test_led_oled, sizeof(test_led_oled));
+}
+//---------------------------------------------------------------------------
 
