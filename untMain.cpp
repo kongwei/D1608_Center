@@ -2051,6 +2051,11 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
         D1608Cmd cmd;
         AData->ReadBuffer(&cmd, std::min(sizeof(cmd), AData->Size));
 
+        if (memcmp(cmd.flag, D1608CMD_FLAG, sizeof(D1608CMD_FLAG)) != 0)
+        {
+            return;
+        }
+
         if (cmd.type == CMD_TYPE_DATA_FEEDBACK)
         {
             // 没有初始化完毕，不处理数据回报
@@ -4900,7 +4905,7 @@ void __fastcall TForm1::btnGetLogClick(TObject *Sender)
         buff.address < MAC_LIST_START_PAGE+MAC_LIST_SIZE;
         buff.address += 1024)
     {
-        SendLogBuff(UDP_PORT_READ_LOG, &buff, sizeof(buff));
+        SendLogBuff(UDP_PORT_READ_LOG, &buff, 4);
     }
 }
 //---------------------------------------------------------------------------
