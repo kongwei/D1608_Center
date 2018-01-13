@@ -1672,6 +1672,12 @@ void __fastcall TForm1::btnSelectClick(TObject *Sender)
         return;
     }
 
+    // PC <--> Device
+    if (package_list.size() != 0)
+    {
+        return;
+    }
+
     // 是否版本兼容
     if (selected->SubItems->Strings[8] != "YES")
     {
@@ -2016,7 +2022,6 @@ void TForm1::ProcessPackageMessageFeedback(D1608Cmd & cmd)
                 int msg_data_length = CmdDataLength(syn_msg.cmd_id);
                 memcpy(((char*)(&config_map))+syn_msg.cmd_id, (char*)&syn_msg.data, msg_data_length);
                 OnFeedbackData(syn_msg.cmd_id);
-                //memo_debug->Lines->Add("syn cmd: " + IntToStr(syn_msg.cmd_id));
             }
         }
     }
@@ -2172,6 +2177,10 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             {
                 memcpy(((char*)(&config_map))+cmd.id, (char*)&cmd.data, cmd.length);
                 OnFeedbackData(cmd.id);
+            }
+            else
+            {
+                memcpy(((char*)(&config_map))+cmd.id, (char*)&cmd.data, cmd.length);
             }
         }
     }
@@ -2384,6 +2393,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
         {
             if (preset_id == cur_preset_id || preset_id==0)
                 config_map = all_config_map[cur_preset_id-1];
+
             tmDelayUpdateUI->Enabled = false;
             ApplyConfigToUI();
             CloseDspDetail();
@@ -2411,9 +2421,11 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
         TPackage package = package_list.back();
         if (package.udp_port != ABinding->PeerPort)
             return;
-        if (package.data_size > AData->Size)
+        //if (package.data_size > AData->Size)
+        //    return;
+        if (AData->Size < offsetof(D1608PresetCmd, data))
             return;
-        if (memcmp(package.data, &preset_cmd, package.data_size) != 0)
+        if (memcmp(package.data, &preset_cmd, AData->Size) != 0)
             return;
 
         package_list.pop_back();
@@ -2434,7 +2446,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             tmDelayBackup->Enabled = true;
 
             lblDeviceName->Show();
-            lblDeviceName->Caption = "PC TO DEVICE......";
+            lblDeviceName->Caption = "LOAD FROM FILE......";
         }
     }
     else if (ABinding->PeerPort == UDP_PORT_READ_FLASH)
@@ -2497,7 +2509,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             tmDelayBackup->Enabled = true;
 
             lblDeviceName->Show();
-            lblDeviceName->Caption = "DEVICE TO PC......";
+            lblDeviceName->Caption = "SAVE TO FILE......";
         }
     }
 }
@@ -2788,7 +2800,24 @@ static void ApplyLogData( TListItem* item, Event event, int address, String syn_
         {
             item->SubItems->Add("LOAD UNIT");
         }
-        item->SubItems->Add("Preset编号:"+IntToStr(event.event_data & 0x7F));
+
+        {
+            String page_indexs = "Preset编号:"+IntToStr(((event.event_data>>8) & 0x7F)+1);
+            if ((event.event_data & 0x7F) == 0)
+            {
+                item->SubItems->Add("不需要存盘");
+            }
+            else
+            {
+                page_indexs = page_indexs + " 存盘页:";
+                if (event.event_data & 1) page_indexs = page_indexs + "1,";
+                if (event.event_data & 2) page_indexs = page_indexs + "2,";
+                if (event.event_data & 4) page_indexs = page_indexs + "3,";
+                if (event.event_data & 8) page_indexs = page_indexs + "4,";
+                if (event.event_data & 16) page_indexs = page_indexs + "5,";
+                item->SubItems->Add(page_indexs);
+            }
+        }
         break;
     case EVENT_POWER_SAVE_OK:
         item->SubItems->Add("关机存盘成功");
@@ -2889,7 +2918,10 @@ static void ApplyLogData( TListItem* item, Event event, int address, String syn_
         break;
     case EVENT_FILENAME_CHANGED:
         item->SubItems->Add("导入/导出配置");
-        item->SubItems->Add("");
+        if (event.event_data == 0)
+            item->SubItems->Add("Load From File");
+        else
+            item->SubItems->Add("Save To File");
         break;
     case EVENT_SET_MAC_ADDRESS:
         item->SubItems->Add("设置了MAC地址");
@@ -2924,7 +2956,7 @@ static void ApplyLogData( TListItem* item, Event event, int address, String syn_
         break;
     case EVENT_SAVE_LOAD_TIMEOUT:
         item->SubItems->Add("存盘或者恢复超时错误");
-        item->SubItems->Add(event.event_data==1?"PC TO DEVICE":"DEVICE TO PC");
+        item->SubItems->Add(event.event_data==1?"LOAD FROM FILE":"SAVE TO FILE");
         break;
     case EVENT_48V:
         item->SubItems->Add("48V与硬件不匹配");
@@ -3013,6 +3045,10 @@ static void ApplyLogData( TListItem* item, Event event, int address, String syn_
     case EVENT_STACK_OVERFLOW:
         item->SubItems->Add("栈溢出错误");
         item->SubItems->Add(IntToStr(event.event_data));
+        break;
+    case EVENT_SAVE_LOAD_COUNT:
+        item->SubItems->Add("存盘或者恢复数量");
+        item->SubItems->Add(event.event_data);
         break;
     default:
         item->SubItems->Add(event.event_id);
@@ -3146,7 +3182,7 @@ bool TForm1::ProcessLogBuffAck(LogBuff& buff, TStream *AData, TIdSocketHandle *A
 
     if (buff.address == package_buff->address)
     {
-        memo_debug->Lines->Add(GetTime()+"消息匹配");
+        //memo_debug->Lines->Add(GetTime()+"消息匹配");
         sendcmd_list.pop_back();
         if (sendcmd_list.size() > 0)
         {
@@ -3216,7 +3252,7 @@ void TForm1::ProcessWatchLevel(int watch_level[INPUT_DSP_NUM + OUTPUT_DSP_NUM], 
 //---------------------------------------------------------------------------
 void __fastcall TForm1::tmWatchTimer(TObject *Sender)
 {
-    memo_debug->Lines->Add(GetTime()+"保活计数器事件: " + (udpControl->Active?"link":"unlink"));
+    //memo_debug->Lines->Add(GetTime()+"保活计数器事件: " + (udpControl->Active?"link":"unlink"));
 
     bool _disconnected;
     if (is_manual_disconnect)
@@ -3235,7 +3271,7 @@ void __fastcall TForm1::tmWatchTimer(TObject *Sender)
         if ((keep_live_count < CONTROL_TIMEOUT_COUNT) && udpControl->Active)
         {
             keep_live_count++;
-            memo_debug->Lines->Add(GetTime()+"保活计数器++: " + IntToStr(keep_live_count));
+            //memo_debug->Lines->Add(GetTime()+"保活计数器++: " + IntToStr(keep_live_count));
             _disconnected = false;
         }
         else
@@ -4334,7 +4370,8 @@ void __fastcall TForm1::btnLoadPresetFromFileClick(TObject *Sender)
             D1608PresetCmd preset_cmd(version);
             preset_cmd.preset = select_preset_id;
 
-            for (int i=select_preset_id-1;i<=select_preset_id-1;i++)
+            //for (int i=select_preset_id-1;i<=select_preset_id-1;i++)
+            int i = select_preset_id;
             for (int store_page=0;store_page<9;store_page++)
             {
                 preset_cmd.store_page = store_page;
@@ -4811,6 +4848,7 @@ void __fastcall TForm1::UpdateBuildTime()
 //---------------------------------------------------------------------------
 void __fastcall TForm1::StoreClick(TObject *Sender)
 {
+    all_config_map[cur_preset_id-1] = config_map;
     if (udpControl->Active)
     {
         udpControl->SendBuffer(dst_ip, UDP_PORT_STORE_PRESET_MEM2FLASH, "\100"/*"\xFF"*/, 1);
@@ -6278,8 +6316,6 @@ void __fastcall TForm1::btnSaveFlashToFileClick(TObject *Sender)
         }
         else
         {
-            StoreClick(Sender);
-
             // 联机，保存为flash dump，读取完毕后转换成smc
             save_device_to_file_filename = SaveDialog1->FileName;
 
@@ -6457,8 +6493,6 @@ void __fastcall TForm1::btnLoadFileToFlashClick(TObject *Sender)
         }
         else
         {
-            StoreClick(Sender);
-
             // 联机
             // Download To Device
             // 准备好所有报文
@@ -6676,19 +6710,19 @@ void __fastcall TForm1::lblDeviceNameDblClick(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TForm1::btnResetKeyFunctionClick(TObject *Sender)
 {
-    if (cbMenuKeyFunction->ItemIndex != 0)
+    //if (cbMenuKeyFunction->ItemIndex != 0)
     {
         cbMenuKeyFunction->ItemIndex = 0;
         cbMenuKeyFunction->OnChange(NULL);
     }
 
-    if (cbUpKeyFunction->ItemIndex != 1)
+    //if (cbUpKeyFunction->ItemIndex != 1)
     {
         cbUpKeyFunction->ItemIndex = 1;
         cbUpKeyFunction->OnChange(NULL);
     }
 
-    if (cbDownKeyFunction->ItemIndex != 2)
+    //if (cbDownKeyFunction->ItemIndex != 2)
     {
         cbDownKeyFunction->ItemIndex = 2;
         cbDownKeyFunction->OnChange(NULL);
@@ -7305,7 +7339,7 @@ void __fastcall TForm1::lvLogData(TObject *Sender, TListItem *Item)
 //---------------------------------------------------------------------------
 void TForm1::CloseControlLink(String reason)
 {
-    memo_debug->Lines->Add(GetTime()+"上位机失关闭连接: " + reason);
+    memo_debug->Lines->Add(GetTime()+"上位机关闭连接: " + reason);
     udpControl->Active = false;
     broken_count++;
 }
