@@ -61,31 +61,6 @@ extern "C"{
         char op[9];
         __int32 sfilelen;
     };
-    /*struct T_slp_pack
-    {
-        __int8 ip[4];         // IP地址
-        __int8 id[10];        // 设备ID
-        __int8 name[26];      // 设备名称
-        __int8 flag3[64];
-        __int8 type[16];
-        __int8 ser[16];
-        __int8 ver[36];
-        __int8 mac[6];
-        __int8 mask[4];
-        __int8 gateway[4];
-        __int16 port;
-    };*/
-
-typedef unsigned char MacCode[8];
-struct LogBuff
-{
-    int address;
-    union{
-        Event event[128];
-        MacCode mac[128];
-    };
-    unsigned __int64 tail_address;
-};
 #pragma pack()
 
 //---------------------------------------------------------------------------
@@ -825,9 +800,9 @@ private:
         // MAC地址
         for (int i=0;i<128;i++)
         {
-            if (memcmp(buff.mac[i], "\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF", 8) != 0)
+            if (memcmp(buff.data.mac[i], "\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF", 8) != 0)
             {
-                memcpy(&mac_data[mac_count], buff.mac[i], sizeof(MacCode));
+                memcpy(&mac_data[mac_count], buff.data.mac[i], sizeof(MacCode));
                 mac_count++;
             }
         }
@@ -852,7 +827,7 @@ private:
     bool ProcessLogBuffAck(LogBuff& buff, TStream *AData, TIdSocketHandle *ABinding);
 
     // 最大启动次数地址
-    unsigned int tail_address;
+    Event* tail_address;
     void ProcessLogData();
 //----------------------------------
 private:

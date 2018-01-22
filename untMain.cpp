@@ -237,6 +237,17 @@ static int CmdDataLength(unsigned int cmd_id)
 	
 	return result;
 }
+
+static short UdpPackageVerifyDiff(unsigned char * udp_data, int udp_length)
+{
+	int i;
+	short verify = 0;
+	for (i=0;i<udp_length;i++)
+	{
+		verify = verify + udp_data[i];
+	}
+	return verify;
+}
 //====================================
 
 
@@ -253,7 +264,7 @@ static Channel selected_channel = {ctNone, 0};
 struct DeviceData
 {
     int count;
-    T_slp_pack data;
+    T_slp_pack_Ex data;
 };
 DeviceData last_connection;
 
@@ -264,7 +275,7 @@ static UINT version = 0x04000001;
 static UINT file_version = 0x00000002;
 // 返回YES或者下位机版本号
 // version_list以0结尾
-String IsCompatibility(T_slp_pack slp_pack)
+String IsCompatibility(T_slp_pack_Ex slp_pack)
 {
     UINT ctrl_app_protocol_version = version & 0xFF000000;
     UINT app_protocol_version = slp_pack.version & 0xFF000000;
@@ -1382,6 +1393,7 @@ void TForm1::SendCmd2(D1608Cmd& cmd)
     try
     {
         int send_size = offsetof(D1608Cmd, data) + cmd.length;    // sizeof(cmd)
+        cmd.verify -= UdpPackageVerifyDiff((unsigned char*)&cmd, send_size);
         udpControl->SendBuffer(dst_ip, UDP_PORT_CONTROL, &cmd, send_size);
     }
     catch(...)
@@ -1465,6 +1477,7 @@ void TForm1::SendCmd(D1608Cmd& cmd)
 
     TPackage package;
     package.udp_port = UDP_PORT_CONTROL;
+    cmd.verify -= UdpPackageVerifyDiff((unsigned char*)&cmd, offsetof(D1608Cmd, data) + cmd.length);
     memcpy(package.data, &cmd, sizeof(cmd));
     package.data_size = offsetof(D1608Cmd, data) + cmd.length;    // sizeof(cmd)
 
@@ -1588,7 +1601,7 @@ void __fastcall TForm1::btnRefreshClick(TObject *Sender)
 void __fastcall TForm1::udpSLPUDPRead(TObject *Sender,
       TStream *AData, TIdSocketHandle *ABinding)
 {
-    T_slp_pack slp_pack = {0};
+    T_slp_pack_Ex slp_pack = {0};
     AData->ReadBuffer(&slp_pack, std::min(sizeof(slp_pack), AData->Size));
 
     String ip_address;
@@ -1717,7 +1730,7 @@ void __fastcall TForm1::btnSelectClick(TObject *Sender)
     lblCtrlPort->Caption = "端口号: "+IntToStr(udpControl->Bindings->Items[0]->Port);
 
     UpdateCaption();
-
+#if 0
     // 发送上位机时间
     double app_time = Now()-TDateTime(2000,1,1);
     app_time = app_time * 24 * 3600 * 10;
@@ -1726,7 +1739,7 @@ void __fastcall TForm1::btnSelectClick(TObject *Sender)
     cmd.data.data_64 = app_time;
     cmd.length = 8;
     SendCmd2(cmd);//udpControl->SendBuffer(dst_ip, UDP_PORT_CONTROL, &cmd, sizeof(cmd));
-
+#endif
     StartReadOnePackage(0xFF);
     restor_delay_count = 15;
     tmDelayBackup->Enabled = true;
@@ -1735,10 +1748,11 @@ void __fastcall TForm1::btnSelectClick(TObject *Sender)
     TPackage package;
     package.udp_port = UDP_PORT_READ_PRESET;
     D1608PresetCmd preset_cmd(version);
+    strcpy(preset_cmd.flag, D1608PRESETCMD_LINK_FLAG);
     preset_cmd.preset = 0; // 读取global_config
     preset_cmd.store_page = 0;
-    memcpy(package.data, &preset_cmd, sizeof(preset_cmd));
-    package.data_size = sizeof(preset_cmd);
+    memcpy(package.data, &preset_cmd, offsetof(D1608PresetCmd, data));
+    package.data_size = offsetof(D1608PresetCmd, data);
     read_one_preset_package_list.insert(read_one_preset_package_list.begin(), package);
     if (read_one_preset_package_list.size() == 1)
         udpControl->SendBuffer(dst_ip, package.udp_port, package.data, package.data_size);
@@ -1800,6 +1814,7 @@ void __fastcall TForm1::tmSLPTimer(TObject *Sender)
                     udpSLPList[i]->Active = true;
                     String ip = udpSLPList[i]->Bindings->Items[0]->IP;
                     T_slp_pack_Ex slp_pack = {0};
+                    strcpy(slp_pack.flag, SLP_FLAG);
 
                     if (is_inner_pc)
                         memcpy(slp_pack.ip, "ver", 3);
@@ -1825,7 +1840,8 @@ void __fastcall TForm1::tmSLPTimer(TObject *Sender)
                     app_time = app_time * 24 * 3600 * 1000;
                     slp_pack.set_time_ex = app_time;
 
-                    udpSLPList[i]->SendBuffer("255.255.255.255", UDP_PORT_SLP, &slp_pack, sizeof(slp_pack));
+                    slp_pack.verify -= UdpPackageVerifyDiff((unsigned char*)&slp_pack, offsetof(T_slp_pack_Ex, mac));
+                    udpSLPList[i]->SendBuffer("255.255.255.255", UDP_PORT_SLP_EX, &slp_pack, offsetof(T_slp_pack_Ex, mac));
                 }
                 catch(...)
                 {
@@ -2049,17 +2065,23 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
 {
     if (ABinding->PeerPort == UDP_PORT_GET_DEBUG_INFO_EX)
     {
-        memo_debug_ex->Lines->LoadFromStream(AData);
+        T_Debug debug_cmd;
+        AData->ReadBuffer(&debug_cmd, std::min(sizeof(debug_cmd), AData->Size));
+
+        String windows_string = debug_cmd.debug_cmd;
+        windows_string = StringReplace(windows_string, "\n", "\r\n", TReplaceFlags()<<rfReplaceAll<<rfIgnoreCase);
+
+        memo_debug_ex->Text = windows_string;
     }
     else if (ABinding->PeerPort == UDP_PORT_CONTROL)
     {
         D1608Cmd cmd;
         AData->ReadBuffer(&cmd, std::min(sizeof(cmd), AData->Size));
 
-        if (memcmp(cmd.flag, D1608CMD_FLAG, sizeof(D1608CMD_FLAG)) != 0)
+        /*if (memcmp(cmd.flag, D1608CMD_FLAG, sizeof(D1608CMD_FLAG)) != 0)
         {
             return;
-        }
+        }*/
 
         if (cmd.type == CMD_TYPE_DATA_FEEDBACK)
         {
@@ -2079,6 +2101,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             D1608PresetCmd preset_cmd(version);
             preset_cmd.preset = 0; // 读取global_config
             preset_cmd.store_page = 0;
+            preset_cmd.verify -= UdpPackageVerifyDiff((unsigned char*)&preset_cmd, offsetof(D1608PresetCmd, data));
             memcpy(package.data, &preset_cmd, offsetof(D1608PresetCmd, data)/*sizeof(preset_cmd)*/);
             package.data_size = offsetof(D1608PresetCmd, data)/*sizeof(preset_cmd)*/;
             read_one_preset_package_list.insert(read_one_preset_package_list.begin(), package);
@@ -2123,7 +2146,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             {
                 cmd.data.data_32 = cmd.data.data_32 & 0x7F;
                 cmd.length = 4;
-                SendCmd2(cmd);  //udpControl->SendBuffer(dst_ip, UDP_PORT_CONTROL, &cmd, sizeof(cmd));
+                SendCmd2(cmd);
             }
             keep_live_count = CONTROL_TIMEOUT_COUNT;
             received_cmd_seq = 0;
@@ -2186,7 +2209,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
     }
     else if (ABinding->PeerPort == UDP_PORT_READ_LOG)
     {
-        LogBuff buff = {0};
+        LogBuff buff = {LOG_FLAG};
 
         if (AData->Size == sizeof(buff)-8 || AData->Size ==sizeof(buff))
         {
@@ -2195,7 +2218,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             if ((buff.address >= LOG_START_PAGE) && (buff.address < MAC_LIST_START_PAGE))
             {
                 int index = (buff.address - LOG_START_PAGE) / sizeof(Event);
-                memcpy(event_data_tmp+index, buff.event, sizeof(buff.event));
+                memcpy(event_data_tmp+index, buff.data.event, sizeof(buff.data.event));
             }
             else
             {
@@ -2216,6 +2239,10 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
                     lblLogCount->Caption = "日志数量："+IntToStr(log_count) + "   MAC数量："+IntToStr(mac_count);
                 }
             }
+        }
+        else
+        {
+            ShowMessage("xx");
         }
 
         if (!ProcessLogBuffAck(buff, AData, ABinding))
@@ -2792,17 +2819,10 @@ static void ApplyLogData( TListItem* item, Event event, int address, String syn_
         item->SubItems->Add(event.event_data);
         break;
     case EVENT_SAVE_PRESET:
-        if ((event.event_data & 0x80) == 0)
-        {
-            item->SubItems->Add("保存Preset");
-        }
-        else
-        {
-            item->SubItems->Add("LOAD UNIT");
-        }
+        item->SubItems->Add("保存Preset");
 
         {
-            String page_indexs = "Preset编号:"+IntToStr(((event.event_data>>8) & 0x7F)+1);
+            String page_indexs = "Preset编号:"+IntToStr(((event.event_data>>8) & 0x7F));
             if ((event.event_data & 0x7F) == 0)
             {
                 item->SubItems->Add("不需要存盘");
@@ -3060,7 +3080,7 @@ static void ApplyLogData( TListItem* item, Event event, int address, String syn_
 }
 void TForm1::ProcessLogData()
 {
-    int log_tail_index = (tail_address-LOG_START_PAGE) / sizeof(Event);
+    int log_tail_index = ((int)tail_address-LOG_START_PAGE) / sizeof(Event);
     // 移动日志，使得符合顺序，同时记录最后一条有效日志索引
     for (int i=0;i<EVENT_POOL_SIZE;i++)
     {
@@ -3091,18 +3111,22 @@ void TForm1::ProcessLogData()
                     event_data[i-2].event_id == EVENT_TIME_3 &&
                     event_data[i-3].event_id == EVENT_TIME_4)
                 {
-                    time_base = event_data[i].event_data;
+                    // TODO: 这里做了屏蔽，可能隐藏了问题
+                    time_base = 0;//event_data[i].event_data;
                     time_base = time_base << 16 | event_data[i-1].event_data;
                     time_base = time_base << 16 | event_data[i-2].event_data;
                     time_base = time_base << 16 | event_data[i-3].event_data;
 
-                    // 记录时间
-                    // 从2000-1-1为基准
-                    double time_of_real = time_base + event_data[i].timer;
-                    time_of_real = time_of_real / (24*3600*10);
-                    time_of_real = time_of_real + TDateTime(2000, 1, 1);
-                    TDateTime datetime_of_real = time_of_real;
-                    event_syn_timer[i] = datetime_of_real;
+                    if (time_base < 0x00FFFFFFFFFFFFFF)
+                    {
+                        // 记录时间
+                        // 从2000-1-1为基准
+                        double time_of_real = time_base + event_data[i].timer;
+                        time_of_real = time_of_real / (24*3600*10);
+                        TDateTime datetime_of_real = time_of_real;
+                        datetime_of_real = datetime_of_real + TDateTime(2000, 1, 1);
+                        event_syn_timer[i] = datetime_of_real;
+                    }
                 }
                 break;
             }
@@ -3120,12 +3144,13 @@ void TForm1::ProcessLogData()
                 // 从2000-1-1为基准
                 double time_of_real = time_base + event_data[i].timer;
                 time_of_real = time_of_real / (24*3600*10);
-                time_of_real = time_of_real + TDateTime(2000, 1, 1);
                 TDateTime datetime_of_real = time_of_real;
+                datetime_of_real = datetime_of_real + TDateTime(2000, 1, 1);
                 event_syn_timer[i] = datetime_of_real;
             }
             break;
         }
+
         if (event_data[i].event_id == EVENT_POWER_ON)
         {
             time_base = 0;
@@ -3145,7 +3170,7 @@ void TForm1::ProcessLogData()
                     event_data[i-2].event_id == EVENT_TIME_3 &&
                     event_data[i-3].event_id == EVENT_TIME_4)
                 {
-                    time_base = event_data[i].event_data;
+                    time_base = 0;//event_data[i].event_data;
                     time_base = time_base << 16 | event_data[i-1].event_data;
                     time_base = time_base << 16 | event_data[i-2].event_data;
                     time_base = time_base << 16 | event_data[i-3].event_data;
@@ -3158,8 +3183,8 @@ void TForm1::ProcessLogData()
                 // 从2000-1-1为基准
                 double time_of_real = time_base + event_data[i].timer;
                 time_of_real = time_of_real / (24*3600*10);
-                time_of_real = time_of_real + TDateTime(2000, 1, 1);
                 TDateTime datetime_of_real = time_of_real;
+                datetime_of_real = datetime_of_real + TDateTime(2000, 1, 1);
                 event_syn_timer[i] = datetime_of_real;
             }
             if (event_data[i].event_id == EVENT_POWER_SAVE_OK || event_data[i].event_id == EVENT_POWER_OFF)
@@ -3304,6 +3329,7 @@ void __fastcall TForm1::tmWatchTimer(TObject *Sender)
     }
 
     D1608Cmd cmd;
+    strcpy(cmd.flag, D1608CMD_KEEPLIVE_FLAG);
     cmd.seq = received_cmd_seq;
     cmd.type = CMD_TYPE_PRESET;
     cmd.id = GetOffsetOfData(&config_map.op_code.noop);
@@ -4368,6 +4394,7 @@ void __fastcall TForm1::btnLoadPresetFromFileClick(TObject *Sender)
             // Download To Device
             // 写入所有的preset数据
             D1608PresetCmd preset_cmd(version);
+            strcpy(preset_cmd.flag, D1608PRESETCMD_PC2FLASH_FLAG);
             preset_cmd.preset = select_preset_id;
 
             //for (int i=select_preset_id-1;i<=select_preset_id-1;i++)
@@ -4851,7 +4878,9 @@ void __fastcall TForm1::StoreClick(TObject *Sender)
     all_config_map[cur_preset_id-1] = config_map;
     if (udpControl->Active)
     {
-        udpControl->SendBuffer(dst_ip, UDP_PORT_STORE_PRESET_MEM2FLASH, "\100"/*"\xFF"*/, 1);
+        StorePresetMemToFlashPreset store_cmd;
+        store_cmd.preset_id = 0xFF;
+        udpControl->SendBuffer(dst_ip, UDP_PORT_STORE_PRESET_MEM2FLASH, &store_cmd, sizeof(store_cmd));
     }
 }
 //---------------------------------------------------------------------------
@@ -4861,7 +4890,9 @@ void __fastcall TForm1::StoreAsClick(TObject *Sender)
     char preset_id = menu->Tag;
     if (udpControl->Active)
     {
-        udpControl->SendBuffer(dst_ip, UDP_PORT_STORE_PRESET_MEM2FLASH, &preset_id, 1);
+        StorePresetMemToFlashPreset store_cmd;
+        store_cmd.preset_id = preset_id;
+        udpControl->SendBuffer(dst_ip, UDP_PORT_STORE_PRESET_MEM2FLASH, &store_cmd, sizeof(store_cmd));
     }
     // 更新上位机内存
     all_config_map[preset_id-1] = config_map;
@@ -4903,6 +4934,7 @@ void __fastcall TForm1::RecallClick(TObject *Sender)
 void __fastcall TForm1::btnSetIpClick(TObject *Sender)
 {
     D1608Cmd cmd;
+    strcpy(cmd.flag, D1608CMD_CONTROL_FLAG);
     cmd.type = CMD_TYPE_GLOBAL;
     cmd.id = offsetof(GlobalConfig, static_ip_address);
 
@@ -4938,12 +4970,14 @@ void __fastcall TForm1::btnGetLogClick(TObject *Sender)
     // 最后一包一定是MAC地址，所以实在MAC处理的时候恢复这个Enabled
     btnGetLog->Enabled = false;
     lvLog->Clear();
-    LogBuff buff;
+    LogBuff buff = {LOG_FLAG};
     for (buff.address = 0x8000000+128*1024+10*5*2*1024;
         buff.address < MAC_LIST_START_PAGE+MAC_LIST_SIZE;
         buff.address += 1024)
     {
-        SendLogBuff(UDP_PORT_READ_LOG, &buff, 4);
+        // 计算 LogBuff 的校验和
+        buff.verify -= UdpPackageVerifyDiff((unsigned char*)&buff, offsetof(LogBuff, data));
+        SendLogBuff(UDP_PORT_READ_LOG, &buff, offsetof(LogBuff, data));
     }
 }
 //---------------------------------------------------------------------------
@@ -4963,6 +4997,7 @@ void __fastcall TForm1::lblPresetNameClick(TObject *Sender)
 
     D1608Cmd cmd;
     cmd.type = CMD_TYPE_GLOBAL;
+    strcpy(cmd.flag, D1608CMD_CONTROL_FLAG);
     cmd.id = offsetof(GlobalConfig, preset_name[cur_preset_id-1]);
     strncpy(cmd.data.data_string, lblPresetName->Caption.c_str(), 16);
     cmd.length = 17;
@@ -4976,6 +5011,7 @@ void __fastcall TForm1::btnDeviceNameClick(TObject *Sender)
     UpdateCaption();
 
     D1608Cmd cmd;
+    strcpy(cmd.flag, D1608CMD_CONTROL_FLAG);
     cmd.type = CMD_TYPE_GLOBAL;
     cmd.id = offsetof(GlobalConfig, d1616_name);
     strncpy(cmd.data.data_string, global_config.d1616_name, 16);
@@ -5007,6 +5043,7 @@ void __fastcall TForm1::clbAvaliablePresetClickCheck(TObject *Sender)
 
     D1608Cmd cmd;
     cmd.type = CMD_TYPE_GLOBAL;
+    strcpy(cmd.flag, D1608CMD_CONTROL_FLAG);
     cmd.id = offsetof(GlobalConfig, avaliable_preset);
     for (int i=0;i<PRESET_NUM;i++)
     {
@@ -5029,6 +5066,7 @@ void __fastcall TForm1::btnSetLockClick(TObject *Sender)
 
 
     D1608Cmd cmd;
+    strcpy(cmd.flag, D1608CMD_CONTROL_FLAG);
     cmd.type = CMD_TYPE_GLOBAL;
 
     cmd.id = offsetof(GlobalConfig, running_timer_limit);
@@ -5067,6 +5105,7 @@ void __fastcall TForm1::btnUnlockClick(TObject *Sender)
     }
 
     D1608Cmd cmd;
+    strcpy(cmd.flag, D1608CMD_CONTROL_FLAG);
     cmd.type = CMD_TYPE_GLOBAL;
     cmd.id = offsetof(GlobalConfig, unlock_string);
     strncpy(cmd.data.data_string, edtUnlockPassword->Text.c_str(), 16);
@@ -5187,6 +5226,7 @@ void __fastcall TForm1::btnUnlockExtClick(TObject *Sender)
 {
     // 后台解锁    
     D1608Cmd cmd;
+    strcpy(cmd.flag, D1608CMD_CONTROL_FLAG);
     cmd.type = CMD_TYPE_GLOBAL;
     cmd.id = offsetof(GlobalConfig, adjust_running_time)+4;
     cmd.length = 68+4;
@@ -5198,6 +5238,7 @@ void __fastcall TForm1::btnLeaveTheFactoryClick(TObject *Sender)
 {
     // 出厂
     D1608Cmd cmd;
+    strcpy(cmd.flag, D1608CMD_CONTROL_FLAG);
     cmd.type = CMD_TYPE_GLOBAL;
     cmd.id = offsetof(GlobalConfig, adjust_running_time);
     cmd.length = 0;
@@ -6199,6 +6240,7 @@ void __fastcall TForm1::cbGlobalDspNameClick(TObject *Sender)
     ApplyConfigToUI();
 
     D1608Cmd cmd;
+    strcpy(cmd.flag, D1608CMD_CONTROL_FLAG);
     cmd.type = CMD_TYPE_GLOBAL;
     cmd.id = offsetof(GlobalConfig, is_global_name);
     cmd.data.data_32 = cbGlobalDspName->Checked;
@@ -6209,6 +6251,7 @@ void __fastcall TForm1::cbGlobalDspNameClick(TObject *Sender)
 void __fastcall TForm1::cbPresetAutoSavedClick(TObject *Sender)
 {
     D1608Cmd cmd;
+    strcpy(cmd.flag, D1608CMD_CONTROL_FLAG);
     cmd.type = CMD_TYPE_GLOBAL;
     cmd.id = offsetof(GlobalConfig, auto_saved);
     cmd.data.data_8 = cbPresetAutoSaved->Checked;
@@ -6236,6 +6279,7 @@ void __fastcall TForm1::btnRebootDeviceClick(TObject *Sender)
 void __fastcall TForm1::cbMenuKeyFunctionChange(TObject *Sender)
 {
     D1608Cmd cmd;
+    strcpy(cmd.flag, D1608CMD_CONTROL_FLAG);
     cmd.type = CMD_TYPE_GLOBAL;
     cmd.id = offsetof(GlobalConfig, menu_key_function);
     cmd.data.data_32 = cbMenuKeyFunction->ItemIndex+1;
@@ -6246,6 +6290,7 @@ void __fastcall TForm1::cbMenuKeyFunctionChange(TObject *Sender)
 void __fastcall TForm1::cbUpKeyFunctionChange(TObject *Sender)
 {
     D1608Cmd cmd;
+    strcpy(cmd.flag, D1608CMD_CONTROL_FLAG);
     cmd.type = CMD_TYPE_GLOBAL;
     cmd.id = offsetof(GlobalConfig, up_key_function);
     cmd.data.data_32 = cbUpKeyFunction->ItemIndex+1;
@@ -6256,6 +6301,7 @@ void __fastcall TForm1::cbUpKeyFunctionChange(TObject *Sender)
 void __fastcall TForm1::cbDownKeyFunctionChange(TObject *Sender)
 {
     D1608Cmd cmd;
+    strcpy(cmd.flag, D1608CMD_CONTROL_FLAG);
     cmd.type = CMD_TYPE_GLOBAL;
     cmd.id = offsetof(GlobalConfig, down_key_function);
     cmd.data.data_32 = cbDownKeyFunction->ItemIndex+1;
@@ -6266,6 +6312,7 @@ void __fastcall TForm1::cbDownKeyFunctionChange(TObject *Sender)
 void __fastcall TForm1::cbLockUpDownMenuKeyClick(TObject *Sender)
 {
     D1608Cmd cmd;
+    strcpy(cmd.flag, D1608CMD_CONTROL_FLAG);
     cmd.type = CMD_TYPE_GLOBAL;
     cmd.id = offsetof(GlobalConfig, lock_updownmenu);
     cmd.data.data_8 = cbLockUpDownMenuKey->Checked;
@@ -6321,6 +6368,7 @@ void __fastcall TForm1::btnSaveFlashToFileClick(TObject *Sender)
 
             // 替换文件名
             D1608Cmd cmd;
+            strcpy(cmd.flag, D1608CMD_CONTROL_FLAG);
             cmd.type = CMD_TYPE_GLOBAL;
             cmd.id = offsetof(GlobalConfig, import_filename);
             cmd.data.data_string[0] = 's';
@@ -6338,12 +6386,14 @@ void __fastcall TForm1::btnSaveFlashToFileClick(TObject *Sender)
             {
                 // 从设备把数据同步上来
                 FlashRW_Data flash_rw;
+                strcpy(flash_rw.flag, READ_FLASH_FLAG);
                 //  每包2k数据
                 flash_rw.start_address = address;
                 flash_rw.end_address = 0x8000000+256*1024;
+                flash_rw.verify -= UdpPackageVerifyDiff((unsigned char*)&flash_rw, offsetof(FlashRW_Data, data));
 
                 TPackage package;
-                memcpy(package.data, &flash_rw, sizeof(flash_rw));
+                memcpy(package.data, &flash_rw, offsetof(FlashRW_Data, data));
                 package.udp_port = UDP_PORT_READ_FLASH;
                 package.data_size = offsetof(FlashRW_Data, data);//sizeof(flash_rw);
 
@@ -6477,11 +6527,11 @@ void __fastcall TForm1::btnLoadFileToFlashClick(TObject *Sender)
             lvLog->Clear();
             memcpy(event_data_tmp, smc_config.device_flash_dump+PRESET_SIZE, LOG_SIZE);
             Event * tail = GetLogPtr(event_data_tmp);
-            tail_address = (tail - event_data_tmp)*sizeof(Event)+LOG_START_PAGE;
+            tail_address = (Event*)((tail - event_data_tmp)*sizeof(Event)+LOG_START_PAGE);
             ProcessLogData();
             mac_count = 0;
 
-            LogBuff buff;
+            LogBuff buff = {LOG_FLAG};
             memcpy(&buff, smc_config.device_flash_dump+PRESET_SIZE+LOG_SIZE, sizeof(buff));
             ProcessMACLog(buff);
             memcpy(&buff, smc_config.device_flash_dump+PRESET_SIZE+LOG_SIZE+sizeof(buff), sizeof(buff));
@@ -6499,9 +6549,11 @@ void __fastcall TForm1::btnLoadFileToFlashClick(TObject *Sender)
             //  global_config数据
             {
                 D1608PresetCmd preset_cmd(version);
+                strcpy(preset_cmd.flag, D1608PRESETCMD_PC2FLASH_FLAG);
                 preset_cmd.preset = 0x80;
                 preset_cmd.store_page = 8;  // 使用8表示最后一页，TODO: 表达不是很清楚
                 memcpy(preset_cmd.data, &smc_config.global_config, sizeof(smc_config.global_config));
+                preset_cmd.verify -= UdpPackageVerifyDiff((unsigned char*)&preset_cmd, sizeof(preset_cmd));
 
                 TPackage package;
                 memcpy(package.data, &preset_cmd, sizeof(preset_cmd));
@@ -6516,6 +6568,7 @@ void __fastcall TForm1::btnLoadFileToFlashClick(TObject *Sender)
                 //if (smc_config.global_config.avaliable_preset[i] == 1)
                 {
                     D1608PresetCmd preset_cmd(version);
+                    strcpy(preset_cmd.flag, D1608PRESETCMD_PC2FLASH_FLAG);
                     preset_cmd.preset = 0x80+i+1;
                     for (int store_page=0;store_page<9;store_page++)
                     {
@@ -6550,6 +6603,7 @@ void __fastcall TForm1::btnLoadFileToFlashClick(TObject *Sender)
                             memcpy(preset_cmd.data, &smc_config.all_config_map[i].master_mix,
                                     sizeof(MasterMixConfigMap));
                         }
+                        preset_cmd.verify -= UdpPackageVerifyDiff((unsigned char*)&preset_cmd, sizeof(preset_cmd));
 
                         TPackage package;
                         memcpy(package.data, &preset_cmd, sizeof(preset_cmd));
@@ -6564,7 +6618,9 @@ void __fastcall TForm1::btnLoadFileToFlashClick(TObject *Sender)
             {
                 // 追加一个0x89作为结束标志
                 D1608PresetCmd preset_cmd(version);
+                strcpy(preset_cmd.flag, D1608PRESETCMD_PC2FLASH_FLAG);
                 preset_cmd.preset = 0x89;
+                preset_cmd.verify -= UdpPackageVerifyDiff((unsigned char*)&preset_cmd, sizeof(preset_cmd));
 
                 TPackage package;
                 memcpy(package.data, &preset_cmd, sizeof(preset_cmd));
@@ -6877,6 +6933,7 @@ void __fastcall TForm1::edtMACMouseDown(TObject *Sender,
         else
         {
             D1608Cmd cmd;
+            strcpy(cmd.flag, D1608CMD_CONTROL_FLAG);
             cmd.type = CMD_TYPE_GLOBAL;
             cmd.id = offsetof(GlobalConfig, mac_address);
             memcpy(cmd.data.data_string, mac_array, sizeof(mac_array));
@@ -7044,11 +7101,12 @@ void TForm1::StartReadOnePackage(int preset_id)
         preset_cmd.preset = preset_id; // 读取preset
         // 从0页读取
         preset_cmd.store_page = store_page;
+        preset_cmd.verify -= UdpPackageVerifyDiff((unsigned char*)&preset_cmd, sizeof(preset_cmd));
 
         TPackage package;
         package.udp_port = UDP_PORT_READ_PRESET;
-        memcpy(package.data, &preset_cmd, sizeof(preset_cmd));
-        package.data_size = sizeof(preset_cmd);
+        memcpy(package.data, &preset_cmd, offsetof(D1608PresetCmd, data));
+        package.data_size = offsetof(D1608PresetCmd, data);
 
         read_one_preset_package_list.push_back(package);
     }
@@ -7062,6 +7120,7 @@ void TForm1::StartReadOnePackage(int preset_id)
 void __fastcall TForm1::cbLedTestClick(TObject *Sender)
 {
     D1608Cmd cmd;
+    strcpy(cmd.flag, D1608CMD_CONTROL_FLAG);
     cmd.type = CMD_TYPE_GLOBAL;
     cmd.id = offsetof(GlobalConfig, led_test);
     cmd.data.data_8 = cbLedTest->Checked;
@@ -7268,9 +7327,10 @@ void __fastcall TForm1::btnClearDataAndTimeClick(TObject *Sender)
         return;
     }
 
-    {
+    {                         
         // 出厂
         D1608Cmd cmd;
+        strcpy(cmd.flag, D1608CMD_CONTROL_FLAG);
         cmd.type = CMD_TYPE_GLOBAL;
         cmd.id = offsetof(GlobalConfig, adjust_running_time);
         cmd.length = 0;
@@ -7316,7 +7376,7 @@ void __fastcall TForm1::lvLogData(TObject *Sender, TListItem *Item)
 {
     if (Item->Index < log_count)
     {
-        int address = tail_address + LOG_SIZE - (Item->Index+1)*sizeof(Event);
+        int address = (int)tail_address + LOG_SIZE - (Item->Index+1)*sizeof(Event);
         if (address >= LOG_START_PAGE+LOG_SIZE)
             address -= LOG_SIZE;
         ApplyLogData(Item, event_data[Item->Index], address, event_syn_timer[Item->Index]);
@@ -7352,7 +7412,12 @@ void __fastcall TForm1::output_panel_level_editEnter(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TForm1::cbDebugCmdChange(TObject *Sender)
 {
-    udpControl->Send(dst_ip, UDP_PORT_GET_DEBUG_INFO_EX, cbDebugCmd->Text);
+    T_Debug debug_cmd = {DEBUG_FLAG};
+    strcpy(debug_cmd.debug_cmd, cbDebugCmd->Text.c_str());
+
+    int send_size = offsetof(T_Debug, debug_cmd) + cbDebugCmd->Text.Length() + 1;   // 包括结尾
+    debug_cmd.verify -= UdpPackageVerifyDiff((unsigned char*)&debug_cmd, send_size);
+    udpControl->SendBuffer(dst_ip, UDP_PORT_GET_DEBUG_INFO_EX, &debug_cmd, send_size);
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::edtSelectAllAndCopy(TObject *Sender)
@@ -7370,6 +7435,7 @@ void __fastcall TForm1::SpeedButtonNoFrame1Click(TObject *Sender)
 void __fastcall TForm1::rgLedTestClick(TObject *Sender)
 {
     T_TestLedOled test_led_oled = {0};
+    strcpy(test_led_oled.flag, TEST_FLAG);
     test_led_oled.led_state[0].end = 1000;
 
     switch (rgLedTest->ItemIndex)
@@ -7411,7 +7477,12 @@ void __fastcall TForm1::rgLedTestClick(TObject *Sender)
         break;
     }
 
-    udpControl->SendBuffer(dst_ip, UDP_PORT_SET_LED_OLED_DEBUG, &test_led_oled, sizeof(test_led_oled));
+    test_led_oled.verify -= UdpPackageVerifyDiff((unsigned char*)&test_led_oled, sizeof(test_led_oled));
+    for (int i=0;i<3;i++)
+    {
+        if (udpSLPList[i]->Active && udpSLPList[i]->Bindings->Count == 1)
+            udpSLPList[i]->SendBuffer("255.255.255.255", UDP_PORT_SET_LED_OLED_DEBUG, &test_led_oled, sizeof(test_led_oled));
+    }
 }
 //---------------------------------------------------------------------------
 
