@@ -118,13 +118,14 @@ void FilterSet::RepaintPaint(int band)
         panel_agent_ref->UpdateFreqQGain(band);
     }
 
-    int dsp_id = Form1->pnlDspDetail->Tag;
+    int dsp_num = Form1->pnlDspDetail->Tag;
     //char in_out = Form1->lblDSPInfo->Caption[1];
     if (band == 0)
         band = select_band;
 
     if (band > 0)
     {
+#if 0
         // 下发PEQ系数
         D1608Cmd cmd;
         double tmp;
@@ -145,22 +146,47 @@ void FilterSet::RepaintPaint(int band)
         cmd.data.data_filter.bypass = tmp;
 
         cmd.length = sizeof(cmd.data.data_filter);
-
-        if (dsp_id == 0)
+#endif
+        if (dsp_num == 0)
         {
         }
-        else if (dsp_id < 100)
+        else if (dsp_num < 100)
         {
-            config_map.input_dsp[dsp_id-1].filter[band-1] = cmd.data.data_filter;
-            cmd.id = GetOffsetOfData(&config_map.input_dsp[dsp_id-1].filter[band-1]);
+            //config_map.input_dsp[dsp_num-1].filter[band-1] = cmd.data.data_filter;
+            //cmd.id = GetOffsetOfData(&config_map.input_dsp[dsp_num-1].filter[band-1]);
+
+            D1608Cmd cmd;
+            cmd.type = 3;// 文本协议
+            String cmd_text = "input["+IntToStr(dsp_num)+"].peq["+IntToStr(band)+"].TYPE_GAIN_FREQ_Q_bypass="+
+                 GetFilter(band)->GetType()+"_"
+                +FormatFloat("0.0", GetFilterGain(band))+"_"
+                +FormatFloat("0.0", GetFilterFreq(band))+"_"
+                +FormatFloat("0.0", GetFilter(band)->GetQ())+"_"
+                +(IsBypass(band) ? "on" : "off");
+            strcpy(cmd.data.data_string, cmd_text.c_str());
+            cmd.length = cmd_text.Length();
+            Form1->SendCmd(cmd);
         }
         else
         {
-            config_map.output_dsp[dsp_id-101].filter[band-1] = cmd.data.data_filter;
-            cmd.id = GetOffsetOfData(&config_map.output_dsp[dsp_id-101].filter[band-1]);
+            //config_map.output_dsp[dsp_num-101].filter[band-1] = cmd.data.data_filter;
+            //cmd.id = GetOffsetOfData(&config_map.output_dsp[dsp_num-101].filter[band-1]);
+
+            D1608Cmd cmd;
+            cmd.type = 3;// 文本协议
+            String cmd_text = "output["+IntToStr(dsp_num-100)+"].peq["+IntToStr(band)+"].TYPE_GAIN_FREQ_Q_bypass="+
+                 GetFilter(band)->GetType()+"_"
+                +FormatFloat("0.0", GetFilterGain(band))+"_"
+                +FormatFloat("0.0", GetFilterFreq(band))+"_"
+                +FormatFloat("0.0", GetFilter(band)->GetQ())+"_"
+                +(IsBypass(band) ? "on" : "off");
+            strcpy(cmd.data.data_string, cmd_text.c_str());
+            cmd.length = cmd_text.Length();
+            Form1->SendCmd(cmd);
+
         }
 
-        Form1->SendCmd(cmd);
+        //Form1->SendCmd(cmd);
     }
 }
 
