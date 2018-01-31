@@ -968,12 +968,12 @@ private:
     void ResetLHFilter()
     {
         int preset_freq_list[11] = {20, 50, 100, 200, 500, 1000, 2000, 5000, 7500, 10000, 20000};
-        filter_set.GetFilter(HP_FILTER)->ChangFilterParameter("12dB Butterworth High", preset_freq_list[FIRST_FILTER-1], 0, 4.09);
+        filter_set.GetFilter(HP_FILTER)->ChangFilterParameter("12dB_BUTTERWORTH_HIGH", preset_freq_list[FIRST_FILTER-1], 0, 4.09);
             filter_set.SetBypass(HP_FILTER, true);
             filter_set.GetFilter(HP_FILTER)->name = "H";
             filter_set.RepaintPaint(HP_FILTER);
 
-        filter_set.GetFilter(LP_FILTER)->ChangFilterParameter("12dB Butterworth Low", preset_freq_list[LP_FILTER-1], 0, 4.09);
+        filter_set.GetFilter(LP_FILTER)->ChangFilterParameter("12dB_BUTTERWORTH_LOW", preset_freq_list[LP_FILTER-1], 0, 4.09);
             filter_set.SetBypass(LP_FILTER, true);
             filter_set.GetFilter(LP_FILTER)->name = "L";
             filter_set.RepaintPaint(LP_FILTER);

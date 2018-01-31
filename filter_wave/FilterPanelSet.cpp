@@ -33,9 +33,9 @@ static String GetFilterTypeSuffix(int band)
     switch(band)
     {
     case HP_FILTER:
-        return " High";
+        return "_HIGH";
     case LP_FILTER:
-        return " Low";
+        return "_LOW";
     default:
         return "";
     }

@@ -32,7 +32,7 @@ public:
         InitFreqPoint();
         EqualizerOff();
 
-        ChangFilterParameter("Parametric", 1000, 0, 4);
+        ChangFilterParameter("PARAMETRIC", 1000, 0, 4);
     }
     WideString name;
     double GetFreq() const
@@ -78,34 +78,34 @@ public:
     }
     bool IsGainEnabled()
     {
-        if ((_type == "Band Pass")
-          ||(_type == "Notch")
-          ||(_type == "6dB Bansen High")
-          ||(_type == "6dB Bansen Low")
-          ||(_type == "12dB Bessel High")
-          ||(_type == "12dB Bessel Low")
-          ||(_type == "18dB Bessel High")
-          ||(_type == "18dB Bessel Low")
-          ||(_type == "24dB Bessel High")
-          ||(_type == "24dB Bessel Low")
-          ||(_type == "48dB Bessel High")
-          ||(_type == "48dB Bessel Low")
-          ||(_type == "12dB Linkwitz-Riley High")
-          ||(_type == "12dB Linkwitz-Riley Low")
-          ||(_type == "24dB Linkwitz-Riley High")
-          ||(_type == "24dB Linkwitz-Riley Low")
-          ||(_type == "48dB Linkwitz-Riley High")
-          ||(_type == "48dB Linkwitz-Riley Low")
-          ||(_type == "12dB Butterworth High")
-          ||(_type == "18dB Butterworth High")
-          ||(_type == "24dB Butterworth High")
-    //      ||(_type == "36dB Butterworth High")
-          ||(_type == "48dB Butterworth High")
-          ||(_type == "12dB Butterworth Low")
-          ||(_type == "18dB Butterworth Low")
-          ||(_type == "24dB Butterworth Low")
-    //      ||(_type == "36dB Butterworth Low")
-          ||(_type == "48dB Butterworth Low"))
+        if ((_type == "BAND_PASS")
+          ||(_type == "NOTCH")
+          ||(_type == "6dB_BANSEN_HIGH")
+          ||(_type == "6dB_BANSEN_LOW")
+          ||(_type == "12dB_BESSEL_HIGH")
+          ||(_type == "12dB_BESSEL_LOW")
+          ||(_type == "18dB_BESSEL_HIGH")
+          ||(_type == "18dB_BESSEL_LOW")
+          ||(_type == "24dB_BESSEL_HIGH")
+          ||(_type == "24dB_BESSEL_LOW")
+          ||(_type == "48dB_BESSEL_HIGH")
+          ||(_type == "48dB_BESSEL_LOW")
+          ||(_type == "12dB_LINKWITZ-RILEY_HIGH")
+          ||(_type == "12dB_LINKWITZ-RILEY_LOW")
+          ||(_type == "24dB_LINKWITZ-RILEY_HIGH")
+          ||(_type == "24dB_LINKWITZ-RILEY_LOW")
+          ||(_type == "48dB_LINKWITZ-RILEY_HIGH")
+          ||(_type == "48dB_LINKWITZ-RILEY_LOW")
+          ||(_type == "12dB_BUTTERWORTH_HIGH")
+          ||(_type == "18dB_BUTTERWORTH_HIGH")
+          ||(_type == "24dB_BUTTERWORTH_HIGH")
+    //      ||(_type == "36dB_BUTTERWORTH_HIGH")
+          ||(_type == "48dB_BUTTERWORTH_HIGH")
+          ||(_type == "12dB_BUTTERWORTH_LOW")
+          ||(_type == "18dB_BUTTERWORTH_LOW")
+          ||(_type == "24dB_BUTTERWORTH_LOW")
+    //      ||(_type == "36dB_BUTTERWORTH_LOW")
+          ||(_type == "48dB_BUTTERWORTH_LOW"))
         {
             return false;
         }
@@ -116,77 +116,77 @@ public:
     }
     int UseIIRCount()
     {
-        if (_type == "18dB Bessel High")
+        if (_type == "18dB_BESSEL_HIGH")
         {
             return 2;
         }
-        else if (_type == "18dB Bessel Low")
+        else if (_type == "18dB_BESSEL_LOW")
         {
             return 2;
         }
-        else if (_type == "24dB Bessel High")
+        else if (_type == "24dB_BESSEL_HIGH")
         {
             return 2;
         }
-        else if (_type == "24dB Bessel Low")
+        else if (_type == "24dB_BESSEL_LOW")
         {
             return 2;
         }
-        else if (_type == "48dB Bessel High")
+        else if (_type == "48dB_BESSEL_HIGH")
         {
             return 4;
         }
-        else if (_type == "48dB Bessel Low")
-        {
-            return 4;
-        }
-
-        else if (_type == "24dB Linkwitz-Riley High")
-        {
-            return 2;
-        }
-        else if (_type == "24dB Linkwitz-Riley Low")
-        {
-            return 2;
-        }
-        else if (_type == "48dB Linkwitz-Riley High")
-        {
-            return 4;
-        }
-        else if (_type == "48dB Linkwitz-Riley Low")
+        else if (_type == "48dB_BESSEL_LOW")
         {
             return 4;
         }
 
-        else if (_type == "18dB Butterworth Low")
+        else if (_type == "24dB_LINKWITZ-RILEY_HIGH")
         {
             return 2;
         }
-        else if (_type == "18dB Butterworth High")
+        else if (_type == "24dB_LINKWITZ-RILEY_LOW")
         {
             return 2;
         }
-        else if (_type == "24dB Butterworth High")
-        {
-            return 2;
-        }
-        else if (_type == "24dB Butterworth Low")
-        {
-            return 2;
-        }
-        else if (_type == "36dB Butterworth High")
-        {
-            return 3;
-        }
-        else if (_type == "36dB Butterworth Low")
-        {
-            return 3;
-        }
-        else if (_type == "48dB Butterworth High")
+        else if (_type == "48dB_LINKWITZ-RILEY_HIGH")
         {
             return 4;
         }
-        else if (_type == "48dB Butterworth Low")
+        else if (_type == "48dB_LINKWITZ-RILEY_LOW")
+        {
+            return 4;
+        }
+
+        else if (_type == "18dB_BUTTERWORTH_LOW")
+        {
+            return 2;
+        }
+        else if (_type == "18dB_BUTTERWORTH_HIGH")
+        {
+            return 2;
+        }
+        else if (_type == "24dB_BUTTERWORTH_HIGH")
+        {
+            return 2;
+        }
+        else if (_type == "24dB_BUTTERWORTH_LOW")
+        {
+            return 2;
+        }
+        else if (_type == "36dB_BUTTERWORTH_HIGH")
+        {
+            return 3;
+        }
+        else if (_type == "36dB_BUTTERWORTH_LOW")
+        {
+            return 3;
+        }
+        else if (_type == "48dB_BUTTERWORTH_HIGH")
+        {
+            return 4;
+        }
+        else if (_type == "48dB_BUTTERWORTH_LOW")
         {
             return 4;
         }

@@ -125,7 +125,7 @@ void FilterSet::RepaintPaint(int band)
 
     if (band > 0)
     {
-#if 0
+#if 1
         // 下发PEQ系数
         D1608Cmd cmd;
         double tmp;
@@ -152,16 +152,16 @@ void FilterSet::RepaintPaint(int band)
         }
         else if (dsp_num < 100)
         {
-            //config_map.input_dsp[dsp_num-1].filter[band-1] = cmd.data.data_filter;
+            config_map.input_dsp[dsp_num-1].filter[band-1] = cmd.data.data_filter;
             //cmd.id = GetOffsetOfData(&config_map.input_dsp[dsp_num-1].filter[band-1]);
 
             D1608Cmd cmd;
             cmd.type = 3;// 文本协议
             String cmd_text = "input["+IntToStr(dsp_num)+"].peq["+IntToStr(band)+"].TYPE_GAIN_FREQ_Q_bypass="+
-                 GetFilter(band)->GetType()+"_"
-                +FormatFloat("0.0", GetFilterGain(band))+"_"
-                +FormatFloat("0.0", GetFilterFreq(band))+"_"
-                +FormatFloat("0.0", GetFilter(band)->GetQ())+"_"
+                 GetFilter(band)->GetType()+","
+                +FormatFloat("0.0", GetFilterGain(band))+","
+                +FormatFloat("0.0", GetFilterFreq(band))+","
+                +FormatFloat("0.0", GetFilter(band)->GetQ())+","
                 +(IsBypass(band) ? "on" : "off");
             strcpy(cmd.data.data_string, cmd_text.c_str());
             cmd.length = cmd_text.Length();
@@ -169,7 +169,7 @@ void FilterSet::RepaintPaint(int band)
         }
         else
         {
-            //config_map.output_dsp[dsp_num-101].filter[band-1] = cmd.data.data_filter;
+            config_map.output_dsp[dsp_num-101].filter[band-1] = cmd.data.data_filter;
             //cmd.id = GetOffsetOfData(&config_map.output_dsp[dsp_num-101].filter[band-1]);
 
             D1608Cmd cmd;

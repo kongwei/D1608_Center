@@ -145,169 +145,169 @@ void Coefficient::ChangFilterParameter(String type, double freq, double gain, do
     if (q == 0)
         q = 4;
 
-    if (type == "Parametric")
+    if (type == "PARAMETRIC")
     {
         Peaking(freq, gain, q);
         _type_id = 1;
     }
-    else if (type == "Band Pass")
+    else if (type == "BAND_PASS")
     {
         BandPass(freq, gain, q);
         _type_id = 2;
     }
-    else if (type == "High Shelf")
+    else if (type == "HIGH_SHELF")
     {
         gain = std::min(gain, 12.0);
 
         HighShelving(freq, gain, q);
         _type_id = 3;
     }
-    else if (type == "Low Shelf")
+    else if (type == "LOW_SHELF")
     {
         gain = std::min(gain, 12.0);
 
         LowShelving(freq, gain, q);
         _type_id = 4;
     }
-    else if (type == "Notch")
+    else if (type == "NOTCH")
     {
         Notch(freq, gain, q);
         _type_id = 5;
     }
-    else if (type == "12dB Bessel High")
+    else if (type == "12dB_BESSEL_HIGH")
     {
         HighBessel_12dB(freq);
         _type_id = 1202;
     }
-    else if (type == "12dB Bessel Low")
+    else if (type == "12dB_BESSEL_LOW")
     {
         LowBessel_12dB(freq);
         _type_id = 1212;
     }
-    else if (type == "18dB Bessel High")
+    else if (type == "18dB_BESSEL_HIGH")
     {
         HighBessel_18dB(freq);
         _type_id = 1802;
     }
-    else if (type == "18dB Bessel Low")
+    else if (type == "18dB_BESSEL_LOW")
     {
         LowBessel_18dB(freq);
         _type_id = 1812;
     }
-    else if (type == "24dB Bessel High")
+    else if (type == "24dB_BESSEL_HIGH")
     {
         HighBessel_24dB(freq);
         _type_id = 2402;
     }
-    else if (type == "24dB Bessel Low")
+    else if (type == "24dB_BESSEL_LOW")
     {
         LowBessel_24dB(freq);
         _type_id = 2412;
     }
-    else if (type == "48dB Bessel High")
+    else if (type == "48dB_BESSEL_HIGH")
     {
         HighPassButterworth_48dB(freq);
         _type_id = 4802;
     }
-    else if (type == "48dB Bessel Low")
+    else if (type == "48dB_Bessel_LOW")
     {
         LowPassButterworth_48dB(freq);
         _type_id = 4812;
     }
 
-    else if (type == "12dB Linkwitz-Riley High")
+    else if (type == "12dB_LINKWITZ-RILEY_HIGH")
     {
         HighLinkwitz_12dB(freq);
         _type_id = 1203;
     }
-    else if (type == "12dB Linkwitz-Riley Low")
+    else if (type == "12dB_LINKWITZ-RILEY_LOW")
     {
         LowLinkwitz_12dB(freq);
         _type_id = 1213;
     }
-    else if (type == "24dB Linkwitz-Riley High")
+    else if (type == "24dB_LINKWITZ-RILEY_HIGH")
     {
         HighLinkwitz_24dB(freq);
         _type_id = 2403;
     }
-    else if (type == "24dB Linkwitz-Riley Low")
+    else if (type == "24dB_LINKWITZ-RILEY_LOW")
     {
         LowLinkwitz_24dB(freq);
         _type_id = 2413;
     }
-    else if (type == "48dB Linkwitz-Riley High")
+    else if (type == "48dB_LINKWITZ-RILEY_HIGH")
     {
         HighLinkwitz_48dB(freq);
         _type_id = 4803;
     }
-    else if (type == "48dB Linkwitz-Riley Low")
+    else if (type == "48dB_LINKWITZ-RILEY_LOW")
     {
         LowLinkwitz_48dB(freq);
         _type_id = 4813;
     }
 
-    else if (type == "6dB Bansen High")
+    else if (type == "6dB_BANSEN_HIGH")
     {
         HighBansen(freq);
         _type_id = 604;
     }
-    else if (type == "6dB Bansen Low")
+    else if (type == "6dB_BANSEN_LOW")
     {
         LowBansen(freq);
         _type_id = 614;
     }
 
-    else if (type == "12dB Butterworth High")
+    else if (type == "12dB_BUTTERWORTH_HIGH")
     {
         HighPassButterworth_12dB(freq);
         _type_id = 1201;
     }
-    else if (type == "18dB Butterworth High")
+    else if (type == "18dB_BUTTERWORTH_HIGH")
     {
         HighPassButterworth_18dB(freq);
         _type_id = 1801;
     }
-    else if (type == "24dB Butterworth High")
+    else if (type == "24dB_BUTTERWORTH_HIGH")
     {
         HighPassButterworth_24dB(freq);
         _type_id = 2401;
     }
-    /*else if (type == "36dB Butterworth High")
+    /*else if (type == "36dB_BUTTERWORTH_HIGH")
     {
         HighPassButterworth_36dB(freq);
         _type_id = 3601;
     }*/
-    else if (type == "48dB Butterworth High")
+    else if (type == "48dB_BUTTERWORTH_HIGH")
     {
         HighPassButterworth_48dB(freq);
         _type_id = 4801;
     }
-    else if (type == "12dB Butterworth Low")
+    else if (type == "12dB_BUTTERWORTH_LOW")
     {
         LowPassButterworth_12dB(freq);
         _type_id = 1211;
     }
-    else if (type == "18dB Butterworth Low")
+    else if (type == "18dB_BUTTERWORTH_LOW")
     {
         LowPassButterworth_18dB(freq);
         _type_id = 1811;
     }
-    else if (type == "24dB Butterworth Low")
+    else if (type == "24dB_BUTTERWORTH_LOW")
     {
         LowPassButterworth_24dB(freq);
         _type_id = 2411;
     }
-    /*else if (type == "36dB Butterworth Low")
+    /*else if (type == "36dB_BUTTERWORTH_LOW")
     {
         LowPassButterworth_36dB(freq);
         _type_id = 3611;
     }*/
-    else if (type == "48dB Butterworth Low")
+    else if (type == "48dB_BUTTERWORTH_LOW")
     {
         LowPassButterworth_48dB(freq);
         _type_id = 4811;
     }
-    else if (type == "Pink")
+    else if (type == "PINK")
     {
         Pink(freq, gain, q);
         _type_id = 7;
@@ -315,7 +315,6 @@ void Coefficient::ChangFilterParameter(String type, double freq, double gain, do
     else
     {
     }
-
 
     _type = type;
     _freq = freq;
@@ -404,68 +403,68 @@ String Coefficient::GetTypeName(int type_id)
     switch(type_id)
     {
     case 1:
-        return "Parametric";
+        return "PARAMETRIC";
     case 2:
-        return "Band Pass";
+        return "BAND_PASS";
     case 3:
-        return "High Shelf";
+        return "HIGH_SHELF";
     case 4:
-        return "Low Shelf";
+        return "LOW_SHELF";
     case 5:
-        return "Notch";
+        return "NOTCH";
     case 1202:
-        return "12dB Bessel High";
+        return "12dB_BESSEL_HIGH";
     case 1212:
-        return "12dB Bessel Low";
+        return "12dB_BESSEL_LOW";
     case 1802:
-        return "18dB Bessel High";
+        return "18dB_BESSEL_HIGH";
     case 1812:
-        return "18dB Bessel Low";
+        return "18dB_BESSEL_LOW";
     case 2402:
-        return "24dB Bessel High";
+        return "24dB_BESSEL_HIGH";
     case 2412:
-        return "24dB Bessel Low";
+        return "24dB_BESSEL_LOW";
     case 4802:
-        return "48dB Bessel High";
+        return "48dB_BESSEL_HIGH";
     case 4812:
-        return "48dB Bessel Low";
+        return "48dB_BESSEL_LOW";
     case 1203:
-        return "12dB Linkwitz-Riley High";
+        return "12dB_LINKWITZ-RILEY_HIGH";
     case 1213:
-        return "12dB Linkwitz-Riley Low";
+        return "12dB_LINKWITZ-RILEY_LOW";
     case 2403:
-        return "24dB Linkwitz-Riley High";
+        return "24dB_LINKWITZ-RILEY_HIGH";
     case 2413:
-        return "24dB Linkwitz-Riley Low";
+        return "24dB_LINKWITZ-RILEY_LOW";
     case 4803:
-        return "48dB Linkwitz-Riley High";
+        return "48dB_LINKWITZ-RILEY_HIGH";
     case 4813:
-        return "48dB Linkwitz-Riley Low";
+        return "48dB_LINKWITZ-RILEY_LOW";
     case 604:
-        return "6dB Bansen High";
+        return "6dB_BANSEN_HIGH";
     case 614:
-        return "6dB Bansen Low";
+        return "6dB_BANSEN_LOW";
     case 1201:
-        return "12dB Butterworth High";
+        return "12dB_BUTTERWORTH_HIGH";
     case 1801:
-        return "18dB Butterworth High";
+        return "18dB_BUTTERWORTH_HIGH";
     case 2401:
-        return "24dB Butterworth High";
+        return "24dB_BUTTERWORTH_HIGH";
     case 4801:
-        return "48dB Butterworth High";
+        return "48dB_BUTTERWORTH_HIGH";
     case 1211:
-        return "12dB Butterworth Low";
+        return "12dB_BUTTERWORTH_LOW";
     case 1811:
-        return "18dB Butterworth Low";
+        return "18dB_BUTTERWORTH_LOW";
     case 2411:
-        return "24dB Butterworth Low";
+        return "24dB_BUTTERWORTH_LOW";
     case 4811:
-        return "48dB Butterworth Low";
+        return "48dB_BUTTERWORTH_LOW";
     case 7:
-        return "Pink";
+        return "PINK";
     }
 
-    return "Parametric";
+    return "PARAMETRIC";
 }
 
 void InitConfigMap(ConfigMap& tmp_config_map)
