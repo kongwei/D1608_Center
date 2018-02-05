@@ -153,7 +153,6 @@ void FilterSet::RepaintPaint(int band)
         else if (dsp_num < 100)
         {
             config_map.input_dsp[dsp_num-1].filter[band-1] = cmd.data.data_filter;
-            //cmd.id = GetOffsetOfData(&config_map.input_dsp[dsp_num-1].filter[band-1]);
 
             D1608Cmd cmd;
             cmd.type = 3;// 文本协议
@@ -170,7 +169,6 @@ void FilterSet::RepaintPaint(int band)
         else
         {
             config_map.output_dsp[dsp_num-101].filter[band-1] = cmd.data.data_filter;
-            //cmd.id = GetOffsetOfData(&config_map.output_dsp[dsp_num-101].filter[band-1]);
 
             D1608Cmd cmd;
             cmd.type = 3;// 文本协议
