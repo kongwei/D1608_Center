@@ -1547,8 +1547,8 @@ void __fastcall TForm1::btnSelectClick(TObject *Sender)
     if (udpControl->Active)
     {
         String cmd_text = D1608CMD_FLAG;
-        cmd_text = cmd_text + "config.action=unlink";
-        SendCmd2(cmd_text);
+        cmd_text = cmd_text + "config.action=unlink|";
+        SendCmd2(cmd_text+"|");
     }
 
 
@@ -1711,7 +1711,7 @@ void __fastcall TForm1::InputVolumeChange(TObject *Sender)
         cmd_text = cmd_text+"input["+IntToStr(dsp_num)+"].volume="+input_level_edit[dsp_num-1]->Text;
         if (input_level_edit[dsp_num-1]->Text != "Off")
             cmd_text = cmd_text + "dB";
-        SendCmd(cmd_text);
+        SendCmd(cmd_text+"|");
 
         config_map.input_dsp[dsp_num-1].level_a = value;
     }
@@ -1724,7 +1724,7 @@ void __fastcall TForm1::ToogleMute(TObject *Sender)
 
     String cmd_text = D1608CMD_FLAG;
     cmd_text = cmd_text + "input["+IntToStr(dsp_num)+"].mute="+(btn->Down?"on":"off");
-    SendCmd(cmd_text);
+    SendCmd(cmd_text+"|");
 
     config_map.input_dsp[dsp_num-1].mute_switch = btn->Down;
 }
@@ -1736,7 +1736,7 @@ void __fastcall TForm1::ToogleNoise(TObject *Sender)
 
     String cmd_text = D1608CMD_FLAG;
     cmd_text = cmd_text + "input["+IntToStr(dsp_num)+"].noise="+(btn->Down?"on":"off");
-    SendCmd(cmd_text);
+    SendCmd(cmd_text+"|");
 
     config_map.input_dsp[dsp_num-1].noise_switch = btn->Down;
 }
@@ -1748,7 +1748,7 @@ void __fastcall TForm1::ToogleInvert(TObject *Sender)
 
     String cmd_text = D1608CMD_FLAG;
     cmd_text = cmd_text+"input["+IntToStr(dsp_num)+"].invert="+(btn->Down?"on":"off");
-    SendCmd(cmd_text);
+    SendCmd(cmd_text+"|");
 
     config_map.input_dsp[dsp_num-1].invert_switch = btn->Down;
 }
@@ -1786,7 +1786,7 @@ void __fastcall TForm1::ToogleEQ(TObject *Sender)
 
     String cmd_text = D1608CMD_FLAG;
     cmd_text = cmd_text+"input["+IntToStr(dsp_num)+"].eq="+(btn->Down?"on":"off");
-    SendCmd(cmd_text);
+    SendCmd(cmd_text+"|");
 
     config_map.input_dsp[dsp_num-1].eq_switch = btn->Down;
 }
@@ -1855,7 +1855,7 @@ void TForm1::ProcessPackageMessageFeedback(TextSynMsg * text_syn_msg)
     {
         String cmd_text = D1608CMD_KEEPLIVE_FLAG;
         cmd_text = cmd_text+"config.action.keeplive="+IntToStr(received_cmd_seq);
-        SendCmd2(cmd_text);
+        SendCmd2(cmd_text+"|");
         send_keeplive_count++;
         last_keeplive_time = Now();
         memo_debug->Lines->Add(GetTime()+"发送保活: " + IntToStr(keep_live_count));
@@ -1950,7 +1950,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
 
                 String cmd_text = D1608CMD_CONTROL_FLAG;
                 cmd_text = cmd_text+cmd_string+"_confirm";
-                SendCmd2(cmd_text);
+                SendCmd2(cmd_text+"|");
 
                 keep_live_count = CONTROL_TIMEOUT_COUNT;
                 received_cmd_seq = 0;
@@ -3107,7 +3107,7 @@ void __fastcall TForm1::tmWatchTimer(TObject *Sender)
 
     String cmd_text = D1608CMD_KEEPLIVE_FLAG;
     cmd_text = cmd_text+"config.action.keeplive="+IntToStr(received_cmd_seq);
-    SendCmd2(cmd_text);
+    SendCmd2(cmd_text+"|");
     send_keeplive_count++;
     last_keeplive_time = Now();
 
@@ -3126,7 +3126,7 @@ void __fastcall TForm1::ToogleOutputMute(TObject *Sender)
 
     String cmd_text = D1608CMD_FLAG;
     cmd_text = cmd_text+"output["+IntToStr(dsp_num)+"].mute="+(btn->Down?"on":"off");
-    SendCmd(cmd_text);
+    SendCmd(cmd_text+"|");
 
     config_map.output_dsp[dsp_num-1].mute_switch = btn->Down;
 }
@@ -3138,7 +3138,7 @@ void __fastcall TForm1::ToogleOutputInvert(TObject *Sender)
 
     String cmd_text = D1608CMD_FLAG;
     cmd_text = cmd_text+"output["+IntToStr(dsp_num)+"].invert="+(btn->Down?"on":"off");
-    SendCmd(cmd_text);
+    SendCmd(cmd_text+"|");
     
     config_map.output_dsp[dsp_num-1].invert_switch = btn->Down;
 }
@@ -3213,7 +3213,7 @@ void __fastcall TForm1::ToogleOutputEQ(TObject *Sender)
 
     String cmd_text = D1608CMD_FLAG;
     cmd_text = cmd_text+"output["+IntToStr(dsp_num)+"].eq="+(btn->Down?"on":"off");
-    SendCmd(cmd_text);
+    SendCmd(cmd_text+"|");
 
     config_map.output_dsp[dsp_num-1].eq_switch = btn->Down;
 }
@@ -3241,7 +3241,7 @@ void __fastcall TForm1::OutputVolumeChange(TObject *Sender)
     cmd_text = cmd_text+ "output["+IntToStr(dsp_num)+"].volume="+output_level_edit[dsp_num-1]->Text;
     if (output_level_edit[dsp_num-1]->Text != "Off")
         cmd_text = cmd_text + "dB";
-    SendCmd(cmd_text);
+    SendCmd(cmd_text+"|");
 
     config_map.output_dsp[dsp_num-1].level_a = value;
 }
@@ -3428,7 +3428,7 @@ void __fastcall TForm1::MasterVolumeChange(TObject *Sender)
     cmd_text = cmd_text+ "master.volume="+master_panel_level_edit->Text;
     if (master_panel_level_edit->Text != "Off")
         cmd_text = cmd_text + "dB";
-    SendCmd(cmd_text);
+    SendCmd(cmd_text+"|");
 
     config_map.master_mix.level_a = value;
     memo_debug->Lines->Add(IntToStr(config_map.master_mix.level_a));
@@ -3446,7 +3446,7 @@ void __fastcall TForm1::btnMasterMuteClick(TObject *Sender)
 
     String cmd_text = D1608CMD_FLAG;
     cmd_text = cmd_text+ String("master.mute=")+(btn->Down?"on":"off");
-    SendCmd(cmd_text);
+    SendCmd(cmd_text+"|");
 
     config_map.master_mix.mute_switch = btn->Down;
 }
@@ -3458,7 +3458,7 @@ void __fastcall TForm1::btnPhantonClick(TObject *Sender)
 
     String cmd_text = D1608CMD_FLAG;
     cmd_text = cmd_text+ "input["+IntToStr(dsp_num)+"].phantom="+(btn->Down?"on":"off");
-    SendCmd(cmd_text);
+    SendCmd(cmd_text+"|");
 
     config_map.input_dsp[dsp_num-1].phantom_switch = btn->Down;
 }
@@ -3541,7 +3541,7 @@ void __fastcall TForm1::i10dBvClick(TObject *Sender)
 
     String cmd_text = D1608CMD_FLAG;
     cmd_text = cmd_text+ "input["+IntToStr(dsp_num)+"].gain="+popup_label->Caption;
-    SendCmd(cmd_text);
+    SendCmd(cmd_text+"|");
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::MenuItem3Click(TObject *Sender)
@@ -3566,7 +3566,7 @@ void __fastcall TForm1::MenuItem3Click(TObject *Sender)
 
     String cmd_text = D1608CMD_FLAG;
     cmd_text = cmd_text+ "output["+IntToStr(dsp_num)+"].gain="+popup_label->Caption;
-    SendCmd(cmd_text);
+    SendCmd(cmd_text+"|");
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::i10dBvDrawItem(TObject *Sender, TCanvas *ACanvas,
@@ -3897,7 +3897,7 @@ void __fastcall TForm1::after_input_panel_dsp_numClick(TObject *Sender)
 
         String cmd_text = D1608CMD_FLAG;
         cmd_text = cmd_text+"config.input["+IntToStr(dsp_num)+"].name="+label->Caption.SubString(1,16);
-        SendCmd(cmd_text);
+        SendCmd(cmd_text+"|");
     }
     else
     {
@@ -3905,7 +3905,7 @@ void __fastcall TForm1::after_input_panel_dsp_numClick(TObject *Sender)
 
         String cmd_text = D1608CMD_FLAG;
         cmd_text = cmd_text+"input["+IntToStr(dsp_num)+"].name="+label->Caption;
-        SendCmd(cmd_text);
+        SendCmd(cmd_text+"|");
     }
 }
 //---------------------------------------------------------------------------
@@ -3932,7 +3932,7 @@ void __fastcall TForm1::after_output_panel_dsp_numClick(TObject *Sender)
     {
         String cmd_text = D1608CMD_FLAG;
         cmd_text = cmd_text+"config.output["+IntToStr(dsp_num)+"].name="+label->Caption.SubString(1,16);
-        SendCmd(cmd_text);
+        SendCmd(cmd_text+"|");
 
         strncpy(global_config.output_dsp_name[label->Tag], label->Caption.c_str(), 6);
     }
@@ -3940,7 +3940,7 @@ void __fastcall TForm1::after_output_panel_dsp_numClick(TObject *Sender)
     {
         String cmd_text = D1608CMD_FLAG;
         cmd_text = cmd_text+"output["+IntToStr(dsp_num)+"].name="+label->Caption;
-        SendCmd(cmd_text);
+        SendCmd(cmd_text+"|");
         
         strncpy(config_map.output_dsp[label->Tag].dsp_name, label->Caption.c_str(), 6);
     }
@@ -3997,7 +3997,7 @@ void __fastcall TForm1::pnlmix_level_trackbarChange(TObject *Sender)
         cmd_text = cmd_text+"output["+IntToStr(out_dsp_num)+"].route_input["+IntToStr(in_dsp_num)+"].volume="+mix_level_edit[dsp_num-1]->Text;
         if (mix_level_edit[dsp_num-1]->Text != "Off")
             cmd_text = cmd_text + "dB";
-        SendCmd(cmd_text);
+        SendCmd(cmd_text+"|");
 
         config_map.master_mix.mix[in_dsp_num-1][out_dsp_num-1] = value;
     }
@@ -4052,7 +4052,7 @@ void __fastcall TForm1::pnlmix_muteClick(TObject *Sender)
 
         String cmd_text = D1608CMD_FLAG;
         cmd_text = cmd_text+"output["+IntToStr(out_dsp_num)+"].route_input["+IntToStr(in_dsp_num)+"].mute="+(btn->Down?"on":"off");
-        SendCmd(cmd_text);
+        SendCmd(cmd_text+"|");
 
         config_map.master_mix.mix_mute[in_dsp_num-1][out_dsp_num-1] = btn->Down;
     }
@@ -4652,7 +4652,7 @@ void __fastcall TForm1::RecallClick(TObject *Sender)
     {
         String cmd_text = D1608CMD_CONTROL_FLAG;
         cmd_text = cmd_text+"config.active_preset="+IntToStr(menu->Tag);
-        SendCmd2(cmd_text);
+        SendCmd2(cmd_text+"|");
 
         // 延时5秒后强制从本地内存更新到界面
         tmDelayUpdateUI->Enabled = true;
@@ -4683,7 +4683,7 @@ void __fastcall TForm1::btnSetIpClick(TObject *Sender)
         cmd_text = cmd_text+"config.ip="+String(ip_text);
     }
         
-    SendCmd2(cmd_text);
+    SendCmd2(cmd_text+"|");
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::btnGetLogClick(TObject *Sender)
@@ -4724,7 +4724,7 @@ void __fastcall TForm1::lblPresetNameClick(TObject *Sender)
 
     String cmd_text = D1608CMD_CONTROL_FLAG;
     cmd_text = cmd_text+"config.preset_name["+IntToStr(cur_preset_id)+"]=" + lblPresetName->Caption.SubString(1,16);
-    SendCmd(cmd_text);
+    SendCmd(cmd_text+"|");
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::btnDeviceNameClick(TObject *Sender)
@@ -4735,7 +4735,7 @@ void __fastcall TForm1::btnDeviceNameClick(TObject *Sender)
 
     String cmd_text = D1608CMD_CONTROL_FLAG;
     cmd_text = cmd_text+"config.name="+edtDeviceName->Text.SubString(1,16);
-    SendCmd2(cmd_text);
+    SendCmd2(cmd_text+"|");
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::clbAvaliablePresetClickCheck(TObject *Sender)
@@ -4768,7 +4768,7 @@ void __fastcall TForm1::clbAvaliablePresetClickCheck(TObject *Sender)
 
             String cmd_text = D1608CMD_CONTROL_FLAG;
             cmd_text = cmd_text+"config.avaliable_preset["+IntToStr(i+1)+"]="+(clbAvaliablePreset->Checked[i]?"on":"off");
-            SendCmd2(cmd_text);
+            SendCmd2(cmd_text+"|");
         }
     }
 }
@@ -4805,7 +4805,7 @@ void __fastcall TForm1::btnSetLockClick(TObject *Sender)
                       +","+global_config.password
                       +","+global_config.password_of_key;
 
-    SendCmd(cmd_text);
+    SendCmd(cmd_text+"|");
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::btnUnlockClick(TObject *Sender)
@@ -4818,7 +4818,7 @@ void __fastcall TForm1::btnUnlockClick(TObject *Sender)
 
     String cmd_text = D1608CMD_CONTROL_FLAG;
     cmd_text = cmd_text+"config.unlock="+edtUnlockPassword->Text.SubString(1,16);
-    SendCmd2(cmd_text);
+    SendCmd2(cmd_text+"|");
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::edtKeyPasswordKeyDown(TObject *Sender, WORD &Key,
@@ -4943,7 +4943,7 @@ void __fastcall TForm1::btnUnlockExtClick(TObject *Sender)
 	char password_of_key[20];	// 键盘解锁密码
 	char password[20];			// 密码
 */
-    SendCmd(cmd_text);
+    SendCmd(cmd_text+"|");
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::btnLeaveTheFactoryClick(TObject *Sender)
@@ -4951,7 +4951,7 @@ void __fastcall TForm1::btnLeaveTheFactoryClick(TObject *Sender)
     // 出厂
     String cmd_text = D1608CMD_CONTROL_FLAG;
     cmd_text = cmd_text+"config.adjust_running_time=on";
-    SendCmd2(cmd_text);
+    SendCmd2(cmd_text+"|");
 }
 //---------------------------------------------------------------------------
 void TForm1::ShowInputPanel(TControl * Sender, TNotifyEvent event, String default_text)
@@ -5045,7 +5045,7 @@ void __fastcall TForm1::ToogleCOMP(TObject *Sender)
 
     String cmd_text = D1608CMD_FLAG;
     cmd_text = cmd_text+ "output["+IntToStr(dsp_num)+"].comp="+(btn->Down?"on":"off");
-    SendCmd(cmd_text);
+    SendCmd(cmd_text+"|");
 
     config_map.output_dsp[dsp_num-1].comp_switch = btn->Down;
 }
@@ -5080,7 +5080,7 @@ void __fastcall TForm1::edtCompRatioKeyDown(TObject *Sender, WORD &Key,
             
             String cmd_text = D1608CMD_FLAG;
             cmd_text = cmd_text+"output["+IntToStr(dsp_num)+"].comp.ratio="+edtCompRatio->Text;
-            SendCmd(cmd_text);
+            SendCmd(cmd_text+"|");
 
             filter_set.ratio = config_map.output_dsp[dsp_num-1].ratio / 100.0;
             pbComp->Invalidate();
@@ -5122,7 +5122,7 @@ void __fastcall TForm1::edtCompThresholdKeyDown(TObject *Sender, WORD &Key,
 
             String cmd_text = D1608CMD_FLAG;
             cmd_text = cmd_text+"output["+IntToStr(dsp_num)+"].comp.threshold="+edtCompThreshold->Text+"dB";
-            SendCmd(cmd_text);
+            SendCmd(cmd_text+"|");
 
             filter_set.threshold = config_map.output_dsp[dsp_num-1].threshold / 10.0;
             pbComp->Invalidate();
@@ -5164,7 +5164,7 @@ void __fastcall TForm1::edtCompAttackTimeKeyDown(TObject *Sender,
             
             String cmd_text = D1608CMD_FLAG;
             cmd_text = cmd_text+"output["+IntToStr(dsp_num)+"].comp.attack_time="+edtCompAttackTime->Text;
-            SendCmd(cmd_text);
+            SendCmd(cmd_text+"|");
         }
         catch(...)
         {
@@ -5203,7 +5203,7 @@ void __fastcall TForm1::edtCompReleaseTimeKeyDown(TObject *Sender,
             
             String cmd_text = D1608CMD_FLAG;
             cmd_text = cmd_text+"output["+IntToStr(dsp_num)+"].comp.release_time="+edtCompReleaseTime->Text;
-            SendCmd(cmd_text);
+            SendCmd(cmd_text+"|");
         }
         catch(...)
         {
@@ -5242,7 +5242,7 @@ void __fastcall TForm1::edtCompGainKeyDown(TObject *Sender, WORD &Key,
 
             String cmd_text = D1608CMD_FLAG;
             cmd_text = cmd_text+"output["+IntToStr(dsp_num)+"].comp.gain="+edtCompGain->Text+"dB";
-            SendCmd(cmd_text);
+            SendCmd(cmd_text+"|");
 
             filter_set.gain = config_map.output_dsp[dsp_num-1].comp_gain / 10.0;
             pbComp->Invalidate();
@@ -5265,7 +5265,7 @@ void __fastcall TForm1::cbCompAutoTimeClick(TObject *Sender)
 
     String cmd_text = D1608CMD_FLAG;
     cmd_text = cmd_text+ "output["+IntToStr(dsp_num)+"].auto_comp="+(cbCompAutoTime->Checked?"on":"off");
-    SendCmd(cmd_text);
+    SendCmd(cmd_text+"|");
 
     if (cbCompAutoTime->Checked)
     {
@@ -5552,7 +5552,7 @@ void __fastcall TForm1::dsp_gain_trackbarChange(TObject *Sender)
             // input channel
             String cmd_text = D1608CMD_FLAG;
             cmd_text = cmd_text+"input["+IntToStr(dsp_num)+"].inside_volume="+dsp_gain_edit->Text+"dB";
-            SendCmd(cmd_text);
+            SendCmd(cmd_text+"|");
 
             config_map.input_dsp[dsp_num-1].level_b = value;
         }
@@ -5564,7 +5564,7 @@ void __fastcall TForm1::dsp_gain_trackbarChange(TObject *Sender)
             // output channel
             String cmd_text = D1608CMD_FLAG;
             cmd_text = cmd_text+"output["+IntToStr(dsp_num-100)+"].inside_volume="+dsp_gain_edit->Text+"dB";
-            SendCmd(cmd_text);
+            SendCmd(cmd_text+"|");
 
             config_map.output_dsp[dsp_num-101].level_b = value;
         }
@@ -5611,7 +5611,7 @@ void __fastcall TForm1::dsp_delay_trackbarChange(TObject *Sender)
             // input channel
             String cmd_text = D1608CMD_FLAG;
             cmd_text = cmd_text+"input["+IntToStr(dsp_num)+"].delay="+dsp_delay_edit->Text+"ms";
-            SendCmd(cmd_text);
+            SendCmd(cmd_text+"|");
 
             config_map.input_dsp[dsp_num-1].delay = value;
         }
@@ -5623,7 +5623,7 @@ void __fastcall TForm1::dsp_delay_trackbarChange(TObject *Sender)
             // output channel
             String cmd_text = D1608CMD_FLAG;
             cmd_text = cmd_text+"output["+IntToStr(dsp_num-100)+"].delay="+dsp_delay_edit->Text+"ms";
-            SendCmd(cmd_text);
+            SendCmd(cmd_text+"|");
 
             config_map.output_dsp[dsp_num-101].delay = value;
         }
@@ -5928,14 +5928,14 @@ void __fastcall TForm1::cbGlobalDspNameClick(TObject *Sender)
 
     String cmd_text = D1608CMD_CONTROL_FLAG;
     cmd_text = cmd_text+String("config.use_global_name=")+(cbGlobalDspName->Checked?"on":"off");
-    SendCmd2(cmd_text);
+    SendCmd2(cmd_text+"|");
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::cbPresetAutoSavedClick(TObject *Sender)
 {
     String cmd_text = D1608CMD_CONTROL_FLAG;
     cmd_text = cmd_text+String("config.auto_saved=")+(cbPresetAutoSaved->Checked?"on":"off");
-    SendCmd(cmd_text);
+    SendCmd(cmd_text+"|");
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::btnRebootDeviceClick(TObject *Sender)
@@ -5948,7 +5948,7 @@ void __fastcall TForm1::btnRebootDeviceClick(TObject *Sender)
     {
         String cmd_text = D1608CMD_CONTROL_FLAG;
         cmd_text = cmd_text+"config.action=reboot";      // 0x80
-        SendCmd2(cmd_text);
+        SendCmd2(cmd_text+"|");
     }
 }
 //---------------------------------------------------------------------------
@@ -5962,21 +5962,21 @@ void __fastcall TForm1::cbMenuKeyFunctionChange(TObject *Sender)
 {
     String cmd_text = D1608CMD_CONTROL_FLAG;
     cmd_text = cmd_text+"config.menu_key_function="+function_key_value[cbMenuKeyFunction->ItemIndex];
-    SendCmd2(cmd_text);
+    SendCmd2(cmd_text+"|");
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::cbUpKeyFunctionChange(TObject *Sender)
 {
     String cmd_text = D1608CMD_CONTROL_FLAG;
     cmd_text = cmd_text+"config.up_key_function="+function_key_value[cbUpKeyFunction->ItemIndex];
-    SendCmd2(cmd_text);
+    SendCmd2(cmd_text+"|");
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::cbDownKeyFunctionChange(TObject *Sender)
 {
     String cmd_text = D1608CMD_CONTROL_FLAG;
     cmd_text = cmd_text+"config.down_key_function="+function_key_value[cbDownKeyFunction->ItemIndex];
-    SendCmd2(cmd_text);
+    SendCmd2(cmd_text+"|");
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::cbLockUpDownMenuKeyClick(TObject *Sender)
@@ -5984,7 +5984,7 @@ void __fastcall TForm1::cbLockUpDownMenuKeyClick(TObject *Sender)
     String cmd_text = D1608CMD_CONTROL_FLAG;
 
     cmd_text = cmd_text+"config.lock_key="+String(cbLockUpDownMenuKey->Checked?"on":"off");
-    SendCmd2(cmd_text);
+    SendCmd2(cmd_text+"|");
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::btnSaveFlashToFileClick(TObject *Sender)
@@ -6036,7 +6036,7 @@ void __fastcall TForm1::btnSaveFlashToFileClick(TObject *Sender)
             // 替换文件名
             String cmd_text = D1608CMD_CONTROL_FLAG;
             cmd_text = cmd_text+"config.filename=s"+ExtractFileName(SaveDialog1->FileName).SubString(1,16);
-            SendCmd2(cmd_text);
+            SendCmd2(cmd_text+"|");
 
             memset(smc_config.device_flash_dump, 0, sizeof(smc_config.device_flash_dump));
             smc_config.file_version = file_version;
@@ -6408,7 +6408,7 @@ void __fastcall TForm1::btnResetAllConfigClick(TObject *Sender)
     {
         String cmd_text = D1608CMD_CONTROL_FLAG;
         cmd_text = cmd_text+"config.action=init";
-        SendCmd2(cmd_text);
+        SendCmd2(cmd_text+"|");
     }
 }
 //---------------------------------------------------------------------------
@@ -6417,7 +6417,7 @@ void __fastcall TForm1::lblDeviceNameDblClick(TObject *Sender)
     // 闪动屏幕
     String cmd_text = D1608CMD_CONTROL_FLAG;
     cmd_text = cmd_text+"config.action=flash_oled";
-    SendCmd(cmd_text);
+    SendCmd(cmd_text+"|");
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::btnResetKeyFunctionClick(TObject *Sender)
@@ -6451,7 +6451,7 @@ void __fastcall TForm1::btnClearAllPresetClick(TObject *Sender)
     {
         String cmd_text = D1608CMD_CONTROL_FLAG;
         cmd_text = cmd_text+"config.action=clear_preset";
-        SendCmd2(cmd_text);
+        SendCmd2(cmd_text+"|");
     }
 }
 //---------------------------------------------------------------------------
@@ -6587,7 +6587,7 @@ void __fastcall TForm1::edtMACMouseDown(TObject *Sender,
         {
             String cmd_text = D1608CMD_CONTROL_FLAG;
             cmd_text = cmd_text+"config.mac_address="+mac_address;
-            SendCmd2(cmd_text);
+            SendCmd2(cmd_text+"|");
         }
     }
 }
@@ -6770,7 +6770,7 @@ void __fastcall TForm1::cbLedTestClick(TObject *Sender)
 {
     String cmd_text = D1608CMD_CONTROL_FLAG;
     cmd_text = cmd_text+"config.test="+String(cbLedTest->Checked?"on":"off");
-    SendCmd2(cmd_text);
+    SendCmd2(cmd_text+"|");
 }
 //---------------------------------------------------------------------------
 
@@ -6809,12 +6809,12 @@ void __fastcall TForm1::btnInsertUserLogClick(TObject *Sender)
     cmd.id = GetOffsetOfData(&config_map.op_code.debug_log);
     memcpy(&cmd.data, &debug_log, sizeof(debug_log));
     cmd.length = sizeof(debug_log);
-    SendCmd(cmd_text);
+    SendCmd(cmd_text+"|");
 #endif
 
     String cmd_text = D1608CMD_CONTROL_FLAG;
     cmd_text = cmd_text+"config.insert_log="+edtEventId->Text+","+edtEventData->Text+","+edtEventTimer->Text;
-    SendCmd(cmd_text);
+    SendCmd(cmd_text+"|");
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::lvLogAdvancedCustomDrawItem(
@@ -6847,7 +6847,7 @@ void __fastcall TForm1::btnDisconnectClick(TObject *Sender)
     {
         String cmd_text = D1608CMD_FLAG;
         cmd_text = cmd_text+"config.action=unlink";
-        SendCmd2(cmd_text);
+        SendCmd2(cmd_text+"|");
     }
 
     REAL_INPUT_DSP_NUM = 16;
@@ -6983,7 +6983,7 @@ void __fastcall TForm1::btnClearDataAndTimeClick(TObject *Sender)
     {
         String cmd_text = D1608CMD_FLAG;
         cmd_text = cmd_text+"config.action=init";   // 82
-        SendCmd2(cmd_text);
+        SendCmd2(cmd_text+"|");
     }
 }
 //---------------------------------------------------------------------------
