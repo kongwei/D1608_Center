@@ -94,151 +94,8 @@ static Word enter_key = VK_RETURN;
 static BLENDFUNCTION blend = {AC_SRC_OVER, 0, 200, 0};
 static TTime startup_time;
 
+bool IsKeepliveCmd(char * str);
 //===================================
-static int CmdDataLength(unsigned int cmd_id)
-{
-	int result = 1;
-	int ObjectIndex = -1;
-	if ((cmd_id >= GetOffsetOfData(&config_map.input_dsp))
-		&& (cmd_id < sizeof(config_map.input_dsp)+GetOffsetOfData(&config_map.input_dsp)))
-	{
-		ObjectIndex = (cmd_id - GetOffsetOfData(&config_map.input_dsp)) / sizeof(config_map.input_dsp[0]);
-		
-		if (cmd_id == GetOffsetOfData(&config_map.input_dsp[ObjectIndex].eq_switch))
-		{
-		}
-// 		else if (cmd_id == GetOffsetOfData(&config_map.input_dsp[ObjectIndex].comp_switch))
-// 		{
-// 		}
-// 		else if (cmd_id == GetOffsetOfData(&config_map.input_dsp[ObjectIndex].auto_switch))
-// 		{
-// 		}
-		else if (cmd_id == GetOffsetOfData(&config_map.input_dsp[ObjectIndex].invert_switch))
-		{
-		}
-		else if (cmd_id == GetOffsetOfData(&config_map.input_dsp[ObjectIndex].noise_switch))
-		{
-		}
-		else if (cmd_id == GetOffsetOfData(&config_map.input_dsp[ObjectIndex].mute_switch))
-		{
-		}
-		else if (cmd_id == GetOffsetOfData(&config_map.input_dsp[ObjectIndex].phantom_switch))
-		{
-		}
-		else if (cmd_id == GetOffsetOfData((char*)&config_map.input_dsp[ObjectIndex].level_a))
-		{
-			result = 2;
-		}
-		else if (cmd_id == GetOffsetOfData((char*)&config_map.input_dsp[ObjectIndex].level_b))
-		{
-			result = 2;
-		}
-		else if (cmd_id == GetOffsetOfData((char*)&config_map.input_dsp[ObjectIndex].gain))
-		{
-		}
- 		else if (cmd_id == GetOffsetOfData((char*)&config_map.input_dsp[ObjectIndex].delay))
- 		{
-            result = 4;
- 		}
-		else if (cmd_id >= GetOffsetOfData(&config_map.input_dsp[ObjectIndex].filter)
-			&& (cmd_id < GetOffsetOfData(&config_map.input_dsp[ObjectIndex].filter) + sizeof(config_map.input_dsp[ObjectIndex].filter)))
-		{
-			result = sizeof(FilterConfigMap);
-		}
-		else if (cmd_id == GetOffsetOfData((char*)&config_map.input_dsp[ObjectIndex].dsp_name))
-		{
-		}
-	}
-	else if ((cmd_id >= GetOffsetOfData(&config_map.output_dsp))
-		&& (cmd_id < sizeof(config_map.output_dsp)+GetOffsetOfData(&config_map.output_dsp)))
-	{
-		// output
-		ObjectIndex = (cmd_id - GetOffsetOfData(&config_map.output_dsp)) / sizeof(config_map.output_dsp[0]);
-
-		if (cmd_id == GetOffsetOfData(&config_map.output_dsp[ObjectIndex].eq_switch))
-		{
-		}
-		else if (cmd_id == GetOffsetOfData(&config_map.output_dsp[ObjectIndex].comp_switch))
-		{
-		}
-		else if (cmd_id == GetOffsetOfData(&config_map.output_dsp[ObjectIndex].invert_switch))
-		{
-		}
-		else if (cmd_id == GetOffsetOfData(&config_map.output_dsp[ObjectIndex].mute_switch))
-		{
-		}
-		else if (cmd_id == GetOffsetOfData((char*)&config_map.output_dsp[ObjectIndex].level_a))
-		{
-			result = 2;
-		}
-		else if (cmd_id == GetOffsetOfData((char*)&config_map.output_dsp[ObjectIndex].level_b))
-		{
-			result = 2;
-		}
-		else if (cmd_id == GetOffsetOfData((char*)&config_map.output_dsp[ObjectIndex].gain))
-		{
-		}
- 		else if (cmd_id == GetOffsetOfData((char*)&config_map.output_dsp[ObjectIndex].delay))
- 		{
-			result = 4;
- 		}
-		else if (cmd_id == GetOffsetOfData((char*)&config_map.output_dsp[ObjectIndex].ratio))
-		{
-			result = 4;
-		}
-		else if (cmd_id == GetOffsetOfData((char*)&config_map.output_dsp[ObjectIndex].threshold))
-		{
-			result = 4;
-		}
-		else if (cmd_id == GetOffsetOfData((char*)&config_map.output_dsp[ObjectIndex].attack_time))
-		{
-			result = 4;
-		}
-		else if (cmd_id == GetOffsetOfData((char*)&config_map.output_dsp[ObjectIndex].release_time))
-		{
-			result = 4;
-		}
-		else if (cmd_id == GetOffsetOfData((char*)&config_map.output_dsp[ObjectIndex].comp_gain))
-		{
-			result = 4;
-		}
-		else if (cmd_id == GetOffsetOfData((char*)&config_map.output_dsp[ObjectIndex].auto_time))
-		{
-			result = 4;
-		}
-		else if (cmd_id >= GetOffsetOfData(&config_map.output_dsp[ObjectIndex].filter)
-			&& (cmd_id < GetOffsetOfData(&config_map.output_dsp[ObjectIndex].filter) + sizeof(config_map.output_dsp[ObjectIndex].filter)))
-		{
-			result = sizeof(FilterConfigMap);
-		}
-		else if (cmd_id == GetOffsetOfData((char*)&config_map.output_dsp[ObjectIndex].dsp_name))
-		{
-		}
-	}
-	else if ((cmd_id >= GetOffsetOfData(&config_map.master_mix))
-		&& (cmd_id < GetOffsetOfData((void*)&config_map.master_mix.mix)))
-	{
-		if (cmd_id == GetOffsetOfData(&config_map.master_mix.mute_switch))
-		{
-		}
-		else if (cmd_id == GetOffsetOfData((char*)&config_map.master_mix.level_a))
-		{
-			result = 4;
-		}
-	}
-	else if ((cmd_id >= GetOffsetOfData((char*)&config_map.master_mix.mix))
-		&& (cmd_id < sizeof(config_map.master_mix.mix)+GetOffsetOfData((char*)&config_map.master_mix.mix)))
-	{
-			result = 2;
-	}
-	else if ((cmd_id >= GetOffsetOfData((char*)&config_map.master_mix.mix_mute))
-		&& (cmd_id < sizeof(config_map.master_mix.mix_mute)+GetOffsetOfData((char*)&config_map.master_mix.mix_mute)))
-	{
-	}
-	
-	return result;
-}
-
 static short UdpPackageVerifyDiff(unsigned char * udp_data, int udp_length)
 {
 	int i;
@@ -356,13 +213,6 @@ static String GetTextCmdVar(String cmd_text)
     // 比较 VarName 部分
     int eq_index = String(cmd_text).Pos("=");
     return cmd_text.SubString(1, eq_index);
-}
-static bool IsSameVarTextCmd(D1608Cmd & cmd1, D1608Cmd & cmd2)
-{
-    if (cmd1.type != 3 || cmd2.type != 3)
-        return false;
-
-    return GetTextCmdVar(cmd1.data.data_string)==GetTextCmdVar(cmd2.data.data_string);
 }
 //---------------------------------------------------------------------------
 void SelectNullControl()
@@ -487,19 +337,6 @@ static bool GetDhcpOfIp(String ip)
     }
 
     return false;
-}
-static String CmdLog(D1608Cmd cmd)
-{
-    String result;
-    result = result + IntToStr(cmd.seq) + ",";
-    result = result + IntToStr(cmd.id) + ",";
-    result = result + IntToStr(cmd.data.data_32_array[0]) + ",";
-    result = result + IntToStr(cmd.data.data_32_array[1]) + ",";
-    result = result + IntToStr(cmd.data.data_32_array[2]) + ",";
-    result = result + IntToStr(cmd.data.data_32_array[3]) + ",";
-    result = result + IntToStr(cmd.data.data_32_array[4]);
-
-    return result;
 }
 //---------------------------------------------------------------------------
 static Gdipicture::TGDIPPicture* MixPicture[16] = {NULL};
@@ -1356,7 +1193,6 @@ void __fastcall TForm1::FormCreate(TObject *Sender)
     memo_debug->Lines->Add(GetTime()+"mix_mute:" + IntToStr(sizeof(config_map.master_mix.mix_mute)));
     memo_debug->Lines->Add(GetTime()+"NotStorageCmd:" + IntToStr(sizeof(NotStorageCmd)));
     memo_debug->Lines->Add(GetTime()+"GlobalConfig:" + IntToStr(sizeof(GlobalConfig)));
-    memo_debug->Lines->Add(GetTime()+"D1608:" + IntToStr(sizeof(D1608Cmd)));
 
     // 根据数量初始化控制器
     // Panel->Tag
@@ -1385,36 +1221,32 @@ void __fastcall TForm1::FormCreate(TObject *Sender)
     lblVersion->Caption = "-------- " +VersionToStr(version);
 }
 //---------------------------------------------------------------------------
-void TForm1::SendCmd2(D1608Cmd& cmd)
+void TForm1::SendBuffer(AnsiString AHost, const int APort, void *ABuffer, const int AByteCount)
 {
-    unsigned __int8 * p = (unsigned __int8*)&cmd;
-    edtDebug->Text = "";
-    String cmd_text = "";
-    for (unsigned int i=sizeof(cmd.flag);i<sizeof(cmd.flag)+16+cmd.length;i++)
-    {
-        cmd_text = cmd_text + IntToHex(p[i], 2) + " ";
-    }
-    edtDebug->Text = cmd_text;
-
+    udpControl->SendBuffer(dst_ip, APort, ABuffer, AByteCount);
+}
+void TForm1::SendCmd2(String cmd)
+{
     if (on_loading || !udpControl->Active || keep_live_count >= CONTROL_TIMEOUT_COUNT)
     {
         return;
     }
-    if (!device_connected && cmd.id != GetOffsetOfData(&config_map.op_code) && cmd.type!=3)
+
+    if (!device_connected && !IsKeepliveCmd(cmd.c_str()))
     {
         return;
     }
 
+    // 特殊处理
     try
     {
-        int send_size = offsetof(D1608Cmd, data) + cmd.length;    // sizeof(cmd)
-        cmd.verify -= UdpPackageVerifyDiff((unsigned char*)&cmd, send_size);
-        udpControl->SendBuffer(dst_ip, UDP_PORT_CONTROL, &cmd, send_size);
+        udpControl->Send(dst_ip, UDP_PORT_CONTROL, cmd);
     }
     catch(...)
     {
         CloseControlLink("发送消息失败, SendCmd2");
     }
+    
 // TODO: 上面修改了 return 之后，这一段失效了
 #if 0
     if (!on_loading)
@@ -1429,7 +1261,7 @@ void TForm1::SendCmd2(D1608Cmd& cmd)
 
 void TForm1::SendLogBuff(int udp_port, void * buff, int size)
 {
-    TPackage package;
+    TPackage package = {0};
     package.udp_port = udp_port;
     memcpy(package.data, buff, size);
     package.data_size = size;
@@ -1443,7 +1275,7 @@ void TForm1::SendLogBuff(int udp_port, void * buff, int size)
         memo_debug->Lines->Add(GetTime()+"发出UDP信息");
         try
         {
-            udpControl->SendBuffer(dst_ip, udp_port, buff, size);
+            SendBuffer(dst_ip, udp_port, buff, size);
         }
         catch(...)
         {
@@ -1452,9 +1284,10 @@ void TForm1::SendLogBuff(int udp_port, void * buff, int size)
         sendcmd_delay_count = 15;
     }
 }
-void TForm1::SendCmd(D1608Cmd& cmd)
+void TForm1::SendCmd(String cmd)
 {
-    edtCmdId->Text = cmd.id;
+    // TODO: 修改成名称
+    //edtCmdId->Text = cmd.id;
 
     if (!udpControl->Active)
     {
@@ -1466,7 +1299,7 @@ void TForm1::SendCmd(D1608Cmd& cmd)
     {
         return;
     }
-    if (!device_connected && cmd.id != GetOffsetOfData(&config_map.op_code))
+    if (!device_connected && !IsKeepliveCmd(cmd.c_str()))
     {
         return;
     }
@@ -1481,31 +1314,19 @@ void TForm1::SendCmd(D1608Cmd& cmd)
             if (iter->udp_port != UDP_PORT_CONTROL)
                 continue;
 
-            D1608Cmd * package_sendcmd = (D1608Cmd*)(iter+1)->data;
-            if (package_sendcmd->type != cmd.type)
-                continue;
-
-            if (cmd.type!=3 &&  package_sendcmd->id == cmd.id)
+            char * package_sendcmd = (char*)(iter+1)->data;
+            if (GetTextCmdVar(cmd) == GetTextCmdVar(package_sendcmd))
             {
                 sendcmd_list.erase(iter);
                 break;
             }
-            if (cmd.type==3)
-            {
-                if (IsSameVarTextCmd(cmd, *package_sendcmd))
-                {
-                    sendcmd_list.erase(iter);
-                    break;
-                }
-            }
         }
     }
 
-    TPackage package;
+    TPackage package = {0};
     package.udp_port = UDP_PORT_CONTROL;
-    cmd.verify -= UdpPackageVerifyDiff((unsigned char*)&cmd, offsetof(D1608Cmd, data) + cmd.length);
-    memcpy(package.data, &cmd, sizeof(cmd));
-    package.data_size = offsetof(D1608Cmd, data) + cmd.length;    // sizeof(cmd)
+    memcpy(package.data, cmd.c_str(), cmd.Length());
+    package.data_size = cmd.Length();
 
     // 保存在队列中
     sendcmd_list.insert(sendcmd_list.begin(), package);
@@ -1514,19 +1335,16 @@ void TForm1::SendCmd(D1608Cmd& cmd)
     // 如果原先队列是空，那么触发一次发送消息
     if (sendcmd_list_length == 1)
     {
-        TPackage package = sendcmd_list.back();
-        D1608Cmd * p_cmd = (D1608Cmd*)package.data;
-
-        memo_debug->Lines->Add(GetTime()+"发出消息:"+IntToStr(cmd.id)+"|"+IntToStr(cmd.data.data_32)+"    "+IntToStr(p_cmd->id)+"|"+IntToStr(p_cmd->data.data_32));
+        memo_debug->Lines->Add(GetTime()+"发出消息:"+cmd);
         SendCmd2(cmd);
         sendcmd_delay_count = 15;
     }
     else
     {
         TPackage package = sendcmd_list.back();
-        D1608Cmd * p_cmd = (D1608Cmd*)package.data;
+        char * p_cmd = package.data;
 
-        memo_debug->Lines->Add(GetTime()+"追加到队列"+IntToStr(cmd.id)+"|"+IntToStr(cmd.data.data_32)+"    "+IntToStr(p_cmd->id)+"|"+IntToStr(p_cmd->data.data_32));
+        memo_debug->Lines->Add(GetTime()+"追加到队列"+cmd+"|"+"    "+String(p_cmd));
     }
 }
 //---------------------------------------------------------------------------
@@ -1728,12 +1546,9 @@ void __fastcall TForm1::btnSelectClick(TObject *Sender)
     // 给原先的设备发送断链消息
     if (udpControl->Active)
     {
-        D1608Cmd cmd;
-        cmd.type = 3;
-        String cmd_text = "config.action=unlink";
-        strcpy(cmd.data.data_string, cmd_text.c_str());
-        cmd.length = cmd_text.Length();
-        SendCmd2(cmd);
+        String cmd_text = D1608CMD_FLAG;
+        cmd_text = cmd_text + "config.action=unlink";
+        SendCmd2(cmd_text);
     }
 
 
@@ -1762,7 +1577,7 @@ void __fastcall TForm1::btnSelectClick(TObject *Sender)
     tmDelayBackup->Enabled = true;
 
     // 获取下位机PRESET数据，同时这个消息作为下位机认可的消息
-    TPackage package;
+    TPackage package = {0};
     package.udp_port = UDP_PORT_READ_PRESET;
     D1608PresetCmd preset_cmd(version);
     strcpy(preset_cmd.flag, D1608PRESETCMD_LINK_FLAG);
@@ -1772,7 +1587,7 @@ void __fastcall TForm1::btnSelectClick(TObject *Sender)
     package.data_size = offsetof(D1608PresetCmd, data);
     read_one_preset_package_list.insert(read_one_preset_package_list.begin(), package);
     if (read_one_preset_package_list.size() == 1)
-        udpControl->SendBuffer(dst_ip, package.udp_port, package.data, package.data_size);
+        SendBuffer(dst_ip, package.udp_port, package.data, package.data_size);
 
     // 发送上位机时间, 单位100ms, 从2000年1月1日开始计算
 #if 0
@@ -1892,14 +1707,11 @@ void __fastcall TForm1::InputVolumeChange(TObject *Sender)
 
     if (dsp_num < 17)
     {
-        D1608Cmd cmd;
-        cmd.type = 3;// 文本协议
-        String cmd_text = "input["+IntToStr(dsp_num)+"].volume="+input_level_edit[dsp_num-1]->Text;
+        String cmd_text = D1608CMD_FLAG;
+        cmd_text = cmd_text+"input["+IntToStr(dsp_num)+"].volume="+input_level_edit[dsp_num-1]->Text;
         if (input_level_edit[dsp_num-1]->Text != "Off")
             cmd_text = cmd_text + "dB";
-        strcpy(cmd.data.data_string, cmd_text.c_str());
-        cmd.length = cmd_text.Length();
-        SendCmd(cmd);
+        SendCmd(cmd_text);
 
         config_map.input_dsp[dsp_num-1].level_a = value;
     }
@@ -1910,12 +1722,9 @@ void __fastcall TForm1::ToogleMute(TObject *Sender)
     TSpeedButton* btn = (TSpeedButton*)Sender;
     int dsp_num = btn->Tag;
 
-    D1608Cmd cmd;
-    cmd.type = 3;// 文本协议
-    String cmd_text = "input["+IntToStr(dsp_num)+"].mute="+(btn->Down?"on":"off");
-    strcpy(cmd.data.data_string, cmd_text.c_str());
-    cmd.length = cmd_text.Length();
-    SendCmd(cmd);
+    String cmd_text = D1608CMD_FLAG;
+    cmd_text = cmd_text + "input["+IntToStr(dsp_num)+"].mute="+(btn->Down?"on":"off");
+    SendCmd(cmd_text);
 
     config_map.input_dsp[dsp_num-1].mute_switch = btn->Down;
 }
@@ -1925,12 +1734,9 @@ void __fastcall TForm1::ToogleNoise(TObject *Sender)
     TSpeedButton* btn = (TSpeedButton*)Sender;
     int dsp_num = btn->Tag;
 
-    D1608Cmd cmd;
-    cmd.type = 3;// 文本协议
-    String cmd_text = "input["+IntToStr(dsp_num)+"].noise="+(btn->Down?"on":"off");
-    strcpy(cmd.data.data_string, cmd_text.c_str());
-    cmd.length = cmd_text.Length();
-    SendCmd(cmd);
+    String cmd_text = D1608CMD_FLAG;
+    cmd_text = cmd_text + "input["+IntToStr(dsp_num)+"].noise="+(btn->Down?"on":"off");
+    SendCmd(cmd_text);
 
     config_map.input_dsp[dsp_num-1].noise_switch = btn->Down;
 }
@@ -1940,12 +1746,9 @@ void __fastcall TForm1::ToogleInvert(TObject *Sender)
     TSpeedButton* btn = (TSpeedButton*)Sender;
     int dsp_num = btn->Tag;
 
-    D1608Cmd cmd;
-    cmd.type = 3;// 文本协议
-    String cmd_text = "input["+IntToStr(dsp_num)+"].invert="+(btn->Down?"on":"off");
-    strcpy(cmd.data.data_string, cmd_text.c_str());
-    cmd.length = cmd_text.Length();
-    SendCmd(cmd);
+    String cmd_text = D1608CMD_FLAG;
+    cmd_text = cmd_text+"input["+IntToStr(dsp_num)+"].invert="+(btn->Down?"on":"off");
+    SendCmd(cmd_text);
 
     config_map.input_dsp[dsp_num-1].invert_switch = btn->Down;
 }
@@ -1961,35 +1764,18 @@ void __fastcall TForm1::ToogleDefault(TObject *Sender)
     if (btn->Down)
     {
         last_default_btn = btn;
-#if 0
-        int dsp_id = btn->Tag;
-        D1608Cmd cmd = InputDefault(dsp_id, 0);
-        cmd.length = 1;
-        SendCmd(cmd);
-#endif
     }
     else
     {
         // default 缺少取消所有 default
         last_default_btn = NULL;
-#if 0
-        D1608Cmd cmd = InputDefault(0, 0);
-        cmd.length = 1;
-        SendCmd(cmd);
-#endif
     }
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::ToogleAuto(TObject *Sender)
 {
 #if 0
-    TSpeedButton* btn = (TSpeedButton*)Sender;
-    int dsp_id = btn->Tag;
-    static int input_auto = 0;
-    input_auto = SetBit(input_auto, dsp_id, btn->Down);
-    D1608Cmd cmd = InputAuto(input_auto);
-    cmd.length = 1;
-    SendCmd(cmd);
+
 #endif
 }
 //---------------------------------------------------------------------------
@@ -1998,12 +1784,9 @@ void __fastcall TForm1::ToogleEQ(TObject *Sender)
     TSpeedButton* btn = (TSpeedButton*)Sender;
     int dsp_num = btn->Tag;
 
-    D1608Cmd cmd;
-    cmd.type = 3;// 文本协议
-    String cmd_text = "input["+IntToStr(dsp_num)+"].eq="+(btn->Down?"on":"off");
-    strcpy(cmd.data.data_string, cmd_text.c_str());
-    cmd.length = cmd_text.Length();
-    SendCmd(cmd);
+    String cmd_text = D1608CMD_FLAG;
+    cmd_text = cmd_text+"input["+IntToStr(dsp_num)+"].eq="+(btn->Down?"on":"off");
+    SendCmd(cmd_text);
 
     config_map.input_dsp[dsp_num-1].eq_switch = btn->Down;
 }
@@ -2012,76 +1795,9 @@ String IntOrZeroSring(int value)
 {
     return String((value>0?value:0));
 }
-#if 0
-void TForm1::ProcessPackageMessageFeedback(D1608Cmd & cmd)
+void TForm1::ProcessPackageMessageFeedback(TextSynMsg * text_syn_msg)
 {
-    SynMsg * syn_msg_buf = cmd.data.syn_msg;
-
-    unsigned int oldest_msg_id = syn_msg_buf[0].msg_id;
-    unsigned int current_msg_id = syn_msg_buf[0].msg_id;
-
-    for (int i=0;i<RECORD_MSG_SIZE;i++)
-    {
-        SynMsg syn_msg = syn_msg_buf[i];
-        oldest_msg_id = min(oldest_msg_id, syn_msg.msg_id);
-        current_msg_id = max(current_msg_id, syn_msg.msg_id);
-    }
-    // 失联判断
-    if (received_cmd_seq < oldest_msg_id)
-    {
-        memo_debug->Lines->Add("失联: local="+IntToStr(received_cmd_seq)+", device="+IntToStr(oldest_msg_id)+"-"+IntToStr(current_msg_id));
-        keep_live_count = CONTROL_TIMEOUT_COUNT;
-    }
-    else if (received_cmd_seq >= current_msg_id)
-    {
-        memo_debug->Lines->Add("syn do not need: device_msg_id="+IntToStr(current_msg_id)+", pc__msg_id="+IntToStr(received_cmd_seq));
-    }
-    else
-    {
-        //memo_debug->Lines->Add("syn msg");
-        for (int i=0;i<RECORD_MSG_SIZE;i++)
-        {
-            SynMsg syn_msg = syn_msg_buf[i];
-            if (syn_msg.msg_id > received_cmd_seq)
-            {
-                // 防止自己响应
-                if (sendcmd_list.size() > 0)
-                {
-                    TPackage package = sendcmd_list.back();
-                    D1608Cmd* package_cmd = (D1608Cmd*)package.data;
-                    if (syn_msg.cmd_id == package_cmd->id)
-                        continue;
-                }
-
-                int msg_data_length = CmdDataLength(syn_msg.cmd_id);
-                memcpy(((char*)(&config_map))+syn_msg.cmd_id, (char*)&syn_msg.data, msg_data_length);
-                OnFeedbackData(syn_msg.cmd_id);
-            }
-        }
-    }
-    received_cmd_seq = current_msg_id;
-
-    if (keep_live_count<CONTROL_TIMEOUT_COUNT)
-        keep_live_count = 0;
-
-    if ( (double)(Now() - last_keeplive_time) > (1.0f/24/60/60) )
-    {
-        D1608Cmd cmd;
-        cmd.seq = received_cmd_seq;
-        cmd.type = 3;
-        String cmd_text = "config.action=keeplive";
-        strcpy(cmd.data.data_string, cmd_text.c_str());
-        cmd.length = cmd_text.Length();
-        SendCmd2(cmd);
-        send_keeplive_count++;
-        last_keeplive_time = Now();
-        memo_debug->Lines->Add(GetTime()+"发送保活: " + IntToStr(keep_live_count));
-    }
-}
-#else
-void TForm1::ProcessPackageMessageFeedback(D1608Cmd & cmd)
-{
-    TextSynMsg * text_syn_msg_buf = cmd.data.text_syn_msg;
+    TextSynMsg * text_syn_msg_buf = text_syn_msg;
 
     unsigned int oldest_msg_id = text_syn_msg_buf[0].msg_id;
     unsigned int current_msg_id = text_syn_msg_buf[0].msg_id;
@@ -2114,8 +1830,8 @@ void TForm1::ProcessPackageMessageFeedback(D1608Cmd & cmd)
                 if (sendcmd_list.size() > 0)
                 {
                     TPackage package = sendcmd_list.back();
-                    D1608Cmd* package_cmd = (D1608Cmd*)package.data;
-                    if (GetTextCmdVar(text_syn_msg.text_cmd) == GetTextCmdVar(package_cmd->data.data_string))
+                    String package_cmd = (char*)package.data;
+                    if (GetTextCmdVar(text_syn_msg.text_cmd) == GetTextCmdVar(package_cmd))
                         continue;
                 }
 
@@ -2125,7 +1841,6 @@ void TForm1::ProcessPackageMessageFeedback(D1608Cmd & cmd)
                 for (UINT cmd_index=0; cmd_index<cmd_id_list.size(); cmd_index++)
                 {
                     int cmd_id = cmd_id_list[cmd_index];
-    memo_debug->Lines->Add("feedback:"+IntToStr(config_map.master_mix.level_a));
                     OnFeedbackData(cmd_id);
                 }
             }
@@ -2138,19 +1853,46 @@ void TForm1::ProcessPackageMessageFeedback(D1608Cmd & cmd)
 
     if ( (double)(Now() - last_keeplive_time) > (1.0f/24/60/60) )
     {
-        D1608Cmd cmd;
-        cmd.seq = received_cmd_seq;
-        cmd.type = 3;
-        String cmd_text = "config.action=keeplive";
-        strcpy(cmd.data.data_string, cmd_text.c_str());
-        cmd.length = cmd_text.Length();
-        SendCmd2(cmd);
+        String cmd_text = D1608CMD_KEEPLIVE_FLAG;
+        cmd_text = cmd_text+"config.action.keeplive="+IntToStr(received_cmd_seq);
+        SendCmd2(cmd_text);
         send_keeplive_count++;
         last_keeplive_time = Now();
         memo_debug->Lines->Add(GetTime()+"发送保活: " + IntToStr(keep_live_count));
     }
 }
-#endif
+bool IsReplyCmd(char * str)
+{
+    if (strncmp(str, D1608CMD_REPLY_FLAG, strlen(D1608CMD_REPLY_FLAG)) == 0)
+		return true;
+    return false;
+}
+bool IsKeepliveCmd(char * str)
+{
+    if (strncmp(str, D1608CMD_KEEPLIVE_FLAG, strlen(D1608CMD_KEEPLIVE_FLAG)) == 0)
+		return true;
+    return false;
+}
+bool IsValidTextCmd(char * str, int udp_len)
+{
+	// 判断头部
+	if (strncmp(str, D1608CMD_FLAG, strlen(D1608CMD_FLAG)) == 0)
+		return true;
+	if (strncmp(str, D1608CMD_CONTROL_FLAG, strlen(D1608CMD_CONTROL_FLAG)) == 0)
+		return true;
+
+    return true;
+}
+char * TextCmdPtr(char * str)
+{
+	// 判断头部
+	if (strncmp(str, D1608CMD_FLAG, strlen(D1608CMD_FLAG)) == 0)
+		return str+strlen(D1608CMD_FLAG);
+	if (strncmp(str, D1608CMD_CONTROL_FLAG, strlen(D1608CMD_CONTROL_FLAG)) == 0)
+		return str+strlen(D1608CMD_CONTROL_FLAG);
+
+	return str;
+}
 void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
       TIdSocketHandle *ABinding)
 {
@@ -2166,31 +1908,49 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
     }
     else if (ABinding->PeerPort == UDP_PORT_CONTROL)
     {
-        D1608Cmd cmd;
-        AData->ReadBuffer(&cmd, std::min(sizeof(cmd), AData->Size));
+        char cmd_text[1500] = {0};
+        AData->ReadBuffer(cmd_text, std::min(sizeof(cmd_text), AData->Size));
 
-        if (cmd.type == CMD_TYPE_DATA_FEEDBACK)
+        if (IsReplyCmd(cmd_text))
         {
             // 没有初始化完毕，不处理数据回报
             if (received_cmd_seq != 0)
             {
-                ProcessPackageMessageFeedback(cmd);
+                ProcessPackageMessageFeedback((TextSynMsg*)(cmd_text+strlen(D1608CMD_REPLY_FLAG)));
             }
         }
-        else if (cmd.type == 3)
+        else if (IsKeepliveCmd(cmd_text) && AData->Size==(strlen(D1608CMD_KEEPLIVE_FLAG)+sizeof(NotStorageCmd)))
         {
-            String cmd_string = cmd.data.data_string;
+            static int last_diff = 0;
+            recv_keeplive_count++;
+            lblKeepLiveCheck->Caption = "发出："+IntToStr(send_keeplive_count)+" 接收："+IntToStr(recv_keeplive_count)+" 差值："+IntToStr(send_keeplive_count-recv_keeplive_count)+" 断开链路次数:"+IntToStr(broken_count);
+            if (send_keeplive_count-recv_keeplive_count != last_diff)
+            {
+                memo_debug->Lines->Add(GetTime()+"保活序号差值变化:"+IntToStr(last_diff)+" -> "+IntToStr(send_keeplive_count-recv_keeplive_count));
+                last_diff = send_keeplive_count-recv_keeplive_count;
+            }
+
+            if (keep_live_count<CONTROL_TIMEOUT_COUNT)
+                keep_live_count = 0;
+
+            NotStorageCmd *keep_alive = (NotStorageCmd*)(cmd_text+strlen(D1608CMD_KEEPLIVE_FLAG));
+            if (received_cmd_seq != (UINT)keep_alive->noop)    // noop保存了cmd_seq
+                received_cmd_seq = (UINT)keep_alive->noop;
+
+            ProcessWatchLevel(keep_alive->watch_level, keep_alive->watch_level_comp);
+            ProcessVote(keep_alive->adc_ex, keep_alive->adc_ex_max, keep_alive->adc_ex_min);
+            ProcessKeepAlive(keep_alive->switch_preset, keep_alive->set_time_ex);
+        }
+        else
+        {
+            String cmd_string = TextCmdPtr(cmd_text);
             if (cmd_string=="config.action=reboot" || cmd_string=="config.action=init" || cmd_string=="config.action=clear_preset")
             {
-                memo_debug->Lines->Add(GetTime()+"reboot:" + IntToStr(cmd.data.data_32));
+                memo_debug->Lines->Add(GetTime()+cmd_string);
 
-                D1608Cmd cmd;
-                strcpy(cmd.flag, D1608CMD_CONTROL_FLAG);
-                cmd.type = 3;// 文本协议
-                String cmd_text = cmd_string+"_confirm";
-                strcpy(cmd.data.data_string, cmd_text.c_str());
-                cmd.length = cmd_text.Length();
-                SendCmd2(cmd);
+                String cmd_text = D1608CMD_CONTROL_FLAG;
+                cmd_text = cmd_text+cmd_string+"_confirm";
+                SendCmd2(cmd_text);
 
                 keep_live_count = CONTROL_TIMEOUT_COUNT;
                 received_cmd_seq = 0;
@@ -2208,131 +1968,29 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
                     }
                     device_connected = false;
                 }
+            }
+            else if (cmd_string.SubString(1, 11) == "config.lock" || cmd_string.SubString(1, 13) == "config.unlock")
+            {
+                // 重新获取数据
+                TPackage package = {0};
+                package.udp_port = UDP_PORT_READ_PRESET;
 
+                D1608PresetCmd preset_cmd(version);
+                preset_cmd.preset = 0; // 读取global_config
+                preset_cmd.store_page = 0;
+                preset_cmd.verify -= UdpPackageVerifyDiff((unsigned char*)&preset_cmd, offsetof(D1608PresetCmd, data));
+                memcpy(package.data, &preset_cmd, offsetof(D1608PresetCmd, data)/*sizeof(preset_cmd)*/);
+                package.data_size = offsetof(D1608PresetCmd, data)/*sizeof(preset_cmd)*/;
+                read_one_preset_package_list.insert(read_one_preset_package_list.begin(), package);
+
+                if (read_one_preset_package_list.size() == 1)
+                    SendBuffer(dst_ip, package.udp_port, package.data, package.data_size);
             }
 
-            if (!ProcessSendCmdAck(cmd, AData, ABinding))
+            if (!ProcessSendTextCmdAck(cmd_text, AData, ABinding))
             {
                 //memcpy(((char*)(&config_map))+cmd.id, (char*)&cmd.data, cmd.length);
                 //OnFeedbackData(cmd.id);
-            }
-        }
-        // id == 1 表示全局配置
-        else if (cmd.type == CMD_TYPE_GLOBAL)
-        {
-            // 重新获取数据
-            TPackage package;
-            package.udp_port = UDP_PORT_READ_PRESET;
-
-            D1608PresetCmd preset_cmd(version);
-            preset_cmd.preset = 0; // 读取global_config
-            preset_cmd.store_page = 0;
-            preset_cmd.verify -= UdpPackageVerifyDiff((unsigned char*)&preset_cmd, offsetof(D1608PresetCmd, data));
-            memcpy(package.data, &preset_cmd, offsetof(D1608PresetCmd, data)/*sizeof(preset_cmd)*/);
-            package.data_size = offsetof(D1608PresetCmd, data)/*sizeof(preset_cmd)*/;
-            read_one_preset_package_list.insert(read_one_preset_package_list.begin(), package);
-
-            if (read_one_preset_package_list.size() == 1)
-                udpControl->SendBuffer(dst_ip, package.udp_port, package.data, package.data_size);
-        }
-        else if (cmd.length == 2909)
-        {
-            memo_debug->Lines->Add("下位机认为失联");
-        }
-        else if (cmd.id == GetOffsetOfData(&config_map.op_code.noop))
-        {
-            static int last_diff = 0;
-            recv_keeplive_count++;
-            lblKeepLiveCheck->Caption = "发出："+IntToStr(send_keeplive_count)+" 接收："+IntToStr(recv_keeplive_count)+" 差值："+IntToStr(send_keeplive_count-recv_keeplive_count)+" 断开链路次数:"+IntToStr(broken_count);
-            if (send_keeplive_count-recv_keeplive_count != last_diff)
-            {
-                memo_debug->Lines->Add(GetTime()+"保活序号差值变化:"+IntToStr(last_diff)+" -> "+IntToStr(send_keeplive_count-recv_keeplive_count));
-                last_diff = send_keeplive_count-recv_keeplive_count;
-            }
-
-            //memo_debug->Lines->Add("广播消息序号:"+IntToStr(cmd.seq)+":"+IntToStr(received_cmd_seq));
-            if (received_cmd_seq != cmd.seq)
-                received_cmd_seq = cmd.seq;
-            ProcessWatchLevel(cmd.data.keep_alive.watch_level, cmd.data.keep_alive.watch_level_comp);
-            if (cmd.length == sizeof(config_map.op_code))
-                ProcessVote(cmd.data.keep_alive.adc_ex, cmd.data.keep_alive.adc_ex_max, cmd.data.keep_alive.adc_ex_min);
-            ProcessKeepAlive(cmd.data.keep_alive.switch_preset, cmd.data.keep_alive.set_time_ex);
-        }
-        else if (cmd.id == GetOffsetOfData(&config_map.op_code.switch_preset))
-        {
-            SetPresetId(cmd.data.data_32);
-            StartReadOnePackage(0xFF);
-            restor_delay_count = 15;
-            tmDelayBackup->Enabled = true;
-        }
-        else if (cmd.id == GetOffsetOfData(&config_map.op_code.reboot))
-        {
-            memo_debug->Lines->Add(GetTime()+"reboot:" + IntToStr(cmd.data.data_32));
-            if ((cmd.data.data_32 & 0x80) != 0)
-            {
-                cmd.data.data_32 = cmd.data.data_32 & 0x7F;
-                cmd.length = 4;
-                SendCmd2(cmd);
-            }
-            keep_live_count = CONTROL_TIMEOUT_COUNT;
-            received_cmd_seq = 0;
-            {
-                sendcmd_list.empty();
-                shape_live->Hide();
-                shape_link->Hide();
-                shape_power->Hide();
-                lblDeviceName->Hide();
-                lblDeviceInfo->Hide();
-                // Level Meter归零
-                for (int i=0;i<32;i++)
-                {
-                    UpdateWatchLevel(i, -49);
-                }
-                device_connected = false;
-            }
-        }
-        else
-        {
-            if (cmd.seq != 0)
-            {
-                if ((cmd.seq <= received_cmd_seq+1) || (received_cmd_seq==0))
-                {
-                }
-                else if ((cmd.last_same_id_seq <= received_cmd_seq) && (cmd.last_same_id_seq > 1))
-                {
-                    memo_debug->Lines->Add(GetTime()+" 相同消息不连续(警告)。" + CmdLog(cmd));
-                }
-                else
-                {
-                    // 丢失了      [ received_cmd_seq, (cmd.seq-1) ] 的消息
-                    memo_debug->Lines->Add(GetTime()+"消息序号不匹配" + IntToStr(cmd.seq) + "," + IntToStr(cmd.last_same_id_seq)+","+IntToStr(received_cmd_seq));
-                    for (UINT msg_id = received_cmd_seq+1; msg_id < cmd.seq; msg_id++)
-                    {
-                        vector<int>::iterator result = find(loose_msg_id.begin( ), loose_msg_id.end( ), msg_id);
-                        if ( result == loose_msg_id.end( ) )
-                        {
-                            memo_debug->Lines->Add("需要同步消息: "+IntToStr(msg_id));
-                            loose_msg_id.push_back(msg_id);
-                        }
-                    }
-                }
-                received_cmd_seq = cmd.seq;
-                if (keep_live_count<CONTROL_TIMEOUT_COUNT)
-                    keep_live_count = 0;
-            }
-            memo_debug->Lines->Add(GetTime()+"Reply：" + CmdLog(cmd));
-            // 如果是当前调节的数据，需要忽略
-            if (!ProcessSendCmdAck(cmd, AData, ABinding))//(last_cmd.id != cmd.id /*|| !paint_agent->IsMouseDown()*/)
-            {
-                memcpy(((char*)(&config_map))+cmd.id, (char*)&cmd.data, cmd.length);
-                OnFeedbackData(cmd.id);
-            }
-            else
-            {
-                if (cmd.type == 0)
-                {
-                    memcpy(((char*)(&config_map))+cmd.id, (char*)&cmd.data, cmd.length);
-                }
             }
         }
     }
@@ -2562,7 +2220,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
         else
         {
             package = read_one_preset_package_list.back();
-            udpControl->SendBuffer(dst_ip, package.udp_port, package.data, package.data_size);
+            SendBuffer(dst_ip, package.udp_port, package.data, package.data_size);
 
             restor_delay_count = 15;
             tmDelayBackup->Enabled = true;
@@ -2595,7 +2253,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
         else
         {
             package = package_list.back();
-            udpControl->SendBuffer(dst_ip, package.udp_port, package.data, package.data_size);
+            SendBuffer(dst_ip, package.udp_port, package.data, package.data_size);
 
             pbBackup->Position = pbBackup->Max - package_list.size();
             restor_delay_count = 15;
@@ -2658,7 +2316,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
         else
         {
             package = package_list.back();
-            udpControl->SendBuffer(dst_ip, package.udp_port, package.data, package.data_size);
+            SendBuffer(dst_ip, package.udp_port, package.data, package.data_size);
 
             pbBackup->Position = pbBackup->Max - package_list.size();
             restor_delay_count = 15;
@@ -2766,7 +2424,7 @@ void TForm1::ProcessVote(ADC_Data_Ex adc_ex, ADC_Data_Ex adc_ex_max, ADC_Data_Ex
     }
 }
 //---------------------------------------------------------------------------
-bool TForm1::ProcessSendCmdAck(D1608Cmd& cmd, TStream *AData, TIdSocketHandle *ABinding)
+bool TForm1::ProcessSendTextCmdAck(String cmd_text, TStream *AData, TIdSocketHandle *ABinding)
 {
     if (sendcmd_list.size() == 0)
         return false;
@@ -2775,51 +2433,26 @@ bool TForm1::ProcessSendCmdAck(D1608Cmd& cmd, TStream *AData, TIdSocketHandle *A
 
     if (package.udp_port != ABinding->PeerPort)
         return false;
-    if (package.data_size > AData->Size)
-        return false;
 
-    D1608Cmd* package_cmd = (D1608Cmd*)package.data;
-    if (cmd.type != package_cmd->type)
-        return false;
+    char* package_text_cmd = package.data;
 
-    if (cmd.type == 3)
+    if (GetTextCmdVar(cmd_text) == GetTextCmdVar(package_text_cmd))
     {
-        if (IsSameVarTextCmd(cmd, *package_cmd))
-        {
-        }
-        else
-        {
-            return false;
-        }
     }
     else
     {
-        if (cmd.id != package_cmd->id)
-            return false;
-        if (cmd.length != package_cmd->length)
-        {
-            memo_debug->Lines->Add(GetTime()+"消息长度不匹配");
-        }
-        if (memcmp(&cmd.data, &package_cmd->data, package_cmd->length) == 0)
-        {
-        }
-        else
-        {
-            return false;
-        }
+        return false;
     }
-
+    
     sendcmd_list.pop_back();
     if (sendcmd_list.size() > 0)
     {
         package = sendcmd_list.back();
-        udpControl->SendBuffer(dst_ip, package.udp_port, package.data, package.data_size);
-        sendcmd_delay_count = 15;
+        String cmd = (char*)package.data;
+        memo_debug->Lines->Add(GetTime()+" 继续下一个消息:"+cmd);
 
-        {
-            D1608Cmd& cmd1 = *(D1608Cmd*)package.data;
-            memo_debug->Lines->Add(GetTime()+IntToHex((int)&cmd1, 8)+"继续下一个消息:"+IntToStr(cmd1.id)+"|"+IntToStr(cmd1.data.data_32));
-        }
+        SendBuffer(dst_ip, package.udp_port, package.data, package.data_size);
+        sendcmd_delay_count = 15;
     }
 
     return true;
@@ -3356,7 +2989,7 @@ bool TForm1::ProcessLogBuffAck(LogBuff& buff, TStream *AData, TIdSocketHandle *A
         if (sendcmd_list.size() > 0)
         {
             package = sendcmd_list.back();
-            udpControl->SendBuffer(dst_ip, package.udp_port, package.data, package.data_size);
+            SendBuffer(dst_ip, package.udp_port, package.data, package.data_size);
             sendcmd_delay_count = 15;
         }
     }
@@ -3472,14 +3105,9 @@ void __fastcall TForm1::tmWatchTimer(TObject *Sender)
         ClearUI();
     }
 
-    D1608Cmd cmd;
-    strcpy(cmd.flag, D1608CMD_KEEPLIVE_FLAG);
-    cmd.seq = received_cmd_seq;
-    cmd.type = 3;
-    String cmd_text = "config.action=keeplive";
-    strcpy(cmd.data.data_string, cmd_text.c_str());
-    cmd.length = cmd_text.Length();
-    SendCmd2(cmd);
+    String cmd_text = D1608CMD_KEEPLIVE_FLAG;
+    cmd_text = cmd_text+"config.action.keeplive="+IntToStr(received_cmd_seq);
+    SendCmd2(cmd_text);
     send_keeplive_count++;
     last_keeplive_time = Now();
 
@@ -3496,12 +3124,9 @@ void __fastcall TForm1::ToogleOutputMute(TObject *Sender)
     TSpeedButton* btn = (TSpeedButton*)Sender;
     int dsp_num = btn->Tag;
 
-    D1608Cmd cmd;
-    cmd.type = 3;// 文本协议
-    String cmd_text = "output["+IntToStr(dsp_num)+"].mute="+(btn->Down?"on":"off");
-    strcpy(cmd.data.data_string, cmd_text.c_str());
-    cmd.length = cmd_text.Length();
-    SendCmd(cmd);
+    String cmd_text = D1608CMD_FLAG;
+    cmd_text = cmd_text+"output["+IntToStr(dsp_num)+"].mute="+(btn->Down?"on":"off");
+    SendCmd(cmd_text);
 
     config_map.output_dsp[dsp_num-1].mute_switch = btn->Down;
 }
@@ -3511,12 +3136,9 @@ void __fastcall TForm1::ToogleOutputInvert(TObject *Sender)
     TSpeedButton* btn = (TSpeedButton*)Sender;
     int dsp_num = btn->Tag;
 
-    D1608Cmd cmd;
-    cmd.type = 3;// 文本协议
-    String cmd_text = "output["+IntToStr(dsp_num)+"].invert="+(btn->Down?"on":"off");
-    strcpy(cmd.data.data_string, cmd_text.c_str());
-    cmd.length = cmd_text.Length();
-    SendCmd(cmd);
+    String cmd_text = D1608CMD_FLAG;
+    cmd_text = cmd_text+"output["+IntToStr(dsp_num)+"].invert="+(btn->Down?"on":"off");
+    SendCmd(cmd_text);
     
     config_map.output_dsp[dsp_num-1].invert_switch = btn->Down;
 }
@@ -3589,12 +3211,9 @@ void __fastcall TForm1::ToogleOutputEQ(TObject *Sender)
     TSpeedButton* btn = (TSpeedButton*)Sender;
     int dsp_num = btn->Tag;
 
-    D1608Cmd cmd;
-    cmd.type = 3;// 文本协议
-    String cmd_text = "output["+IntToStr(dsp_num)+"].eq="+(btn->Down?"on":"off");
-    strcpy(cmd.data.data_string, cmd_text.c_str());
-    cmd.length = cmd_text.Length();
-    SendCmd(cmd);
+    String cmd_text = D1608CMD_FLAG;
+    cmd_text = cmd_text+"output["+IntToStr(dsp_num)+"].eq="+(btn->Down?"on":"off");
+    SendCmd(cmd_text);
 
     config_map.output_dsp[dsp_num-1].eq_switch = btn->Down;
 }
@@ -3618,14 +3237,11 @@ void __fastcall TForm1::OutputVolumeChange(TObject *Sender)
         }
     }
 
-    D1608Cmd cmd;
-    cmd.type = 3;// 文本协议
-    String cmd_text = "output["+IntToStr(dsp_num)+"].volume="+output_level_edit[dsp_num-1]->Text;
+    String cmd_text = D1608CMD_FLAG;
+    cmd_text = cmd_text+ "output["+IntToStr(dsp_num)+"].volume="+output_level_edit[dsp_num-1]->Text;
     if (output_level_edit[dsp_num-1]->Text != "Off")
         cmd_text = cmd_text + "dB";
-    strcpy(cmd.data.data_string, cmd_text.c_str());
-    cmd.length = cmd_text.Length();
-    SendCmd(cmd);
+    SendCmd(cmd_text);
 
     config_map.output_dsp[dsp_num-1].level_a = value;
 }
@@ -3771,21 +3387,13 @@ void __fastcall TForm1::btnMixInvertClick(TObject *Sender)
 void __fastcall TForm1::btnMAXONClick(TObject *Sender)
 {
 #if 0
-    // mix_panel_state bit1
-    mix_panel_state = SetBit(mix_panel_state, 1, btnMAXON->Down);
-    D1608Cmd cmd = Mix_MaxPrio_Invert_Mute(mix_panel_state);
-    cmd.length = 1;
-    SendCmd(cmd);
+
 #endif
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::btnLastOnClick(TObject *Sender)
 {
 #if 0
-    TSpeedButton* btn = (TSpeedButton*)Sender;
-    D1608Cmd cmd = InputDefault(0, btn->Down);
-    cmd.length = 1;
-    SendCmd(cmd);
 #endif
 }
 //---------------------------------------------------------------------------
@@ -3793,10 +3401,6 @@ void __fastcall TForm1::btnLastOnClick(TObject *Sender)
 void __fastcall TForm1::btnFShiftClick(TObject *Sender)
 {
 #if 0
-    TSpeedButton* btn = (TSpeedButton*)Sender;
-    D1608Cmd cmd = FShift(btn->Down);
-    cmd.length = 1;
-    SendCmd(cmd);
 #endif
 }
 //---------------------------------------------------------------------------
@@ -3820,14 +3424,11 @@ void __fastcall TForm1::MasterVolumeChange(TObject *Sender)
         }
     }
 
-    D1608Cmd cmd;
-    cmd.type = 3;// 文本协议
-    String cmd_text = "master.volume="+master_panel_level_edit->Text;
+    String cmd_text = D1608CMD_FLAG;
+    cmd_text = cmd_text+ "master.volume="+master_panel_level_edit->Text;
     if (master_panel_level_edit->Text != "Off")
         cmd_text = cmd_text + "dB";
-    strcpy(cmd.data.data_string, cmd_text.c_str());
-    cmd.length = cmd_text.Length();
-    SendCmd(cmd);
+    SendCmd(cmd_text);
 
     config_map.master_mix.level_a = value;
     memo_debug->Lines->Add(IntToStr(config_map.master_mix.level_a));
@@ -3843,12 +3444,9 @@ void __fastcall TForm1::btnMasterMuteClick(TObject *Sender)
 {
     TSpeedButton* btn = (TSpeedButton*)Sender;
 
-    D1608Cmd cmd;
-    cmd.type = 3;// 文本协议
-    String cmd_text = String("master.mute=")+(btn->Down?"on":"off");
-    strcpy(cmd.data.data_string, cmd_text.c_str());
-    cmd.length = cmd_text.Length();
-    SendCmd(cmd);
+    String cmd_text = D1608CMD_FLAG;
+    cmd_text = cmd_text+ String("master.mute=")+(btn->Down?"on":"off");
+    SendCmd(cmd_text);
 
     config_map.master_mix.mute_switch = btn->Down;
 }
@@ -3858,12 +3456,9 @@ void __fastcall TForm1::btnPhantonClick(TObject *Sender)
     TSpeedButton* btn = (TSpeedButton*)Sender;
     int dsp_num = btn->Parent->Tag;
 
-    D1608Cmd cmd;
-    cmd.type = 3;// 文本协议
-    String cmd_text = "input["+IntToStr(dsp_num)+"].phantom="+(btn->Down?"on":"off");
-    strcpy(cmd.data.data_string, cmd_text.c_str());
-    cmd.length = cmd_text.Length();
-    SendCmd(cmd);
+    String cmd_text = D1608CMD_FLAG;
+    cmd_text = cmd_text+ "input["+IntToStr(dsp_num)+"].phantom="+(btn->Down?"on":"off");
+    SendCmd(cmd_text);
 
     config_map.input_dsp[dsp_num-1].phantom_switch = btn->Down;
 }
@@ -3944,12 +3539,9 @@ void __fastcall TForm1::i10dBvClick(TObject *Sender)
         config_map.input_dsp[dsp_num-1].gain = INPUT_GAIN_24dBu;
     }
 
-    D1608Cmd cmd;
-    cmd.type = 3;// 文本协议
-    String cmd_text = "input["+IntToStr(dsp_num)+"].gain="+popup_label->Caption;
-    strcpy(cmd.data.data_string, cmd_text.c_str());
-    cmd.length = cmd_text.Length();
-    SendCmd(cmd);
+    String cmd_text = D1608CMD_FLAG;
+    cmd_text = cmd_text+ "input["+IntToStr(dsp_num)+"].gain="+popup_label->Caption;
+    SendCmd(cmd_text);
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::MenuItem3Click(TObject *Sender)
@@ -3972,12 +3564,9 @@ void __fastcall TForm1::MenuItem3Click(TObject *Sender)
         config_map.output_dsp[dsp_num-1].gain = OUTPUT_GAIN_24dBu;
     }
 
-    D1608Cmd cmd;
-    cmd.type = 3;// 文本协议
-    String cmd_text = "output["+IntToStr(dsp_num)+"].gain="+popup_label->Caption;
-    strcpy(cmd.data.data_string, cmd_text.c_str());
-    cmd.length = cmd_text.Length();
-    SendCmd(cmd);
+    String cmd_text = D1608CMD_FLAG;
+    cmd_text = cmd_text+ "output["+IntToStr(dsp_num)+"].gain="+popup_label->Caption;
+    SendCmd(cmd_text);
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::i10dBvDrawItem(TObject *Sender, TCanvas *ACanvas,
@@ -4301,27 +3890,22 @@ void __fastcall TForm1::after_input_panel_dsp_numClick(TObject *Sender)
 
     label->Caption = edtInput->Text;
 
-    D1608Cmd cmd;
-    cmd.type = 3;
+    String cmd_text = D1608CMD_FLAG;
     if (cbGlobalDspName->Checked)
     {
         strncpy(global_config.input_dsp_name[label->Tag], label->Caption.c_str(), 6);
 
-        String cmd_text = "config.input["+IntToStr(dsp_num)+"].name="+label->Caption.SubString(1,16);
-        strcpy(cmd.data.data_string, cmd_text.c_str());
-        cmd.length = cmd_text.Length();
-        SendCmd(cmd);
+        String cmd_text = D1608CMD_FLAG;
+        cmd_text = cmd_text+"config.input["+IntToStr(dsp_num)+"].name="+label->Caption.SubString(1,16);
+        SendCmd(cmd_text);
     }
     else
     {
         strncpy(config_map.output_dsp[label->Tag].dsp_name, label->Caption.c_str(), 6);
 
-        D1608Cmd cmd;
-        cmd.type = 3;// 文本协议
-        String cmd_text = "input["+IntToStr(dsp_num)+"].name="+label->Caption;
-        strcpy(cmd.data.data_string, cmd_text.c_str());
-        cmd.length = cmd_text.Length();
-        SendCmd(cmd);
+        String cmd_text = D1608CMD_FLAG;
+        cmd_text = cmd_text+"input["+IntToStr(dsp_num)+"].name="+label->Caption;
+        SendCmd(cmd_text);
     }
 }
 //---------------------------------------------------------------------------
@@ -4344,27 +3928,21 @@ void __fastcall TForm1::after_output_panel_dsp_numClick(TObject *Sender)
         label->Caption = edtInput->Text;
     }
 
-    D1608Cmd cmd;
-    cmd.type = cbGlobalDspName->Checked;
-    if (cmd.type == CMD_TYPE_GLOBAL)
+    if (cbGlobalDspName->Checked)
     {
-        strncpy(global_config.output_dsp_name[label->Tag], label->Caption.c_str(), 6);
+        String cmd_text = D1608CMD_FLAG;
+        cmd_text = cmd_text+"config.output["+IntToStr(dsp_num)+"].name="+label->Caption.SubString(1,16);
+        SendCmd(cmd_text);
 
-        String cmd_text = "config.output["+IntToStr(dsp_num)+"].name="+label->Caption.SubString(1,16);
-        strcpy(cmd.data.data_string, cmd_text.c_str());
-        cmd.length = cmd_text.Length();
-        SendCmd(cmd);
+        strncpy(global_config.output_dsp_name[label->Tag], label->Caption.c_str(), 6);
     }
     else
     {
+        String cmd_text = D1608CMD_FLAG;
+        cmd_text = cmd_text+"output["+IntToStr(dsp_num)+"].name="+label->Caption;
+        SendCmd(cmd_text);
+        
         strncpy(config_map.output_dsp[label->Tag].dsp_name, label->Caption.c_str(), 6);
-
-        D1608Cmd cmd;
-        cmd.type = 3;// 文本协议
-        String cmd_text = "output["+IntToStr(dsp_num)+"].name="+label->Caption;
-        strcpy(cmd.data.data_string, cmd_text.c_str());
-        cmd.length = cmd_text.Length();
-        SendCmd(cmd);
     }
 }
 //---------------------------------------------------------------------------
@@ -4415,14 +3993,11 @@ void __fastcall TForm1::pnlmix_level_trackbarChange(TObject *Sender)
         int in_dsp_num = dsp_num;
         int out_dsp_num = last_out_num_btn->Tag;
 
-        D1608Cmd cmd;
-        cmd.type = 3;// 文本协议
-        String cmd_text = "output["+IntToStr(out_dsp_num)+"].route_input["+IntToStr(in_dsp_num)+"].volume="+mix_level_edit[dsp_num-1]->Text;
+        String cmd_text = D1608CMD_FLAG;
+        cmd_text = cmd_text+"output["+IntToStr(out_dsp_num)+"].route_input["+IntToStr(in_dsp_num)+"].volume="+mix_level_edit[dsp_num-1]->Text;
         if (mix_level_edit[dsp_num-1]->Text != "Off")
             cmd_text = cmd_text + "dB";
-        strcpy(cmd.data.data_string, cmd_text.c_str());
-        cmd.length = cmd_text.Length();
-        SendCmd(cmd);
+        SendCmd(cmd_text);
 
         config_map.master_mix.mix[in_dsp_num-1][out_dsp_num-1] = value;
     }
@@ -4475,12 +4050,9 @@ void __fastcall TForm1::pnlmix_muteClick(TObject *Sender)
         int in_dsp_num = dsp_num;
         int out_dsp_num = last_out_num_btn->Tag;
 
-        D1608Cmd cmd;
-        cmd.type = 3;// 文本协议
-        String cmd_text = "output["+IntToStr(out_dsp_num)+"].route_input["+IntToStr(in_dsp_num)+"].mute="+(btn->Down?"on":"off");
-        strcpy(cmd.data.data_string, cmd_text.c_str());
-        cmd.length = cmd_text.Length();
-        SendCmd(cmd);
+        String cmd_text = D1608CMD_FLAG;
+        cmd_text = cmd_text+"output["+IntToStr(out_dsp_num)+"].route_input["+IntToStr(in_dsp_num)+"].mute="+(btn->Down?"on":"off");
+        SendCmd(cmd_text);
 
         config_map.master_mix.mix_mute[in_dsp_num-1][out_dsp_num-1] = btn->Down;
     }
@@ -4596,7 +4168,7 @@ void __fastcall TForm1::btnLoadPresetFromFileClick(TObject *Sender)
                             sizeof(MasterMixConfigMap));
                 }
 
-                TPackage package;
+                TPackage package = {0};
                 memcpy(package.data, &preset_cmd, sizeof(preset_cmd));
                 package.udp_port = UDP_PORT_STORE_PRESET_PC2FLASH;
                 package.data_size = sizeof(preset_cmd);
@@ -4607,7 +4179,7 @@ void __fastcall TForm1::btnLoadPresetFromFileClick(TObject *Sender)
             std::reverse(package_list.begin(), package_list.end());
 
             TPackage package = package_list.back();
-            udpControl->SendBuffer(dst_ip, package.udp_port, package.data, package.data_size);
+            SendBuffer(dst_ip, package.udp_port, package.data, package.data_size);
 
             //last_command = UDP_PORT_STORE_PRESET_PC2FLASH;
             //last_restore_package = preset_cmd;
@@ -5042,7 +4614,7 @@ void __fastcall TForm1::StoreClick(TObject *Sender)
     {
         StorePresetMemToFlashPreset store_cmd;
         store_cmd.preset_id = 0xFF;
-        udpControl->SendBuffer(dst_ip, UDP_PORT_STORE_PRESET_MEM2FLASH, &store_cmd, sizeof(store_cmd));
+        SendBuffer(dst_ip, UDP_PORT_STORE_PRESET_MEM2FLASH, &store_cmd, sizeof(store_cmd));
     }
 }
 //---------------------------------------------------------------------------
@@ -5054,7 +4626,7 @@ void __fastcall TForm1::StoreAsClick(TObject *Sender)
     {
         StorePresetMemToFlashPreset store_cmd;
         store_cmd.preset_id = preset_id;
-        udpControl->SendBuffer(dst_ip, UDP_PORT_STORE_PRESET_MEM2FLASH, &store_cmd, sizeof(store_cmd));
+        SendBuffer(dst_ip, UDP_PORT_STORE_PRESET_MEM2FLASH, &store_cmd, sizeof(store_cmd));
     }
     // 更新上位机内存
     all_config_map[preset_id-1] = config_map;
@@ -5078,13 +4650,9 @@ void __fastcall TForm1::RecallClick(TObject *Sender)
 
     if (udpControl->Active)
     {
-        D1608Cmd cmd;
-        strcpy(cmd.flag, D1608CMD_CONTROL_FLAG);
-        cmd.type = 3;// 文本协议
-        String cmd_text = "config.active_preset="+IntToStr(menu->Tag);
-        strcpy(cmd.data.data_string, cmd_text.c_str());
-        cmd.length = cmd_text.Length();
-        SendCmd2(cmd);
+        String cmd_text = D1608CMD_CONTROL_FLAG;
+        cmd_text = cmd_text+"config.active_preset="+IntToStr(menu->Tag);
+        SendCmd2(cmd_text);
 
         // 延时5秒后强制从本地内存更新到界面
         tmDelayUpdateUI->Enabled = true;
@@ -5097,14 +4665,10 @@ void __fastcall TForm1::RecallClick(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TForm1::btnSetIpClick(TObject *Sender)
 {
-    D1608Cmd cmd;
-    strcpy(cmd.flag, D1608CMD_CONTROL_FLAG);
-    cmd.type = 3;
-
-    String cmd_text;
+    String cmd_text = D1608CMD_CONTROL_FLAG;
     if (rbStaticIpEnabled->Checked == false)
     {
-        cmd_text = "config.ip=auto";
+        cmd_text = cmd_text+"config.ip=auto";
     }
     else
     {
@@ -5116,12 +4680,10 @@ void __fastcall TForm1::btnSetIpClick(TObject *Sender)
             ShowMessage("IP地址无效，请重新输入");
             return;
         }
-        cmd_text = "config.ip="+String(ip_text);
+        cmd_text = cmd_text+"config.ip="+String(ip_text);
     }
         
-    strcpy(cmd.data.data_string, cmd_text.c_str());
-    cmd.length = cmd_text.Length();
-    SendCmd2(cmd);
+    SendCmd2(cmd_text);
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::btnGetLogClick(TObject *Sender)
@@ -5149,7 +4711,7 @@ void __fastcall TForm1::btnGetLogClick(TObject *Sender)
 void __fastcall TForm1::btnGetDebugClick(TObject *Sender)
 {
     char buf[1024] = {0};
-    udpControl->SendBuffer(dst_ip, UDP_PORT_GET_DEBUG_INFO, buf, 1024);
+    SendBuffer(dst_ip, UDP_PORT_GET_DEBUG_INFO, buf, 1024);
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::lblPresetNameClick(TObject *Sender)
@@ -5160,13 +4722,9 @@ void __fastcall TForm1::lblPresetNameClick(TObject *Sender)
     else
         lblPresetName->Caption = new_name;
 
-    D1608Cmd cmd;
-    strcpy(cmd.flag, D1608CMD_CONTROL_FLAG);
-    cmd.type = 3;
-    String cmd_text = "config.preset_name["+IntToStr(cur_preset_id)+"]=" + lblPresetName->Caption.SubString(1,16);
-    strcpy(cmd.data.data_string, cmd_text.c_str());
-    cmd.length = cmd_text.Length();
-    SendCmd(cmd);
+    String cmd_text = D1608CMD_CONTROL_FLAG;
+    cmd_text = cmd_text+"config.preset_name["+IntToStr(cur_preset_id)+"]=" + lblPresetName->Caption.SubString(1,16);
+    SendCmd(cmd_text);
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::btnDeviceNameClick(TObject *Sender)
@@ -5175,13 +4733,9 @@ void __fastcall TForm1::btnDeviceNameClick(TObject *Sender)
 
     UpdateCaption();
 
-    D1608Cmd cmd;
-    strcpy(cmd.flag, D1608CMD_CONTROL_FLAG);
-    cmd.type = 3;
-    String cmd_text = "config.name="+edtDeviceName->Text.SubString(1,16);
-    strcpy(cmd.data.data_string, cmd_text.c_str());
-    cmd.length = cmd_text.Length();
-    SendCmd2(cmd);
+    String cmd_text = D1608CMD_CONTROL_FLAG;
+    cmd_text = cmd_text+"config.name="+edtDeviceName->Text.SubString(1,16);
+    SendCmd2(cmd_text);
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::clbAvaliablePresetClickCheck(TObject *Sender)
@@ -5212,13 +4766,9 @@ void __fastcall TForm1::clbAvaliablePresetClickCheck(TObject *Sender)
         {
             global_config.avaliable_preset[i] =  clbAvaliablePreset->Checked[i];
 
-            D1608Cmd cmd;
-            strcpy(cmd.flag, D1608CMD_CONTROL_FLAG);
-            cmd.type = 3;
-            String cmd_text = "config.avaliable_preset["+IntToStr(i+1)+"]="+(clbAvaliablePreset->Checked[i]?"on":"off");
-            strcpy(cmd.data.data_string, cmd_text.c_str());
-            cmd.length = cmd_text.Length();
-            SendCmd2(cmd);
+            String cmd_text = D1608CMD_CONTROL_FLAG;
+            cmd_text = cmd_text+"config.avaliable_preset["+IntToStr(i+1)+"]="+(clbAvaliablePreset->Checked[i]?"on":"off");
+            SendCmd2(cmd_text);
         }
     }
 }
@@ -5234,12 +4784,7 @@ void __fastcall TForm1::btnSetLockClick(TObject *Sender)
     }
 
 
-    D1608Cmd cmd;
-    strcpy(cmd.flag, D1608CMD_CONTROL_FLAG);
-    cmd.type = CMD_TYPE_GLOBAL;
-
-    cmd.id = offsetof(GlobalConfig, running_timer_limit);
-
+    String cmd_text = D1608CMD_CONTROL_FLAG;
 	global_config.running_timer_limit = edtRunningTimer->Enabled ? running_timer : 0;
 	global_config.reboot_count_limit = edtRebootCount->Enabled ? roboot_count : 0;
     if ((global_config.running_timer_limit==0) && (global_config.reboot_count_limit==0))
@@ -5254,15 +4799,13 @@ void __fastcall TForm1::btnSetLockClick(TObject *Sender)
     strncpy(global_config.password, edtPassword->Text.c_str(), 16);
     strncpy(global_config.password_of_key, edtKeyPassword->Text.c_str(), 16);
 
+    cmd_text = cmd_text+String("config.lock=")+IntToStr(global_config.running_timer_limit)
+                      +","+IntToStr(global_config.reboot_count_limit)
+                      +","+global_config.locked_string
+                      +","+global_config.password
+                      +","+global_config.password_of_key;
 
-    cmd.length = sizeof(global_config.running_timer_limit)
-                +sizeof(global_config.reboot_count_limit)
-                +sizeof(global_config.locked_string)
-                +sizeof(global_config.password)
-                +sizeof(global_config.password_of_key);
-    memcpy(cmd.data.data_string, &global_config.running_timer_limit, cmd.length);
-
-    SendCmd(cmd);
+    SendCmd(cmd_text);
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::btnUnlockClick(TObject *Sender)
@@ -5273,13 +4816,9 @@ void __fastcall TForm1::btnUnlockClick(TObject *Sender)
         return;
     }
 
-    D1608Cmd cmd;
-    strcpy(cmd.flag, D1608CMD_CONTROL_FLAG);
-    cmd.type = 3;
-    String cmd_text = "config.unlock="+edtUnlockPassword->Text.SubString(1,16);
-    strcpy(cmd.data.data_string, cmd_text.c_str());
-    cmd.length = cmd_text.Length();
-    SendCmd2(cmd);
+    String cmd_text = D1608CMD_CONTROL_FLAG;
+    cmd_text = cmd_text+"config.unlock="+edtUnlockPassword->Text.SubString(1,16);
+    SendCmd2(cmd_text);
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::edtKeyPasswordKeyDown(TObject *Sender, WORD &Key,
@@ -5394,12 +4933,8 @@ void __fastcall TForm1::edtKeyPasswordKeyPress(TObject *Sender, char &Key)
 void __fastcall TForm1::btnUnlockExtClick(TObject *Sender)
 {
     // 后台解锁    
-    D1608Cmd cmd;
-    strcpy(cmd.flag, D1608CMD_CONTROL_FLAG);
-    cmd.type = 3;
-    String cmd_text = "config.unlock_ext=on";
-    strcpy(cmd.data.data_string, cmd_text.c_str());
-    cmd.length = cmd_text.Length();
+    String cmd_text = D1608CMD_CONTROL_FLAG;
+    cmd_text = cmd_text+"config.unlock_ext=on";
 /*
     清除
 	int running_timer_limit;	// 单位：秒
@@ -5408,19 +4943,15 @@ void __fastcall TForm1::btnUnlockExtClick(TObject *Sender)
 	char password_of_key[20];	// 键盘解锁密码
 	char password[20];			// 密码
 */
-    SendCmd(cmd);
+    SendCmd(cmd_text);
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::btnLeaveTheFactoryClick(TObject *Sender)
 {
     // 出厂
-    D1608Cmd cmd;
-    strcpy(cmd.flag, D1608CMD_CONTROL_FLAG);
-    cmd.type = 3;
-    String cmd_text = "config.adjust_running_time=on";
-    strcpy(cmd.data.data_string, cmd_text.c_str());
-    cmd.length = cmd_text.Length();
-    SendCmd2(cmd);
+    String cmd_text = D1608CMD_CONTROL_FLAG;
+    cmd_text = cmd_text+"config.adjust_running_time=on";
+    SendCmd2(cmd_text);
 }
 //---------------------------------------------------------------------------
 void TForm1::ShowInputPanel(TControl * Sender, TNotifyEvent event, String default_text)
@@ -5512,12 +5043,9 @@ void __fastcall TForm1::ToogleCOMP(TObject *Sender)
     TSpeedButton* btn = (TSpeedButton*)Sender;
     int dsp_num = btn->Tag;
 
-    D1608Cmd cmd;
-    cmd.type = 3;// 文本协议
-    String cmd_text = "output["+IntToStr(dsp_num)+"].comp="+(btn->Down?"on":"off");
-    strcpy(cmd.data.data_string, cmd_text.c_str());
-    cmd.length = cmd_text.Length();
-    SendCmd(cmd);
+    String cmd_text = D1608CMD_FLAG;
+    cmd_text = cmd_text+ "output["+IntToStr(dsp_num)+"].comp="+(btn->Down?"on":"off");
+    SendCmd(cmd_text);
 
     config_map.output_dsp[dsp_num-1].comp_switch = btn->Down;
 }
@@ -5550,12 +5078,9 @@ void __fastcall TForm1::edtCompRatioKeyDown(TObject *Sender, WORD &Key,
             else if (config_map.output_dsp[dsp_num-1].ratio < ratio_config.min_value)
                 config_map.output_dsp[dsp_num-1].ratio = ratio_config.min_value;
             
-            D1608Cmd cmd;
-            cmd.type = 3;// 文本协议
-            String cmd_text = "output["+IntToStr(dsp_num)+"].comp.ratio="+edtCompRatio->Text;
-            strcpy(cmd.data.data_string, cmd_text.c_str());
-            cmd.length = cmd_text.Length();
-            SendCmd(cmd);
+            String cmd_text = D1608CMD_FLAG;
+            cmd_text = cmd_text+"output["+IntToStr(dsp_num)+"].comp.ratio="+edtCompRatio->Text;
+            SendCmd(cmd_text);
 
             filter_set.ratio = config_map.output_dsp[dsp_num-1].ratio / 100.0;
             pbComp->Invalidate();
@@ -5595,12 +5120,9 @@ void __fastcall TForm1::edtCompThresholdKeyDown(TObject *Sender, WORD &Key,
             else if (config_map.output_dsp[dsp_num-1].threshold < threshold_config.min_value)
                 config_map.output_dsp[dsp_num-1].threshold = threshold_config.min_value;
 
-            D1608Cmd cmd;
-            cmd.type = 3;// 文本协议
-            String cmd_text = "output["+IntToStr(dsp_num)+"].comp.threshold="+edtCompThreshold->Text+"dB";
-            strcpy(cmd.data.data_string, cmd_text.c_str());
-            cmd.length = cmd_text.Length();
-            SendCmd(cmd);
+            String cmd_text = D1608CMD_FLAG;
+            cmd_text = cmd_text+"output["+IntToStr(dsp_num)+"].comp.threshold="+edtCompThreshold->Text+"dB";
+            SendCmd(cmd_text);
 
             filter_set.threshold = config_map.output_dsp[dsp_num-1].threshold / 10.0;
             pbComp->Invalidate();
@@ -5640,12 +5162,9 @@ void __fastcall TForm1::edtCompAttackTimeKeyDown(TObject *Sender,
             else if (config_map.output_dsp[dsp_num-1].attack_time < attack_config.min_value)
                 config_map.output_dsp[dsp_num-1].attack_time = attack_config.min_value;
             
-            D1608Cmd cmd;
-            cmd.type = 3;// 文本协议
-            String cmd_text = "output["+IntToStr(dsp_num)+"].comp.attack_time="+edtCompAttackTime->Text;
-            strcpy(cmd.data.data_string, cmd_text.c_str());
-            cmd.length = cmd_text.Length();
-            SendCmd(cmd);
+            String cmd_text = D1608CMD_FLAG;
+            cmd_text = cmd_text+"output["+IntToStr(dsp_num)+"].comp.attack_time="+edtCompAttackTime->Text;
+            SendCmd(cmd_text);
         }
         catch(...)
         {
@@ -5682,12 +5201,9 @@ void __fastcall TForm1::edtCompReleaseTimeKeyDown(TObject *Sender,
             else if (config_map.output_dsp[dsp_num-1].release_time < release_config.min_value)
                 config_map.output_dsp[dsp_num-1].release_time = release_config.min_value;
             
-            D1608Cmd cmd;
-            cmd.type = 3;// 文本协议
-            String cmd_text = "output["+IntToStr(dsp_num)+"].comp.release_time="+edtCompReleaseTime->Text;
-            strcpy(cmd.data.data_string, cmd_text.c_str());
-            cmd.length = cmd_text.Length();
-            SendCmd(cmd);
+            String cmd_text = D1608CMD_FLAG;
+            cmd_text = cmd_text+"output["+IntToStr(dsp_num)+"].comp.release_time="+edtCompReleaseTime->Text;
+            SendCmd(cmd_text);
         }
         catch(...)
         {
@@ -5724,12 +5240,9 @@ void __fastcall TForm1::edtCompGainKeyDown(TObject *Sender, WORD &Key,
             else if (config_map.output_dsp[dsp_num-1].comp_gain < gain_config.min_value)
                 config_map.output_dsp[dsp_num-1].comp_gain = gain_config.min_value;
 
-            D1608Cmd cmd;
-            cmd.type = 3;// 文本协议
-            String cmd_text = "output["+IntToStr(dsp_num)+"].comp.gain="+edtCompGain->Text+"dB";
-            strcpy(cmd.data.data_string, cmd_text.c_str());
-            cmd.length = cmd_text.Length();
-            SendCmd(cmd);
+            String cmd_text = D1608CMD_FLAG;
+            cmd_text = cmd_text+"output["+IntToStr(dsp_num)+"].comp.gain="+edtCompGain->Text+"dB";
+            SendCmd(cmd_text);
 
             filter_set.gain = config_map.output_dsp[dsp_num-1].comp_gain / 10.0;
             pbComp->Invalidate();
@@ -5750,12 +5263,9 @@ void __fastcall TForm1::cbCompAutoTimeClick(TObject *Sender)
 
     config_map.output_dsp[dsp_num-101].auto_time = check_box->Checked;
 
-    D1608Cmd cmd;
-    cmd.type = 3;// 文本协议
-    String cmd_text = "output["+IntToStr(dsp_num)+"].auto_comp="+(cbCompAutoTime->Checked?"on":"off");
-    strcpy(cmd.data.data_string, cmd_text.c_str());
-    cmd.length = cmd_text.Length();
-    SendCmd(cmd);
+    String cmd_text = D1608CMD_FLAG;
+    cmd_text = cmd_text+ "output["+IntToStr(dsp_num)+"].auto_comp="+(cbCompAutoTime->Checked?"on":"off");
+    SendCmd(cmd_text);
 
     if (cbCompAutoTime->Checked)
     {
@@ -6040,12 +5550,9 @@ void __fastcall TForm1::dsp_gain_trackbarChange(TObject *Sender)
         if (config_map.input_dsp[dsp_num-1].level_b != value)
         {
             // input channel
-            D1608Cmd cmd;
-            cmd.type = 3;// 文本协议
-            String cmd_text = "input["+IntToStr(dsp_num)+"].inside_volume="+dsp_gain_edit->Text+"dB";
-            strcpy(cmd.data.data_string, cmd_text.c_str());
-            cmd.length = cmd_text.Length();
-            SendCmd(cmd);
+            String cmd_text = D1608CMD_FLAG;
+            cmd_text = cmd_text+"input["+IntToStr(dsp_num)+"].inside_volume="+dsp_gain_edit->Text+"dB";
+            SendCmd(cmd_text);
 
             config_map.input_dsp[dsp_num-1].level_b = value;
         }
@@ -6055,12 +5562,9 @@ void __fastcall TForm1::dsp_gain_trackbarChange(TObject *Sender)
         if (config_map.output_dsp[dsp_num-101].level_b != value)
         {
             // output channel
-            D1608Cmd cmd;
-            cmd.type = 3;// 文本协议
-            String cmd_text = "output["+IntToStr(dsp_num-100)+"].inside_volume="+dsp_gain_edit->Text+"dB";
-            strcpy(cmd.data.data_string, cmd_text.c_str());
-            cmd.length = cmd_text.Length();
-            SendCmd(cmd);
+            String cmd_text = D1608CMD_FLAG;
+            cmd_text = cmd_text+"output["+IntToStr(dsp_num-100)+"].inside_volume="+dsp_gain_edit->Text+"dB";
+            SendCmd(cmd_text);
 
             config_map.output_dsp[dsp_num-101].level_b = value;
         }
@@ -6105,12 +5609,9 @@ void __fastcall TForm1::dsp_delay_trackbarChange(TObject *Sender)
         if (config_map.input_dsp[dsp_num-1].delay != value)
         {
             // input channel
-            D1608Cmd cmd;
-            cmd.type = 3;// 文本协议
-            String cmd_text = "input["+IntToStr(dsp_num)+"].delay="+dsp_delay_edit->Text+"ms";
-            strcpy(cmd.data.data_string, cmd_text.c_str());
-            cmd.length = cmd_text.Length();
-            SendCmd(cmd);
+            String cmd_text = D1608CMD_FLAG;
+            cmd_text = cmd_text+"input["+IntToStr(dsp_num)+"].delay="+dsp_delay_edit->Text+"ms";
+            SendCmd(cmd_text);
 
             config_map.input_dsp[dsp_num-1].delay = value;
         }
@@ -6120,12 +5621,9 @@ void __fastcall TForm1::dsp_delay_trackbarChange(TObject *Sender)
         if (config_map.output_dsp[dsp_num-101].delay != value)
         {
             // output channel
-            D1608Cmd cmd;
-            cmd.type = 3;// 文本协议
-            String cmd_text = "output["+IntToStr(dsp_num-100)+"].delay="+dsp_delay_edit->Text+"ms";
-            strcpy(cmd.data.data_string, cmd_text.c_str());
-            cmd.length = cmd_text.Length();
-            SendCmd(cmd);
+            String cmd_text = D1608CMD_FLAG;
+            cmd_text = cmd_text+"output["+IntToStr(dsp_num-100)+"].delay="+dsp_delay_edit->Text+"ms";
+            SendCmd(cmd_text);
 
             config_map.output_dsp[dsp_num-101].delay = value;
         }
@@ -6428,24 +5926,16 @@ void __fastcall TForm1::cbGlobalDspNameClick(TObject *Sender)
 {
     ApplyConfigToUI();
 
-    D1608Cmd cmd;
-    strcpy(cmd.flag, D1608CMD_CONTROL_FLAG);
-    cmd.type = 3;
-    String cmd_text = String("config.use_global_name=")+(cbGlobalDspName->Checked?"on":"off");
-    strcpy(cmd.data.data_string, cmd_text.c_str());
-    cmd.length = cmd_text.Length();
-    SendCmd2(cmd);
+    String cmd_text = D1608CMD_CONTROL_FLAG;
+    cmd_text = cmd_text+String("config.use_global_name=")+(cbGlobalDspName->Checked?"on":"off");
+    SendCmd2(cmd_text);
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::cbPresetAutoSavedClick(TObject *Sender)
 {
-    D1608Cmd cmd;
-    strcpy(cmd.flag, D1608CMD_CONTROL_FLAG);
-    cmd.type = 3;
-    String cmd_text = String("config.auto_saved=")+(cbPresetAutoSaved->Checked?"on":"off");
-    strcpy(cmd.data.data_string, cmd_text.c_str());
-    cmd.length = cmd_text.Length();
-    SendCmd(cmd);
+    String cmd_text = D1608CMD_CONTROL_FLAG;
+    cmd_text = cmd_text+String("config.auto_saved=")+(cbPresetAutoSaved->Checked?"on":"off");
+    SendCmd(cmd_text);
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::btnRebootDeviceClick(TObject *Sender)
@@ -6456,13 +5946,9 @@ void __fastcall TForm1::btnRebootDeviceClick(TObject *Sender)
     }
     else
     {
-        D1608Cmd cmd;
-        strcpy(cmd.flag, D1608CMD_CONTROL_FLAG);
-        cmd.type = 3;// 文本协议
-        String cmd_text = "config.action=reboot";      // 0x80
-        strcpy(cmd.data.data_string, cmd_text.c_str());
-        cmd.length = cmd_text.Length();
-        SendCmd2(cmd);
+        String cmd_text = D1608CMD_CONTROL_FLAG;
+        cmd_text = cmd_text+"config.action=reboot";      // 0x80
+        SendCmd2(cmd_text);
     }
 }
 //---------------------------------------------------------------------------
@@ -6474,47 +5960,31 @@ String function_key_value[3] =
 };
 void __fastcall TForm1::cbMenuKeyFunctionChange(TObject *Sender)
 {
-    D1608Cmd cmd;
-    strcpy(cmd.flag, D1608CMD_CONTROL_FLAG);
-    cmd.type = 3;
-    String cmd_text = "config.menu_key_function="+function_key_value[cbMenuKeyFunction->ItemIndex];
-    strcpy(cmd.data.data_string, cmd_text.c_str());
-    cmd.length = cmd_text.Length();
-    SendCmd2(cmd);
+    String cmd_text = D1608CMD_CONTROL_FLAG;
+    cmd_text = cmd_text+"config.menu_key_function="+function_key_value[cbMenuKeyFunction->ItemIndex];
+    SendCmd2(cmd_text);
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::cbUpKeyFunctionChange(TObject *Sender)
 {
-    D1608Cmd cmd;
-    strcpy(cmd.flag, D1608CMD_CONTROL_FLAG);
-    cmd.type = 3;
-    String cmd_text = "config.up_key_function="+function_key_value[cbUpKeyFunction->ItemIndex];
-    strcpy(cmd.data.data_string, cmd_text.c_str());
-    cmd.length = cmd_text.Length();
-    SendCmd2(cmd);
+    String cmd_text = D1608CMD_CONTROL_FLAG;
+    cmd_text = cmd_text+"config.up_key_function="+function_key_value[cbUpKeyFunction->ItemIndex];
+    SendCmd2(cmd_text);
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::cbDownKeyFunctionChange(TObject *Sender)
 {
-    D1608Cmd cmd;
-    strcpy(cmd.flag, D1608CMD_CONTROL_FLAG);
-    cmd.type = 3;
-    String cmd_text = "config.down_key_function="+function_key_value[cbDownKeyFunction->ItemIndex];
-    strcpy(cmd.data.data_string, cmd_text.c_str());
-    cmd.length = cmd_text.Length();
-    SendCmd2(cmd);
+    String cmd_text = D1608CMD_CONTROL_FLAG;
+    cmd_text = cmd_text+"config.down_key_function="+function_key_value[cbDownKeyFunction->ItemIndex];
+    SendCmd2(cmd_text);
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::cbLockUpDownMenuKeyClick(TObject *Sender)
 {
-    D1608Cmd cmd;
-    strcpy(cmd.flag, D1608CMD_CONTROL_FLAG);
-    cmd.type = 3;
+    String cmd_text = D1608CMD_CONTROL_FLAG;
 
-    String cmd_text = "config.lock_key="+String(cbLockUpDownMenuKey->Checked?"on":"off");
-    strcpy(cmd.data.data_string, cmd_text.c_str());
-    cmd.length = cmd_text.Length();
-    SendCmd2(cmd);
+    cmd_text = cmd_text+"config.lock_key="+String(cbLockUpDownMenuKey->Checked?"on":"off");
+    SendCmd2(cmd_text);
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::btnSaveFlashToFileClick(TObject *Sender)
@@ -6564,13 +6034,9 @@ void __fastcall TForm1::btnSaveFlashToFileClick(TObject *Sender)
             save_device_to_file_filename = SaveDialog1->FileName;
 
             // 替换文件名
-            D1608Cmd cmd;
-            strcpy(cmd.flag, D1608CMD_CONTROL_FLAG);
-            cmd.type = 3;
-            String cmd_text = "config.filename=s"+ExtractFileName(SaveDialog1->FileName).SubString(1,16);
-            strcpy(cmd.data.data_string, cmd_text.c_str());
-            cmd.length = cmd_text.Length();
-            SendCmd2(cmd);
+            String cmd_text = D1608CMD_CONTROL_FLAG;
+            cmd_text = cmd_text+"config.filename=s"+ExtractFileName(SaveDialog1->FileName).SubString(1,16);
+            SendCmd2(cmd_text);
 
             memset(smc_config.device_flash_dump, 0, sizeof(smc_config.device_flash_dump));
             smc_config.file_version = file_version;
@@ -6588,7 +6054,7 @@ void __fastcall TForm1::btnSaveFlashToFileClick(TObject *Sender)
                 flash_rw.end_address = 0x8000000+256*1024;
                 flash_rw.verify -= UdpPackageVerifyDiff((unsigned char*)&flash_rw, offsetof(FlashRW_Data, data));
 
-                TPackage package;
+                TPackage package = {0};
                 memcpy(package.data, &flash_rw, offsetof(FlashRW_Data, data));
                 package.udp_port = UDP_PORT_READ_FLASH;
                 package.data_size = offsetof(FlashRW_Data, data);//sizeof(flash_rw);
@@ -6599,7 +6065,7 @@ void __fastcall TForm1::btnSaveFlashToFileClick(TObject *Sender)
             std::reverse(package_list.begin(), package_list.end());
 
             TPackage package = package_list.back();
-            udpControl->SendBuffer(dst_ip, package.udp_port, package.data, package.data_size);
+            SendBuffer(dst_ip, package.udp_port, package.data, package.data_size);
 
             restor_delay_count = 15;
             tmDelayBackup->Enabled = true;
@@ -6751,7 +6217,7 @@ void __fastcall TForm1::btnLoadFileToFlashClick(TObject *Sender)
                 memcpy(preset_cmd.data, &smc_config.global_config, sizeof(smc_config.global_config));
                 preset_cmd.verify -= UdpPackageVerifyDiff((unsigned char*)&preset_cmd, sizeof(preset_cmd));
 
-                TPackage package;
+                TPackage package = {0};
                 memcpy(package.data, &preset_cmd, sizeof(preset_cmd));
                 package.udp_port = UDP_PORT_STORE_PRESET_PC2FLASH;
                 package.data_size = sizeof(preset_cmd);
@@ -6801,7 +6267,7 @@ void __fastcall TForm1::btnLoadFileToFlashClick(TObject *Sender)
                         }
                         preset_cmd.verify -= UdpPackageVerifyDiff((unsigned char*)&preset_cmd, sizeof(preset_cmd));
 
-                        TPackage package;
+                        TPackage package = {0};
                         memcpy(package.data, &preset_cmd, sizeof(preset_cmd));
                         package.udp_port = UDP_PORT_STORE_PRESET_PC2FLASH;
                         package.data_size = sizeof(preset_cmd);
@@ -6818,7 +6284,7 @@ void __fastcall TForm1::btnLoadFileToFlashClick(TObject *Sender)
                 preset_cmd.preset = 0x89;
                 preset_cmd.verify -= UdpPackageVerifyDiff((unsigned char*)&preset_cmd, sizeof(preset_cmd));
 
-                TPackage package;
+                TPackage package = {0};
                 memcpy(package.data, &preset_cmd, sizeof(preset_cmd));
                 package.udp_port = UDP_PORT_STORE_PRESET_PC2FLASH;
                 package.data_size = sizeof(preset_cmd);
@@ -6830,7 +6296,7 @@ void __fastcall TForm1::btnLoadFileToFlashClick(TObject *Sender)
             std::reverse(package_list.begin(), package_list.end());
 
             TPackage package = package_list.back();
-            udpControl->SendBuffer(dst_ip, package.udp_port, package.data, package.data_size);
+            SendBuffer(dst_ip, package.udp_port, package.data, package.data_size);
 
             //last_command = UDP_PORT_STORE_PRESET_PC2FLASH;
             //last_restore_package = preset_cmd;
@@ -6882,7 +6348,7 @@ void __fastcall TForm1::tmDelayBackupTimer(TObject *Sender)
         if(package_list.size() != 0)
         {
             TPackage package = package_list.back();
-            udpControl->SendBuffer(dst_ip, package.udp_port, package.data, package.data_size);
+            SendBuffer(dst_ip, package.udp_port, package.data, package.data_size);
 
             // 备份 恢复 流程使用的延时计时器
             memo_debug->Lines->Add(GetTime()+"retry package_list");
@@ -6890,7 +6356,7 @@ void __fastcall TForm1::tmDelayBackupTimer(TObject *Sender)
         else if (read_one_preset_package_list.size() != 0)
         {
             TPackage package = read_one_preset_package_list.back();
-            udpControl->SendBuffer(dst_ip, package.udp_port, package.data, package.data_size);
+            SendBuffer(dst_ip, package.udp_port, package.data, package.data_size);
 
             // 备份 恢复 流程使用的延时计时器
             memo_debug->Lines->Add(GetTime()+"retry read_one_preset_package_list");
@@ -6940,26 +6406,18 @@ void __fastcall TForm1::btnResetAllConfigClick(TObject *Sender)
     }
     else
     {
-        D1608Cmd cmd;
-        strcpy(cmd.flag, D1608CMD_CONTROL_FLAG);
-        cmd.type = 3;// 文本协议
-        String cmd_text = "config.action=init";
-        strcpy(cmd.data.data_string, cmd_text.c_str());
-        cmd.length = cmd_text.Length();
-        SendCmd2(cmd);
+        String cmd_text = D1608CMD_CONTROL_FLAG;
+        cmd_text = cmd_text+"config.action=init";
+        SendCmd2(cmd_text);
     }
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::lblDeviceNameDblClick(TObject *Sender)
 {
     // 闪动屏幕
-    D1608Cmd cmd;
-    strcpy(cmd.flag, D1608CMD_CONTROL_FLAG);
-    cmd.type = 3;// 文本协议
-    String cmd_text = "config.action=flash_oled";
-    strcpy(cmd.data.data_string, cmd_text.c_str());
-    cmd.length = cmd_text.Length();
-    SendCmd(cmd);
+    String cmd_text = D1608CMD_CONTROL_FLAG;
+    cmd_text = cmd_text+"config.action=flash_oled";
+    SendCmd(cmd_text);
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::btnResetKeyFunctionClick(TObject *Sender)
@@ -6991,13 +6449,9 @@ void __fastcall TForm1::btnClearAllPresetClick(TObject *Sender)
     }
     else
     {
-        D1608Cmd cmd;
-        strcpy(cmd.flag, D1608CMD_CONTROL_FLAG);
-        cmd.type = 3;// 文本协议
-        String cmd_text = "config.action=clear_preset";
-        strcpy(cmd.data.data_string, cmd_text.c_str());
-        cmd.length = cmd_text.Length();
-        SendCmd2(cmd);
+        String cmd_text = D1608CMD_CONTROL_FLAG;
+        cmd_text = cmd_text+"config.action=clear_preset";
+        SendCmd2(cmd_text);
     }
 }
 //---------------------------------------------------------------------------
@@ -7021,11 +6475,11 @@ void __fastcall TForm1::tmDelaySendCmdTimer(TObject *Sender)
         TPackage package = sendcmd_list.back();
 
         // 重试命令
-        udpControl->SendBuffer(dst_ip, package.udp_port, package.data, package.data_size);
+        SendBuffer(dst_ip, package.udp_port, package.data, package.data_size);
 
         // 备份 恢复 流程使用的延时计时器
-        int addr = (int)&((D1608Cmd*)(sendcmd_list.end()-1))->data;
-        memo_debug->Lines->Add(GetTime()+IntToHex(addr, 8)+" retry sendcmd");
+        String cmd = (char*)(sendcmd_list.end()-1)->data;
+        memo_debug->Lines->Add(GetTime()+" retry sendcmd:"+cmd);
     }
 }
 //---------------------------------------------------------------------------
@@ -7131,13 +6585,9 @@ void __fastcall TForm1::edtMACMouseDown(TObject *Sender,
         }
         else
         {
-            D1608Cmd cmd;
-            strcpy(cmd.flag, D1608CMD_CONTROL_FLAG);
-            cmd.type = 3;
-            String cmd_text = "config.mac_address="+mac_address;
-            strcpy(cmd.data.data_string, cmd_text.c_str());
-            cmd.length = cmd_text.Length();
-            SendCmd2(cmd);
+            String cmd_text = D1608CMD_CONTROL_FLAG;
+            cmd_text = cmd_text+"config.mac_address="+mac_address;
+            SendCmd2(cmd_text);
         }
     }
 }
@@ -7302,7 +6752,7 @@ void TForm1::StartReadOnePackage(int preset_id)
         preset_cmd.store_page = store_page;
         preset_cmd.verify -= UdpPackageVerifyDiff((unsigned char*)&preset_cmd, sizeof(preset_cmd));
 
-        TPackage package;
+        TPackage package = {0};
         package.udp_port = UDP_PORT_READ_PRESET;
         memcpy(package.data, &preset_cmd, offsetof(D1608PresetCmd, data));
         package.data_size = offsetof(D1608PresetCmd, data);
@@ -7313,18 +6763,14 @@ void TForm1::StartReadOnePackage(int preset_id)
     reverse(read_one_preset_package_list.begin(), read_one_preset_package_list.end());
 
     TPackage package = read_one_preset_package_list.back();
-    udpControl->SendBuffer(dst_ip, package.udp_port, package.data, package.data_size);
+    SendBuffer(dst_ip, package.udp_port, package.data, package.data_size);
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::cbLedTestClick(TObject *Sender)
 {
-    D1608Cmd cmd;
-    strcpy(cmd.flag, D1608CMD_CONTROL_FLAG);
-    cmd.type = 3;// 文本协议
-    String cmd_text = "config.test="+String(cbLedTest->Checked?"on":"off");
-    strcpy(cmd.data.data_string, cmd_text.c_str());
-    cmd.length = cmd_text.Length();
-    SendCmd2(cmd);
+    String cmd_text = D1608CMD_CONTROL_FLAG;
+    cmd_text = cmd_text+"config.test="+String(cbLedTest->Checked?"on":"off");
+    SendCmd2(cmd_text);
 }
 //---------------------------------------------------------------------------
 
@@ -7353,16 +6799,22 @@ void TEST_CompLogTime()
 }
 void __fastcall TForm1::btnInsertUserLogClick(TObject *Sender)
 {
+#if 0
     DebugLog debug_log;
     debug_log.event_id = edtEventId->Text.ToIntDef(0);
     debug_log.event_data = edtEventData->Text.ToIntDef(0);
     debug_log.event_timer = edtEventTimer->Text.ToIntDef(-1);
     
-    D1608Cmd cmd;
+    String cmd_text = D1608CMD_FLAG;
     cmd.id = GetOffsetOfData(&config_map.op_code.debug_log);
     memcpy(&cmd.data, &debug_log, sizeof(debug_log));
     cmd.length = sizeof(debug_log);
-    SendCmd(cmd);
+    SendCmd(cmd_text);
+#endif
+
+    String cmd_text = D1608CMD_CONTROL_FLAG;
+    cmd_text = cmd_text+"config.insert_log="+edtEventId->Text+","+edtEventData->Text+","+edtEventTimer->Text;
+    SendCmd(cmd_text);
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::lvLogAdvancedCustomDrawItem(
@@ -7393,12 +6845,9 @@ void __fastcall TForm1::btnDisconnectClick(TObject *Sender)
     // 给原先的设备发送断链消息
     if (udpControl->Active)
     {
-        D1608Cmd cmd;
-        cmd.type = 3;
-        String cmd_text = "config.action=unlink";
-        strcpy(cmd.data.data_string, cmd_text.c_str());
-        cmd.length = cmd_text.Length();
-        SendCmd2(cmd);
+        String cmd_text = D1608CMD_FLAG;
+        cmd_text = cmd_text+"config.action=unlink";
+        SendCmd2(cmd_text);
     }
 
     REAL_INPUT_DSP_NUM = 16;
@@ -7532,12 +6981,9 @@ void __fastcall TForm1::btnClearDataAndTimeClick(TObject *Sender)
         btnLeaveTheFactory->Click();
     }
     {
-        D1608Cmd cmd;
-        cmd.type = 3;
-        String cmd_text = "config.action=init";   // 82
-        strcpy(cmd.data.data_string, cmd_text.c_str());
-        cmd.length = cmd_text.Length();
-        SendCmd2(cmd);
+        String cmd_text = D1608CMD_FLAG;
+        cmd_text = cmd_text+"config.action=init";   // 82
+        SendCmd2(cmd_text);
     }
 }
 //---------------------------------------------------------------------------
@@ -7612,7 +7058,7 @@ void __fastcall TForm1::cbDebugCmdChange(TObject *Sender)
 
     int send_size = offsetof(T_Debug, debug_cmd) + cbDebugCmd->Text.Length() + 1;   // 包括结尾
     debug_cmd.verify -= UdpPackageVerifyDiff((unsigned char*)&debug_cmd, send_size);
-    udpControl->SendBuffer(dst_ip, UDP_PORT_GET_DEBUG_INFO_EX, &debug_cmd, send_size);
+    SendBuffer(dst_ip, UDP_PORT_GET_DEBUG_INFO_EX, &debug_cmd, send_size);
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::edtSelectAllAndCopy(TObject *Sender)

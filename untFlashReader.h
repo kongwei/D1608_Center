@@ -62,7 +62,7 @@ void LoadGlobalConfig(GlobalConfig& global_config, unsigned char* flash_dump_dat
 // 每包数据不超过2k字节
 struct TPackage
 {
-    unsigned char data[2048];
+    unsigned char data[1500];
     int udp_port;
     int data_size;
 };

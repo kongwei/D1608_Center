@@ -729,9 +729,10 @@ public:
     int sendcmd_delay_count;
     vector<TPackage> sendcmd_list;
 
-    void SendCmd(D1608Cmd& cmd);
-    void SendCmd2(D1608Cmd& cmd);
-    bool ProcessSendCmdAck(D1608Cmd& cmd, TStream *AData, TIdSocketHandle *ABinding);
+    void SendBuffer(AnsiString AHost, const int APort, void *ABuffer, const int AByteCount);
+    void SendCmd(String cmd);
+    void SendCmd2(String cmd);
+    bool ProcessSendTextCmdAck(String cmd_text, TStream *AData, TIdSocketHandle *ABinding);
 
 private:
     int log_count;
@@ -902,7 +903,7 @@ public:		// User declarations
     TAdvTrackBar* mix_level_trackbar[17];
 
 private:
-    void ProcessPackageMessageFeedback(D1608Cmd & cmd);
+    void ProcessPackageMessageFeedback(TextSynMsg*);
 
     void CalcAllVote(ADC_Data_Ex & adc_data);
     void ProcessKeepAlive(int preset_id, unsigned __int64 timer);
