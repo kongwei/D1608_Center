@@ -489,7 +489,6 @@ __published:	// IDE-managed Components
     TCheckBox *cbLanDebugOled;
     TEdit *edtEventId;
     TEdit *edtEventData;
-    TEdit *edtEventTimer;
     TButton *btnInsertUserLog;
     TLabel *lblDeviceRunningTime2;
     TButton *Button1;

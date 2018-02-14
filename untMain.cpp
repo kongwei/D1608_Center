@@ -6799,29 +6799,9 @@ void TEST_CompLogTime()
 }
 void __fastcall TForm1::btnInsertUserLogClick(TObject *Sender)
 {
-#if 0
-    DebugLog debug_log;
-    debug_log.event_id = edtEventId->Text.ToIntDef(0);
-    debug_log.event_data = edtEventData->Text.ToIntDef(0);
-    debug_log.event_timer = edtEventTimer->Text.ToIntDef(-1);
-    
-    String cmd_text = D1608CMD_FLAG;
-    cmd.id = GetOffsetOfData(&config_map.op_code.debug_log);
-    memcpy(&cmd.data, &debug_log, sizeof(debug_log));
-    cmd.length = sizeof(debug_log);
-    SendCmd(cmd_text+"|");
-#endif
-
     String cmd_text = D1608CMD_CONTROL_FLAG;
-    cmd_text = cmd_text+"config.insert_log="+edtEventId->Text+","+edtEventData->Text+","+edtEventTimer->Text;
-    SendCmd(cmd_text+"|");
-
-#if 0
-    char *p = (char*)&config_map;//.output_dsp[0];
-    TFileStream * fff = new TFileStream("F:\\ÉñÖÝIIºÅ\\workshop\\components\\eve2c.bcb.withcompress\\fffff", fmCreate);
-    fff->Write(p, sizeof(config_map));
-    delete fff;
-#endif
+    cmd_text = cmd_text+"config.insert_log="+edtEventId->Text+","+edtEventData->Text;//+","+edtEventTimer->Text;
+    SendCmd2(cmd_text+"|");
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::lvLogAdvancedCustomDrawItem(
