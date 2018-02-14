@@ -1289,11 +1289,11 @@ void TForm1::SendCmd(String cmd)
     // TODO: 修改成名称
     //edtCmdId->Text = cmd.id;
 
-    if (!udpControl->Active)
-    {
-        edtCmdId->Text = edtCmdId->Text + "*";
-        return;
-    }
+    //if (!udpControl->Active)
+    //{
+    //    edtCmdId->Text = edtCmdId->Text + "*";
+    //    return;
+    //}
 
     if (on_loading || !udpControl->Active || keep_live_count >= CONTROL_TIMEOUT_COUNT)
     {
@@ -4225,7 +4225,7 @@ static String OutputGain2String(int gain)
 void __fastcall TForm1::ClearUI()
 {
     edtDeviceType->Text = "N/A";
-    edtCmdId->Text = "N/A";
+    //edtCmdId->Text = "N/A";
     edtDeviceFullName->Text = "N/A";
     edtStartBuildTime->Text = "N/A";
     lblDeviceRunningTime->Caption = "----";
@@ -6815,6 +6815,13 @@ void __fastcall TForm1::btnInsertUserLogClick(TObject *Sender)
     String cmd_text = D1608CMD_CONTROL_FLAG;
     cmd_text = cmd_text+"config.insert_log="+edtEventId->Text+","+edtEventData->Text+","+edtEventTimer->Text;
     SendCmd(cmd_text+"|");
+
+#if 0
+    char *p = (char*)&config_map;//.output_dsp[0];
+    TFileStream * fff = new TFileStream("F:\\神州II号\\workshop\\components\\eve2c.bcb.withcompress\\fffff", fmCreate);
+    fff->Write(p, sizeof(config_map));
+    delete fff;
+#endif
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::lvLogAdvancedCustomDrawItem(
@@ -7126,3 +7133,25 @@ void __fastcall TForm1::rgLedTestClick(TObject *Sender)
     }
 }
 //---------------------------------------------------------------------------
+#include <stdio.h>
+#include <stdlib.h>
+
+#include "quicklz.h"
+void __fastcall TForm1::Timer1Timer(TObject *Sender)
+{
+    char *src, *dst;
+	qlz_state_compress *state_compress = (qlz_state_compress *)malloc(sizeof(qlz_state_compress));
+    size_t len, len2;
+
+    len = sizeof(config_map);
+    src = (char*)&config_map;
+    // allocate "uncompressed size" + 400 for the destination buffer
+    dst = (char*) malloc(len + 400);
+
+    // compress and write result
+    len2 = qlz_compress(src, dst, len, state_compress);
+
+    edtCmdId->Text = IntToStr(len2);
+}
+//---------------------------------------------------------------------------
+
