@@ -1672,8 +1672,8 @@ void __fastcall TForm1::tmSLPTimer(TObject *Sender)
                     app_time = app_time * 24 * 3600 * 1000;
                     slp_pack.set_time_ex = app_time;
 
-                    slp_pack.verify -= UdpPackageVerifyDiff((unsigned char*)&slp_pack, offsetof(T_slp_pack_Ex, mac));
-                    udpSLPList[i]->SendBuffer("255.255.255.255", UDP_PORT_SLP_EX, &slp_pack, offsetof(T_slp_pack_Ex, mac));
+                    slp_pack.verify -= UdpPackageVerifyDiff((unsigned char*)&slp_pack, offsetof(T_slp_pack_Ex, name));
+                    udpSLPList[i]->SendBuffer("255.255.255.255", UDP_PORT_SLP_EX, &slp_pack, offsetof(T_slp_pack_Ex, name));
                 }
                 catch(...)
                 {
@@ -7064,48 +7064,45 @@ void __fastcall TForm1::rgLedTestClick(TObject *Sender)
 {
     T_TestLedOled test_led_oled = {0};
     strcpy(test_led_oled.flag, TEST_FLAG);
-    test_led_oled.led_state[0].end = 1000;
 
     switch (rgLedTest->ItemIndex)
     {
     case 0:     // ALL ON
-        test_led_oled.led_state[0].green = 0xFFFFFFFF;
-        test_led_oled.led_state[0].red = 0xFFFFFFFF;
+        test_led_oled.led_state.green = 0xFFFFFFFF;
+        test_led_oled.led_state.red = 0xFFFFFFFF;
         break;
     case 1:     // ALL OFF
-        test_led_oled.led_state[0].green = 0;
-        test_led_oled.led_state[0].red = 0;
+        test_led_oled.led_state.green = 0;
+        test_led_oled.led_state.red = 0;
         break;
     case 2:     // GREEN
-        test_led_oled.led_state[0].green = 0xFFFFFFFF;
-        test_led_oled.led_state[0].red = 0;
+        test_led_oled.led_state.green = 0xFFFFFFFF;
+        test_led_oled.led_state.red = 0;
         break;
     case 3:     // RED
-        test_led_oled.led_state[0].green = 0;
-        test_led_oled.led_state[0].red = 0xFFFFFFFF;
+        test_led_oled.led_state.green = 0;
+        test_led_oled.led_state.red = 0xFFFFFFFF;
         break;
     case 4:     // GREEN OFF
-        test_led_oled.led_state[0].green = 0x55555555;
-        test_led_oled.led_state[0].red = 0;
+        test_led_oled.led_state.green = 0x55555555;
+        test_led_oled.led_state.red = 0;
         break;
     case 5:     // OFF GREEN
-        test_led_oled.led_state[0].green = 0xaaaaaaaa;
-        test_led_oled.led_state[0].red = 0;
+        test_led_oled.led_state.green = 0xaaaaaaaa;
+        test_led_oled.led_state.red = 0;
         break;
     case 6:     // RED OFF
-        test_led_oled.led_state[0].green = 0;
-        test_led_oled.led_state[0].red = 0x55555555;
+        test_led_oled.led_state.green = 0;
+        test_led_oled.led_state.red = 0x55555555;
         break;
     case 7:     // OFF RED
-        test_led_oled.led_state[0].green = 0;
-        test_led_oled.led_state[0].red = 0xaaaaaaaa;
+        test_led_oled.led_state.green = 0;
+        test_led_oled.led_state.red = 0xaaaaaaaa;
         break;
     default:    // Closed
-        test_led_oled.led_state[0].end = 0;
         break;
     }
 
-    test_led_oled.verify -= UdpPackageVerifyDiff((unsigned char*)&test_led_oled, sizeof(test_led_oled));
     for (int i=0;i<3;i++)
     {
         if (udpSLPList[i]->Active && udpSLPList[i]->Bindings->Count == 1)
