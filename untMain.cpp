@@ -1873,6 +1873,7 @@ bool IsKeepliveCmd(char * str)
 		return true;
     return false;
 }
+#if 0
 bool IsValidTextCmd(char * str, int udp_len)
 {
 	// 判断头部
@@ -1883,6 +1884,7 @@ bool IsValidTextCmd(char * str, int udp_len)
 
     return true;
 }
+#endif
 char * TextCmdPtr(char * str)
 {
 	// 判断头部
@@ -1890,6 +1892,8 @@ char * TextCmdPtr(char * str)
 		return str+strlen(D1608CMD_FLAG);
 	if (strncmp(str, D1608CMD_CONTROL_FLAG, strlen(D1608CMD_CONTROL_FLAG)) == 0)
 		return str+strlen(D1608CMD_CONTROL_FLAG);
+	if (strncmp(str, D1608CMD_KEEPLIVE_FLAG, strlen(D1608CMD_KEEPLIVE_FLAG)) == 0)
+		return str+strlen(D1608CMD_KEEPLIVE_FLAG);
 
 	return str;
 }
@@ -1943,6 +1947,11 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
         }
         else
         {
+            // 删除结尾 |
+            int cmd_text_length = strlen(cmd_text);
+            if (cmd_text[cmd_text_length-1] == '|')
+                cmd_text[cmd_text_length-1] = '\0';
+                
             String cmd_string = TextCmdPtr(cmd_text);
             if (cmd_string=="config.action=reboot" || cmd_string=="config.action=init" || cmd_string=="config.action=clear_preset")
             {
