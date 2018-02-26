@@ -1809,7 +1809,7 @@ void TForm1::ProcessPackageMessageFeedback(TextSynMsg * text_syn_msg)
         current_msg_id = max(current_msg_id, text_syn_msg.msg_id);
     }
     // Ê§ÁªÅÐ¶Ï
-    if (received_cmd_seq < oldest_msg_id)
+    if (received_cmd_seq < oldest_msg_id && (oldest_msg_id-received_cmd_seq>1))
     {
         memo_debug->Lines->Add("Ê§Áª: local="+IntToStr(received_cmd_seq)+", device="+IntToStr(oldest_msg_id)+"-"+IntToStr(current_msg_id));
         keep_live_count = CONTROL_TIMEOUT_COUNT;
