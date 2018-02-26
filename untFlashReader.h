@@ -34,7 +34,7 @@ typedef struct
 }NotStorageCmdX;
 typedef struct
 {
-    MasterMixConfigMap master_mix;
+    //MasterMixConfigMap master_mix;
 
     InputConfigMap input_dsp[INPUT_DSP_NUM];
     OutputConfigMap output_dsp[OUTPUT_DSP_NUM];

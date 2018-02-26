@@ -1188,9 +1188,9 @@ void __fastcall TForm1::FormCreate(TObject *Sender)
     // 输出结构体大小
     memo_debug->Lines->Add(GetTime()+"InputConfigMap:" + IntToStr(sizeof(InputConfigMap)));
     memo_debug->Lines->Add(GetTime()+"OutputConfigMap:" + IntToStr(sizeof(OutputConfigMap)));
-    memo_debug->Lines->Add(GetTime()+"MasterMixConfigMap:" + IntToStr(sizeof(MasterMixConfigMap)));
+    //memo_debug->Lines->Add(GetTime()+"MasterMixConfigMap:" + IntToStr(sizeof(MasterMixConfigMap)));
     memo_debug->Lines->Add(GetTime()+"ConfigMap:" + IntToStr(sizeof(ConfigMap)));
-    memo_debug->Lines->Add(GetTime()+"mix_mute:" + IntToStr(sizeof(config_map.master_mix.mix_mute)));
+    //memo_debug->Lines->Add(GetTime()+"mix_mute:" + IntToStr(sizeof(config_map.master_mix.mix_mute)));
     memo_debug->Lines->Add(GetTime()+"NotStorageCmd:" + IntToStr(sizeof(NotStorageCmd)));
     memo_debug->Lines->Add(GetTime()+"GlobalConfig:" + IntToStr(sizeof(GlobalConfig)));
 
@@ -2203,10 +2203,10 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             case 7:
                 memcpy(&dest_config_map->output_dsp[12], preset_cmd.data, sizeof(config_map.output_dsp[0])*4);
                 break;
-            case 8:
-                memcpy(&dest_config_map->master_mix, preset_cmd.data,
-                        sizeof(config_map.master_mix));
-                break;
+            //case 8:
+            //    memcpy(&dest_config_map->master_mix, preset_cmd.data,
+            //            sizeof(config_map.master_mix));
+            //    break;
             }
         }
 
@@ -2258,6 +2258,9 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             pbBackup->Position = pbBackup->Max;
             pbBackup->Hide();
             this->Enabled = true;
+
+            // 失联
+            keep_live_count = CONTROL_TIMEOUT_COUNT;
         }
         else
         {
@@ -2321,6 +2324,9 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             pbBackup->Hide();
             this->Enabled = true;
             delete file;
+
+            // 失联
+            keep_live_count = CONTROL_TIMEOUT_COUNT;
         }
         else
         {
@@ -3204,8 +3210,8 @@ void __fastcall TForm1::ToogleOutputMix(TObject *Sender)
 
         for (int i=0;i<REAL_INPUT_DSP_NUM;i++)
         {
-            mix_mute_btn[i]->Down = config_map.master_mix.mix_mute[i][out_dsp_num-1];
-            mix_level_trackbar[i]->Position = config_map.master_mix.mix[i][out_dsp_num-1];
+            mix_mute_btn[i]->Down = config_map.output_dsp[out_dsp_num-1].mix_mute[i];
+            mix_level_trackbar[i]->Position = config_map.output_dsp[out_dsp_num-1].mix[i];
         }
     }
     else
@@ -3439,8 +3445,8 @@ void __fastcall TForm1::MasterVolumeChange(TObject *Sender)
         cmd_text = cmd_text + "dB";
     SendCmd(cmd_text+"|");
 
-    config_map.master_mix.level_a = value;
-    memo_debug->Lines->Add(IntToStr(config_map.master_mix.level_a));
+    config_map.input_dsp[0].master_level_a = value;
+    memo_debug->Lines->Add(IntToStr(config_map.input_dsp[0].master_level_a));
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::btnMixMuteClick(TObject *Sender)
@@ -3457,7 +3463,7 @@ void __fastcall TForm1::btnMasterMuteClick(TObject *Sender)
     cmd_text = cmd_text+ String("master.mute=")+(btn->Down?"on":"off");
     SendCmd(cmd_text+"|");
 
-    config_map.master_mix.mute_switch = btn->Down;
+    config_map.input_dsp[0].master_mute_switch = btn->Down;
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::btnPhantonClick(TObject *Sender)
@@ -4008,7 +4014,7 @@ void __fastcall TForm1::pnlmix_level_trackbarChange(TObject *Sender)
             cmd_text = cmd_text + "dB";
         SendCmd(cmd_text+"|");
 
-        config_map.master_mix.mix[in_dsp_num-1][out_dsp_num-1] = value;
+        config_map.output_dsp[out_dsp_num-1].mix[in_dsp_num-1] = value;
     }
 }
 //---------------------------------------------------------------------------
@@ -4063,7 +4069,7 @@ void __fastcall TForm1::pnlmix_muteClick(TObject *Sender)
         cmd_text = cmd_text+"output["+IntToStr(out_dsp_num)+"].route_input["+IntToStr(in_dsp_num)+"].mute="+(btn->Down?"on":"off");
         SendCmd(cmd_text+"|");
 
-        config_map.master_mix.mix_mute[in_dsp_num-1][out_dsp_num-1] = btn->Down;
+        config_map.output_dsp[out_dsp_num-1].mix_mute[in_dsp_num-1] = btn->Down;
     }
 }
 //---------------------------------------------------------------------------
@@ -4143,7 +4149,7 @@ void __fastcall TForm1::btnLoadPresetFromFileClick(TObject *Sender)
 
             //for (int i=select_preset_id-1;i<=select_preset_id-1;i++)
             int i = select_preset_id;
-            for (int store_page=0;store_page<9;store_page++)
+            for (int store_page=0;store_page<8;store_page++)
             {
                 preset_cmd.store_page = store_page;
                 switch(preset_cmd.store_page)
@@ -4172,9 +4178,10 @@ void __fastcall TForm1::btnLoadPresetFromFileClick(TObject *Sender)
                 case 7:
                     memcpy(preset_cmd.data, &smc_config.all_config_map[i].output_dsp[12], sizeof(OutputConfigMap)*4);
                     break;
-                case 8:
-                    memcpy(preset_cmd.data, &smc_config.all_config_map[i].master_mix,
-                            sizeof(MasterMixConfigMap));
+                //case 8:
+                //    memcpy(preset_cmd.data, &smc_config.all_config_map[i].master_mix,
+                //            sizeof(MasterMixConfigMap));
+                //    break;
                 }
 
                 TPackage package = {0};
@@ -4352,8 +4359,8 @@ void __fastcall TForm1::ApplyConfigToUI()
     }
 
     // master
-    master_panel_trackbar->Position = config_map.master_mix.level_a;
-    btnMasterMute->Down = (config_map.master_mix.mute_switch==1);
+    master_panel_trackbar->Position = config_map.input_dsp[0].master_level_a;
+    btnMasterMute->Down = (config_map.input_dsp[0].master_mute_switch==1);
 
     on_loading = false;
 }
@@ -4362,7 +4369,16 @@ void TForm1::OnFeedbackData(unsigned int cmd_id)
     on_loading = true;
 
 	int ObjectIndex = -1;
-	if ((cmd_id >= GetOffsetOfData(&config_map.input_dsp))
+
+    if (cmd_id == GetOffsetOfData(&config_map.input_dsp[0].master_mute_switch))
+    {
+        btnMasterMute->Down = config_map.input_dsp[0].master_mute_switch;
+    }
+    else if (cmd_id == GetOffsetOfData((char*)&config_map.input_dsp[0].master_level_a))
+    {
+        master_panel_trackbar->Position = config_map.input_dsp[0].master_level_a;
+    }
+	else if ((cmd_id >= GetOffsetOfData(&config_map.input_dsp))
 		&& (cmd_id < sizeof(config_map.input_dsp)+GetOffsetOfData(&config_map.input_dsp)))
 	{
 		ObjectIndex = (cmd_id - GetOffsetOfData(&config_map.input_dsp)) / sizeof(config_map.input_dsp[0]);
@@ -4417,9 +4433,14 @@ void TForm1::OnFeedbackData(unsigned int cmd_id)
 		{
             input_type_lbl[ObjectIndex]->Caption = InputGain2String(config_map.input_dsp[ObjectIndex].gain);
 		}
-// 		else if (cmd_id == GetOffsetOfData((char*)&config_map.input_dsp[ObjectIndex].delay))
-// 		{
-// 		}
+ 		else if (cmd_id == GetOffsetOfData((char*)&config_map.input_dsp[ObjectIndex].delay))
+ 		{
+            // 小界面
+            if (pnlDspDetail->Visible && (pnlDspDetail->Tag-1==ObjectIndex))
+            {
+                dsp_delay_trackbar->Position = config_map.input_dsp[ObjectIndex].delay;
+            }
+ 		}
 		else if (cmd_id >= GetOffsetOfData(&config_map.input_dsp[ObjectIndex].filter)
 			&& (cmd_id < GetOffsetOfData(&config_map.input_dsp[ObjectIndex].filter) + sizeof(config_map.input_dsp[ObjectIndex].filter)))
 		{
@@ -4478,6 +4499,14 @@ void TForm1::OnFeedbackData(unsigned int cmd_id)
 		{
            output_type_lbl[ObjectIndex]->Caption = OutputGain2String(config_map.output_dsp[ObjectIndex].gain);
 		}
+ 		else if (cmd_id == GetOffsetOfData((char*)&config_map.output_dsp[ObjectIndex].delay))
+ 		{
+            // 小界面
+            if (pnlDspDetail->Visible && (pnlDspDetail->Tag-101==ObjectIndex))
+            {
+                dsp_delay_trackbar->Position = config_map.output_dsp[ObjectIndex].delay;
+            }
+ 		}
 		else if (cmd_id == GetOffsetOfData((char*)&config_map.output_dsp[ObjectIndex].ratio))
 		{
             if (pnlDspDetail->Visible && (pnlDspDetail->Tag-101==ObjectIndex))
@@ -4535,50 +4564,32 @@ void TForm1::OnFeedbackData(unsigned int cmd_id)
                 PaintBox1->Refresh();
             }
 		}
-	}
-	else if ((cmd_id >= GetOffsetOfData(&config_map.master_mix))
-		&& (cmd_id < GetOffsetOfData((void*)&config_map.master_mix.mix)))
-	{
-		if (cmd_id == GetOffsetOfData(&config_map.master_mix.mute_switch))
+		else if (cmd_id >= GetOffsetOfData(&config_map.output_dsp[ObjectIndex].mix_mute)
+			&& (cmd_id < GetOffsetOfData(&config_map.output_dsp[ObjectIndex].mix_mute) + sizeof(config_map.output_dsp[ObjectIndex].mix_mute)))
 		{
-			btnMasterMute->Down = config_map.master_mix.mute_switch;
+            // 小界面
+            if (pnlMix->Visible && pnlMix->Tag-1==ObjectIndex)
+            {
+                for (int i=0;i<REAL_INPUT_DSP_NUM;i++)
+                {
+                    mix_mute_btn[i]->Down = config_map.output_dsp[ObjectIndex].mix_mute[i];
+                    mix_level_trackbar[i]->Position = config_map.output_dsp[ObjectIndex].mix[i];
+                }
+            }
 		}
-		else if (cmd_id == GetOffsetOfData((char*)&config_map.master_mix.level_a))
+		else if (cmd_id >= GetOffsetOfData(&config_map.output_dsp[ObjectIndex].mix[0])
+			&& (cmd_id < GetOffsetOfData(&config_map.output_dsp[ObjectIndex].mix[0]) + sizeof(config_map.output_dsp[ObjectIndex].mix)))
 		{
-            master_panel_trackbar->Position = config_map.master_mix.level_a;
+            // 小界面
+            if (pnlMix->Visible && pnlMix->Tag-1==ObjectIndex)
+            {
+                for (int i=0;i<REAL_INPUT_DSP_NUM;i++)
+                {
+                    mix_mute_btn[i]->Down = config_map.output_dsp[ObjectIndex].mix_mute[i];
+                    mix_level_trackbar[i]->Position = config_map.output_dsp[ObjectIndex].mix[i];
+                }
+            }
 		}
-	}
-	else if ((cmd_id >= GetOffsetOfData((char*)&config_map.master_mix.mix))
-		&& (cmd_id < sizeof(config_map.master_mix.mix)+GetOffsetOfData((char*)&config_map.master_mix.mix)))
-	{
-		int offset = (cmd_id - GetOffsetOfData((char*)&config_map.master_mix.mix))/sizeof(config_map.master_mix.mix[0][0]);
-		//int channel_in = offset / OUTPUT_DSP_NUM;
-		int channel_out = offset % OUTPUT_DSP_NUM;
-        // 小界面
-        if (pnlMix->Visible && pnlMix->Tag-1==channel_out)
-        {
-            for (int i=0;i<REAL_INPUT_DSP_NUM;i++)
-            {
-                mix_mute_btn[i]->Down = config_map.master_mix.mix_mute[i][channel_out];
-                mix_level_trackbar[i]->Position = config_map.master_mix.mix[i][channel_out];
-            }
-        }
-	}
-	else if ((cmd_id >= GetOffsetOfData((char*)&config_map.master_mix.mix_mute))
-		&& (cmd_id < sizeof(config_map.master_mix.mix_mute)+GetOffsetOfData((char*)&config_map.master_mix.mix_mute)))
-	{
-		int offset = (cmd_id - GetOffsetOfData((char*)&config_map.master_mix.mix_mute))/sizeof(config_map.master_mix.mix_mute[0][0]);
-		//int channel_in = offset / OUTPUT_DSP_NUM;
-		int channel_out = offset % OUTPUT_DSP_NUM;
-        // 小界面
-        if (pnlMix->Visible && pnlMix->Tag-1==channel_out)
-        {
-            for (int i=0;i<REAL_INPUT_DSP_NUM;i++)
-            {
-                mix_mute_btn[i]->Down = config_map.master_mix.mix_mute[i][channel_out];
-                mix_level_trackbar[i]->Position = config_map.master_mix.mix[i][channel_out];
-            }
-        }
 	}
 
     on_loading = false;
@@ -6241,7 +6252,7 @@ void __fastcall TForm1::btnLoadFileToFlashClick(TObject *Sender)
                     D1608PresetCmd preset_cmd(version);
                     strcpy(preset_cmd.flag, D1608PRESETCMD_PC2FLASH_FLAG);
                     preset_cmd.preset = 0x80+i+1;
-                    for (int store_page=0;store_page<9;store_page++)
+                    for (int store_page=0;store_page<8;store_page++)
                     {
                         preset_cmd.store_page = store_page;
                         switch(preset_cmd.store_page)
@@ -6270,9 +6281,10 @@ void __fastcall TForm1::btnLoadFileToFlashClick(TObject *Sender)
                         case 7:
                             memcpy(preset_cmd.data, &smc_config.all_config_map[i].output_dsp[12], sizeof(OutputConfigMap)*4);
                             break;
-                        case 8:
-                            memcpy(preset_cmd.data, &smc_config.all_config_map[i].master_mix,
-                                    sizeof(MasterMixConfigMap));
+                        //case 8:
+                        //    memcpy(preset_cmd.data, &smc_config.all_config_map[i].master_mix,
+                        //            sizeof(MasterMixConfigMap));
+                        //    break;
                         }
                         preset_cmd.verify -= UdpPackageVerifyDiff((unsigned char*)&preset_cmd, sizeof(preset_cmd));
 
@@ -6753,7 +6765,7 @@ void TForm1::StartReadOnePackage(int preset_id)
 {
     memo_debug->Lines->Add(GetTime()+"切换到: "+IntToStr(preset_id));
     read_one_preset_package_list.clear();
-    for (int store_page=0;store_page<9;store_page++)
+    for (int store_page=0;store_page<8;store_page++)
     {
         D1608PresetCmd preset_cmd(version);
         preset_cmd.preset = preset_id; // 读取preset
@@ -7129,6 +7141,8 @@ void __fastcall TForm1::Timer1Timer(TObject *Sender)
 	qlz_state_compress *state_compress = (qlz_state_compress *)malloc(sizeof(qlz_state_compress));
     size_t len, len2;
 
+    //ShowMessage(sizeof(qlz_state_compress));
+
     len = sizeof(config_map);
     src = (char*)&config_map;
     // allocate "uncompressed size" + 400 for the destination buffer
@@ -7137,7 +7151,23 @@ void __fastcall TForm1::Timer1Timer(TObject *Sender)
     // compress and write result
     len2 = qlz_compress(src, dst, len, state_compress);
 
-    edtCmdId->Text = IntToStr(len2);
+    edtCmdId->Text = IntToStr(len2)+":"+sizeof(qlz_state_compress);
+
+    ///////
+    // 解压测试
+    {
+        qlz_state_decompress state_decompress;
+        ConfigMap test_config_map;
+        len2 = qlz_decompress(dst, &test_config_map, &state_decompress);
+        if (len2 == len)
+        {
+            if (memcmp(&test_config_map, src, len) != 0)
+            {
+                ShowMessage("Error");
+            }
+        }
+    }
+
 }
 //---------------------------------------------------------------------------
 

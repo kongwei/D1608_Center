@@ -157,7 +157,8 @@ void FilterSet::RepaintPaint(int band)
                 +FormatFloat("0.0", GetFilterGain(band))+","
                 +FormatFloat("0.0", GetFilterFreq(band))+","
                 +FormatFloat("0.0", GetFilter(band)->GetQ())+","
-                +(IsBypass(band) ? "on" : "off");
+                +(IsBypass(band) ? "on" : "off")
+                +"|";
             Form1->SendCmd(cmd_text);
         }
         else
@@ -170,7 +171,8 @@ void FilterSet::RepaintPaint(int band)
                 +FormatFloat("0.0", GetFilterGain(band))+"_"
                 +FormatFloat("0.0", GetFilterFreq(band))+"_"
                 +FormatFloat("0.0", GetFilter(band)->GetQ())+"_"
-                +(IsBypass(band) ? "on" : "off");
+                +(IsBypass(band) ? "on" : "off")
+                +"|";
             Form1->SendCmd(cmd_text);
 
         }

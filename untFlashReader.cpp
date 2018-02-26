@@ -105,11 +105,11 @@ void LoadPresetById(int preset_id, ConfigMap& tmp_config_map, unsigned char* fla
 		memcpy(&tmp_config_map.output_dsp[8],
 			(char*)using_page.preset_address[preset_id-1][3]+sizeof(Page_Header),
 			sizeof(config_map.output_dsp[0])*8);
-	// mix & other
-	if (using_page.preset_address[preset_id-1][4] != 0)
-		memcpy(&tmp_config_map.master_mix,
-			(char*)using_page.preset_address[preset_id-1][4]+sizeof(Page_Header),
-			sizeof(config_map.master_mix));
+	//// mix & other
+	//if (using_page.preset_address[preset_id-1][4] != 0)
+	//	memcpy(&tmp_config_map.master_mix,
+	//		(char*)using_page.preset_address[preset_id-1][4]+sizeof(Page_Header),
+	//		sizeof(config_map.master_mix));
 }
 
 static void ResetGlobalConfig(GlobalConfig& global_config)

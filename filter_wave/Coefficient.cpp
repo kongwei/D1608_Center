@@ -529,13 +529,12 @@ void InitConfigMap(ConfigMap& tmp_config_map)
         tmp_config_map.output_dsp[i].release_time = 10000;
         tmp_config_map.output_dsp[i].comp_gain = 0;
         tmp_config_map.output_dsp[i].auto_time = 1;
-	}
 
-    // mix_mute
-    memset(&tmp_config_map.master_mix.mix_mute, 1, sizeof(tmp_config_map.master_mix.mix_mute));
-    for (int i=0;i<INPUT_DSP_NUM/*或者OUTPUT_DSP_NUM*/;i++)
-    {
-        tmp_config_map.master_mix.mix_mute[i][i] = 0;
-    }
+        // mix 参数
+        for (int j=0;j<INPUT_DSP_NUM/*或者OUTPUT_DSP_NUM*/;j++)
+        {
+            tmp_config_map.output_dsp[i].mix_mute[j] = (i==j?0:1);
+        }
+	}
 }
 
