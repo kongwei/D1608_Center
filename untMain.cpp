@@ -1192,7 +1192,7 @@ void __fastcall TForm1::FormCreate(TObject *Sender)
     memo_debug->Lines->Add(GetTime()+"ConfigMap:" + IntToStr(sizeof(ConfigMap)));
     //memo_debug->Lines->Add(GetTime()+"mix_mute:" + IntToStr(sizeof(config_map.master_mix.mix_mute)));
     memo_debug->Lines->Add(GetTime()+"NotStorageCmd:" + IntToStr(sizeof(NotStorageCmd)));
-    memo_debug->Lines->Add(GetTime()+"GlobalConfig:" + IntToStr(sizeof(GlobalConfig)));
+    memo_debug->Lines->Add(GetTime()+"GlobalConfig:" + IntToStr(sizeof(GlobalConfig)));     
 
     // 根据数量初始化控制器
     // Panel->Tag
@@ -1572,7 +1572,7 @@ void __fastcall TForm1::btnSelectClick(TObject *Sender)
 
     UpdateCaption();
 
-    StartReadOnePackage(0xFF);
+    StartReadCurrentPreset();
     restor_delay_count = 15;
     tmDelayBackup->Enabled = true;
 
@@ -1582,7 +1582,6 @@ void __fastcall TForm1::btnSelectClick(TObject *Sender)
     D1608PresetCmd preset_cmd(version);
     strcpy(preset_cmd.flag, D1608PRESETCMD_LINK_FLAG);
     preset_cmd.preset = 0; // 读取global_config
-    preset_cmd.store_page = 0;
     memcpy(package.data, &preset_cmd, offsetof(D1608PresetCmd, data));
     package.data_size = offsetof(D1608PresetCmd, data);
     read_one_preset_package_list.insert(read_one_preset_package_list.begin(), package);
@@ -1986,7 +1985,6 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
 
                 D1608PresetCmd preset_cmd(version);
                 preset_cmd.preset = 0; // 读取global_config
-                preset_cmd.store_page = 0;
                 preset_cmd.verify -= UdpPackageVerifyDiff((unsigned char*)&preset_cmd, offsetof(D1608PresetCmd, data));
                 memcpy(package.data, &preset_cmd, offsetof(D1608PresetCmd, data)/*sizeof(preset_cmd)*/);
                 package.data_size = offsetof(D1608PresetCmd, data)/*sizeof(preset_cmd)*/;
@@ -2038,7 +2036,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
         }
         else
         {
-            ShowMessage("xx");
+            // TODO: 出错了
         }
 
         if (!ProcessLogBuffAck(buff, AData, ABinding))
@@ -2483,7 +2481,7 @@ void TForm1::ProcessKeepAlive(int preset_id, unsigned __int64 timer)
     if (preset_id != cur_preset_id)
     {
         SetPresetId(preset_id);
-        StartReadOnePackage(0xFF);
+        StartReadCurrentPreset();
         restor_delay_count = 15;
         tmDelayBackup->Enabled = true;
     }
@@ -4178,10 +4176,6 @@ void __fastcall TForm1::btnLoadPresetFromFileClick(TObject *Sender)
                 case 7:
                     memcpy(preset_cmd.data, &smc_config.all_config_map[i].output_dsp[12], sizeof(OutputConfigMap)*4);
                     break;
-                //case 8:
-                //    memcpy(preset_cmd.data, &smc_config.all_config_map[i].master_mix,
-                //            sizeof(MasterMixConfigMap));
-                //    break;
                 }
 
                 TPackage package = {0};
@@ -4189,10 +4183,8 @@ void __fastcall TForm1::btnLoadPresetFromFileClick(TObject *Sender)
                 package.udp_port = UDP_PORT_STORE_PRESET_PC2FLASH;
                 package.data_size = sizeof(preset_cmd);
 
-                package_list.push_back(package);
+                package_list.insert(package_list.begin(), package);
             }
-
-            std::reverse(package_list.begin(), package_list.end());
 
             TPackage package = package_list.back();
             SendBuffer(dst_ip, package.udp_port, package.data, package.data_size);
@@ -4664,7 +4656,6 @@ void __fastcall TForm1::RecallClick(TObject *Sender)
     }
     global_config.avaliable_preset[menu->Tag-1] = 1;
     clbAvaliablePreset->Checked[menu->Tag-1] = true;
-    SetPresetId(menu->Tag);
 
     CloseDspDetail();
 
@@ -4679,7 +4670,8 @@ void __fastcall TForm1::RecallClick(TObject *Sender)
     }
     else
     {
-       tmDelayUpdateUITimer(NULL);
+        SetPresetId(menu->Tag);
+        tmDelayUpdateUITimer(NULL);
     }
 }
 //---------------------------------------------------------------------------
@@ -6079,7 +6071,7 @@ void __fastcall TForm1::btnSaveFlashToFileClick(TObject *Sender)
                 package.udp_port = UDP_PORT_READ_FLASH;
                 package.data_size = offsetof(FlashRW_Data, data);//sizeof(flash_rw);
 
-                package_list.push_back(package);
+                package_list.insert(package_list.begin(), package);
             }
 
             std::reverse(package_list.begin(), package_list.end());
@@ -6242,7 +6234,7 @@ void __fastcall TForm1::btnLoadFileToFlashClick(TObject *Sender)
                 package.udp_port = UDP_PORT_STORE_PRESET_PC2FLASH;
                 package.data_size = sizeof(preset_cmd);
 
-                package_list.push_back(package);
+                package_list.insert(package_list.begin(), package);
             }
             // 写入所有的preset数据
             for (int i=0;i<8;i++)
@@ -6293,7 +6285,7 @@ void __fastcall TForm1::btnLoadFileToFlashClick(TObject *Sender)
                         package.udp_port = UDP_PORT_STORE_PRESET_PC2FLASH;
                         package.data_size = sizeof(preset_cmd);
 
-                        package_list.push_back(package);
+                        package_list.insert(package_list.begin(), package);
                     }
                 }
             }
@@ -6310,7 +6302,7 @@ void __fastcall TForm1::btnLoadFileToFlashClick(TObject *Sender)
                 package.udp_port = UDP_PORT_STORE_PRESET_PC2FLASH;
                 package.data_size = sizeof(preset_cmd);
 
-                package_list.push_back(package);
+                package_list.insert(package_list.begin(), package);
             }
 
 
@@ -6761,14 +6753,14 @@ void __fastcall TForm1::FormResize(TObject *Sender)
     need_resize = true;
 }
 //---------------------------------------------------------------------------
-void TForm1::StartReadOnePackage(int preset_id)
+void TForm1::StartReadCurrentPreset()
 {
-    memo_debug->Lines->Add(GetTime()+"切换到: "+IntToStr(preset_id));
+    memo_debug->Lines->Add(GetTime()+"同步当前Preset数据");
     read_one_preset_package_list.clear();
     for (int store_page=0;store_page<8;store_page++)
     {
         D1608PresetCmd preset_cmd(version);
-        preset_cmd.preset = preset_id; // 读取preset
+        preset_cmd.preset = 0xFF; // 读取preset
         // 从0页读取
         preset_cmd.store_page = store_page;
         preset_cmd.verify -= UdpPackageVerifyDiff((unsigned char*)&preset_cmd, sizeof(preset_cmd));
@@ -6778,7 +6770,7 @@ void TForm1::StartReadOnePackage(int preset_id)
         memcpy(package.data, &preset_cmd, offsetof(D1608PresetCmd, data));
         package.data_size = offsetof(D1608PresetCmd, data);
 
-        read_one_preset_package_list.push_back(package);
+        read_one_preset_package_list.insert(read_one_preset_package_list.begin(), package);
     }
 
     reverse(read_one_preset_package_list.begin(), read_one_preset_package_list.end());
@@ -7129,45 +7121,6 @@ void __fastcall TForm1::rgLedTestClick(TObject *Sender)
         if (udpSLPList[i]->Active && udpSLPList[i]->Bindings->Count == 1)
             udpSLPList[i]->SendBuffer("255.255.255.255", UDP_PORT_SET_LED_OLED_DEBUG, &test_led_oled, sizeof(test_led_oled));
     }
-}
-//---------------------------------------------------------------------------
-#include <stdio.h>
-#include <stdlib.h>
-
-#include "quicklz.h"
-void __fastcall TForm1::Timer1Timer(TObject *Sender)
-{
-    char *src, *dst;
-	qlz_state_compress *state_compress = (qlz_state_compress *)malloc(sizeof(qlz_state_compress));
-    size_t len, len2;
-
-    //ShowMessage(sizeof(qlz_state_compress));
-
-    len = sizeof(config_map);
-    src = (char*)&config_map;
-    // allocate "uncompressed size" + 400 for the destination buffer
-    dst = (char*) malloc(len + 400);
-
-    // compress and write result
-    len2 = qlz_compress(src, dst, len, state_compress);
-
-    edtCmdId->Text = IntToStr(len2)+":"+sizeof(qlz_state_compress);
-
-    ///////
-    // 解压测试
-    {
-        qlz_state_decompress state_decompress;
-        ConfigMap test_config_map;
-        len2 = qlz_decompress(dst, &test_config_map, &state_decompress);
-        if (len2 == len)
-        {
-            if (memcmp(&test_config_map, src, len) != 0)
-            {
-                ShowMessage("Error");
-            }
-        }
-    }
-
 }
 //---------------------------------------------------------------------------
 

@@ -514,7 +514,6 @@ __published:	// IDE-managed Components
     TSpeedButtonNoFrame *SpeedButtonNoFrame1;
     TSpeedButtonNoFrame *SpeedButtonNoFrame3;
     TRadioGroup *rgLedTest;
-    TTimer *Timer1;
     void __fastcall FormCreate(TObject *Sender);
     void __fastcall btnRefreshClick(TObject *Sender);
     void __fastcall udpSLPUDPRead(TObject *Sender, TStream *AData,
@@ -697,7 +696,6 @@ __published:	// IDE-managed Components
     void __fastcall edtSelectAllAndCopy(TObject *Sender);
     void __fastcall SpeedButtonNoFrame1Click(TObject *Sender);
     void __fastcall rgLedTestClick(TObject *Sender);
-    void __fastcall Timer1Timer(TObject *Sender);
 private:
     TIdUDPServer * udpSLPList[3];
 private:
@@ -965,7 +963,7 @@ private:
     vector<TPackage> package_list;
 
     vector<TPackage> read_one_preset_package_list;
-    void StartReadOnePackage(int preset_id);
+    void StartReadCurrentPreset();
 
     void ResetLHFilter()
     {
