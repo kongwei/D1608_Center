@@ -1810,16 +1810,17 @@ void TForm1::ProcessPackageMessageFeedback(TextSynMsg * text_syn_msg)
     // 失联判断
     if (received_cmd_seq < oldest_msg_id && (oldest_msg_id-received_cmd_seq>1))
     {
-        memo_debug->Lines->Add("失联: local="+IntToStr(received_cmd_seq)+", device="+IntToStr(oldest_msg_id)+"-"+IntToStr(current_msg_id));
+        memo_debug->Lines->Add(GetTime()+"失联: local="+IntToStr(received_cmd_seq)+", device="+IntToStr(oldest_msg_id)+"-"+IntToStr(current_msg_id));
         keep_live_count = CONTROL_TIMEOUT_COUNT;
     }
     else if (received_cmd_seq >= current_msg_id)
     {
-        memo_debug->Lines->Add("syn do not need: device_msg_id="+IntToStr(current_msg_id)+", pc__msg_id="+IntToStr(received_cmd_seq));
+        memo_debug->Lines->Add(GetTime()+"syn do not need: device_msg_id="+IntToStr(current_msg_id)+", pc__msg_id="+IntToStr(received_cmd_seq));
     }
     else
     {
-        //memo_debug->Lines->Add("syn msg");
+        memo_debug->Lines->Add(GetTime()+"同步: local="+IntToStr(received_cmd_seq)+", device="+IntToStr(oldest_msg_id)+"-"+IntToStr(current_msg_id));
+
         for (int i=0;i<RECORD_TEXT_MSG_SIZE;i++)
         {
             TextSynMsg text_syn_msg = text_syn_msg_buf[i];
@@ -1937,8 +1938,11 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
                 keep_live_count = 0;
 
             NotStorageCmd *keep_alive = (NotStorageCmd*)(cmd_text+strlen(D1608CMD_KEEPLIVE_FLAG));
-            if (received_cmd_seq != (UINT)keep_alive->noop)    // noop保存了cmd_seq
+            if (received_cmd_seq < (UINT)keep_alive->noop)    // noop保存了cmd_seq 原来是 !=
+            {
+                memo_debug->Lines->Add(GetTime()+"同步消息中的序号: local="+IntToStr(received_cmd_seq)+", device="+IntToStr(keep_alive->noop));
                 received_cmd_seq = (UINT)keep_alive->noop;
+            }
 
             ProcessWatchLevel(keep_alive->watch_level, keep_alive->watch_level_comp);
             ProcessVote(keep_alive->adc_ex, keep_alive->adc_ex_max, keep_alive->adc_ex_min);
