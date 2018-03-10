@@ -2171,6 +2171,9 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
                 // 读取'自动保存'配置
                 cbPresetAutoSaved->Checked = ((global_config.auto_saved == 1) || (global_config.auto_saved == 0xFF));
                 cbLedTest->Checked = (global_config.led_test == 1);
+
+                cbUsart1ReceiveAck->Checked = (global_config.usart1_receive_other_ack == 1);
+                cbUsart3ReceiveAck->Checked = (global_config.usart3_receive_other_ack == 1);
             }
         }
         else
@@ -5524,6 +5527,8 @@ void __fastcall TForm1::PaintBox3Paint(TObject *Sender)
     cbPresetAutoSaved->Color = bmp->Canvas->Brush->Color;
     cbLockUpDownMenuKey->Color = bmp->Canvas->Brush->Color;
     cbLedTest->Color = bmp->Canvas->Brush->Color;
+    cbUsart1ReceiveAck->Color = bmp->Canvas->Brush->Color;
+    cbUsart3ReceiveAck->Color = bmp->Canvas->Brush->Color;
 
     delete bmp;
 }
@@ -7125,6 +7130,20 @@ void __fastcall TForm1::rgLedTestClick(TObject *Sender)
         if (udpSLPList[i]->Active && udpSLPList[i]->Bindings->Count == 1)
             udpSLPList[i]->SendBuffer("255.255.255.255", UDP_PORT_SET_LED_OLED_DEBUG, &test_led_oled, sizeof(test_led_oled));
     }
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::cbUsart1ReceiveAckClick(TObject *Sender)
+{
+    String cmd_text = D1608CMD_CONTROL_FLAG;
+    cmd_text = cmd_text+"config.usart1_ack="+String(cbUsart1ReceiveAck->Checked?"on":"off");
+    SendCmd2(cmd_text+"|");
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::cbUsart3ReceiveAckClick(TObject *Sender)
+{
+    String cmd_text = D1608CMD_CONTROL_FLAG;
+    cmd_text = cmd_text+"config.usart3_ack="+String(cbUsart3ReceiveAck->Checked?"on":"off");
+    SendCmd2(cmd_text+"|");
 }
 //---------------------------------------------------------------------------
 
