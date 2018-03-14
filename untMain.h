@@ -466,7 +466,6 @@ __published:	// IDE-managed Components
     TImage *img_input_gain_trackbar;
     TImage *img_output_gain_trackbar;
     TTimer *tmDelaySendCmd;
-    TEdit *edtCmdId;
     TButton *btnSaveLog;
     TSpeedButton *btnUnlockExt;
     TSpeedButton *btnLeaveTheFactory;
