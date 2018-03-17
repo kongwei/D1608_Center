@@ -10,7 +10,44 @@ extern "C"{
 //---------------------------------------------------------------------------
 using namespace std;
 
-//00000000000000000000
+
+
+// preset中,input和output数据的格式信息
+#define TypeFilterConfigMap 21
+
+typedef struct
+{
+	unsigned short offset;
+	unsigned char type_length;	// 1: 单个元素长度
+	unsigned char array_length;	// 0: 单个元素, 1-n: 数组元素个数
+}OlaInfo;
+
+typedef struct
+{
+	int length;		// 结构体总长度
+	int struct_length;
+	OlaInfo ola_info[100];	// 数据
+}OlaList;
+
+typedef struct
+{
+	int length;		// 结构体总长度	15
+	int struct_length;
+	OlaInfo ola_info[15];	// 数据
+}InputOlaList;
+
+typedef struct
+{
+	int length;		// 结构体总长度
+	OlaInfo ola_info[18];	// 数据
+}OutputOlaList;
+
+extern const InputOlaList input_dsp_ola_list;
+extern const OutputOlaList output_dsp_ola_info;
+void ReadIODspMem(InputConfigMap * dst, char * src, const OlaList * dst_ola_list, const OlaList * src_ola_list);
+
+
+
 // 防止  NotStorageCmd 变化引起的数据存盘错误
 typedef struct
 {
@@ -30,15 +67,12 @@ typedef struct
 	unsigned char pad_ad_da_card[8];
 	int reboot;
 	int flash_oled;
-	//int version_list;
 }NotStorageCmdX;
 typedef struct
 {
-    //MasterMixConfigMap master_mix;
-
     InputConfigMap input_dsp[INPUT_DSP_NUM];
     OutputConfigMap output_dsp[OUTPUT_DSP_NUM];
-    NotStorageCmdX op_code;
+    //NotStorageCmdX op_code;
 
     void operator = (ConfigMap & config_map)
     {
@@ -51,8 +85,8 @@ typedef struct
         return config_map;
     }
 }ConfigMapX;
-//000000000000000000000
 
+void SavePresetById(int preset_id, int index, void * buf, unsigned char* flash_dump_data);
 void LoadPresetById(int preset_id, ConfigMap& tmp_config_map, unsigned char* flash_dump_data);
 void LoadGlobalConfig(GlobalConfig& global_config, unsigned char* flash_dump_data);
 
@@ -70,4 +104,21 @@ struct TPackage
 #define EVENT_POOL_SIZE (LOG_SIZE/sizeof(Event))
 Event * GetLogPtr(Event log_data[EVENT_POOL_SIZE]);
 
+typedef char (*P_2K) [2048];
+typedef struct
+{
+	unsigned char* preset_address[8][4];
+	unsigned char* config_address;
+}Using_Page;
+
+typedef struct
+{
+	int count;
+	unsigned int id;
+	char check;
+	char padt[7];
+}Page_Header;
+void GetUsingPage(Using_Page * using_page, unsigned char* flash_dump_data);
+
 #endif
+

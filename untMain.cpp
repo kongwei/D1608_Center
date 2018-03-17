@@ -60,33 +60,30 @@ static vector<int> loose_msg_id;
 
 extern String GetMacList();
 
-void operator <<(ConfigMap & result, ConfigMapX config_map)
-{
-    memcpy(&result, &config_map, sizeof(config_map));
-}
 // 用于复制设备的flaah数据
-struct OldSmcConfig
-{
-    GlobalConfig global_config;
-    UINT file_version;
-    char pad1[2048-sizeof(GlobalConfig) - sizeof(UINT)];
-    ConfigMapX all_config_map[PRESET_NUM];
-    char pad2[80*1024-sizeof(ConfigMap)*PRESET_NUM];
-    char device_flash_dump[128*1024];
-};
 struct SmcConfig
 {
     GlobalConfig global_config;
     UINT file_version;
     UINT device_version;
-    UINT cpu_id[3];
+    UINT cpu_id[3];        // cpu_id 位空表示是脱机文件
     unsigned char mac[6];
     char pad1[2048-sizeof(GlobalConfig) - sizeof(UINT)-sizeof(UINT)-sizeof(UINT)*3-6];
-    ConfigMapX all_config_map[PRESET_NUM];
-    char pad2[80*1024-sizeof(ConfigMapX)*PRESET_NUM];
     char device_flash_dump[128*1024];
 };
 static SmcConfig smc_config;
+bool IsDeviceFlashEmpty()
+{
+    // 判断是否在线保存
+    for (int i=0;i<sizeof(smc_config.device_flash_dump);i++)
+    {
+        if (smc_config.device_flash_dump[i] != 0)
+            return true;
+    }
+    return false;
+}
+
+
 static bool on_loading = false;
 static String last_device_id;
 static Word enter_key = VK_RETURN;
@@ -108,122 +105,6 @@ static short UdpPackageVerifyDiff(unsigned char * udp_data, int udp_length)
 }
 //====================================
 //-----------------------------
-
-#if 1
-//========================================
-// preset中,input和output数据的格式信息
-#define TypeFilterConfigMap 21
-
-typedef struct
-{
-	unsigned short offset;
-	unsigned char type_length;	// 1: 单个元素长度
-	unsigned char array_length;	// 0: 单个元素, 1-n: 数组元素个数
-}OlaInfo;
-
-typedef struct
-{
-	int length;		// 结构体总长度
-	int struct_length;
-	OlaInfo ola_info[100];	// 数据
-}OlaList;
-
-typedef struct
-{
-	int length;		// 结构体总长度	15
-	int struct_length;
-	OlaInfo ola_info[15];	// 数据
-}InputOlaList;
-
-const InputOlaList input_dsp_ola_list =
-{
-	15, 
-	sizeof(InputConfigMap), 
-	{
-		{offsetof(InputConfigMap, eq_switch), sizeof(unsigned char), 1},
-		{offsetof(InputConfigMap, comp_switch), sizeof(unsigned char), 1},
-		{offsetof(InputConfigMap, auto_switch), sizeof(unsigned char), 1},
-		{offsetof(InputConfigMap, invert_switch), sizeof(unsigned char), 1},
-		{offsetof(InputConfigMap, noise_switch), sizeof(unsigned char), 1},
-		{offsetof(InputConfigMap, mute_switch), sizeof(unsigned char), 1},
-		{offsetof(InputConfigMap, phantom_switch), sizeof(unsigned char), 1},
-		{offsetof(InputConfigMap, level_a), sizeof(unsigned short), 1},
-		{offsetof(InputConfigMap, level_b), sizeof(unsigned short), 1},
-		{offsetof(InputConfigMap, gain), sizeof(unsigned char), 1},
-		{offsetof(InputConfigMap, delay), sizeof(unsigned int), 1},
-		{offsetof(InputConfigMap, filter), TypeFilterConfigMap, 11},
-		{offsetof(InputConfigMap, dsp_name), sizeof(char), 7},
-		{offsetof(InputConfigMap, master_mute_switch), sizeof(unsigned char), 1},
-		{offsetof(InputConfigMap, master_level_a), sizeof(unsigned short), 1},
-	},
-};
-
-void ReadIODspMem(InputConfigMap * dst, char * src, const OlaList * dst_ola_list, const OlaList * src_ola_list)
-{
-	int i;
-	int max_length = src_ola_list->length;
-	
-	if (src_ola_list->length < dst_ola_list->length)
-	{
-		max_length = dst_ola_list->length;
-	}
-	
-	for (i=0;i<max_length;i++)
-	{
-		const OlaInfo src_ola_info = src_ola_list->ola_info[i];
-		const OlaInfo dst_ola_info = dst_ola_list->ola_info[i];
-
-        if (src_ola_info.offset == 0xFFFF || dst_ola_info.offset == 0xFFFF)
-            continue;
-
-		// 需要类型一致
-		if (src_ola_info.type_length == dst_ola_info.type_length && src_ola_info.array_length == dst_ola_info.array_length)
-		{
-			if (src_ola_info.type_length == TypeFilterConfigMap)
-			{
-				memcpy(((char*)dst)+dst_ola_info.offset, src+src_ola_info.offset, sizeof(FilterConfigMap)*dst_ola_info.array_length);
-			}
-			else
-			{
-				memcpy(((char*)dst)+dst_ola_info.offset, src+src_ola_info.offset, dst_ola_info.type_length*dst_ola_info.array_length);
-			}
-		}
-	}
-};
-
-typedef struct
-{
-	int length;		// 结构体总长度
-	OlaInfo ola_info[18];	// 数据
-}OutputOlaList;
-const OutputOlaList output_dsp_ola_info =
-{
-	18,
-	{
-		{offsetof(OutputConfigMap, eq_switch), sizeof(unsigned char), 1},
-		{offsetof(OutputConfigMap, comp_switch), sizeof(unsigned char), 1},
-		{offsetof(OutputConfigMap, invert_switch), sizeof(unsigned char), 1},
-		{offsetof(OutputConfigMap, mute_switch), sizeof(unsigned char), 1},
-		{offsetof(OutputConfigMap, level_a), sizeof(unsigned short), 1},
-		{offsetof(OutputConfigMap, level_b), sizeof(unsigned short), 1},
-		{offsetof(OutputConfigMap, gain), sizeof(unsigned char), 1},
-		{offsetof(OutputConfigMap, delay), sizeof(unsigned int), 1},
-		{offsetof(OutputConfigMap, filter), TypeFilterConfigMap, 11},
-		{offsetof(OutputConfigMap, dsp_name), sizeof(char), 7},
-
-		{offsetof(OutputConfigMap, ratio), sizeof(int), 1},
-		{offsetof(OutputConfigMap, threshold), sizeof(int), 1},
-		{offsetof(OutputConfigMap, attack_time), sizeof(int), 1},
-		{offsetof(OutputConfigMap, release_time), sizeof(int), 1},
-		{offsetof(OutputConfigMap, comp_gain), sizeof(int), 1},
-		{offsetof(OutputConfigMap, auto_time), sizeof(char), 1},
-
-		{offsetof(OutputConfigMap, mix), sizeof(short), INPUT_DSP_NUM+1},
-		{offsetof(OutputConfigMap, mix_mute), sizeof(unsigned char), INPUT_DSP_NUM+1},
-	},
-};
-#endif
-//===============================================
 
 
 enum CHANEL_TYPE {ctNone, ctInput, ctOutput};
@@ -2065,18 +1946,13 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
         }
         else
         {
-            // 删除结尾 |
-            int cmd_text_length = strlen(cmd_text);
-            if (cmd_text[cmd_text_length-1] == ']')
-                cmd_text[cmd_text_length-1] = '\0';
-                
             String cmd_string = TextCmdPtr(cmd_text);
-            if (cmd_string=="config.action=reboot" || cmd_string=="config.action=init" || cmd_string=="config.action=clear_preset")
+            if (cmd_string=="config.action=reboot]" || cmd_string=="config.action=init]" || cmd_string=="config.action=clear_preset]")
             {
                 memo_debug->Lines->Add(GetTime()+cmd_string);
 
                 String cmd_text = D1608CMD_CONTROL_FLAG;
-                cmd_text = cmd_text+cmd_string+"_confirm";
+                cmd_text = cmd_text+   cmd_string.SubString(1, cmd_string.Length()-1)   +"_confirm";
                 SendCmd2(cmd_text+D1608CMD_TAIL);
 
                 keep_live_count = CONTROL_TIMEOUT_COUNT;
@@ -2299,6 +2175,21 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             {
             case 0:
             case 1:
+                {
+                    const OlaList * input_dict = (const OlaList *)preset_cmd.data;
+                    char * input_data_base = (char*)input_dict +
+                            sizeof(input_dict->length) +
+                            sizeof(input_dict->struct_length) +
+                            input_dict->length * sizeof(OlaInfo);
+                    for (int i=0;i<4;i++)
+                    {
+                        ReadIODspMem(dest_config_map->input_dsp + i + preset_cmd.store_page*4,
+                            input_data_base + i*input_dict->struct_length,
+                            (OlaList*)&input_dsp_ola_list,
+                            input_dict);
+                    }
+                    break;
+                }
             case 2:
             case 3:
                 {
@@ -2311,8 +2202,8 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
                     {
                         ReadIODspMem(dest_config_map->input_dsp + i + preset_cmd.store_page*4,
                             input_data_base + i*input_dict->struct_length,
-                            input_dict,
-                            (OlaList*)&input_dsp_ola_list);
+                            (OlaList*)&input_dsp_ola_list,
+                            input_dict);
                     }
                     break;
                 }
@@ -2429,14 +2320,16 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
                 return;
             }
 
-            // 转换成普通的8个preset数据
             LoadGlobalConfig(smc_config.global_config, smc_config.device_flash_dump);
+#if 0
+            // 转换成普通的8个preset数据
             for (int i=1;i<=8;i++)
             {
                 ConfigMap config_map;
                 LoadPresetById(i, config_map, smc_config.device_flash_dump);
                 smc_config.all_config_map[i-1] = config_map;
             }
+#endif
             file->WriteBuffer(&smc_config, sizeof(smc_config));
 
             pbBackup->Position = pbBackup->Max;
@@ -2570,13 +2463,15 @@ bool TForm1::ProcessSendTextCmdAck(String cmd_text, TStream *AData, TIdSocketHan
 
     char* package_text_cmd = package.data;
 
-    if (GetTextCmdVar(cmd_text) == GetTextCmdVar(package_text_cmd))
+    /*if (GetTextCmdVar(cmd_text) == GetTextCmdVar(package_text_cmd))
     {
     }
     else
     {
         return false;
-    }
+    }*/
+    if (cmd_text != package_text_cmd)
+        return false;
     
     sendcmd_list.pop_back();
     if (sendcmd_list.size() > 0)
@@ -4236,7 +4131,7 @@ void __fastcall TForm1::btnLoadPresetFromFileClick(TObject *Sender)
             return;
         }
 
-        file->ReadBuffer(&smc_config.all_config_map[select_preset_id-1], sizeof(config_map));
+        file->ReadBuffer(&all_config_map[select_preset_id-1], sizeof(config_map));
 
         delete file;
 
@@ -4246,7 +4141,7 @@ void __fastcall TForm1::btnLoadPresetFromFileClick(TObject *Sender)
         if (!udpControl->Active)
         {
             // 脱机
-            all_config_map[select_preset_id-1] = smc_config.all_config_map[select_preset_id-1].ToConfigMap();
+            //all_config_map[select_preset_id-1] = smc_config.all_config_map[select_preset_id-1].ToConfigMap();
             // TODO: 是否更新当前界面？
             if (cur_preset_id == select_preset_id)
             {
@@ -4274,28 +4169,28 @@ void __fastcall TForm1::btnLoadPresetFromFileClick(TObject *Sender)
                 switch(preset_cmd.store_page)
                 {
                 case 0:
-                    memcpy(preset_cmd.data, &smc_config.all_config_map[i].input_dsp[0], sizeof(InputConfigMap)*4);
+                    memcpy(preset_cmd.data, &all_config_map[i].input_dsp[0], sizeof(InputConfigMap)*4);
                     break;
                 case 1:
-                    memcpy(preset_cmd.data, &smc_config.all_config_map[i].input_dsp[4], sizeof(InputConfigMap)*4);
+                    memcpy(preset_cmd.data, &all_config_map[i].input_dsp[4], sizeof(InputConfigMap)*4);
                     break;
                 case 2:
-                    memcpy(preset_cmd.data, &smc_config.all_config_map[i].input_dsp[8], sizeof(InputConfigMap)*4);
+                    memcpy(preset_cmd.data, &all_config_map[i].input_dsp[8], sizeof(InputConfigMap)*4);
                     break;
                 case 3:
-                    memcpy(preset_cmd.data, &smc_config.all_config_map[i].input_dsp[12], sizeof(InputConfigMap)*4);
+                    memcpy(preset_cmd.data, &all_config_map[i].input_dsp[12], sizeof(InputConfigMap)*4);
                     break;
                 case 4:
-                    memcpy(preset_cmd.data, &smc_config.all_config_map[i].output_dsp[0], sizeof(OutputConfigMap)*4);
+                    memcpy(preset_cmd.data, &all_config_map[i].output_dsp[0], sizeof(OutputConfigMap)*4);
                     break;
                 case 5:
-                    memcpy(preset_cmd.data, &smc_config.all_config_map[i].output_dsp[4], sizeof(OutputConfigMap)*4);
+                    memcpy(preset_cmd.data, &all_config_map[i].output_dsp[4], sizeof(OutputConfigMap)*4);
                     break;
                 case 6:
-                    memcpy(preset_cmd.data, &smc_config.all_config_map[i].output_dsp[8], sizeof(OutputConfigMap)*4);
+                    memcpy(preset_cmd.data, &all_config_map[i].output_dsp[8], sizeof(OutputConfigMap)*4);
                     break;
                 case 7:
-                    memcpy(preset_cmd.data, &smc_config.all_config_map[i].output_dsp[12], sizeof(OutputConfigMap)*4);
+                    memcpy(preset_cmd.data, &all_config_map[i].output_dsp[12], sizeof(OutputConfigMap)*4);
                     break;
                 }
 
@@ -6144,14 +6039,15 @@ void __fastcall TForm1::btnSaveFlashToFileClick(TObject *Sender)
 
             smc_config.file_version = file_version;
             smc_config.global_config = global_config;
-            smc_config.all_config_map[0] = all_config_map[0];
-            smc_config.all_config_map[1] = all_config_map[1];
-            smc_config.all_config_map[2] = all_config_map[2];
-            smc_config.all_config_map[3] = all_config_map[3];
-            smc_config.all_config_map[4] = all_config_map[4];
-            smc_config.all_config_map[5] = all_config_map[5];
-            smc_config.all_config_map[6] = all_config_map[6];
-            smc_config.all_config_map[7] = all_config_map[7];
+
+            // 前80k是存盘使用，2k一页
+            for (int i=0;i<8;i++)
+            {
+                SavePresetById(i+1, 0, &all_config_map[i].input_dsp[0], smc_config.device_flash_dump);
+                SavePresetById(i+1, 1, &all_config_map[i].input_dsp[8], smc_config.device_flash_dump);
+                SavePresetById(i+1, 2, &all_config_map[i].output_dsp[0], smc_config.device_flash_dump);
+                SavePresetById(i+1, 3, &all_config_map[i].output_dsp[8], smc_config.device_flash_dump);
+            }
 
             // 完成，写入文件
             TFileStream * file = new TFileStream(SaveDialog1->FileName, fmCreate);
@@ -6238,26 +6134,8 @@ void __fastcall TForm1::btnLoadFileToFlashClick(TObject *Sender)
         file->Read(&tmp_file_version, sizeof(tmp_file_version));
         file->Seek(0, soFromBeginning);
 
-        if (tmp_file_version == 0 && file->Size == sizeof(OldSmcConfig))
-        {
-            OldSmcConfig old_smc_config;
-            memset(&old_smc_config, 0, sizeof(old_smc_config));
-            file->ReadBuffer(&old_smc_config, sizeof(old_smc_config));
-
-            smc_config.global_config = old_smc_config.global_config;
-            smc_config.file_version = file_version;//替换成新版本文件  old_smc_config.file_version;
-
-            for (int i=0;i<PRESET_NUM;i++)
-            {
-                smc_config.all_config_map[i] = old_smc_config.all_config_map[i];
-            }
-
-            memcpy(smc_config.device_flash_dump, old_smc_config.device_flash_dump, 128*1024);
-        }
-        else
-        {
-            file->ReadBuffer(&smc_config, sizeof(smc_config));
-        }
+        file->ReadBuffer(&smc_config, sizeof(smc_config));
+        delete file;
 
         // 文件版本判断
         if (smc_config.file_version != file_version)
@@ -6269,21 +6147,18 @@ void __fastcall TForm1::btnLoadFileToFlashClick(TObject *Sender)
         // 替换文件名
         smc_config.global_config.import_filename[0] = 'l';
         strncpy(smc_config.global_config.import_filename+1, ExtractFileName(OpenDialog1->FileName).c_str(), 8);
+        global_config = smc_config.global_config;
 
         for (int i=0;i<PRESET_NUM;i++)
         {
-            all_config_map[i] = smc_config.all_config_map[i].ToConfigMap();
+            ConfigMap config_map;
+            LoadPresetById(i+1, config_map, smc_config.device_flash_dump);
+            all_config_map[i] = config_map;
         }
-        global_config = smc_config.global_config;
-
-        delete file;
 
         if (!udpControl->Active)
         {
             // 脱机
-            //global_config = smc_config.global_config;
-            //memcpy(&all_config_map, &smc_config.all_config_map, sizeof(all_config_map));
-
             SetPresetId(global_config.active_preset_id);
             CloseDspDetail();
             tmDelayUpdateUITimer(NULL);
@@ -6360,56 +6235,92 @@ void __fastcall TForm1::btnLoadFileToFlashClick(TObject *Sender)
                 package_list.insert(package_list.begin(), package);
             }
             // 写入所有的preset数据
-            for (int i=0;i<8;i++)
+            Using_Page using_page;
+            GetUsingPage(&using_page, smc_config.device_flash_dump);
+            for (int preset_id=0;preset_id<8;preset_id++)
             {
-                //if (smc_config.global_config.avaliable_preset[i] == 1)
+                D1608PresetCmd preset_cmd(version);
+                strcpy(preset_cmd.flag, D1608PRESETCMD_PC2FLASH_FLAG);
+                preset_cmd.preset = 0x80+preset_id+1;
+                for (int store_page=0;store_page<8;store_page++)
                 {
-                    D1608PresetCmd preset_cmd(version);
-                    strcpy(preset_cmd.flag, D1608PRESETCMD_PC2FLASH_FLAG);
-                    preset_cmd.preset = 0x80+i+1;
-                    for (int store_page=0;store_page<8;store_page++)
+                    // 没有的页直接清除了 TODO: 下位机需要首先清理一下
+                    if (using_page.preset_address[preset_id][store_page/2] == 0)
+                        continue;
+
+                    preset_cmd.store_page = store_page;
+                    switch(preset_cmd.store_page)
                     {
-                        preset_cmd.store_page = store_page;
-                        switch(preset_cmd.store_page)
-                        {
-                        case 0:
-                            memcpy(preset_cmd.data, &smc_config.all_config_map[i].input_dsp[0], sizeof(InputConfigMap)*4);
-                            break;
-                        case 1:
-                            memcpy(preset_cmd.data, &smc_config.all_config_map[i].input_dsp[4], sizeof(InputConfigMap)*4);
-                            break;
-                        case 2:
-                            memcpy(preset_cmd.data, &smc_config.all_config_map[i].input_dsp[8], sizeof(InputConfigMap)*4);
-                            break;
-                        case 3:
-                            memcpy(preset_cmd.data, &smc_config.all_config_map[i].input_dsp[12], sizeof(InputConfigMap)*4);
-                            break;
-                        case 4:
-                            memcpy(preset_cmd.data, &smc_config.all_config_map[i].output_dsp[0], sizeof(OutputConfigMap)*4);
-                            break;
-                        case 5:
-                            memcpy(preset_cmd.data, &smc_config.all_config_map[i].output_dsp[4], sizeof(OutputConfigMap)*4);
-                            break;
-                        case 6:
-                            memcpy(preset_cmd.data, &smc_config.all_config_map[i].output_dsp[8], sizeof(OutputConfigMap)*4);
-                            break;
-                        case 7:
-                            memcpy(preset_cmd.data, &smc_config.all_config_map[i].output_dsp[12], sizeof(OutputConfigMap)*4);
-                            break;
-                        //case 8:
-                        //    memcpy(preset_cmd.data, &smc_config.all_config_map[i].master_mix,
-                        //            sizeof(MasterMixConfigMap));
-                        //    break;
-                        }
-                        preset_cmd.verify -= UdpPackageVerifyDiff((unsigned char*)&preset_cmd, sizeof(preset_cmd));
+                    case 0:
+                    {
+                        const OlaList * input_dict = (const OlaList *)(using_page.preset_address[preset_id][0]+sizeof(Page_Header));
+                        int input_dict_size = 
+                                sizeof(input_dict->length) +
+                                sizeof(input_dict->struct_length) +
+                                input_dict->length * sizeof(OlaInfo);
 
-                        TPackage package = {0};
-                        memcpy(package.data, &preset_cmd, sizeof(preset_cmd));
-                        package.udp_port = UDP_PORT_STORE_PRESET_PC2FLASH;
-                        package.data_size = sizeof(preset_cmd);
-
-                        package_list.insert(package_list.begin(), package);
+                        //memcpy(preset_cmd.data, input_dict, input_dict_size + input_dict->struct_length*4);
+                        memcpy(preset_cmd.data, input_dict, input_dict_size);
+                        memcpy(preset_cmd.data+input_dict_size, ((char*)input_dict)+input_dict_size, input_dict->struct_length*4);
+                        break;
                     }
+                    case 1:
+                    {
+                        const OlaList * input_dict = (const OlaList *)(using_page.preset_address[preset_id][0]+sizeof(Page_Header));
+                        int input_dict_size = 
+                                sizeof(input_dict->length) +
+                                sizeof(input_dict->struct_length) +
+                                input_dict->length * sizeof(OlaInfo);
+
+                        memmove(preset_cmd.data, input_dict, input_dict_size);
+                        memcpy(preset_cmd.data+input_dict_size, ((char*)input_dict)+input_dict_size+input_dict->struct_length*4, input_dict->struct_length*4);
+                        break;
+                    }
+                    case 2:
+                    {
+                        const OlaList * input_dict = (const OlaList *)(using_page.preset_address[preset_id][1]+sizeof(Page_Header));
+                        int input_dict_size = 
+                                sizeof(input_dict->length) +
+                                sizeof(input_dict->struct_length) +
+                                input_dict->length * sizeof(OlaInfo);
+
+                        memcpy(preset_cmd.data, input_dict, input_dict_size);
+                        memcpy(preset_cmd.data+input_dict_size, ((char*)input_dict)+input_dict_size, input_dict->struct_length*4);
+                        break;
+                    }
+                    case 3:
+                    {
+                        const OlaList * input_dict = (const OlaList *)(using_page.preset_address[preset_id][1]+sizeof(Page_Header));
+                        int input_dict_size = 
+                                sizeof(input_dict->length) +
+                                sizeof(input_dict->struct_length) +
+                                input_dict->length * sizeof(OlaInfo);
+
+                        memcpy(preset_cmd.data, input_dict, input_dict_size);
+                        memcpy(preset_cmd.data+input_dict_size, ((char*)input_dict)+input_dict_size+input_dict->struct_length*4, input_dict->struct_length*4);
+                        break;
+                    }
+                    case 4:
+                        memcpy(preset_cmd.data, (char*)(using_page.preset_address[preset_id][2]+sizeof(Page_Header)), sizeof(OutputConfigMap)*4);
+                        break;
+                    case 5:
+                        memcpy(preset_cmd.data, (char*)(using_page.preset_address[preset_id][2]+sizeof(Page_Header))+sizeof(OutputConfigMap)*4, sizeof(OutputConfigMap)*4);
+                        break;
+                    case 6:
+                        memcpy(preset_cmd.data, (char*)(using_page.preset_address[preset_id][3]+sizeof(Page_Header)), sizeof(OutputConfigMap)*4);
+                        break;
+                    case 7:
+                        memcpy(preset_cmd.data, (char*)(using_page.preset_address[preset_id][3]+sizeof(Page_Header))+sizeof(OutputConfigMap)*4, sizeof(OutputConfigMap)*4);
+                        break;
+                    }
+                    preset_cmd.verify -= UdpPackageVerifyDiff((unsigned char*)&preset_cmd, sizeof(preset_cmd));
+
+                    TPackage package = {0};
+                    memcpy(package.data, &preset_cmd, sizeof(preset_cmd));
+                    package.udp_port = UDP_PORT_STORE_PRESET_PC2FLASH;
+                    package.data_size = sizeof(preset_cmd);
+
+                    package_list.insert(package_list.begin(), package);
                 }
             }
 
@@ -6428,9 +6339,8 @@ void __fastcall TForm1::btnLoadFileToFlashClick(TObject *Sender)
                 package_list.insert(package_list.begin(), package);
             }
 
-
             std::reverse(package_list.begin(), package_list.end());
-
+            
             TPackage package = package_list.back();
             SendBuffer(dst_ip, package.udp_port, package.data, package.data_size);
 
@@ -7262,4 +7172,6 @@ void __fastcall TForm1::cbUsart3ReceiveAckClick(TObject *Sender)
     SendCmd2(cmd_text+D1608CMD_TAIL);
 }
 //---------------------------------------------------------------------------
+
+
 
