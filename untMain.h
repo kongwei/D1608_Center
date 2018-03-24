@@ -734,6 +734,7 @@ public:
     void SendBuffer(AnsiString AHost, const int APort, void *ABuffer, const int AByteCount);
     void SendCmd(String cmd);
     void SendCmd2(String cmd);
+    void SendDisconnect();
     bool ProcessSendTextCmdAck(String cmd_text, TStream *AData, TIdSocketHandle *ABinding);
 
 private:

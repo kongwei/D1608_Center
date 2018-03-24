@@ -136,7 +136,13 @@ String IsCompatibility(T_slp_pack_Ex slp_pack)
     UINT app_protocol_version = slp_pack.version & 0xFF000000;
     if (ctrl_app_protocol_version == app_protocol_version)
     {
-        return "YES";
+        ctrl_app_protocol_version = version & 0xFFFF0000;
+        app_protocol_version = slp_pack.version & 0xFFFF0000;
+        if (ctrl_app_protocol_version == app_protocol_version)
+        {
+            return "YES";
+        }
+        return "YELLOW";
     }
     else
     {
@@ -967,6 +973,9 @@ __fastcall TForm1::TForm1(TComponent* Owner)
 //---------------------------------------------------------------------------
 __fastcall TForm1::~TForm1()
 {
+    // 给原先的设备发送断链消息
+    SendDisconnect();
+
     for (int i=0;i<lvDevice->Items->Count;i++)
     {
         TListItem * item = lvDevice->Items->Item[i];
@@ -1254,7 +1263,21 @@ void TForm1::SendCmd2(String cmd)
     }
 #endif
 }
-
+void TForm1::SendDisconnect()
+{
+    if (udpControl->Active)
+    {
+        try
+        {
+            String cmd_text = D1608CMD_CONTROL_FLAG;
+            cmd_text = cmd_text+"config.action=disconnect"+D1608CMD_TAIL;
+            udpControl->Send(dst_ip, UDP_PORT_CONTROL, cmd_text);
+        }
+        catch(...)
+        {
+        }
+    }
+}
 void TForm1::SendLogBuff(int udp_port, void * buff, int size)
 {
     TPackage package = {0};
@@ -1532,7 +1555,7 @@ void __fastcall TForm1::btnSelectClick(TObject *Sender)
     }
 
     // 是否版本兼容
-    if (selected->SubItems->Strings[8] != "YES")
+    if (selected->SubItems->Strings[8] != "YES" && selected->SubItems->Strings[8] != "YELLOW")
     {
         if (Sender != NULL)
             ShowMessage("版本不兼容，请更新软件。\n上位机版本："+IntToHex((int)version,8)+"，下位机版本："+selected->SubItems->Strings[8]);
@@ -1540,13 +1563,7 @@ void __fastcall TForm1::btnSelectClick(TObject *Sender)
     }
 
     // 给原先的设备发送断链消息
-    if (udpControl->Active)
-    {
-        String cmd_text = D1608CMD_FLAG;
-        cmd_text = cmd_text + "config.action=unlink|";
-        SendCmd2(cmd_text+D1608CMD_TAIL);
-    }
-
+    SendDisconnect();
 
     is_manual_disconnect = false;
 
@@ -1558,11 +1575,13 @@ void __fastcall TForm1::btnSelectClick(TObject *Sender)
     sendcmd_list.clear();
     // 初始化socket
     CloseControlLink("准备连接到新的下位机, 重置连接");
+    static int STATIC_PORT = 0;
     udpControl->Bindings->Clear();
     udpControl->Bindings->Add();
     udpControl->Bindings->Items[0]->IP = broadcast_ip;
-    udpControl->Bindings->Items[0]->Port = 0;
+    udpControl->Bindings->Items[0]->Port = STATIC_PORT;
     udpControl->Active = true;
+    STATIC_PORT = udpControl->Bindings->Items[0]->Port;
 
     lblCtrlPort->Caption = "端口号: "+IntToStr(udpControl->Bindings->Items[0]->Port);
 
@@ -1947,7 +1966,13 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
         else
         {
             String cmd_string = TextCmdPtr(cmd_text);
-            if (cmd_string=="config.action=reboot]" || cmd_string=="config.action=init]" || cmd_string=="config.action=clear_preset]")
+
+            if (cmd_string=="config.action=disconnect]")
+            {
+                keep_live_count = CONTROL_TIMEOUT_COUNT;
+                received_cmd_seq = 0;
+            }
+            else if (cmd_string=="config.action=reboot]" || cmd_string=="config.action=init]" || cmd_string=="config.action=clear_preset]")
             {
                 memo_debug->Lines->Add(GetTime()+cmd_string);
 
@@ -6386,6 +6411,7 @@ void __fastcall TForm1::tmDelayBackupTimer(TObject *Sender)
         // 如果存在读取preset失败，那么需要重新连接
         if (read_one_preset_package_list.size() != 0)
         {
+            SendDisconnect();
             udpControl->Active = false;
         }
     }
@@ -6826,7 +6852,18 @@ void __fastcall TForm1::lvDeviceCustomDrawItem(TCustomListView *Sender,
       TListItem *Item, TCustomDrawState State, bool &DefaultDraw)
 {
     if (Item->SubItems->Strings[6] == last_device_id && !is_manual_disconnect)
+    {
         lvDevice->Canvas->Font->Color = clAqua;
+    }    // 大版本不一致，显示红色
+    else if (Item->SubItems->Strings[8] == "YELLOW")
+    {
+        lvDevice->Canvas->Font->Color = clYellow;
+    }
+    // 次版本号不一致，显示黄色
+    else if (Item->SubItems->Strings[8] != "YES")
+    {
+        lvDevice->Canvas->Font->Color = clRed;
+    }
 }
 //---------------------------------------------------------------------------
 
@@ -6878,12 +6915,7 @@ void __fastcall TForm1::btnDisconnectClick(TObject *Sender)
     last_device_id = "";
 
     // 给原先的设备发送断链消息
-    if (udpControl->Active)
-    {
-        String cmd_text = D1608CMD_FLAG;
-        cmd_text = cmd_text+"config.action=unlink";
-        SendCmd2(cmd_text+D1608CMD_TAIL);
-    }
+    SendDisconnect();
 
     REAL_INPUT_DSP_NUM = 16;
     REAL_OUTPUT_DSP_NUM = 16;
@@ -7076,6 +7108,7 @@ void __fastcall TForm1::lvLogData(TObject *Sender, TListItem *Item)
 void TForm1::CloseControlLink(String reason)
 {
     memo_debug->Lines->Add(GetTime()+"上位机关闭连接: " + reason);
+    SendDisconnect();
     udpControl->Active = false;
     broken_count++;
 }
