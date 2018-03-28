@@ -1852,7 +1852,10 @@ void TForm1::ProcessPackageMessageFeedback(TextSynMsg * text_syn_msg)
 
                 // 命令转数据
                 // 更新
-                std::vector<UINT> cmd_id_list = ProcessTextCommand(text_syn_msg.text_cmd);
+                String bare_cmd = text_syn_msg.text_cmd;
+                bare_cmd = bare_cmd.SubString(2, bare_cmd.Length());
+                String full_cmd = String("[NJLS_SMC|parameter|") + bare_cmd;
+                std::vector<UINT> cmd_id_list = ProcessTextCommand(full_cmd);
                 for (UINT cmd_index=0; cmd_index<cmd_id_list.size(); cmd_index++)
                 {
                     int cmd_id = cmd_id_list[cmd_index];
