@@ -912,7 +912,7 @@ public:		// User declarations
     TAdvTrackBar* mix_level_trackbar[17];
 
 private:
-    void ProcessPackageMessageFeedback(TextSynMsg*);
+    void ProcessPackageMessageFeedback(char*);
 
     void CalcAllVote(ADC_Data_Ex & adc_data);
     void ProcessKeepAlive(int preset_id, unsigned __int64 timer);

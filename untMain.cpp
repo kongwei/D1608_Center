@@ -1809,18 +1809,33 @@ String IntOrZeroSring(int value)
 {
     return String((value>0?value:0));
 }
-void TForm1::ProcessPackageMessageFeedback(TextSynMsg * text_syn_msg)
+void TForm1::ProcessPackageMessageFeedback(char * data)
 {
-    TextSynMsg * text_syn_msg_buf = text_syn_msg;
+    TextSynMsg text_syn_msg[RECORD_TEXT_MSG_SIZE] = {0};
+    for (int i=0;i<RECORD_TEXT_MSG_SIZE;i++)
+    {
+        memcpy(&text_syn_msg[i].msg_id, data, 4);
+        data += 4;
+        // 找到 ]
+        char * right = strstr(data, "]");
+        if (right != NULL)
+        {
+            memcpy(&text_syn_msg[i].text_cmd, data, right-data+1);
+            data = right + 1;
+        }
+        else
+        {
+            break;
+        }
+    }
 
-    unsigned int oldest_msg_id = text_syn_msg_buf[0].msg_id;
-    unsigned int current_msg_id = text_syn_msg_buf[0].msg_id;
+    unsigned int oldest_msg_id = text_syn_msg[0].msg_id;
+    unsigned int current_msg_id = text_syn_msg[0].msg_id;
 
     for (int i=0;i<RECORD_TEXT_MSG_SIZE;i++)
     {
-        TextSynMsg text_syn_msg = text_syn_msg_buf[i];
-        oldest_msg_id = min(oldest_msg_id, text_syn_msg.msg_id);
-        current_msg_id = max(current_msg_id, text_syn_msg.msg_id);
+        oldest_msg_id = min(oldest_msg_id, text_syn_msg[i].msg_id);
+        current_msg_id = max(current_msg_id, text_syn_msg[i].msg_id);
     }
     // 失联判断
     if (received_cmd_seq < oldest_msg_id && (oldest_msg_id-received_cmd_seq>1))
@@ -1838,21 +1853,20 @@ void TForm1::ProcessPackageMessageFeedback(TextSynMsg * text_syn_msg)
 
         for (int i=0;i<RECORD_TEXT_MSG_SIZE;i++)
         {
-            TextSynMsg text_syn_msg = text_syn_msg_buf[i];
-            if (text_syn_msg.msg_id > received_cmd_seq)
+            if (text_syn_msg[i].msg_id > received_cmd_seq)
             {
                 // 防止自己响应
                 if (sendcmd_list.size() > 0)
                 {
                     TPackage package = sendcmd_list.back();
                     String package_cmd = (char*)package.data;
-                    if (GetTextCmdVar(text_syn_msg.text_cmd) == GetTextCmdVar(package_cmd))
+                    if (GetTextCmdVar(text_syn_msg[i].text_cmd) == GetTextCmdVar(package_cmd))
                         continue;
                 }
 
                 // 命令转数据
                 // 更新
-                String bare_cmd = text_syn_msg.text_cmd;
+                String bare_cmd = text_syn_msg[i].text_cmd;
                 bare_cmd = bare_cmd.SubString(2, bare_cmd.Length());
                 String full_cmd = String("[NJLS_SMC|parameter|") + bare_cmd;
                 std::vector<UINT> cmd_id_list = ProcessTextCommand(full_cmd);
@@ -1952,7 +1966,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             // 没有初始化完毕，不处理数据回报
             if (received_cmd_seq != 0)
             {
-                ProcessPackageMessageFeedback((TextSynMsg*)(cmd_text+strlen(D1608CMD_REPLY_FLAG)));
+                ProcessPackageMessageFeedback(cmd_text+strlen(D1608CMD_REPLY_FLAG));
             }
         }
         else if (IsKeepliveCmd(cmd_text) && AData->Size==(strlen(D1608CMD_KEEPLIVE_FLAG)+sizeof(NotStorageCmd)))
