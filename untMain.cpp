@@ -7121,12 +7121,10 @@ void __fastcall TForm1::output_panel_level_editEnter(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TForm1::cbDebugCmdChange(TObject *Sender)
 {
-    T_Debug debug_cmd = {DEBUG_FLAG};
-    strcpy(debug_cmd.debug_cmd, cbDebugCmd->Text.c_str());
-
-    int send_size = offsetof(T_Debug, debug_cmd) + cbDebugCmd->Text.Length() + 1;   // °üÀ¨½áÎ²
-    debug_cmd.verify -= UdpPackageVerifyDiff((unsigned char*)&debug_cmd, send_size);
-    SendBuffer(dst_ip, UDP_PORT_GET_DEBUG_INFO_EX, &debug_cmd, send_size);
+    String cmd_text = DEBUG_FLAG;
+    cmd_text = cmd_text+"probe=mainloop";
+    SendCmd2(cmd_text+D1608CMD_TAIL);
+    //SendBuffer(dst_ip, UDP_PORT_GET_DEBUG_INFO_EX, "", 1);
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::edtSelectAllAndCopy(TObject *Sender)

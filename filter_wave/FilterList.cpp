@@ -167,10 +167,10 @@ void FilterSet::RepaintPaint(int band)
 
             String cmd_text = D1608CMD_FLAG;
             cmd_text = cmd_text+"output<"+IntToStr(dsp_num-100)+">.peq<"+IntToStr(band)+">.TYPE_GAIN_FREQ_Q_bypass="+
-                 GetFilter(band)->GetType()+"_"
-                +FormatFloat("0.0", GetFilterGain(band))+"_"
-                +FormatFloat("0.0", GetFilterFreq(band))+"_"
-                +FormatFloat("0.0", GetFilter(band)->GetQ())+"_"
+                 GetFilter(band)->GetType()+","
+                +FormatFloat("0.0", GetFilterGain(band))+","
+                +FormatFloat("0.0", GetFilterFreq(band))+","
+                +FormatFloat("0.0", GetFilter(band)->GetQ())+","
                 +(IsBypass(band) ? "on" : "off")
                 +"]";
             Form1->SendCmd(cmd_text);
