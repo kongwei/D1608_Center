@@ -507,7 +507,6 @@ __published:	// IDE-managed Components
     TButton *btnDebugInfoEx;
     TMemo *memo_debug_ex;
     TPanel *Panel2;
-    TComboBox *cbDebugCmd;
     TLabel *lblKeepLiveCheck;
     TLabel *Label17;
     TSpeedButtonNoFrame *SpeedButtonNoFrame1;
@@ -515,6 +514,10 @@ __published:	// IDE-managed Components
     TRadioGroup *rgLedTest;
     TCheckBox *cbUsart1ReceiveAck;
     TCheckBox *cbUsart3ReceiveAck;
+    TButton *btnStopDebugInfoEx;
+    TButton *Button2;
+    TButton *Button3;
+    TEdit *edtDebufExPort;
     void __fastcall FormCreate(TObject *Sender);
     void __fastcall btnRefreshClick(TObject *Sender);
     void __fastcall udpSLPUDPRead(TObject *Sender, TStream *AData,
@@ -693,12 +696,15 @@ __published:	// IDE-managed Components
     void __fastcall lblKeepLiveCheckDblClick(TObject *Sender);
     void __fastcall lvLogData(TObject *Sender, TListItem *Item);
     void __fastcall output_panel_level_editEnter(TObject *Sender);
-    void __fastcall cbDebugCmdChange(TObject *Sender);
     void __fastcall edtSelectAllAndCopy(TObject *Sender);
     void __fastcall SpeedButtonNoFrame1Click(TObject *Sender);
     void __fastcall rgLedTestClick(TObject *Sender);
     void __fastcall cbUsart1ReceiveAckClick(TObject *Sender);
     void __fastcall cbUsart3ReceiveAckClick(TObject *Sender);
+    void __fastcall btnDebugInfoExClick(TObject *Sender);
+    void __fastcall btnStopDebugInfoExClick(TObject *Sender);
+    void __fastcall Button2Click(TObject *Sender);
+    void __fastcall Button3Click(TObject *Sender);
 private:
     TIdUDPServer * udpSLPList[3];
 private:

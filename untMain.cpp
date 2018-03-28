@@ -1921,9 +1921,23 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
         AData->ReadBuffer(&debug_cmd, std::min(sizeof(debug_cmd), AData->Size));
 
         String windows_string = debug_cmd.debug_cmd;
-        windows_string = StringReplace(windows_string, "\n", "\r\n", TReplaceFlags()<<rfReplaceAll<<rfIgnoreCase);
+        int len = windows_string.Length();        
+        if (windows_string[len] == '\n')
+        {
+            windows_string.SetLength(len-1);
+        }
 
-        memo_debug_ex->Text = windows_string;
+        if (memo_debug_ex->Lines->Count == 0)
+        {
+            windows_string = StringReplace(windows_string, "\n", "\r\n", TReplaceFlags()<<rfReplaceAll<<rfIgnoreCase);
+        }
+        else
+        {
+            int index = windows_string.Pos("\n");
+            windows_string = windows_string.SubString(index+1, windows_string.Length());
+        }
+
+        memo_debug_ex->Lines->Add(windows_string);
     }
     else if (ABinding->PeerPort == UDP_PORT_CONTROL)
     {
@@ -5313,8 +5327,14 @@ void __fastcall TForm1::cbCompAutoTimeClick(TObject *Sender)
 {
     TCheckBox* check_box = (TCheckBox*)Sender;
     int dsp_num = check_box->Parent->Parent->Tag;
+    dsp_num -= 100;
 
-    config_map.output_dsp[dsp_num-101].auto_time = check_box->Checked;
+    if (cbCompAutoTime->Checked == config_map.output_dsp[dsp_num-1].auto_time)
+    {
+        return;
+    }
+
+    config_map.output_dsp[dsp_num].auto_time = check_box->Checked;
 
     String cmd_text = D1608CMD_FLAG;
     cmd_text = cmd_text+ "output<"+IntToStr(dsp_num)+">.auto_comp="+(cbCompAutoTime->Checked?"on":"off");
@@ -5331,8 +5351,8 @@ void __fastcall TForm1::cbCompAutoTimeClick(TObject *Sender)
     {
         edtCompReleaseTime->Enabled = true;
         edtCompAttackTime->Enabled = true;
-        edtCompAttackTime->Text = config_map.output_dsp[dsp_num-101].attack_time/10.0;
-        edtCompReleaseTime->Text = config_map.output_dsp[dsp_num-101].release_time/10.0;
+        edtCompAttackTime->Text = config_map.output_dsp[dsp_num].attack_time/10.0;
+        edtCompReleaseTime->Text = config_map.output_dsp[dsp_num].release_time/10.0;
     }
 }
 //---------------------------------------------------------------------------
@@ -7119,14 +7139,6 @@ void __fastcall TForm1::output_panel_level_editEnter(TObject *Sender)
     edt->SelectAll();
 }
 //---------------------------------------------------------------------------
-void __fastcall TForm1::cbDebugCmdChange(TObject *Sender)
-{
-    String cmd_text = DEBUG_FLAG;
-    cmd_text = cmd_text+"probe=mainloop";
-    SendCmd2(cmd_text+D1608CMD_TAIL);
-    //SendBuffer(dst_ip, UDP_PORT_GET_DEBUG_INFO_EX, "", 1);
-}
-//---------------------------------------------------------------------------
 void __fastcall TForm1::edtSelectAllAndCopy(TObject *Sender)
 {
     TEdit * edt = (TEdit*)Sender;
@@ -7203,6 +7215,31 @@ void __fastcall TForm1::cbUsart3ReceiveAckClick(TObject *Sender)
     SendCmd2(cmd_text+D1608CMD_TAIL);
 }
 //---------------------------------------------------------------------------
-
-
+void __fastcall TForm1::btnDebugInfoExClick(TObject *Sender)
+{
+    String cmd_text = DEBUG_FLAG;
+    cmd_text = cmd_text+"probe="+edtDebufExPort->Text;
+    SendCmd2(cmd_text+D1608CMD_TAIL);
+    //SendBuffer(dst_ip, UDP_PORT_GET_DEBUG_INFO_EX, "", 1);
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::btnStopDebugInfoExClick(TObject *Sender)
+{
+    String cmd_text = DEBUG_FLAG;
+    cmd_text = cmd_text+"probe=stop";
+    SendCmd2(cmd_text+D1608CMD_TAIL);
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::Button2Click(TObject *Sender)
+{
+    memo_debug_ex->SelectAll();
+    memo_debug_ex->CopyToClipboard();
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::Button3Click(TObject *Sender)
+{
+    memo_debug_ex->SelectAll();
+    memo_debug_ex->CutToClipboard();
+}
+//---------------------------------------------------------------------------
 
