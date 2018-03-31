@@ -7172,6 +7172,7 @@ void __fastcall TForm1::rgLedTestClick(TObject *Sender)
 {
     T_TestLedOled test_led_oled = {0};
     strcpy(test_led_oled.flag, TEST_FLAG);
+    int udp_length = sizeof(test_led_oled);
 
     switch (rgLedTest->ItemIndex)
     {
@@ -7208,13 +7209,14 @@ void __fastcall TForm1::rgLedTestClick(TObject *Sender)
         test_led_oled.led_state.red = 0xaaaaaaaa;
         break;
     default:    // Closed
+        udp_length = 29;
         break;
     }
 
     for (int i=0;i<3;i++)
     {
         if (udpSLPList[i]->Active && udpSLPList[i]->Bindings->Count == 1)
-            udpSLPList[i]->SendBuffer("255.255.255.255", UDP_PORT_SET_LED_OLED_DEBUG, &test_led_oled, sizeof(test_led_oled));
+            udpSLPList[i]->SendBuffer("255.255.255.255", UDP_PORT_SET_LED_OLED_DEBUG, &test_led_oled, udp_length);
     }
 }
 //---------------------------------------------------------------------------
