@@ -1880,7 +1880,14 @@ void TForm1::ProcessPackageMessageFeedback(char * data)
                 for (UINT cmd_index=0; cmd_index<cmd_id_list.size(); cmd_index++)
                 {
                     int cmd_id = cmd_id_list[cmd_index];
-                    OnFeedbackData(cmd_id);
+                    if (cmd_id < 0)
+                    {
+                        ApplyConfigToUI();
+                    }
+                    else
+                    {
+                        OnFeedbackData(cmd_id);
+                    }
                 }
             }
         }
@@ -4858,7 +4865,7 @@ void __fastcall TForm1::clbAvaliablePresetClickCheck(TObject *Sender)
             global_config.avaliable_preset[i] =  clbAvaliablePreset->Checked[i];
 
             String cmd_text = D1608CMD_CONTROL_FLAG;
-            cmd_text = cmd_text+"config.avaliable_preset<"+IntToStr(i+1)+"]="+(clbAvaliablePreset->Checked[i]?"on":"off");
+            cmd_text = cmd_text+"config.avaliable_preset<"+IntToStr(i+1)+">="+(clbAvaliablePreset->Checked[i]?"on":"off");
             SendCmd2(cmd_text+D1608CMD_TAIL);
         }
     }
