@@ -580,9 +580,6 @@ __published:	// IDE-managed Components
     void __fastcall input_panel_trackbarExit(TObject *Sender);
     void __fastcall master_panel_level_editKeyDown(TObject *Sender,
           WORD &Key, TShiftState Shift);
-    void __fastcall FormClick(TObject *Sender);
-    void __fastcall FormMouseDown(TObject *Sender, TMouseButton Button,
-          TShiftState Shift, int X, int Y);
     void __fastcall pnlmix_level_trackbarChange(TObject *Sender);
     void __fastcall pnlmix_level_editKeyDown(TObject *Sender, WORD &Key,
           TShiftState Shift);

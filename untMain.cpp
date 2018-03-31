@@ -3445,6 +3445,8 @@ void __fastcall TForm1::ToggleDSP(TObject *Sender)
             edtCompThreshold->Text = config_map.output_dsp[dsp_num-1].threshold/10.0;
             edtCompGain->Text = config_map.output_dsp[dsp_num-1].comp_gain/10.0;
             cbCompAutoTime->Checked = config_map.output_dsp[dsp_num-1].auto_time;
+            edtCompAttackTime->Text = config_map.output_dsp[dsp_num-1].attack_time/attack_config.scale;
+            edtCompReleaseTime->Text = config_map.output_dsp[dsp_num-1].release_time/release_config.scale;
 
             if (GetVersionConfig().is_comp)
             {
@@ -4057,17 +4059,6 @@ void __fastcall TForm1::input_panel_trackbarExit(TObject *Sender)
 {
     TAdvTrackBar * trackbar = (TAdvTrackBar*)Sender;
     trackbar->Thumb->Picture = trackbar->Thumb->PictureDown;
-}
-//---------------------------------------------------------------------------
-void __fastcall TForm1::FormClick(TObject *Sender)
-{
-    //
-}
-//---------------------------------------------------------------------------
-void __fastcall TForm1::FormMouseDown(TObject *Sender, TMouseButton Button,
-      TShiftState Shift, int X, int Y)
-{
-    //
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::pnlmix_level_trackbarChange(TObject *Sender)
@@ -5263,7 +5254,7 @@ void __fastcall TForm1::edtCompAttackTimeKeyDown(TObject *Sender,
                 config_map.output_dsp[dsp_num-1].attack_time = attack_config.min_value;
             
             String cmd_text = D1608CMD_FLAG;
-            cmd_text = cmd_text+"output<"+IntToStr(dsp_num)+">.comp.attack_time="+edtCompAttackTime->Text;
+            cmd_text = cmd_text+"output<"+IntToStr(dsp_num)+">.comp.attack_time="+edtCompAttackTime->Text+"ms";
             SendCmd(cmd_text+D1608CMD_TAIL);
         }
         catch(...)
@@ -5302,7 +5293,7 @@ void __fastcall TForm1::edtCompReleaseTimeKeyDown(TObject *Sender,
                 config_map.output_dsp[dsp_num-1].release_time = release_config.min_value;
             
             String cmd_text = D1608CMD_FLAG;
-            cmd_text = cmd_text+"output<"+IntToStr(dsp_num)+">.comp.release_time="+edtCompReleaseTime->Text;
+            cmd_text = cmd_text+"output<"+IntToStr(dsp_num)+">.comp.release_time="+edtCompReleaseTime->Text+"ms";
             SendCmd(cmd_text+D1608CMD_TAIL);
         }
         catch(...)
@@ -5360,9 +5351,9 @@ void __fastcall TForm1::cbCompAutoTimeClick(TObject *Sender)
 {
     TCheckBox* check_box = (TCheckBox*)Sender;
     int dsp_num = check_box->Parent->Parent->Tag;
-    dsp_num -= 100;
+    dsp_num -= 101;
 
-    if (cbCompAutoTime->Checked == config_map.output_dsp[dsp_num-1].auto_time)
+    if (cbCompAutoTime->Checked == config_map.output_dsp[dsp_num].auto_time)
     {
         return;
     }
@@ -5370,7 +5361,7 @@ void __fastcall TForm1::cbCompAutoTimeClick(TObject *Sender)
     config_map.output_dsp[dsp_num].auto_time = check_box->Checked;
 
     String cmd_text = D1608CMD_FLAG;
-    cmd_text = cmd_text+ "output<"+IntToStr(dsp_num)+">.auto_comp="+(cbCompAutoTime->Checked?"on":"off");
+    cmd_text = cmd_text+ "output<"+IntToStr(dsp_num+1)+">.auto_comp="+(cbCompAutoTime->Checked?"on":"off");
     SendCmd(cmd_text+D1608CMD_TAIL);
 
     if (cbCompAutoTime->Checked)
@@ -5384,8 +5375,8 @@ void __fastcall TForm1::cbCompAutoTimeClick(TObject *Sender)
     {
         edtCompReleaseTime->Enabled = true;
         edtCompAttackTime->Enabled = true;
-        edtCompAttackTime->Text = config_map.output_dsp[dsp_num].attack_time/10.0;
-        edtCompReleaseTime->Text = config_map.output_dsp[dsp_num].release_time/10.0;
+        edtCompAttackTime->Text = config_map.output_dsp[dsp_num].attack_time/attack_config.scale;
+        edtCompReleaseTime->Text = config_map.output_dsp[dsp_num].release_time/release_config.scale;
     }
 }
 //---------------------------------------------------------------------------
