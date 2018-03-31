@@ -1860,6 +1860,13 @@ void TForm1::ProcessPackageMessageFeedback(char * data)
                 {
                     TPackage package = sendcmd_list.back();
                     String package_cmd = (char*)package.data;
+                    // replay已经删除 'NJLS_SMC|xxxx|' , package_cmd也需要删除
+                        int h1_pos = String(package_cmd).Pos("|");
+                        package_cmd = package_cmd.SubString(h1_pos+1, package_cmd.Length());
+                        int h2_pos = String(package_cmd).Pos("|");
+                        package_cmd = package_cmd.SubString(h2_pos+1, package_cmd.Length());
+                        package_cmd = "[" + package_cmd;
+
                     if (GetTextCmdVar(text_syn_msg[i].text_cmd) == GetTextCmdVar(package_cmd))
                         continue;
                 }
