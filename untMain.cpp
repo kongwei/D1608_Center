@@ -976,6 +976,8 @@ __fastcall TForm1::~TForm1()
     // 给原先的设备发送断链消息
     SendDisconnect();
 
+    ReleaseSemaphore(h_sem, 1, NULL);
+
     for (int i=0;i<lvDevice->Items->Count;i++)
     {
         TListItem * item = lvDevice->Items->Item[i];
@@ -1167,7 +1169,7 @@ void __fastcall TForm1::FormCreate(TObject *Sender)
     else
     {
         // 最多开4个
-        HANDLE h_sem = CreateSemaphore(NULL, 4, 4, "MATRIX");
+        h_sem = CreateSemaphore(NULL, 4, 4, "MATRIX");
         if (WaitForSingleObject(h_sem, 1) != WAIT_OBJECT_0)
         {
             ShowMessage("最多只能打开 4 个上位机");

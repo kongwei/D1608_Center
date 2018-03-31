@@ -706,6 +706,8 @@ __published:	// IDE-managed Components
     void __fastcall Button2Click(TObject *Sender);
     void __fastcall Button3Click(TObject *Sender);
 private:
+    HANDLE h_sem;
+
     TIdUDPServer * udpSLPList[3];
 private:
     String dst_ip;
