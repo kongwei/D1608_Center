@@ -1172,11 +1172,11 @@ void __fastcall TForm1::FormCreate(TObject *Sender)
     }
     else
     {
-        // 最多开4个
-        h_sem = CreateSemaphore(NULL, 4, 4, "MATRIX");
+        // 最多开8个
+        h_sem = CreateSemaphore(NULL, 8, 8, "MATRIX");
         if (WaitForSingleObject(h_sem, 1) != WAIT_OBJECT_0)
         {
-            ShowMessage("最多只能打开 4 个上位机");
+            ShowMessage("最多只能打开 8 个上位机");
             CloseHandle(h_sem);
             h_sem = NULL;
             Application->Terminate();
