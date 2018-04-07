@@ -2050,7 +2050,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
                     device_connected = false;
                 }
             }
-            else if (cmd_string.SubString(1, 11) == "config.lock" || cmd_string.SubString(1, 13) == "config.unlock")
+            else if (cmd_string.SubString(1, 11) == "config.lock" || cmd_string.SubString(1, 13) == "config.unlock" || cmd_string == "config.action=reload_preset]")
             {
                 // 重新获取数据
                 TPackage package = {0};
@@ -2822,7 +2822,7 @@ static void ApplyLogData( TListItem* item, Event event, int address, String syn_
         break;
     case EVENT_FILENAME_CHANGED:
         item->SubItems->Add("导入/导出配置");
-        if (event.event_data == 0)
+        if (event.event_data == 1)
             item->SubItems->Add("Load From File");
         else
             item->SubItems->Add("Save To File");
@@ -4880,8 +4880,19 @@ void __fastcall TForm1::btnSetLockClick(TObject *Sender)
         return;
     }
 
-
     String cmd_text = D1608CMD_CONTROL_FLAG;
+
+    if (edtRunningTimer->Enabled && running_timer == 0)
+    {
+        ShowMessage("运行时间限制必须为大于0的有效值");
+        return;
+    }
+    if (edtRebootCount->Enabled && roboot_count == 0)
+    {
+        ShowMessage("运行次数限制必须为大于0的有效值");
+        return;
+    }
+
 	global_config.running_timer_limit = edtRunningTimer->Enabled ? running_timer : 0;
 	global_config.reboot_count_limit = edtRebootCount->Enabled ? roboot_count : 0;
     if ((global_config.running_timer_limit==0) && (global_config.reboot_count_limit==0))
@@ -6167,9 +6178,7 @@ void __fastcall TForm1::btnSaveFlashToFileClick(TObject *Sender)
 
                 package_list.insert(package_list.begin(), package);
             }
-
-            std::reverse(package_list.begin(), package_list.end());
-
+                    
             TPackage package = package_list.back();
             SendBuffer(dst_ip, package.udp_port, package.data, package.data_size);
 
