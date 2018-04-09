@@ -998,6 +998,7 @@ private:
     int broken_count;
     int send_keeplive_count;
     int recv_keeplive_count;
+    int slp_count;
     TTime last_keeplive_time;
 
     void CloseControlLink(String reason);

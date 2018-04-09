@@ -159,7 +159,7 @@ void LoadPresetById(int preset_id, ConfigMap& tmp_config_map, unsigned char* fla
                 input_dict->length * sizeof(OlaInfo);
         for (int i=0;i<8;i++)
         {
-            ReadIODspMem(tmp_config_map.input_dsp + i,
+            ReadIODspMem((char*)(tmp_config_map.input_dsp + i),
                 input_data_base + i*input_dict->struct_length,
                 input_dict,
                 (OlaList*)&input_dsp_ola_list);
@@ -174,7 +174,7 @@ void LoadPresetById(int preset_id, ConfigMap& tmp_config_map, unsigned char* fla
                 input_dict->length * sizeof(OlaInfo);
         for (int i=0;i<8;i++)
         {
-            ReadIODspMem(tmp_config_map.input_dsp + i + 8,
+            ReadIODspMem((char*)(tmp_config_map.input_dsp + i + 8),
                 input_data_base + i*input_dict->struct_length,
                 input_dict,
                 (OlaList*)&input_dsp_ola_list);
@@ -182,13 +182,35 @@ void LoadPresetById(int preset_id, ConfigMap& tmp_config_map, unsigned char* fla
     }
 	// output
 	if (using_page.preset_address[preset_id-1][2] != 0)
-		memcpy(&tmp_config_map.output_dsp[0],
-			(char*)using_page.preset_address[preset_id-1][2]+sizeof(Page_Header),
-			sizeof(config_map.output_dsp[0])*8);
+    {
+        const OlaList * output_dict = (OlaList*)(using_page.preset_address[preset_id-1][2]+sizeof(Page_Header));
+        char * output_data_base = (char*)output_dict +
+                sizeof(output_dict->length) +
+                sizeof(output_dict->struct_length) +
+                output_dict->length * sizeof(OlaInfo);
+        for (int i=0;i<8;i++)
+        {
+            ReadIODspMem((char*)(tmp_config_map.output_dsp + i),
+                output_data_base + i*output_dict->struct_length,
+                output_dict,
+                (OlaList*)&output_dsp_ola_list);
+        }
+    }
 	if (using_page.preset_address[preset_id-1][3] != 0)
-		memcpy(&tmp_config_map.output_dsp[8],
-			(char*)using_page.preset_address[preset_id-1][3]+sizeof(Page_Header),
-			sizeof(config_map.output_dsp[0])*8);
+    {
+        const OlaList * output_dict = (OlaList*)(using_page.preset_address[preset_id-1][3]+sizeof(Page_Header));
+        char * output_data_base = (char*)output_dict +
+                sizeof(output_dict->length) +
+                sizeof(output_dict->struct_length) +
+                output_dict->length * sizeof(OlaInfo);
+        for (int i=0;i<8;i++)
+        {
+            ReadIODspMem((char*)(tmp_config_map.output_dsp + i + 8),
+                output_data_base + i*output_dict->struct_length,
+                output_dict,
+                (OlaList*)&output_dsp_ola_list);
+        }
+    }
 }
 
 static void ResetGlobalConfig(GlobalConfig& global_config)
@@ -331,7 +353,7 @@ const InputOlaList input_dsp_ola_list =
 	},
 };
 
-void ReadIODspMem(InputConfigMap * dst, char * src, const OlaList * dst_ola_list, const OlaList * src_ola_list)
+void ReadIODspMem(char * dst, char * src, const OlaList * dst_ola_list, const OlaList * src_ola_list)
 {
 	int i;
 	int max_length = src_ola_list->length;
@@ -354,19 +376,20 @@ void ReadIODspMem(InputConfigMap * dst, char * src, const OlaList * dst_ola_list
 		{
 			if (src_ola_info.type_length == TypeFilterConfigMap)
 			{
-				memcpy(((char*)dst)+dst_ola_info.offset, src+src_ola_info.offset, sizeof(FilterConfigMap)*dst_ola_info.array_length);
+				memcpy(dst+dst_ola_info.offset, src+src_ola_info.offset, sizeof(FilterConfigMap)*dst_ola_info.array_length);
 			}
 			else
 			{
-				memcpy(((char*)dst)+dst_ola_info.offset, src+src_ola_info.offset, dst_ola_info.type_length*dst_ola_info.array_length);
+				memcpy(dst+dst_ola_info.offset, src+src_ola_info.offset, dst_ola_info.type_length*dst_ola_info.array_length);
 			}
 		}
 	}
 };
 
-const OutputOlaList output_dsp_ola_info =
+const OutputOlaList output_dsp_ola_list =
 {
 	18,
+    sizeof(OutputConfigMap),
 	{
 		{offsetof(OutputConfigMap, eq_switch), sizeof(unsigned char), 1},
 		{offsetof(OutputConfigMap, comp_switch), sizeof(unsigned char), 1},

@@ -1472,6 +1472,8 @@ void __fastcall TForm1::btnRefreshClick(TObject *Sender)
 void __fastcall TForm1::udpSLPUDPRead(TObject *Sender,
       TStream *AData, TIdSocketHandle *ABinding)
 {
+    slp_count++;
+
     T_slp_pack_Ex slp_pack = {0};
     AData->ReadBuffer(&slp_pack, std::min(sizeof(slp_pack), AData->Size));
 
@@ -1988,7 +1990,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
         {
             static int last_diff = 0;
             recv_keeplive_count++;
-            lblKeepLiveCheck->Caption = "发出："+IntToStr(send_keeplive_count)+" 接收："+IntToStr(recv_keeplive_count)+" 差值："+IntToStr(send_keeplive_count-recv_keeplive_count)+" 断开链路次数:"+IntToStr(broken_count);
+            lblKeepLiveCheck->Caption = "发出："+IntToStr(send_keeplive_count)+" 接收："+IntToStr(recv_keeplive_count)+" 差值："+IntToStr(send_keeplive_count-recv_keeplive_count)+" 断开链路次数:"+IntToStr(broken_count)+" 保活收到次数："+IntToStr(slp_count);
             if (send_keeplive_count-recv_keeplive_count != last_diff)
             {
                 memo_debug->Lines->Add(GetTime()+"保活序号差值变化:"+IntToStr(last_diff)+" -> "+IntToStr(send_keeplive_count-recv_keeplive_count));
@@ -2246,21 +2248,6 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             {
             case 0:
             case 1:
-                {
-                    const OlaList * input_dict = (const OlaList *)preset_cmd.data;
-                    char * input_data_base = (char*)input_dict +
-                            sizeof(input_dict->length) +
-                            sizeof(input_dict->struct_length) +
-                            input_dict->length * sizeof(OlaInfo);
-                    for (int i=0;i<4;i++)
-                    {
-                        ReadIODspMem(dest_config_map->input_dsp + i + preset_cmd.store_page*4,
-                            input_data_base + i*input_dict->struct_length,
-                            (OlaList*)&input_dsp_ola_list,
-                            input_dict);
-                    }
-                    break;
-                }
             case 2:
             case 3:
                 {
@@ -2271,7 +2258,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
                             input_dict->length * sizeof(OlaInfo);
                     for (int i=0;i<4;i++)
                     {
-                        ReadIODspMem(dest_config_map->input_dsp + i + preset_cmd.store_page*4,
+                        ReadIODspMem((char*)(dest_config_map->input_dsp + i + preset_cmd.store_page*4),
                             input_data_base + i*input_dict->struct_length,
                             (OlaList*)&input_dsp_ola_list,
                             input_dict);
@@ -2279,17 +2266,24 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
                     break;
                 }
             case 4:
-                memcpy(&dest_config_map->output_dsp[0],preset_cmd.data,  sizeof(config_map.output_dsp[0])*4);
-                break;
             case 5:
-                memcpy(&dest_config_map->output_dsp[4],preset_cmd.data,  sizeof(config_map.output_dsp[0])*4);
-                break;
             case 6:
-                memcpy(&dest_config_map->output_dsp[8],preset_cmd.data,  sizeof(config_map.output_dsp[0])*4);
-                break;
             case 7:
-                memcpy(&dest_config_map->output_dsp[12], preset_cmd.data, sizeof(config_map.output_dsp[0])*4);
-                break;
+                {
+                    const OlaList * output_dict = (const OlaList *)preset_cmd.data;
+                    char * output_data_base = (char*)output_dict +
+                            sizeof(output_dict->length) +
+                            sizeof(output_dict->struct_length) +
+                            output_dict->length * sizeof(OlaInfo);
+                    for (int i=0;i<4;i++)
+                    {
+                        ReadIODspMem((char*)(dest_config_map->output_dsp + i + (preset_cmd.store_page-4)*4),
+                            output_data_base + i*output_dict->struct_length,
+                            (OlaList*)&output_dsp_ola_list,
+                            output_dict);
+                    }
+                    break;
+                }
             }
         }
 
@@ -6337,66 +6331,39 @@ void __fastcall TForm1::btnLoadFileToFlashClick(TObject *Sender)
                     switch(preset_cmd.store_page)
                     {
                     case 0:
-                    {
-                        const OlaList * input_dict = (const OlaList *)(using_page.preset_address[preset_id][0]+sizeof(Page_Header));
-                        int input_dict_size = 
-                                sizeof(input_dict->length) +
-                                sizeof(input_dict->struct_length) +
-                                input_dict->length * sizeof(OlaInfo);
-
-                        //memcpy(preset_cmd.data, input_dict, input_dict_size + input_dict->struct_length*4);
-                        memcpy(preset_cmd.data, input_dict, input_dict_size);
-                        memcpy(preset_cmd.data+input_dict_size, ((char*)input_dict)+input_dict_size, input_dict->struct_length*4);
-                        break;
-                    }
                     case 1:
-                    {
-                        const OlaList * input_dict = (const OlaList *)(using_page.preset_address[preset_id][0]+sizeof(Page_Header));
-                        int input_dict_size = 
-                                sizeof(input_dict->length) +
-                                sizeof(input_dict->struct_length) +
-                                input_dict->length * sizeof(OlaInfo);
-
-                        memmove(preset_cmd.data, input_dict, input_dict_size);
-                        memcpy(preset_cmd.data+input_dict_size, ((char*)input_dict)+input_dict_size+input_dict->struct_length*4, input_dict->struct_length*4);
-                        break;
-                    }
                     case 2:
-                    {
-                        const OlaList * input_dict = (const OlaList *)(using_page.preset_address[preset_id][1]+sizeof(Page_Header));
-                        int input_dict_size = 
-                                sizeof(input_dict->length) +
-                                sizeof(input_dict->struct_length) +
-                                input_dict->length * sizeof(OlaInfo);
-
-                        memcpy(preset_cmd.data, input_dict, input_dict_size);
-                        memcpy(preset_cmd.data+input_dict_size, ((char*)input_dict)+input_dict_size, input_dict->struct_length*4);
-                        break;
-                    }
                     case 3:
-                    {
-                        const OlaList * input_dict = (const OlaList *)(using_page.preset_address[preset_id][1]+sizeof(Page_Header));
-                        int input_dict_size = 
-                                sizeof(input_dict->length) +
-                                sizeof(input_dict->struct_length) +
-                                input_dict->length * sizeof(OlaInfo);
+                        {
+                            const OlaList * input_dict = (const OlaList *)(using_page.preset_address[preset_id][preset_cmd.store_page/2]+sizeof(Page_Header));
+                            int input_dict_size = 
+                                    sizeof(input_dict->length) +
+                                    sizeof(input_dict->struct_length) +
+                                    input_dict->length * sizeof(OlaInfo);
 
-                        memcpy(preset_cmd.data, input_dict, input_dict_size);
-                        memcpy(preset_cmd.data+input_dict_size, ((char*)input_dict)+input_dict_size+input_dict->struct_length*4, input_dict->struct_length*4);
-                        break;
-                    }
+                            memcpy(preset_cmd.data, input_dict, input_dict_size);
+                            memcpy(preset_cmd.data+input_dict_size,
+                                   ((char*)input_dict)+ input_dict_size + ((preset_cmd.store_page%2==0) ? 0 : input_dict->struct_length*4),
+                                   input_dict->struct_length*4);
+                            break;
+                        }
                     case 4:
-                        memcpy(preset_cmd.data, (char*)(using_page.preset_address[preset_id][2]+sizeof(Page_Header)), sizeof(OutputConfigMap)*4);
-                        break;
                     case 5:
-                        memcpy(preset_cmd.data, (char*)(using_page.preset_address[preset_id][2]+sizeof(Page_Header))+sizeof(OutputConfigMap)*4, sizeof(OutputConfigMap)*4);
-                        break;
                     case 6:
-                        memcpy(preset_cmd.data, (char*)(using_page.preset_address[preset_id][3]+sizeof(Page_Header)), sizeof(OutputConfigMap)*4);
-                        break;
                     case 7:
-                        memcpy(preset_cmd.data, (char*)(using_page.preset_address[preset_id][3]+sizeof(Page_Header))+sizeof(OutputConfigMap)*4, sizeof(OutputConfigMap)*4);
-                        break;
+                        {
+                            const OlaList * output_dict = (const OlaList *)(using_page.preset_address[preset_id][preset_cmd.store_page/2]+sizeof(Page_Header));
+                            int output_dict_size = 
+                                    sizeof(output_dict->length) +
+                                    sizeof(output_dict->struct_length) +
+                                    output_dict->length * sizeof(OlaInfo);
+
+                            memcpy(preset_cmd.data, output_dict, output_dict_size);
+                            memcpy(preset_cmd.data+output_dict_size,
+                                   ((char*)output_dict)+ output_dict_size+ ((preset_cmd.store_page%2==0) ? 0 : output_dict->struct_length*4),
+                                   output_dict->struct_length*4);
+                            break;
+                        }
                     }
                     preset_cmd.verify -= UdpPackageVerifyDiff((unsigned char*)&preset_cmd, sizeof(preset_cmd));
 
@@ -7134,6 +7101,7 @@ void __fastcall TForm1::lblKeepLiveCheckDblClick(TObject *Sender)
     broken_count = 0;
     send_keeplive_count = 0;
     recv_keeplive_count = 0;
+    slp_count = 0;
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::lvLogData(TObject *Sender, TListItem *Item)

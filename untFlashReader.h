@@ -39,12 +39,13 @@ typedef struct
 typedef struct
 {
 	int length;		// 结构体总长度
+	int struct_length;
 	OlaInfo ola_info[18];	// 数据
 }OutputOlaList;
 
 extern const InputOlaList input_dsp_ola_list;
-extern const OutputOlaList output_dsp_ola_info;
-void ReadIODspMem(InputConfigMap * dst, char * src, const OlaList * dst_ola_list, const OlaList * src_ola_list);
+extern const OutputOlaList output_dsp_ola_list;
+void ReadIODspMem(char * dst, char * src, const OlaList * dst_ola_list, const OlaList * src_ola_list);
 
 
 
