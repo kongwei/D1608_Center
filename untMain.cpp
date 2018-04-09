@@ -1606,17 +1606,10 @@ void __fastcall TForm1::btnSelectClick(TObject *Sender)
     strcpy(preset_cmd.flag, D1608PRESETCMD_LINK_FLAG);
     preset_cmd.preset = 0; // 读取global_config
     memcpy(package.data, &preset_cmd, offsetof(D1608PresetCmd, data));
-    package.data_size = offsetof(D1608PresetCmd, data);
+    package.data_size = offsetof(D1608PresetCmd, data);                               
     read_one_preset_package_list.insert(read_one_preset_package_list.begin(), package);
     if (read_one_preset_package_list.size() == 1)
         SendBuffer(dst_ip, package.udp_port, package.data, package.data_size);
-
-    // 发送上位机时间, 单位100ms, 从2000年1月1日开始计算
-#if 0
-    double diffx = TDate(2099,1,1)-TDate(2000,1,1);
-    diffx = diffx * 24 * 3600 * 10;
-    assert(diffx < 0x7FFFFFFFFFFFFFFF);
-#endif
 
     pnlOperator->Show();
     pnlDspDetail->Hide();
@@ -4368,9 +4361,17 @@ void __fastcall TForm1::ApplyConfigToUI()
         edtLockedString->Text = global_config.locked_string;
     }
 
+    edtDeviceName->Text = global_config.d1616_name;
+
+    cbGlobalDspName->Checked = ((global_config.is_global_name == 1) || (global_config.is_global_name == 0xFF));
+
     cbMenuKeyFunction->ItemIndex = global_config.menu_key_function?global_config.menu_key_function-1:0;
     cbUpKeyFunction->ItemIndex = global_config.up_key_function?global_config.up_key_function-1:1;
     cbDownKeyFunction->ItemIndex = global_config.down_key_function?global_config.down_key_function-1:2;
+
+    cbLedTest->Checked = (global_config.led_test == 1);
+    cbUsart1ReceiveAck->Checked = (global_config.usart1_receive_other_ack == 1);
+    cbUsart3ReceiveAck->Checked = (global_config.usart3_receive_other_ack == 1);
 
     struct in_addr in;
     in.S_un.S_addr = global_config.static_ip_address;
@@ -6040,7 +6041,7 @@ void __fastcall TForm1::Label42Click(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TForm1::cbGlobalDspNameClick(TObject *Sender)
 {
-    ApplyConfigToUI();
+    //ApplyConfigToUI();
 
     String cmd_text = D1608CMD_CONTROL_FLAG;
     cmd_text = cmd_text+String("config.use_global_name=")+(cbGlobalDspName->Checked?"on":"off");
@@ -6423,8 +6424,6 @@ void __fastcall TForm1::btnLoadFileToFlashClick(TObject *Sender)
                 package_list.insert(package_list.begin(), package);
             }
 
-            std::reverse(package_list.begin(), package_list.end());
-            
             TPackage package = package_list.back();
             SendBuffer(dst_ip, package.udp_port, package.data, package.data_size);
 
@@ -6892,8 +6891,6 @@ void TForm1::StartReadCurrentPreset()
 
         read_one_preset_package_list.insert(read_one_preset_package_list.begin(), package);
     }
-
-    reverse(read_one_preset_package_list.begin(), read_one_preset_package_list.end());
 
     TPackage package = read_one_preset_package_list.back();
     SendBuffer(dst_ip, package.udp_port, package.data, package.data_size);
