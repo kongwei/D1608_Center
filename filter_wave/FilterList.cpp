@@ -155,8 +155,8 @@ void FilterSet::SendPeqCmd(int band)
             String cmd_text = D1608CMD_FLAG;
             cmd_text = cmd_text+"input<"+IntToStr(dsp_num)+">.peq<"+IntToStr(band)+">="+
                  GetFilter(band)->GetType()+","
-                +FormatFloat("0.0", GetFilterGain(band))+","
-                +FormatFloat("0.0", GetFilterFreq(band))+","
+                +FormatFloat("0.0", GetFilterGain(band))+"dB,"
+                +FormatFloat("0.0", GetFilterFreq(band))+"Hz,"
                 +FormatFloat("0.0", GetFilter(band)->GetQ())
                 +"]";
             Form1->SendCmd(cmd_text);
@@ -168,8 +168,8 @@ void FilterSet::SendPeqCmd(int band)
             String cmd_text = D1608CMD_FLAG;
             cmd_text = cmd_text+"output<"+IntToStr(dsp_num-100)+">.peq<"+IntToStr(band)+">="+
                  GetFilter(band)->GetType()+","
-                +FormatFloat("0.0", GetFilterGain(band))+","
-                +FormatFloat("0.0", GetFilterFreq(band))+","
+                +FormatFloat("0.0", GetFilterGain(band))+"dB,"
+                +FormatFloat("0.0", GetFilterFreq(band))+"Hz,"
                 +FormatFloat("0.0", GetFilter(band)->GetQ())
                 +"]";
             Form1->SendCmd(cmd_text);

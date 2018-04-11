@@ -981,11 +981,15 @@ private:
             filter_set.SetBypass(HP_FILTER, true);
             filter_set.GetFilter(HP_FILTER)->name = "H";
             filter_set.RepaintPaint(HP_FILTER);
+            filter_set.SendPeqCmd(HP_FILTER);
+            filter_set.SendBypassCmd(HP_FILTER);
 
         filter_set.GetFilter(LP_FILTER)->ChangFilterParameter("12dB_BUTTERWORTH_LOW", preset_freq_list[LP_FILTER-1], 0, 4.09);
             filter_set.SetBypass(LP_FILTER, true);
             filter_set.GetFilter(LP_FILTER)->name = "L";
             filter_set.RepaintPaint(LP_FILTER);
+            filter_set.SendPeqCmd(LP_FILTER);
+            filter_set.SendBypassCmd(LP_FILTER);
     }
 
     void ShowLockConfigArea();

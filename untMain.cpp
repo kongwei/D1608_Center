@@ -3705,17 +3705,23 @@ void __fastcall TForm1::btnDspResetEQClick(TObject *Sender)
         filter_set.GetFilter(i)->name = IntToStr(i-1);
         filter_set.SetBypass(i, false);
         filter_set.RepaintPaint(i);
+        filter_set.SendPeqCmd(i);
+        filter_set.SendBypassCmd(i);
     }
 
     filter_set.GetFilter(HP_FILTER+1)->ChangFilterParameter("LOW_SHELF", preset_freq_list[FIRST_FILTER], 0, 4.09);
         filter_set.GetFilter(HP_FILTER+1)->name = IntToStr(FIRST_FILTER+1-1);
         filter_set.SetBypass(HP_FILTER+1, false);
         filter_set.RepaintPaint(HP_FILTER+1);
+        filter_set.SendPeqCmd(HP_FILTER+1);
+        filter_set.SendBypassCmd(HP_FILTER+1);
 
     filter_set.GetFilter(LP_FILTER-1)->ChangFilterParameter("HIGH_SHELF", preset_freq_list[LP_FILTER-1-1], 0, 4.09);
         filter_set.GetFilter(LP_FILTER-1)->name = IntToStr(LAST_FILTER-1-1);    // name°´ÕÕPEQ±àºÅ
         filter_set.SetBypass(LP_FILTER-1, false);
         filter_set.RepaintPaint(LP_FILTER-1);
+        filter_set.SendPeqCmd(LP_FILTER-1);
+        filter_set.SendBypassCmd(LP_FILTER-1);
 
     // Ñ¹Ëõ²ÎÊý
     edtCompRatio->Text = 1;
