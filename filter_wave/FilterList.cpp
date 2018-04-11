@@ -118,6 +118,16 @@ void FilterSet::RepaintPaint(int band)
         panel_agent_ref->UpdateFreqQGain(band);
     }
 }
+
+static String GetPeqName(int band)
+{
+    // L->1  [1-6]->[2-7] 7->10 H->11
+    //                     0      1       2         3         4         5         6         7        8      9       10       11
+    String peq_name[12] = {"Err", "LPF", "peq<1>", "peq<2>", "peq<3>", "peq<4>", "peq<5>", "peq<6>", "Err", "Err", "peq<7>", "HPF"};
+    if (band < 1 || band > 11)
+        return "Err";
+    return peq_name[band];
+}
 void FilterSet::SendPeqCmd(int band)
 {
     int dsp_num = Form1->pnlDspDetail->Tag;
@@ -153,7 +163,7 @@ void FilterSet::SendPeqCmd(int band)
             config_map.input_dsp[dsp_num-1].filter[band-1] = data_filter;
 
             String cmd_text = D1608CMD_FLAG;
-            cmd_text = cmd_text+"input<"+IntToStr(dsp_num)+">.peq<"+IntToStr(band)+">="
+            cmd_text = cmd_text+"input<"+IntToStr(dsp_num)+">."+GetPeqName(band)+"="
                 +FormatFloat("0.0", GetFilterFreq(band))+"Hz,"
                 +FormatFloat("0.0", GetFilter(band)->GetQ())+","
                 +FormatFloat("0.0", GetFilterGain(band))+"dB,"
@@ -166,7 +176,7 @@ void FilterSet::SendPeqCmd(int band)
             config_map.output_dsp[dsp_num-101].filter[band-1] = data_filter;
 
             String cmd_text = D1608CMD_FLAG;
-            cmd_text = cmd_text+"output<"+IntToStr(dsp_num-100)+">.peq<"+IntToStr(band)+">="
+            cmd_text = cmd_text+"output<"+IntToStr(dsp_num-100)+">."+GetPeqName(band)+"="
                 +FormatFloat("0.0", GetFilterFreq(band))+"Hz,"
                 +FormatFloat("0.0", GetFilter(band)->GetQ())+","
                 +FormatFloat("0.0", GetFilterGain(band))+"dB,"
@@ -212,7 +222,7 @@ void FilterSet::SendBypassCmd(int band)
             config_map.input_dsp[dsp_num-1].filter[band-1] = data_filter;
 
             String cmd_text = D1608CMD_FLAG;
-            cmd_text = cmd_text+"input<"+IntToStr(dsp_num)+">.peq<"+IntToStr(band)+">.bypass="+
+            cmd_text = cmd_text+"input<"+IntToStr(dsp_num)+">."+GetPeqName(band)+".bypass="+
                 (IsBypass(band) ? "on" : "off")
                 +"]";
             Form1->SendCmd(cmd_text);
@@ -222,7 +232,7 @@ void FilterSet::SendBypassCmd(int band)
             config_map.output_dsp[dsp_num-101].filter[band-1] = data_filter;
 
             String cmd_text = D1608CMD_FLAG;
-            cmd_text = cmd_text+"output<"+IntToStr(dsp_num-100)+">.peq<"+IntToStr(band)+">.bypass="+
+            cmd_text = cmd_text+"output<"+IntToStr(dsp_num-100)+">."+GetPeqName(band)+".bypass="+
                 (IsBypass(band) ? "on" : "off")
                 +"]";
             Form1->SendCmd(cmd_text);
