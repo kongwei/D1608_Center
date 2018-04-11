@@ -117,9 +117,10 @@ void FilterSet::RepaintPaint(int band)
     {
         panel_agent_ref->UpdateFreqQGain(band);
     }
-
+}
+void FilterSet::SendPeqCmd(int band)
+{
     int dsp_num = Form1->pnlDspDetail->Tag;
-    //char in_out = Form1->lblDSPInfo->Caption[1];
     if (band == 0)
         band = select_band;
 
@@ -152,12 +153,11 @@ void FilterSet::RepaintPaint(int band)
             config_map.input_dsp[dsp_num-1].filter[band-1] = data_filter;
 
             String cmd_text = D1608CMD_FLAG;
-            cmd_text = cmd_text+"input<"+IntToStr(dsp_num)+">.peq<"+IntToStr(band)+">.TYPE_GAIN_FREQ_Q_bypass="+
+            cmd_text = cmd_text+"input<"+IntToStr(dsp_num)+">.peq<"+IntToStr(band)+">="+
                  GetFilter(band)->GetType()+","
                 +FormatFloat("0.0", GetFilterGain(band))+","
                 +FormatFloat("0.0", GetFilterFreq(band))+","
-                +FormatFloat("0.0", GetFilter(band)->GetQ())+","
-                +(IsBypass(band) ? "on" : "off")
+                +FormatFloat("0.0", GetFilter(band)->GetQ())
                 +"]";
             Form1->SendCmd(cmd_text);
         }
@@ -166,19 +166,69 @@ void FilterSet::RepaintPaint(int band)
             config_map.output_dsp[dsp_num-101].filter[band-1] = data_filter;
 
             String cmd_text = D1608CMD_FLAG;
-            cmd_text = cmd_text+"output<"+IntToStr(dsp_num-100)+">.peq<"+IntToStr(band)+">.TYPE_GAIN_FREQ_Q_bypass="+
+            cmd_text = cmd_text+"output<"+IntToStr(dsp_num-100)+">.peq<"+IntToStr(band)+">="+
                  GetFilter(band)->GetType()+","
                 +FormatFloat("0.0", GetFilterGain(band))+","
                 +FormatFloat("0.0", GetFilterFreq(band))+","
-                +FormatFloat("0.0", GetFilter(band)->GetQ())+","
-                +(IsBypass(band) ? "on" : "off")
+                +FormatFloat("0.0", GetFilter(band)->GetQ())
                 +"]";
             Form1->SendCmd(cmd_text);
 
         }
     }
 }
+void FilterSet::SendBypassCmd(int band)
+{
+    int dsp_num = Form1->pnlDspDetail->Tag;
+    if (band == 0)
+        band = select_band;
 
+    if (band > 0)
+    {
+        // 下发PEQ系数
+        FilterConfigMap data_filter;
+        double tmp;
+
+        data_filter.TYPE = GetFilter(band)->GetTypeId();
+
+        tmp = GetFilterFreq(band)*10;
+        data_filter.FREQ = tmp;
+
+        tmp = GetFilterGain(band)*10;
+        data_filter.GAIN = tmp;
+
+        // TODO: 1940会变成1939？
+        tmp = GetFilter(band)->GetQ()*1000; 
+        data_filter.Q = ((int)tmp)/10;
+
+        tmp = IsBypass(band) ? 1 : 0;  
+        data_filter.bypass = tmp;
+
+        if (dsp_num == 0)
+        {
+        }
+        else if (dsp_num < 100)
+        {
+            config_map.input_dsp[dsp_num-1].filter[band-1] = data_filter;
+
+            String cmd_text = D1608CMD_FLAG;
+            cmd_text = cmd_text+"input<"+IntToStr(dsp_num)+">.peq<"+IntToStr(band)+">.bypass="+
+                (IsBypass(band) ? "on" : "off")
+                +"]";
+            Form1->SendCmd(cmd_text);
+        }
+        else
+        {
+            config_map.output_dsp[dsp_num-101].filter[band-1] = data_filter;
+
+            String cmd_text = D1608CMD_FLAG;
+            cmd_text = cmd_text+"output<"+IntToStr(dsp_num-100)+">.peq<"+IntToStr(band)+">.bypass="+
+                (IsBypass(band) ? "on" : "off")
+                +"]";
+            Form1->SendCmd(cmd_text);
+        }
+    }
+}
 void FilterSet::UpdateCompRatio()
 {
     WORD key = VK_RETURN;

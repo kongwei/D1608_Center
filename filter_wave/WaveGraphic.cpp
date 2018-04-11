@@ -183,6 +183,7 @@ void __fastcall PaintAgent::OnMouseMove(TObject *Sender, TShiftState Shift,
 
         _filter_set.GetFilter(_filter_set.GetActiveBand())->SetFreqGain(freq, gain);
         _filter_set.RepaintPaint(_filter_set.GetActiveBand());
+        _filter_set.SendPeqCmd();
 
         paint_control->Invalidate();
     }
@@ -320,6 +321,7 @@ void __fastcall PaintAgent::OnMouseWheel(TObject *Sender, TShiftState Shift,
         }
         _filter_set.GetFilter(_filter_set.GetActiveBand())->SetQ(current_q);
         _filter_set.RepaintPaint(_filter_set.GetActiveBand());
+        _filter_set.SendPeqCmd();
 
         paint_control->Invalidate();
         Handled = true;

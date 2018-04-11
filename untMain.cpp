@@ -1701,6 +1701,8 @@ void __fastcall TForm1::tmSLPTimer(TObject *Sender)
     }
 
     tmSLP->Enabled = true;
+
+    lblKeepLiveCheck->Caption = "发出："+IntToStr(send_keeplive_count)+" 接收："+IntToStr(recv_keeplive_count)+" 差值："+IntToStr(send_keeplive_count-recv_keeplive_count)+" 断开链路次数:"+IntToStr(broken_count)+" 保活收到次数："+IntToStr(slp_count);
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::InputVolumeChange(TObject *Sender)
@@ -1990,7 +1992,6 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
         {
             static int last_diff = 0;
             recv_keeplive_count++;
-            lblKeepLiveCheck->Caption = "发出："+IntToStr(send_keeplive_count)+" 接收："+IntToStr(recv_keeplive_count)+" 差值："+IntToStr(send_keeplive_count-recv_keeplive_count)+" 断开链路次数:"+IntToStr(broken_count)+" 保活收到次数："+IntToStr(slp_count);
             if (send_keeplive_count-recv_keeplive_count != last_diff)
             {
                 memo_debug->Lines->Add(GetTime()+"保活序号差值变化:"+IntToStr(last_diff)+" -> "+IntToStr(send_keeplive_count-recv_keeplive_count));
