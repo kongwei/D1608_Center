@@ -51,6 +51,14 @@ public:
     {
         return _type;
     }
+    String GetSimpleType() const
+    {
+        if (_type.Pos("_LOW"))
+            return _type.SubString(1, _type.Length()-4);
+        if (_type.Pos("_HIGH"))
+            return _type.SubString(1, _type.Length()-5);
+        return _type;
+    }
     int GetTypeId() const
     {
         return _type_id;

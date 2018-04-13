@@ -121,9 +121,9 @@ void FilterSet::RepaintPaint(int band)
 
 static String GetPeqName(int band)
 {
-    // L->1  [1-6]->[2-7] 7->10 H->11
+    // H->1  [1-6]->[2-7] 7->10 L->11
     //                     0      1       2         3         4         5         6         7        8      9       10       11
-    String peq_name[12] = {"Err", "LPF", "peq<1>", "peq<2>", "peq<3>", "peq<4>", "peq<5>", "peq<6>", "Err", "Err", "peq<7>", "HPF"};
+    String peq_name[12] = {"Err", "HPF", "peq<1>", "peq<2>", "peq<3>", "peq<4>", "peq<5>", "peq<6>", "Err", "Err", "peq<7>", "LPF"};
     if (band < 1 || band > 11)
         return "Err";
     return peq_name[band];
@@ -167,7 +167,7 @@ void FilterSet::SendPeqCmd(int band)
                 +FormatFloat("0.0", GetFilterFreq(band))+"Hz,"
                 +FormatFloat("0.0", GetFilter(band)->GetQ())+","
                 +FormatFloat("0.0", GetFilterGain(band))+"dB,"
-                +GetFilter(band)->GetType()+""
+                +GetFilter(band)->GetSimpleType()+""
                 +"]";
             Form1->SendCmd(cmd_text);
         }
@@ -180,7 +180,7 @@ void FilterSet::SendPeqCmd(int band)
                 +FormatFloat("0.0", GetFilterFreq(band))+"Hz,"
                 +FormatFloat("0.0", GetFilter(band)->GetQ())+","
                 +FormatFloat("0.0", GetFilterGain(band))+"dB,"
-                +GetFilter(band)->GetType()+""
+                +GetFilter(band)->GetSimpleType()+""
                 +"]";
             Form1->SendCmd(cmd_text);
 
