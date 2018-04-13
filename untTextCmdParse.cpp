@@ -12,10 +12,41 @@ extern "C"{
 #include "../enc28j60_iap_app/inc/D1608Pack.h"
 }
 //---------------------------------------------------------------------------
-int TextToInt(char * str, int base)
+static int TextToInt(char * str, int base)
 {
     double ret = atof(str) * base;
-    return ret;
+
+    // double 可能会超过int边界
+    if (ret > INT_MAX)
+    {
+        return INT_MAX;
+    }
+    else if (ret < INT_MIN)
+    {
+        return INT_MIN;
+    }
+    else
+    {
+        return ret;
+    }
+}
+static short TextToShort(char * str, int base)
+{
+    double ret = atof(str) * base;
+
+    // double 可能会超过int边界
+    if (ret > SHRT_MAX)
+    {
+        return SHRT_MAX;
+    }
+    else if (ret < SHRT_MIN)
+    {
+        return SHRT_MIN;
+    }
+    else
+    {
+        return ret;
+    }
 }
 //---------------------------------------------------------------------------
 
@@ -299,7 +330,7 @@ static short StringToVolume(char * str, short min)
 	}
 	else
 	{
-		return TextToInt(str, 10);;
+		return TextToShort(str, 10);;
 	}
 }
 static int IsValidFreq(char * str, short min, short max)
@@ -320,7 +351,7 @@ static int IsValidFreq(char * str, short min, short max)
 }
 static unsigned int StringToFreq(char * str)
 {
-	return atof(str)*10;
+	return TextToInt(str, 10);
 }
 static int IsValidTimeMs(char * str)
 {
@@ -332,9 +363,7 @@ static int IsValidTimeMs(char * str)
 }
 static int StringToTimeMs(char * str, int scale)
 {
-	double time_ms = atof(str);
-	time_ms = time_ms * scale;
-	return time_ms;
+	return TextToInt(str, scale);
 }
 static int IsValidRatio(char * str)
 {
@@ -528,7 +557,7 @@ static int StringToPeq(FilterConfigMap * data_filter, SubStrings * peq_params)
 	// FREQ
 	data_filter->FREQ = StringToFreq(peq_params->sub_strings[0]);// 20Hz ~ 20000Hz
 	// Q
-	data_filter->Q = atof(peq_params->sub_strings[1])*100;
+    data_filter->Q = TextToShort(peq_params->sub_strings[1], 100);
 	// GAIN
 	data_filter->GAIN = StringToVolume(peq_params->sub_strings[2], -300);// 最小-30dB
 	// TYPE
