@@ -5,6 +5,7 @@
 
 #include "FilterList.h"
 #include "untMain.h"
+#include "TextCmdParse.h"
 #include <StdCtrls.hpp>
 //---------------------------------------------------------------------------
 
@@ -161,11 +162,20 @@ void FilterSet::SendPeqCmd(int band)
         else
         {
             String cmd_text = D1608CMD_FLAG;
-            String q_text;
-            if (GetPeqName(band) == HPF_PEG_NAME || GetPeqName(band) == LPF_PEG_NAME)
-                q_text = "NA";
-            else
+            String peg_name = GetPeqName(band);
+            String simple_type = GetFilter(band)->GetSimpleType();
+            
+            String q_text;    
+            if (IsQEnabled(simple_type.c_str(), peg_name.c_str()))
                 q_text = FormatFloat("0.0", GetFilter(band)->GetQ());
+            else
+                q_text = "NA";
+
+            String gain_text;
+            if (IsGainEnabled(simple_type.c_str(), peg_name.c_str()))
+                gain_text = FormatFloat("0.0", GetFilterGain(band))+"dB";
+            else
+                gain_text = "NA";
 
             if (dsp_num < 100)
             {
@@ -174,7 +184,7 @@ void FilterSet::SendPeqCmd(int band)
                 cmd_text = cmd_text+"input<"+IntToStr(dsp_num)+">."+GetPeqName(band)+"="
                     +FormatFloat("0.0", GetFilterFreq(band))+"Hz,"
                     +q_text+","
-                    +FormatFloat("0.0", GetFilterGain(band))+"dB,"
+                    +gain_text+","
                     +GetFilter(band)->GetSimpleType()+""
                     +"]";
             }
@@ -186,7 +196,7 @@ void FilterSet::SendPeqCmd(int band)
                 cmd_text = cmd_text+"output<"+IntToStr(dsp_num-100)+">."+GetPeqName(band)+"="
                     +FormatFloat("0.0", GetFilterFreq(band))+"Hz,"
                     +q_text+","
-                    +FormatFloat("0.0", GetFilterGain(band))+"dB,"
+                    +gain_text+","
                     +GetFilter(band)->GetSimpleType()+""
                     +"]";
             }
@@ -222,29 +232,25 @@ void FilterSet::SendBypassCmd(int band)
         tmp = IsBypass(band) ? 1 : 0;  
         data_filter.bypass = tmp;
 
+        String cmd_text = D1608CMD_FLAG;
         if (dsp_num == 0)
         {
         }
         else if (dsp_num < 100)
         {
             config_map.input_dsp[dsp_num-1].filter[band-1] = data_filter;
-
-            String cmd_text = D1608CMD_FLAG;
             cmd_text = cmd_text+"input<"+IntToStr(dsp_num)+">."+GetPeqName(band)+".bypass="+
                 (IsBypass(band) ? "on" : "off")
                 +"]";
-            Form1->SendCmd(cmd_text);
         }
         else
         {
             config_map.output_dsp[dsp_num-101].filter[band-1] = data_filter;
-
-            String cmd_text = D1608CMD_FLAG;
             cmd_text = cmd_text+"output<"+IntToStr(dsp_num-100)+">."+GetPeqName(band)+".bypass="+
                 (IsBypass(band) ? "on" : "off")
                 +"]";
-            Form1->SendCmd(cmd_text);
         }
+        Form1->SendCmd(cmd_text);
     }
 }
 void FilterSet::UpdateCompRatio()
