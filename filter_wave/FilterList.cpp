@@ -167,7 +167,7 @@ void FilterSet::SendPeqCmd(int band)
             
             String q_text;    
             if (IsQEnabled(simple_type.c_str(), peg_name.c_str()))
-                q_text = FormatFloat("0.0", GetFilter(band)->GetQ());
+                q_text = FormatFloat("0.00", GetFilter(band)->GetQ());
             else
                 q_text = "NA";
 

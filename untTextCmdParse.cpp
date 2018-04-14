@@ -188,10 +188,9 @@ std::vector<UINT> ProcessTextCommand(String command_head)
 
 					// 按照下划线分隔
 					SubStrings peq_params = DivString(result.value, ',');
-                    FilterConfigMap value;
+                    FilterConfigMap value = config_map.input_dsp[input_channel].filter[band];
 					if (StringToPeq(&value, &peq_params, result.vars[1].var_name))
 					{
-                        value.bypass = config_map.input_dsp[input_channel].filter[band].bypass; // 不能改变bypass值
                         config_map.input_dsp[input_channel].filter[band] = value;
 						cmd_id = offsetof(ConfigMap, input_dsp[input_channel].filter[band]);
                         ret.insert(ret.begin(), cmd_id);
@@ -311,7 +310,7 @@ std::vector<UINT> ProcessTextCommand(String command_head)
 
 					// 按照下划线分隔
 					SubStrings peq_params = DivString(result.value, ',');
-                    FilterConfigMap value;
+                    FilterConfigMap value = config_map.output_dsp[output_channel].filter[band];
 					if (StringToPeq(&value, &peq_params, result.vars[1].var_name))
 					{
                         config_map.output_dsp[output_channel].filter[band] = value;
