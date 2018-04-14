@@ -6937,12 +6937,6 @@ void __fastcall TForm1::lvLogAdvancedCustomDrawItem(
 //---------------------------------------------------------------------------
 void __fastcall TForm1::btnDisconnectClick(TObject *Sender)
 {
-
-
-    ProcessTextCommand("[NJLS_SMC|parameter|output<3>.volume=-1811111111111111111111111111111111111111111111111111111111111111111111111111dB]");
-    return;
-
-
     is_manual_disconnect = true;
     TIniFile * ini_file = new TIniFile(ExtractFilePath(Application->ExeName) + "SMC.ini");
     ini_file->WriteBool("connection", "is_disconnect", is_manual_disconnect);

@@ -41,9 +41,7 @@
 #include <TeEngine.hpp>
 #include <TeeProcs.hpp>
 #include "CGAUGES.h"
-extern "C"{
-#include "../enc28j60_iap_app/inc/D1608Pack.h"
-}
+#include "D1608Pack.h"
 #include "untFlashReader.h"
 
 #define UDP_PORT 65518

@@ -4,9 +4,7 @@
 #define untFlashReaderH
 
 #include <vector>
-extern "C"{
-#include "../enc28j60_iap_app/inc/D1608Pack.h"
-}
+#include "D1608Pack.h"
 //---------------------------------------------------------------------------
 using namespace std;
 
