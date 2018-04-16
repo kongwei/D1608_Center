@@ -1206,7 +1206,7 @@ void __fastcall TForm1::FormCreate(TObject *Sender)
     AppendLog(GetTime()+"ConfigMap:" + IntToStr(sizeof(ConfigMap)));
     //AppendLog(GetTime()+"mix_mute:" + IntToStr(sizeof(config_map.master_mix.mix_mute)));
     AppendLog(GetTime()+"NotStorageCmd:" + IntToStr(sizeof(NotStorageCmd)));
-    AppendLog(GetTime()+"GlobalConfig:" + IntToStr(sizeof(GlobalConfig)));     
+    AppendLog(GetTime()+"GlobalConfig:" + IntToStr(sizeof(GlobalConfig)));
 
     // 根据数量初始化控制器
     // Panel->Tag
@@ -5375,6 +5375,8 @@ void __fastcall TForm1::cbCompAutoTimeClick(TObject *Sender)
 
     if (cbCompAutoTime->Checked == config_map.output_dsp[dsp_num].auto_time)
     {
+        edtCompAttackTime->Enabled = !config_map.output_dsp[dsp_num].auto_time;
+        edtCompReleaseTime->Enabled = !config_map.output_dsp[dsp_num].auto_time;
         return;
     }
 

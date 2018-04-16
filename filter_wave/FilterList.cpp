@@ -192,7 +192,6 @@ void FilterSet::SendPeqCmd(int band)
             {
                 config_map.output_dsp[dsp_num-101].filter[band-1] = data_filter;
 
-                String cmd_text = D1608CMD_FLAG;
                 cmd_text = cmd_text+"output<"+IntToStr(dsp_num-100)+">."+GetPeqName(band)+"="
                     +FormatFloat("0.0", GetFilterFreq(band))+"Hz,"
                     +q_text+","
