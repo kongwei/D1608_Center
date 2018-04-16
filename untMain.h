@@ -516,6 +516,7 @@ __published:	// IDE-managed Components
     TButton *Button2;
     TButton *Button3;
     TEdit *edtDebufExPort;
+    TCheckBox *cbLogEnabled;
     void __fastcall FormCreate(TObject *Sender);
     void __fastcall btnRefreshClick(TObject *Sender);
     void __fastcall udpSLPUDPRead(TObject *Sender, TStream *AData,
@@ -1004,6 +1005,14 @@ private:
     TTime last_keeplive_time;
 
     void CloseControlLink(String reason);
+private:
+    void AppendLog(String str)
+    {
+        if (cbLogEnabled->Checked)
+        {
+            memo_debug->Lines->Add(str);
+        }
+    }
 };
 //---------------------------------------------------------------------------
 extern PACKAGE TForm1 *Form1;
