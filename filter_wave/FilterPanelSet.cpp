@@ -269,10 +269,12 @@ void __fastcall PanelAgent::edtFreqKeyDown(TObject *Sender, WORD &Key,
         edtFreq->Text = freq;
         edtFreq->SelectAll();
 
+        double delta = freq - _filter_set.GetFilter(band)->GetFreq();
         _filter_set.GetFilter(band)->SetFreq(freq);
         SaveToConfigMap(band);
         _filter_set.RepaintPaint();
-        _filter_set.SendPeqCmd();
+        if (delta > 0.00001)
+            _filter_set.SendPeqCmd();
     }
     else if (Key == VK_ESCAPE)
     {
@@ -325,10 +327,13 @@ void __fastcall PanelAgent::edtGainKeyDown(TObject *Sender, WORD &Key,
             TEdit * edtGain = (TEdit*)Sender;
             double gain = Str2Double(edtGain->Text, _filter_set.GetFilter(band)->GetGain());
 
+            double delta = gain - _filter_set.GetFilter(band)->GetGain();
+
             _filter_set.GetFilter(band)->SetGain(gain);
             SaveToConfigMap(band);
             _filter_set.RepaintPaint();
-            _filter_set.SendPeqCmd();
+            if (delta > 0.00001)
+                _filter_set.SendPeqCmd();
 
             edtGain->Text = _filter_set.GetFilter(band)->GetGain();
             edtGain->SelectAll();
@@ -388,10 +393,13 @@ void __fastcall PanelAgent::edtQKeyDown(TObject *Sender, WORD &Key,
         edtQ->Text = q;
         edtQ->SelectAll();
 
+        double delta = q - _filter_set.GetFilter(band)->GetQ();
+        
         _filter_set.GetFilter(band)->SetQ(q);
         SaveToConfigMap(band);
         _filter_set.RepaintPaint();
-        _filter_set.SendPeqCmd();
+        if (delta > 0.00001)
+            _filter_set.SendPeqCmd();
     }
     else if (Key == VK_ESCAPE)
     {
