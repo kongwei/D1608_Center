@@ -8,6 +8,7 @@
 #include "untFlashReader.h"
 #include "untUtils.h"
 #include "untTextCmdParse.h"
+#include "TextCmdParse.h"
 
 #include <winsock2.h>
 #include <IPHlpApi.h>  
@@ -116,10 +117,21 @@ struct Channel
 static Channel copied_channel = {ctNone, 0};
 static Channel selected_channel = {ctNone, 0};
 
+struct T_slp_pack_Str
+{
+    String ip;
+    String mac;
+    String cpuid;
+    String sn;
+	String name;
+	String default_device_name;
+    unsigned int version;
+};
+
 struct DeviceData
 {
     int count;
-    T_slp_pack_Ex data;
+    T_slp_pack_Str data;
 };
 DeviceData last_connection;
 
@@ -130,14 +142,14 @@ static UINT version = 0x04000001;
 static UINT file_version = 0x00000002;
 // 返回YES或者下位机版本号
 // version_list以0结尾
-String IsCompatibility(T_slp_pack_Ex slp_pack)
+String IsCompatibility(unsigned int device_version)
 {
     UINT ctrl_app_protocol_version = version & 0xFF000000;
-    UINT app_protocol_version = slp_pack.version & 0xFF000000;
+    UINT app_protocol_version = device_version & 0xFF000000;
     if (ctrl_app_protocol_version == app_protocol_version)
     {
         ctrl_app_protocol_version = version & 0xFFFF0000;
-        app_protocol_version = slp_pack.version & 0xFFFF0000;
+        app_protocol_version = device_version & 0xFFFF0000;
         if (ctrl_app_protocol_version == app_protocol_version)
         {
             return "YES";
@@ -146,7 +158,7 @@ String IsCompatibility(T_slp_pack_Ex slp_pack)
     }
     else
     {
-        return IntToHex((int)slp_pack.version, 8);
+        return IntToHex((int)device_version, 8);
     }
 }
 String VersionToStr(UINT version_value)
@@ -1474,45 +1486,57 @@ void __fastcall TForm1::udpSLPUDPRead(TObject *Sender,
       TStream *AData, TIdSocketHandle *ABinding)
 {
     slp_count++;
+    char str[1500] = "";
 
-    T_slp_pack_Ex slp_pack = {0};
-    AData->ReadBuffer(&slp_pack, std::min(sizeof(slp_pack), AData->Size));
+    AData->ReadBuffer(str, std::min(sizeof(str)-1, AData->Size));
 
-    String ip_address;
-        ip_address.sprintf("%u.%u.%u.%u", (BYTE)slp_pack.ip[0], (BYTE)slp_pack.ip[1], (BYTE)slp_pack.ip[2], (BYTE)slp_pack.ip[3]);
-    String mac;
-        mac.sprintf("%02X:%02X:%02X:%02X:%02X:%02X", (BYTE)slp_pack.mac[0], (BYTE)slp_pack.mac[1], (BYTE)slp_pack.mac[2], (BYTE)slp_pack.mac[3], (BYTE)slp_pack.mac[4], (BYTE)slp_pack.mac[5]);
-    String display_device_name = slp_pack.name;
+    if (strnicmp(str, SLP_FLAG, strlen(SLP_FLAG)))
+	{
+		return;
+	}
+
+    DictItem dict[20] = {0};
+    ParseDict(dict, 20, str+strlen(SLP_FLAG));
+
+    T_slp_pack_Str slp_pack_str;
+
+    slp_pack_str.ip = GetDictValue(dict, 20, "ip");
+    slp_pack_str.mac = GetDictValue(dict, 20, "mac");
+    String display_device_name = GetDictValue(dict, 20, "name");
+    slp_pack_str.default_device_name = GetDictValue(dict, 20, "default_device_name");
+    slp_pack_str.sn = GetDictValue(dict, 20, "sn");
+
     if (display_device_name == "")
     {
-        display_device_name = slp_pack.default_device_name;
-        display_device_name = display_device_name + "-" + slp_pack.sn;
+        display_device_name = slp_pack_str.default_device_name + "-" + slp_pack_str.sn;
     }
 
-    String cpu_id = GetCpuIdString(slp_pack.cpu_id);
+    slp_pack_str.cpuid = GetDictValue(dict, 20, "cpuid");
+
+    slp_pack_str.version = (String("0x")+GetDictValue(dict, 20, "version")).ToIntDef(0);
 
     TListItem * item = NULL;
     // 查找是否列表中已经存在
     for (int i=0;i<lvDevice->Items->Count;i++)
     {
         TListItem * find_item = lvDevice->Items->Item[i];
-        if (find_item->SubItems->Strings[6] == mac)
+        if (find_item->SubItems->Strings[6] == slp_pack_str.mac)
         {
             // 更新属性
             find_item->Caption = display_device_name.UpperCase();
-            find_item->SubItems->Strings[0] = ip_address;
+            find_item->SubItems->Strings[0] = slp_pack_str.ip;
             find_item->SubItems->Strings[1] = ABinding->IP;
             //find_item->SubItems->Strings[2] = device_id;
-            find_item->SubItems->Strings[3] = slp_pack.name;
-            find_item->SubItems->Strings[4] = slp_pack.default_device_name;
-            find_item->SubItems->Strings[5] = cpu_id;
-            find_item->SubItems->Strings[6] = mac;
-            find_item->SubItems->Strings[7] = slp_pack.sn;
-            find_item->SubItems->Strings[8] = IsCompatibility(slp_pack);
+            find_item->SubItems->Strings[3] = slp_pack_str.name;
+            find_item->SubItems->Strings[4] = slp_pack_str.default_device_name;
+            find_item->SubItems->Strings[5] = slp_pack_str.cpuid;
+            find_item->SubItems->Strings[6] = slp_pack_str.mac;
+            find_item->SubItems->Strings[7] = slp_pack_str.sn;
+            find_item->SubItems->Strings[8] = IsCompatibility(slp_pack_str.version);
 
             DeviceData * data = (DeviceData*)find_item->Data;
             data->count = 3;
-            data->data = slp_pack;
+            data->data = slp_pack_str;
 
             item = find_item;
             break;
@@ -1523,25 +1547,25 @@ void __fastcall TForm1::udpSLPUDPRead(TObject *Sender,
     {
         item = lvDevice->Items->Add();
         item->Caption = display_device_name.UpperCase();
-        item->SubItems->Add(ip_address);
+        item->SubItems->Add(slp_pack_str.ip);
         item->SubItems->Add(ABinding->IP);
         item->SubItems->Add(""/*slp_pack.id*/);
-        item->SubItems->Add(slp_pack.name);
-        item->SubItems->Add(slp_pack.default_device_name);
-        item->SubItems->Add(cpu_id);
-        item->SubItems->Add(mac);
-        item->SubItems->Add(slp_pack.sn);
-        item->SubItems->Add(IsCompatibility(slp_pack));
+        item->SubItems->Add(slp_pack_str.name);
+        item->SubItems->Add(slp_pack_str.default_device_name);
+        item->SubItems->Add(slp_pack_str.cpuid);
+        item->SubItems->Add(slp_pack_str.mac);
+        item->SubItems->Add(slp_pack_str.sn);
+        item->SubItems->Add(IsCompatibility(slp_pack_str.version));
 
         DeviceData * data = new DeviceData;
         data->count = 4;
-        data->data = slp_pack;
+        data->data = slp_pack_str;
         item->Data = data;
     }
 
     if (!udpControl->Active && !is_manual_disconnect)
     {
-        if ((last_device_id == "") || (last_device_id == mac) || ( Now() > startup_time+10.0/3600/24 ))
+        if ((last_device_id == "") || (last_device_id == slp_pack_str.mac) || ( Now() > startup_time+10.0/3600/24 ))
         {
             // 连接第一个 或者 匹配ID 或者 5秒钟 或者 没有找到原先的设备
             item->Selected = true;
@@ -1663,35 +1687,40 @@ void __fastcall TForm1::tmSLPTimer(TObject *Sender)
                 try{
                     udpSLPList[i]->Active = true;
                     String ip = udpSLPList[i]->Bindings->Items[0]->IP;
-                    T_slp_pack_Ex slp_pack = {0};
-                    strcpy(slp_pack.flag, SLP_FLAG);
+
+                    String text_cmd = SLP_FLAG;
 
                     if (is_inner_pc)
-                        memcpy(slp_pack.ip, "ver", 3);
+                        text_cmd = text_cmd + "type=ver;";
                     else
-                        memcpy(slp_pack.ip, "rep", 3);
+                        text_cmd = text_cmd + "type=rep;";
 
                     if (GetDhcpOfIp(ip))
-                        slp_pack.ip[3] = '_';
+                        text_cmd = text_cmd + "dhcp=on;";
+                    else
+                        text_cmd = text_cmd + "dhcp=off;";
 
-                    slp_pack.mask = GetMaskOfIp(ip);
+                    //text_cmd = text_cmd + "mask="+IntToStr(GetMaskOfIp(ip))+";";
 
                     if (cbLanDebugLed->State == cbGrayed)
-                        slp_pack.led_debug = 0xFF;
+                        ;
+                    else if (cbLanDebugLed->Checked)
+                        text_cmd = text_cmd + "led_debug=on;";
                     else
-                        slp_pack.led_debug = cbLanDebugLed->Checked;
+                        text_cmd = text_cmd + "led_debug=off;";
 
                     if (cbLanDebugOled->State == cbGrayed)
-                        slp_pack.oled_debug = 0xFF;
+                        ;
+                    else if (cbLanDebugOled->Checked)
+                        text_cmd = text_cmd + "oled_debug=on;";
                     else
-                        slp_pack.oled_debug = cbLanDebugOled->Checked;
+                        text_cmd = text_cmd + "oled_debug=off;";
 
                     double app_time = Now()-TDateTime(2000,1,1);
                     app_time = app_time * 24 * 3600 * 1000;
-                    slp_pack.set_time_ex = app_time;
+                    text_cmd = text_cmd + "app_time="+FloatToStr(app_time);
 
-                    slp_pack.verify -= UdpPackageVerifyDiff((unsigned char*)&slp_pack, offsetof(T_slp_pack_Ex, name));
-                    udpSLPList[i]->SendBuffer("255.255.255.255", UDP_PORT_SLP_EX, &slp_pack, offsetof(T_slp_pack_Ex, name));
+                    udpSLPList[i]->Send("255.255.255.255", UDP_PORT_SLP_EX, text_cmd+D1608CMD_TAIL);
                 }
                 catch(...)
                 {
@@ -6163,8 +6192,8 @@ void __fastcall TForm1::btnSaveFlashToFileClick(TObject *Sender)
             memset(smc_config.device_flash_dump, 0, sizeof(smc_config.device_flash_dump));
             smc_config.file_version = file_version;
             smc_config.device_version = last_connection.data.version;
-            memcpy(smc_config.cpu_id, last_connection.data.cpu_id, sizeof(smc_config.cpu_id));
-            memcpy(smc_config.mac, last_connection.data.mac, sizeof(smc_config.mac));
+            memcpy(smc_config.cpu_id, last_connection.data.cpuid.c_str(), sizeof(smc_config.cpu_id));
+            memcpy(smc_config.mac, last_connection.data.mac.c_str(), sizeof(smc_config.mac));
 
             for (int address=PRESET_START_PAGE;address<0x8000000+256*1024;address+=1024)
             {
@@ -6254,8 +6283,10 @@ void __fastcall TForm1::btnLoadFileToFlashClick(TObject *Sender)
 
             // 读取设备信息
             last_connection.data.version = smc_config.device_version;
-            memcpy(last_connection.data.cpu_id, smc_config.cpu_id, sizeof(smc_config.cpu_id));
-            memcpy(last_connection.data.mac, smc_config.mac, sizeof(smc_config.mac));
+            last_connection.data.cpuid.sprintf("%08X%08X%08X", smc_config.cpu_id[0], smc_config.cpu_id[1], smc_config.cpu_id[2]);
+            last_connection.data.mac.sprintf("%02X:%02X:%02X:%02X:%02X:%02X",
+                        smc_config.mac[0], smc_config.mac[2], smc_config.mac[3],
+                        smc_config.mac[3], smc_config.mac[4], smc_config.mac[5]);
             // 更新到界面
             lblVersion->Caption = VersionToStr(last_connection.data.version)+ " " +VersionToStr(version);
             lblDeviceInfo->Caption = "VERSION " + VersionToStr(last_connection.data.version);
@@ -6273,7 +6304,7 @@ void __fastcall TForm1::btnLoadFileToFlashClick(TObject *Sender)
                 edtMAC->Text = mac;
 
             // device_cpuid用于日志存盘
-            device_cpuid = GetCpuIdString(last_connection.data.cpu_id);
+            device_cpuid = last_connection.data.cpuid;
                 lvLog->Clear();
 
             const T_sn_pack * sn_pack_on_flash = (T_sn_pack*)(smc_config.device_flash_dump+(SN_START_PAGE-PRESET_START_PAGE)+active_code_length);
