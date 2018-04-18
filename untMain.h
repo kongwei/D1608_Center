@@ -1005,7 +1005,7 @@ private:
     TTime last_keeplive_time;
 
     void CloseControlLink(String reason);
-private:
+public:
     void AppendLog(String str)
     {
         if (cbLogEnabled->Checked)

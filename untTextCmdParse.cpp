@@ -24,7 +24,7 @@ std::vector<UINT> ProcessTextCommand(String command_head)
 	
 	CommandContent result = {0};
 
-	if (parse(command, &result))
+	if (parse(command, &result)==0)
 	{
         if (result.var_count == 2 && !strcmp(result.vars[0].var_name, "config"))
 		{

@@ -330,6 +330,7 @@ void GetLocalIpList(vector<IpInfo> & ip_info)
     }
     __finally
     {
+        Form1->AppendLog(__FUNC__);
     }
 }
 
@@ -1296,6 +1297,7 @@ void TForm1::SendDisconnect()
         }
         catch(...)
         {
+            Form1->AppendLog(__FUNC__);
         }
     }
 }
@@ -1464,6 +1466,7 @@ void __fastcall TForm1::btnRefreshClick(TObject *Sender)
             catch(...)
             {
                 udpSLPList[i]->Active = false;
+                AppendLog(__FUNC__);
             }
         }
     }
@@ -1724,7 +1727,7 @@ void __fastcall TForm1::tmSLPTimer(TObject *Sender)
                 }
                 catch(...)
                 {
-                    //AppendLog("ÍøÂçÒì³£");
+                    AppendLog(__FUNC__);
                 }
             }
         }
@@ -2543,6 +2546,7 @@ void TForm1::ProcessVote(ADC_Data_Ex adc_ex, ADC_Data_Ex adc_ex_max, ADC_Data_Ex
         }
         catch(...)
         {
+            AppendLog(__FUNC__);
         }
     }
 }
@@ -3172,6 +3176,7 @@ void TForm1::ProcessWatchLevel(int watch_level[INPUT_DSP_NUM + OUTPUT_DSP_NUM], 
             catch(...)
             {
                 UpdateWatchLevel(i, 0);
+                AppendLog(__FUNC__);
             }
         }
     }
@@ -3782,6 +3787,7 @@ void __fastcall TForm1::input_panel_level_editKeyDown(TObject *Sender,
             else
                 input_level_trackbar[dsp_num-1]->Position = edt->Text.ToDouble() * 10;
         }catch(...){
+            AppendLog(__FUNC__);
         }
 
         //InputVolumeChange(input_level_trackbar[dsp_num-1]);
@@ -3819,6 +3825,7 @@ void __fastcall TForm1::output_panel_level_editKeyDown(TObject *Sender,
             else
                 output_level_trackbar[dsp_num-1]->Position = edt->Text.ToDouble() * 10;
         }catch(...){
+            AppendLog(__FUNC__);
         }
 
         //OutputVolumeChange(output_level_trackbar[dsp_num-1]);
@@ -3851,6 +3858,7 @@ void __fastcall TForm1::master_panel_level_editKeyDown(TObject *Sender,
             else
                 master_panel_trackbar->Position = edt->Text.ToDouble() * 10;
         }catch(...){
+            AppendLog(__FUNC__);
         }
 
         //MasterVolumeChange(master_panel_trackbar);
@@ -4141,6 +4149,7 @@ void __fastcall TForm1::pnlmix_level_editKeyDown(TObject *Sender,
             else
                 mix_level_trackbar[dsp_num-1]->Position = edt->Text.ToDouble() * 10;
         }catch(...){
+            AppendLog(__FUNC__);
         }
 
         //pnlmix_level_trackbarChange(mix_level_trackbar[dsp_num-1]);
@@ -4731,6 +4740,7 @@ void __fastcall TForm1::UpdateBuildTime()
     catch(...)
     {
         edtStartBuildTime->Text = global_config.start_build_time;
+        AppendLog(__FUNC__);
     }
     edtStartBuildTime->Text = edtStartBuildTime->Text+"\t" + AppBuildTime2Str(global_config.build_time) + "\t";
     edtStartBuildTime->Text = edtStartBuildTime->Text + DateTime2Str(GetDateTimeFromMarco(compile_time));
@@ -5019,6 +5029,7 @@ void __fastcall TForm1::edtRunningTimerExit(TObject *Sender)
     catch(...)
     {
         edt->Text = FormatFloat("0.00", running_timer/3600.0);
+        AppendLog(__FUNC__);
     }
 }
 //---------------------------------------------------------------------------
@@ -5036,6 +5047,7 @@ void __fastcall TForm1::edtRebootCountExit(TObject *Sender)
     catch(...)
     {
         edt->Text = roboot_count;
+        AppendLog(__FUNC__);
     }
 }
 //---------------------------------------------------------------------------
@@ -5227,6 +5239,7 @@ void __fastcall TForm1::edtCompRatioKeyDown(TObject *Sender, WORD &Key,
         }
         catch(...)
         {
+            AppendLog(__FUNC__);
         }
 
         edt->Text = Ration2String(config_map.output_dsp[dsp_num-1].ratio);
@@ -5269,6 +5282,7 @@ void __fastcall TForm1::edtCompThresholdKeyDown(TObject *Sender, WORD &Key,
         }
         catch(...)
         {
+            AppendLog(__FUNC__);
         }
 
         edt->Text = FormatFloat(config_map.output_dsp[dsp_num-1].threshold/threshold_config.scale, threshold_config.precise);
@@ -5308,6 +5322,7 @@ void __fastcall TForm1::edtCompAttackTimeKeyDown(TObject *Sender,
         }
         catch(...)
         {
+            AppendLog(__FUNC__);
         }
 
         edt->Text = FormatFloat(config_map.output_dsp[dsp_num-1].attack_time/attack_config.scale, attack_config.precise);
@@ -5347,6 +5362,7 @@ void __fastcall TForm1::edtCompReleaseTimeKeyDown(TObject *Sender,
         }
         catch(...)
         {
+            AppendLog(__FUNC__);
         }
 
         edt->Text = FormatFloat(config_map.output_dsp[dsp_num-1].release_time/release_config.scale, release_config.precise);
@@ -5389,6 +5405,7 @@ void __fastcall TForm1::edtCompGainKeyDown(TObject *Sender, WORD &Key,
         }
         catch(...)
         {
+            AppendLog(__FUNC__);
         }
 
         edt->Text = FormatFloat(config_map.output_dsp[dsp_num-1].comp_gain/gain_config.scale, gain_config.precise);
@@ -5729,6 +5746,7 @@ void __fastcall TForm1::dsp_gain_editKeyDown(TObject *Sender, WORD &Key,
         try{
             dsp_gain_trackbar->Position = dsp_gain_edit->Text.ToDouble() * 10;
         }catch(...){
+            AppendLog(__FUNC__);
         }
 
         dsp_gain_trackbar->OnChange(dsp_gain_trackbar);
@@ -5789,6 +5807,7 @@ void __fastcall TForm1::dsp_delay_editKeyDown(TObject *Sender, WORD &Key,
             float value = dsp_delay_edit->Text.ToDouble()*1000;
             dsp_delay_trackbar->Position = value;//dsp_delay_edit->Text.ToDouble()*1000;
         }catch(...){
+            AppendLog(__FUNC__);
         }
 
         dsp_delay_trackbar->OnChange(dsp_delay_trackbar);
