@@ -5419,19 +5419,6 @@ void __fastcall TForm1::cbCompAutoTimeClick(TObject *Sender)
     int dsp_num = check_box->Parent->Parent->Tag;
     dsp_num -= 101;
 
-    if (cbCompAutoTime->Checked == config_map.output_dsp[dsp_num].auto_time)
-    {
-        edtCompAttackTime->Enabled = !config_map.output_dsp[dsp_num].auto_time;
-        edtCompReleaseTime->Enabled = !config_map.output_dsp[dsp_num].auto_time;
-        return;
-    }
-
-    config_map.output_dsp[dsp_num].auto_time = check_box->Checked;
-
-    String cmd_text = D1608CMD_FLAG;
-    cmd_text = cmd_text+ "output<"+IntToStr(dsp_num+1)+">.auto_comp="+(cbCompAutoTime->Checked?"on":"off");
-    SendCmd(cmd_text+D1608CMD_TAIL);
-
     if (cbCompAutoTime->Checked)
     {
         edtCompReleaseTime->Enabled = false;
@@ -5446,6 +5433,19 @@ void __fastcall TForm1::cbCompAutoTimeClick(TObject *Sender)
         edtCompAttackTime->Text = config_map.output_dsp[dsp_num].attack_time/attack_config.scale;
         edtCompReleaseTime->Text = config_map.output_dsp[dsp_num].release_time/release_config.scale;
     }
+
+    if (cbCompAutoTime->Checked == config_map.output_dsp[dsp_num].auto_time)
+    {
+        edtCompAttackTime->Enabled = !config_map.output_dsp[dsp_num].auto_time;
+        edtCompReleaseTime->Enabled = !config_map.output_dsp[dsp_num].auto_time;
+        return;
+    }
+
+    config_map.output_dsp[dsp_num].auto_time = check_box->Checked;
+
+    String cmd_text = D1608CMD_FLAG;
+    cmd_text = cmd_text+ "output<"+IntToStr(dsp_num+1)+">.auto_comp="+(cbCompAutoTime->Checked?"on":"off");
+    SendCmd(cmd_text+D1608CMD_TAIL);
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::SpeedButtonNoFrame2MouseDown(TObject *Sender,
