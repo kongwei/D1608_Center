@@ -15,6 +15,7 @@
 #include <algorithm>
 #include <stddef.h>
 #include <assert.h>
+#include <stdio.h>
 //---------------------------------------------------------------------------
 #pragma package(smart_init)
 #pragma link "CSPIN"
@@ -1493,21 +1494,28 @@ void __fastcall TForm1::udpSLPUDPRead(TObject *Sender,
 
     AData->ReadBuffer(str, std::min(sizeof(str)-1, AData->Size));
 
-    if (strnicmp(str, SLP_FLAG, strlen(SLP_FLAG)))
+
+    if (!strnicmp(str, SLP_FLAG, strlen(SLP_FLAG)))
 	{
-		return;
 	}
+    else if (!strnicmp(str, MSLP_FLAG, strlen(MSLP_FLAG)))
+    {
+    }
+    else
+    {
+        return;
+    }
 
     DictItem dict[20] = {0};
     ParseDict(dict, 20, str+strlen(SLP_FLAG));
 
     T_slp_pack_Str slp_pack_str;
 
-    slp_pack_str.ip = GetDictValue(dict, 20, "ip");
-    slp_pack_str.mac = GetDictValue(dict, 20, "mac");
-    String display_device_name = GetDictValue(dict, 20, "name");
-    slp_pack_str.default_device_name = GetDictValue(dict, 20, "default_device_name");
-    slp_pack_str.sn = GetDictValue(dict, 20, "sn");
+    slp_pack_str.ip = GetDictValue(dict, 20, "IP");
+    slp_pack_str.mac = GetDictValue(dict, 20, "MAC");
+    String display_device_name = GetDictValue(dict, 20, "Name");
+    slp_pack_str.default_device_name = GetDictValue(dict, 20, "Device");
+    slp_pack_str.sn = GetDictValue(dict, 20, "SN");
 
     if (display_device_name == "")
     {
@@ -1516,7 +1524,7 @@ void __fastcall TForm1::udpSLPUDPRead(TObject *Sender,
 
     slp_pack_str.cpuid = GetDictValue(dict, 20, "cpuid");
 
-    slp_pack_str.version = (String("0x")+GetDictValue(dict, 20, "version")).ToIntDef(0);
+    slp_pack_str.version = (String("0x")+GetDictValue(dict, 20, "VER")).ToIntDef(0);
 
     TListItem * item = NULL;
     // 查找是否列表中已经存在
@@ -1691,12 +1699,12 @@ void __fastcall TForm1::tmSLPTimer(TObject *Sender)
                     udpSLPList[i]->Active = true;
                     String ip = udpSLPList[i]->Bindings->Items[0]->IP;
 
-                    String text_cmd = SLP_FLAG;
+                    String text_cmd;
 
                     if (is_inner_pc)
-                        text_cmd = text_cmd + "type=ver;";
+                        text_cmd = MSLP_FLAG;
                     else
-                        text_cmd = text_cmd + "type=rep;";
+                        text_cmd = SLP_FLAG;
 
                     if (GetDhcpOfIp(ip))
                         text_cmd = text_cmd + "dhcp=on;";
@@ -1719,9 +1727,10 @@ void __fastcall TForm1::tmSLPTimer(TObject *Sender)
                     else
                         text_cmd = text_cmd + "oled_debug=off;";
 
-                    double app_time = Now()-TDateTime(2000,1,1);
-                    app_time = app_time * 24 * 3600 * 1000;
-                    text_cmd = text_cmd + "app_time="+FloatToStr(app_time);
+                    //double app_time = Now()-TDateTime(2000,1,1);
+                    //app_time = app_time * 24 * 3600 * 1000;
+                    //text_cmd = text_cmd + "app_time1="+FloatToStr(app_time)+";";
+                    text_cmd = text_cmd + "APP_TIME="+FormatDateTime("yyyy/mm/dd hh:nn:ss", Now());
 
                     udpSLPList[i]->Send("255.255.255.255", UDP_PORT_SLP_EX, text_cmd+D1608CMD_TAIL);
                 }
@@ -1930,6 +1939,8 @@ void TForm1::ProcessPackageMessageFeedback(char * data)
             }
         }
     }
+
+    AppendLog("received_cmd_seq1:" + IntToStr(received_cmd_seq));
     received_cmd_seq = current_msg_id;
 
     if (keep_live_count<CONTROL_TIMEOUT_COUNT)
@@ -6500,6 +6511,31 @@ void __fastcall TForm1::tmDelayBackupTimer(TObject *Sender)
             udpControl->Active = false;
         }
     }
+    else
+    {
+        if (package_list.size() != 0 && (restor_delay_count%5 == 1))
+        {
+            TPackage package = package_list.back();
+            SendBuffer(dst_ip, package.udp_port, package.data, package.data_size);
+
+            // 备份 恢复 流程使用的延时计时器
+            AppendLog(GetTime()+"retry package_list");
+        }
+        else if (read_one_preset_package_list.size() != 0 && (restor_delay_count >= 1))
+        {
+            TPackage package = read_one_preset_package_list.back();
+            SendBuffer(dst_ip, package.udp_port, package.data, package.data_size);
+
+            // 备份 恢复 流程使用的延时计时器
+            AppendLog(GetTime()+"retry read_one_preset_package_list");
+        }
+        else if (restor_delay_count%5 == 1)
+        {
+            AppendLog(GetTime()+"列表空");
+            tmDelayBackup->Enabled = false;
+        }
+    }
+/*
     else if ((restor_delay_count%5) == 1)
     {
         if(package_list.size() != 0)
@@ -6524,6 +6560,9 @@ void __fastcall TForm1::tmDelayBackupTimer(TObject *Sender)
             tmDelayBackup->Enabled = false;
         }
     }
+
+*/
+
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::pmPresetSaveLoadPopup(TObject *Sender)
