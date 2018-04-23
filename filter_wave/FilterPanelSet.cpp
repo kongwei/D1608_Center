@@ -218,13 +218,16 @@ void __fastcall PanelAgent::cbBypassClick(TObject *Sender)
 {
     int band = ((TControl*)Sender)->Parent->Tag;
     TCheckBox * bypass_checkbox = (TCheckBox*)Sender;
+    
+    bool delta = bypass_checkbox->Checked ^ _filter_set.IsBypass(band);
     _filter_set.SetBypass(band, bypass_checkbox->Checked);
 
     UpdateUIEnabled();
 
     SaveToConfigMap(band);
     _filter_set.RepaintPaint(band);
-    _filter_set.SendBypassCmd(band);
+    if (delta)
+        _filter_set.SendBypassCmd(band);
 }
 
 void __fastcall PanelAgent::edtSelectAllOnClick(TObject *Sender)

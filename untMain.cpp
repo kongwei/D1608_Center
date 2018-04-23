@@ -3433,6 +3433,10 @@ void __fastcall TForm1::ToggleDSP(TObject *Sender)
                 btnPhanton->Hide();
             }
 
+            // 默认值
+            edtCompAttackTime->Text = 64;
+            edtCompReleaseTime->Text = 1000;
+
             // 调整PaintBox1的尺寸
             PaintBox1->Left = 8;
             PaintBox1->Width = 753;
@@ -3479,8 +3483,18 @@ void __fastcall TForm1::ToggleDSP(TObject *Sender)
             edtCompThreshold->Text = config_map.output_dsp[dsp_num-1].threshold/10.0;
             edtCompGain->Text = config_map.output_dsp[dsp_num-1].comp_gain/10.0;
             cbCompAutoTime->Checked = config_map.output_dsp[dsp_num-1].auto_time;
-            edtCompAttackTime->Text = config_map.output_dsp[dsp_num-1].attack_time/attack_config.scale;
-            edtCompReleaseTime->Text = config_map.output_dsp[dsp_num-1].release_time/release_config.scale;
+            if (cbCompAutoTime->Checked)
+            {
+                edtCompReleaseTime->Enabled = false;
+                edtCompAttackTime->Enabled = false;
+                edtCompAttackTime->Text = 64;
+                edtCompReleaseTime->Text = 1000;
+            }
+            else
+            {
+                edtCompAttackTime->Text = config_map.output_dsp[dsp_num-1].attack_time/attack_config.scale;
+                edtCompReleaseTime->Text = config_map.output_dsp[dsp_num-1].release_time/release_config.scale;
+            }
 
             if (GetVersionConfig().is_comp)
             {
