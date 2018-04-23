@@ -1494,20 +1494,19 @@ void __fastcall TForm1::udpSLPUDPRead(TObject *Sender,
 
     AData->ReadBuffer(str, std::min(sizeof(str)-1, AData->Size));
 
-
+    DictItem dict[20] = {0};
     if (!strnicmp(str, SLP_FLAG, strlen(SLP_FLAG)))
 	{
+        ParseDict(dict, 20, str+strlen(SLP_FLAG));
 	}
     else if (!strnicmp(str, MSLP_FLAG, strlen(MSLP_FLAG)))
     {
+        ParseDict(dict, 20, str+strlen(MSLP_FLAG));
     }
     else
     {
         return;
     }
-
-    DictItem dict[20] = {0};
-    ParseDict(dict, 20, str+strlen(SLP_FLAG));
 
     T_slp_pack_Str slp_pack_str;
 
@@ -1522,7 +1521,7 @@ void __fastcall TForm1::udpSLPUDPRead(TObject *Sender,
         display_device_name = slp_pack_str.default_device_name + "-" + slp_pack_str.sn;
     }
 
-    slp_pack_str.cpuid = GetDictValue(dict, 20, "cpuid");
+    slp_pack_str.cpuid = "cpuid²»ÕýÈ·";//GetDictValue(dict, 20, "cpuid");
 
     slp_pack_str.version = (String("0x")+GetDictValue(dict, 20, "VER")).ToIntDef(0);
 
@@ -1707,30 +1706,25 @@ void __fastcall TForm1::tmSLPTimer(TObject *Sender)
                         text_cmd = SLP_FLAG;
 
                     if (GetDhcpOfIp(ip))
-                        text_cmd = text_cmd + "dhcp=on;";
+                        text_cmd = text_cmd + "DHCP=On;";
                     else
-                        text_cmd = text_cmd + "dhcp=off;";
-
-                    //text_cmd = text_cmd + "mask="+IntToStr(GetMaskOfIp(ip))+";";
+                        text_cmd = text_cmd + "DHCP=Off;";
 
                     if (cbLanDebugLed->State == cbGrayed)
                         ;
                     else if (cbLanDebugLed->Checked)
-                        text_cmd = text_cmd + "led_debug=on;";
+                        text_cmd = text_cmd + "LED_Debug=On;";
                     else
-                        text_cmd = text_cmd + "led_debug=off;";
+                        text_cmd = text_cmd + "LED_Debug=Off;";
 
                     if (cbLanDebugOled->State == cbGrayed)
                         ;
                     else if (cbLanDebugOled->Checked)
-                        text_cmd = text_cmd + "oled_debug=on;";
+                        text_cmd = text_cmd + "OLED_Debug=On;";
                     else
-                        text_cmd = text_cmd + "oled_debug=off;";
+                        text_cmd = text_cmd + "OLED_Debug=Off;";
 
-                    //double app_time = Now()-TDateTime(2000,1,1);
-                    //app_time = app_time * 24 * 3600 * 1000;
-                    //text_cmd = text_cmd + "app_time1="+FloatToStr(app_time)+";";
-                    text_cmd = text_cmd + "APP_TIME="+FormatDateTime("yyyy/mm/dd hh:nn:ss", Now());
+                    text_cmd = text_cmd + "APP_Time="+FormatDateTime("yyyy/mm/dd hh:nn:ss", Now());
 
                     udpSLPList[i]->Send("255.255.255.255", UDP_PORT_SLP_EX, text_cmd+D1608CMD_TAIL);
                 }
