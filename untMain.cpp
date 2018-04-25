@@ -2084,13 +2084,14 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
                     device_connected = false;
                 }
             }
-            else if (cmd_string.SubString(1, 11) == "config.lock" || cmd_string.SubString(1, 13) == "config.unlock" || cmd_string == "config.action=reload_preset]")
+            else if (cmd_string.SubString(1, 11) == "config.lock" || cmd_string.SubString(1, 13) == "config.unlock" || cmd_string == "config.action=ReloadLink]")
             {
                 // 重新获取数据
                 TPackage package = {0};
                 package.udp_port = UDP_PORT_READ_PRESET;
 
                 D1608PresetCmd preset_cmd(version);
+                strcpy(preset_cmd.flag, D1608PRESETCMD_LINK_FLAG);
                 preset_cmd.preset = 0; // 读取global_config
                 preset_cmd.verify -= UdpPackageVerifyDiff((unsigned char*)&preset_cmd, offsetof(D1608PresetCmd, data));
                 memcpy(package.data, &preset_cmd, offsetof(D1608PresetCmd, data)/*sizeof(preset_cmd)*/);
