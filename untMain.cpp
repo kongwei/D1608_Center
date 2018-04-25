@@ -1516,14 +1516,29 @@ void __fastcall TForm1::udpSLPUDPRead(TObject *Sender,
     slp_pack_str.default_device_name = GetDictValue(dict, 20, "Device");
     slp_pack_str.sn = GetDictValue(dict, 20, "SN");
 
+    String version_string = GetDictValue(dict, 20, "VER");
+    TStrings * version_part = new TStringList();
+    version_part->Delimiter = '.';
+    version_part->DelimitedText = version_string;
+    if (version_part->Count == 4)
+    {
+        int p1 = ("0x"+version_part->Strings[0]).ToIntDef(0);
+        int p2 = ("0x"+version_part->Strings[1]).ToIntDef(0);
+        int p3 = ("0x"+version_part->Strings[2]).ToIntDef(0);
+        int p4 = ("0x"+version_part->Strings[3]).ToIntDef(0);
+        slp_pack_str.version = (p1<<24) + (p2<<16) + (p3<<8) + p4;
+    }
+    else
+    {
+        return;
+    }
+
     if (display_device_name == "")
     {
         display_device_name = slp_pack_str.default_device_name + "-" + slp_pack_str.sn;
     }
 
     slp_pack_str.cpuid = "cpuid不正确";//GetDictValue(dict, 20, "cpuid");
-
-    slp_pack_str.version = (String("0x")+GetDictValue(dict, 20, "VER")).ToIntDef(0);
 
     TListItem * item = NULL;
     // 查找是否列表中已经存在
