@@ -4981,19 +4981,14 @@ void __fastcall TForm1::btnSetLockClick(TObject *Sender)
         strncpy(global_config.locked_string, edtLockedString->Text.c_str(), 16);
     else
         global_config.locked_string[0] = '\0';
-    strncpy(global_config.password, edtPassword->Text.c_str(), 16);
-    strncpy(global_config.password_of_key, edtKeyPassword->Text.c_str(), 16);
+
 
 
     // »ìÏýÃÜÂë
-    for (UINT i=0;i<strlen(global_config.password);i++)
-    {
-        global_config.password[i] = ConfusionChar(global_config.password[i], 3+i);
-    }
-    for (UINT i=0;i<strlen(global_config.password_of_key);i++)
-    {
-        global_config.password_of_key[i] = ConfusionChar(global_config.password_of_key[i], 3+i);
-    }
+    edtPassword->Text = edtPassword->Text.SubString(1, 16);
+    ConfusionChar(edtPassword->Text.c_str(), global_config.password, D1608CMD_CONTROL_FLAG);
+    edtKeyPassword->Text = edtKeyPassword->Text.SubString(1, 16);
+    ConfusionChar(edtKeyPassword->Text.c_str(), global_config.password_of_key, D1608CMD_CONTROL_FLAG);
 
     cmd_text = cmd_text+String("config.lock=")+IntToStr(global_config.running_timer_limit)
                       +","+IntToStr(global_config.reboot_count_limit)
