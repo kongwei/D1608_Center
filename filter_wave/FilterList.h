@@ -28,7 +28,7 @@ public:
     void SetBypass(int band, bool isBypass);
 
     void Register(PaintAgent* paint_agent, PanelAgent* panel_agent);
-    void RepaintPaint(int band=0);
+    void RepaintPaint(int band);
     void SendPeqCmd(int band=0);
     void SendBypassCmd(int band=0);
 

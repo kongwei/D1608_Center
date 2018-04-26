@@ -2099,7 +2099,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
                     device_connected = false;
                 }
             }
-            else if (cmd_string.SubString(1, 11) == "config.lock" || cmd_string.SubString(1, 13) == "config.unlock" || cmd_string == "config.action=ReloadLink]")
+            else if (cmd_string.SubString(1, 11) == "config.lock" || cmd_string.SubString(1, 13) == "config.unlock" || cmd_string == "config.action=Reload_Link]")
             {
                 // 重新获取数据
                 TPackage package = {0};
@@ -4983,6 +4983,7 @@ void __fastcall TForm1::btnSetLockClick(TObject *Sender)
         global_config.locked_string[0] = '\0';
     strncpy(global_config.password, edtPassword->Text.c_str(), 16);
     strncpy(global_config.password_of_key, edtKeyPassword->Text.c_str(), 16);
+
 
     // 混淆密码
     for (UINT i=0;i<strlen(global_config.password);i++)

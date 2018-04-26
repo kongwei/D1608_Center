@@ -210,7 +210,7 @@ void __fastcall PanelAgent::cbTypeChange(TObject *Sender)
     UpdateUIEnabled();
 
     SaveToConfigMap(band);
-    _filter_set.RepaintPaint();
+    _filter_set.RepaintPaint(band);
     _filter_set.SendPeqCmd();
 }
 
@@ -249,11 +249,11 @@ void __fastcall PanelAgent::edtSelectAllOnExit(TObject *Sender)
 void __fastcall PanelAgent::OnPanelEnter(TObject *Sender)
 {
     int band = ((TControl*)Sender)->Parent->Tag;
-    
+
     if (_filter_set.GetActiveBand() != band)
     {
         _filter_set.SetActiveBand(band);
-        _filter_set.RepaintPaint();
+        _filter_set.RepaintPaint(band);
     }
 }
 
@@ -275,8 +275,8 @@ void __fastcall PanelAgent::edtFreqKeyDown(TObject *Sender, WORD &Key,
         double delta = freq - _filter_set.GetFilter(band)->GetFreq();
         _filter_set.GetFilter(band)->SetFreq(freq);
         SaveToConfigMap(band);
-        _filter_set.RepaintPaint();
-        if (delta > 0.00001)
+        _filter_set.RepaintPaint(band);
+        if (abs(delta) > 0.00001)
             _filter_set.SendPeqCmd();
     }
     else if (Key == VK_ESCAPE)
@@ -306,7 +306,7 @@ void __fastcall PanelAgent::edtFreqKeyDown(TObject *Sender, WORD &Key,
 
         _filter_set.GetFilter(band)->SetFreq(current_freq);
         SaveToConfigMap(band);
-        _filter_set.RepaintPaint();
+        _filter_set.RepaintPaint(band);
         _filter_set.SendPeqCmd();
     }
 }
@@ -334,8 +334,8 @@ void __fastcall PanelAgent::edtGainKeyDown(TObject *Sender, WORD &Key,
 
             _filter_set.GetFilter(band)->SetGain(gain);
             SaveToConfigMap(band);
-            _filter_set.RepaintPaint();
-            if (delta > 0.00001)
+            _filter_set.RepaintPaint(band);
+            if (abs(delta) > 0.00001)
                 _filter_set.SendPeqCmd();
 
             edtGain->Text = _filter_set.GetFilter(band)->GetGain();
@@ -374,7 +374,7 @@ void __fastcall PanelAgent::edtGainKeyDown(TObject *Sender, WORD &Key,
 
         _filter_set.GetFilter(band)->SetGain(gain);
         SaveToConfigMap(band);
-        _filter_set.RepaintPaint();
+        _filter_set.RepaintPaint(band);
         _filter_set.SendPeqCmd();
 
         edtGain->Text = _filter_set.GetFilter(band)->GetGain();
@@ -400,8 +400,8 @@ void __fastcall PanelAgent::edtQKeyDown(TObject *Sender, WORD &Key,
         
         _filter_set.GetFilter(band)->SetQ(q);
         SaveToConfigMap(band);
-        _filter_set.RepaintPaint();
-        if (delta > 0.00001)
+        _filter_set.RepaintPaint(band);
+        if (abs(delta) > 0.00001)
             _filter_set.SendPeqCmd();
     }
     else if (Key == VK_ESCAPE)
@@ -431,7 +431,7 @@ void __fastcall PanelAgent::edtQKeyDown(TObject *Sender, WORD &Key,
 
         _filter_set.GetFilter(band)->SetQ(current_q);
         SaveToConfigMap(band);
-        _filter_set.RepaintPaint();
+        _filter_set.RepaintPaint(band);
         _filter_set.SendPeqCmd();
     }
 }
@@ -517,14 +517,14 @@ void PanelAgent::SaveToConfigMap(int band)
     }
     else if (dsp_id < 100)
     {
-        config_map.input_dsp[dsp_id-1].filter[band-1].TYPE = _filter_set.GetFilter(band)->GetTypeId() * 10;
+        config_map.input_dsp[dsp_id-1].filter[band-1].TYPE = _filter_set.GetFilter(band)->GetTypeId();
         config_map.input_dsp[dsp_id-1].filter[band-1].GAIN = _filter_set.GetFilter(band)->GetGain()*10;
         config_map.input_dsp[dsp_id-1].filter[band-1].Q = _filter_set.GetFilter(band)->GetQ()*100;
         config_map.input_dsp[dsp_id-1].filter[band-1].bypass = _filter_set.IsBypass(band) ? 1 : 0;
     }
     else
     {
-        config_map.output_dsp[dsp_id-101].filter[band-1].TYPE = _filter_set.GetFilter(band)->GetTypeId() * 10;
+        config_map.output_dsp[dsp_id-101].filter[band-1].TYPE = _filter_set.GetFilter(band)->GetTypeId();
         config_map.output_dsp[dsp_id-101].filter[band-1].GAIN = _filter_set.GetFilter(band)->GetGain()*10;
         config_map.output_dsp[dsp_id-101].filter[band-1].Q = _filter_set.GetFilter(band)->GetQ()*100;
         config_map.output_dsp[dsp_id-101].filter[band-1].bypass = _filter_set.IsBypass(band) ? 1 : 0;
