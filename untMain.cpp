@@ -4059,6 +4059,12 @@ void __fastcall TForm1::after_input_panel_dsp_numClick(TObject *Sender)
     TLabel* label = (TLabel*) Sender;
     int dsp_num = label->Tag + 1;
 
+    // ²¹×ã¿Õ°×
+    while (label->Caption.Length() < 6)
+    {
+        label->Caption = label->Caption + " ";
+    }
+
     if (label->Caption == edtInput->Text)
     {
         return;
@@ -4072,7 +4078,7 @@ void __fastcall TForm1::after_input_panel_dsp_numClick(TObject *Sender)
         strncpy(global_config.input_dsp_name[label->Tag], label->Caption.c_str(), 6);
 
         String cmd_text = D1608CMD_FLAG;
-        cmd_text = cmd_text+"config.input<"+IntToStr(dsp_num)+">.name="+label->Caption.SubString(1,16);
+        cmd_text = cmd_text+"config.input<"+IntToStr(dsp_num)+">.name="+label->Caption.SubString(1,6);
         SendCmd(cmd_text+D1608CMD_TAIL);
     }
     else
@@ -4080,7 +4086,7 @@ void __fastcall TForm1::after_input_panel_dsp_numClick(TObject *Sender)
         strncpy(config_map.output_dsp[label->Tag].dsp_name, label->Caption.c_str(), 6);
 
         String cmd_text = D1608CMD_FLAG;
-        cmd_text = cmd_text+"input<"+IntToStr(dsp_num)+">.name="+label->Caption;
+        cmd_text = cmd_text+"input<"+IntToStr(dsp_num)+">.name="+label->Caption.SubString(1,6);
         SendCmd(cmd_text+D1608CMD_TAIL);
     }
 }
