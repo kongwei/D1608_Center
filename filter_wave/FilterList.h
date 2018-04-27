@@ -29,7 +29,7 @@ public:
 
     void Register(PaintAgent* paint_agent, PanelAgent* panel_agent);
     void RepaintPaint(int band);
-    void SendPeqCmd(int band=0);
+    void SendPeqCmd(int band);
     void SendBypassCmd(int band=0);
 
     // 输出部分的Comp参数

@@ -1512,7 +1512,7 @@ void __fastcall TForm1::udpSLPUDPRead(TObject *Sender,
 
     slp_pack_str.ip = GetDictValue(dict, 20, "IP");
     slp_pack_str.mac = GetDictValue(dict, 20, "MAC");
-    String display_device_name = GetDictValue(dict, 20, "Name");
+    slp_pack_str.name = GetDictValue(dict, 20, "Name");
     slp_pack_str.default_device_name = GetDictValue(dict, 20, "Device");
     slp_pack_str.sn = GetDictValue(dict, 20, "SN");
 
@@ -1533,9 +1533,9 @@ void __fastcall TForm1::udpSLPUDPRead(TObject *Sender,
         return;
     }
 
-    if (display_device_name == "")
+    if (slp_pack_str.name == "")
     {
-        display_device_name = slp_pack_str.default_device_name + "-" + slp_pack_str.sn;
+        slp_pack_str.name = slp_pack_str.default_device_name + "-" + slp_pack_str.sn;
     }
 
     slp_pack_str.cpuid = "cpuid不正确";//GetDictValue(dict, 20, "cpuid");
@@ -1548,7 +1548,7 @@ void __fastcall TForm1::udpSLPUDPRead(TObject *Sender,
         if (find_item->SubItems->Strings[6] == slp_pack_str.mac)
         {
             // 更新属性
-            find_item->Caption = display_device_name.UpperCase();
+            find_item->Caption = slp_pack_str.name.UpperCase();
             find_item->SubItems->Strings[0] = slp_pack_str.ip;
             find_item->SubItems->Strings[1] = ABinding->IP;
             //find_item->SubItems->Strings[2] = device_id;
@@ -1571,7 +1571,7 @@ void __fastcall TForm1::udpSLPUDPRead(TObject *Sender,
     if (item == NULL)
     {
         item = lvDevice->Items->Add();
-        item->Caption = display_device_name.UpperCase();
+        item->Caption = slp_pack_str.name.UpperCase();
         item->SubItems->Add(slp_pack_str.ip);
         item->SubItems->Add(ABinding->IP);
         item->SubItems->Add(""/*slp_pack.id*/);
@@ -3463,6 +3463,13 @@ void __fastcall TForm1::ToggleDSP(TObject *Sender)
             pnlComp->Color = clGray;
             btnDspComp->Enabled = false;
 
+            cbCompAutoTime->Checked = true;
+            edtCompReleaseTime->Enabled = false;
+            edtCompAttackTime->Enabled = false;
+            edtCompAttackTime->Text = 64;
+            edtCompReleaseTime->Text = 1000;
+
+
             btnDspEq->Down = config_map.input_dsp[dsp_num-1].eq_switch;
         }
         else
@@ -5267,6 +5274,7 @@ void __fastcall TForm1::edtCompRatioKeyDown(TObject *Sender, WORD &Key,
     }
     else if (Key == VK_RETURN)
     {
+        int ratio = config_map.output_dsp[dsp_num-1].ratio;
         try{
             if (edt->Text == "∞")
                 config_map.output_dsp[dsp_num-1].ratio = 0;
@@ -5276,10 +5284,13 @@ void __fastcall TForm1::edtCompRatioKeyDown(TObject *Sender, WORD &Key,
                 config_map.output_dsp[dsp_num-1].ratio = ratio_config.max_value;
             else if (config_map.output_dsp[dsp_num-1].ratio < ratio_config.min_value)
                 config_map.output_dsp[dsp_num-1].ratio = ratio_config.min_value;
-            
-            String cmd_text = D1608CMD_FLAG;
-            cmd_text = cmd_text+"output<"+IntToStr(dsp_num)+">.comp.ratio="+edtCompRatio->Text;
-            SendCmd(cmd_text+D1608CMD_TAIL);
+
+            if (ratio != config_map.output_dsp[dsp_num-1].ratio)
+            {
+                String cmd_text = D1608CMD_FLAG;
+                cmd_text = cmd_text+"output<"+IntToStr(dsp_num)+">.comp.ratio="+edtCompRatio->Text;
+                SendCmd(cmd_text+D1608CMD_TAIL);
+            }
 
             filter_set.ratio = config_map.output_dsp[dsp_num-1].ratio / 100.0;
             pbComp->Invalidate();
@@ -5312,6 +5323,7 @@ void __fastcall TForm1::edtCompThresholdKeyDown(TObject *Sender, WORD &Key,
     }
     else if (Key == VK_RETURN)
     {
+        int threshold = config_map.output_dsp[dsp_num-1].threshold;
         try{
             config_map.output_dsp[dsp_num-1].threshold = edt->Text.ToDouble()*threshold_config.scale;
 
@@ -5320,9 +5332,12 @@ void __fastcall TForm1::edtCompThresholdKeyDown(TObject *Sender, WORD &Key,
             else if (config_map.output_dsp[dsp_num-1].threshold < threshold_config.min_value)
                 config_map.output_dsp[dsp_num-1].threshold = threshold_config.min_value;
 
-            String cmd_text = D1608CMD_FLAG;
-            cmd_text = cmd_text+"output<"+IntToStr(dsp_num)+">.comp.threshold="+edtCompThreshold->Text+"dB";
-            SendCmd(cmd_text+D1608CMD_TAIL);
+            if (threshold != config_map.output_dsp[dsp_num-1].threshold)
+            {
+                String cmd_text = D1608CMD_FLAG;
+                cmd_text = cmd_text+"output<"+IntToStr(dsp_num)+">.comp.threshold="+edtCompThreshold->Text+"dB";
+                SendCmd(cmd_text+D1608CMD_TAIL);
+            }
 
             filter_set.threshold = config_map.output_dsp[dsp_num-1].threshold / 10.0;
             pbComp->Invalidate();
@@ -5355,6 +5370,7 @@ void __fastcall TForm1::edtCompAttackTimeKeyDown(TObject *Sender,
     }
     else if (Key == VK_RETURN)
     {
+        int attack_time = config_map.output_dsp[dsp_num-1].attack_time;
         try{
             config_map.output_dsp[dsp_num-1].attack_time = edt->Text.ToDouble()*attack_config.scale;
 
@@ -5362,10 +5378,13 @@ void __fastcall TForm1::edtCompAttackTimeKeyDown(TObject *Sender,
                 config_map.output_dsp[dsp_num-1].attack_time = attack_config.max_value;
             else if (config_map.output_dsp[dsp_num-1].attack_time < attack_config.min_value)
                 config_map.output_dsp[dsp_num-1].attack_time = attack_config.min_value;
-            
-            String cmd_text = D1608CMD_FLAG;
-            cmd_text = cmd_text+"output<"+IntToStr(dsp_num)+">.comp.attack_time="+edtCompAttackTime->Text+"ms";
-            SendCmd(cmd_text+D1608CMD_TAIL);
+
+            if (attack_time != config_map.output_dsp[dsp_num-1].attack_time)
+            {
+                String cmd_text = D1608CMD_FLAG;
+                cmd_text = cmd_text+"output<"+IntToStr(dsp_num)+">.comp.attack_time="+edtCompAttackTime->Text+"ms";
+                SendCmd(cmd_text+D1608CMD_TAIL);
+            }
         }
         catch(...)
         {
@@ -5395,6 +5414,7 @@ void __fastcall TForm1::edtCompReleaseTimeKeyDown(TObject *Sender,
     }
     else if (Key == VK_RETURN)
     {
+        int release_time = config_map.output_dsp[dsp_num-1].release_time;
         try{
             config_map.output_dsp[dsp_num-1].release_time = edtCompReleaseTime->Text.ToDouble()*release_config.scale;
 
@@ -5402,10 +5422,13 @@ void __fastcall TForm1::edtCompReleaseTimeKeyDown(TObject *Sender,
                 config_map.output_dsp[dsp_num-1].release_time = release_config.max_value;
             else if (config_map.output_dsp[dsp_num-1].release_time < release_config.min_value)
                 config_map.output_dsp[dsp_num-1].release_time = release_config.min_value;
-            
-            String cmd_text = D1608CMD_FLAG;
-            cmd_text = cmd_text+"output<"+IntToStr(dsp_num)+">.comp.release_time="+edtCompReleaseTime->Text+"ms";
-            SendCmd(cmd_text+D1608CMD_TAIL);
+
+            if (release_time != config_map.output_dsp[dsp_num-1].release_time)
+            {
+                String cmd_text = D1608CMD_FLAG;
+                cmd_text = cmd_text+"output<"+IntToStr(dsp_num)+">.comp.release_time="+edtCompReleaseTime->Text+"ms";
+                SendCmd(cmd_text+D1608CMD_TAIL);
+            }
         }
         catch(...)
         {
@@ -5435,6 +5458,7 @@ void __fastcall TForm1::edtCompGainKeyDown(TObject *Sender, WORD &Key,
     }
     else if (Key == VK_RETURN)
     {
+        int comp_gain = config_map.output_dsp[dsp_num-1].comp_gain;
         try{
             config_map.output_dsp[dsp_num-1].comp_gain = edt->Text.ToDouble()*gain_config.scale;
 
@@ -5443,9 +5467,12 @@ void __fastcall TForm1::edtCompGainKeyDown(TObject *Sender, WORD &Key,
             else if (config_map.output_dsp[dsp_num-1].comp_gain < gain_config.min_value)
                 config_map.output_dsp[dsp_num-1].comp_gain = gain_config.min_value;
 
-            String cmd_text = D1608CMD_FLAG;
-            cmd_text = cmd_text+"output<"+IntToStr(dsp_num)+">.comp.gain="+edtCompGain->Text+"dB";
-            SendCmd(cmd_text+D1608CMD_TAIL);
+            if (comp_gain != config_map.output_dsp[dsp_num-1].comp_gain)
+            {
+                String cmd_text = D1608CMD_FLAG;
+                cmd_text = cmd_text+"output<"+IntToStr(dsp_num)+">.comp.gain="+edtCompGain->Text+"dB";
+                SendCmd(cmd_text+D1608CMD_TAIL);
+            }
 
             filter_set.gain = config_map.output_dsp[dsp_num-1].comp_gain / 10.0;
             pbComp->Invalidate();
@@ -5464,6 +5491,12 @@ void __fastcall TForm1::cbCompAutoTimeClick(TObject *Sender)
 {
     TCheckBox* check_box = (TCheckBox*)Sender;
     int dsp_num = check_box->Parent->Parent->Tag;
+
+    if (dsp_num < 100)
+    {
+        return;
+    }
+
     dsp_num -= 101;
 
     if (cbCompAutoTime->Checked)
@@ -6885,7 +6918,14 @@ void __fastcall TForm1::Copy1Click(TObject *Sender)
 //---------------------------------------------------------------------------
 static void CloneChannelData(InputConfigMap &dest, InputConfigMap &src)
 {
+    // master_level_a和master_mute不能覆盖
+    unsigned char master_mute_switch = dest.master_mute_switch;
+    short master_level_a = dest.master_level_a;
+
     dest = src;
+
+    dest.master_mute_switch = master_mute_switch;
+    dest.master_level_a = master_level_a;
 }
 static void CloneChannelData(OutputConfigMap &dest, OutputConfigMap &src)
 {
@@ -6912,6 +6952,7 @@ static void CloneChannelData(InputConfigMap &dest, OutputConfigMap &src)
     //                    = src.release_time   ;
     //                    = src.comp_gain      ;
     //                    = src.auto_time      ;
+    // dest.master_mute_switch = 
 }
 static void CloneChannelData(OutputConfigMap &dest, InputConfigMap &src)
 {
@@ -6955,6 +6996,55 @@ void __fastcall TForm1::Paste1Click(TObject *Sender)
             else if (copied_channel.channel_type == ctOutput)
                 CloneChannelData(config_map.input_dsp[selected_channel.channel_id-1],
                                  config_map.output_dsp[copied_channel.channel_id-1]);
+
+            ApplyConfigToUI();
+            // 发出命令
+            int dsp_num = selected_channel.channel_id;
+
+            input_eq_btn[dsp_num-1]->OnClick(input_eq_btn[dsp_num-1]);
+            input_invert_btn[dsp_num-1]->OnClick(input_invert_btn[dsp_num-1]);
+            input_noise_btn[dsp_num-1]->OnClick(input_noise_btn[dsp_num-1]);
+            input_mute_btn[dsp_num-1]->OnClick(input_mute_btn[dsp_num-1]);
+            input_level_trackbar[dsp_num-1]->OnChange(input_level_trackbar[dsp_num-1]);
+            after_input_panel_dsp_numClick(input_dsp_name[dsp_num-1]);
+
+            String cmd_text;
+            cmd_text = D1608CMD_FLAG;
+            cmd_text = cmd_text+ "input<"+IntToStr(dsp_num)+">.gain="+InputGain2String(config_map.input_dsp[dsp_num-1].gain);
+            SendCmd(cmd_text+D1608CMD_TAIL);
+
+            cmd_text = D1608CMD_FLAG;
+            cmd_text = cmd_text+ "input<"+IntToStr(dsp_num)+">.phantom="+(config_map.input_dsp[dsp_num-1].phantom_switch?"on":"off");
+            SendCmd(cmd_text+D1608CMD_TAIL);
+
+            String send_level_b;
+            send_level_b = send_level_b.sprintf("%1.1f", config_map.input_dsp[dsp_num-1].level_b/10.0);
+            cmd_text = D1608CMD_FLAG;
+            cmd_text = cmd_text+"input<"+IntToStr(dsp_num)+">.inside_volume="+send_level_b+"dB";
+            SendCmd(cmd_text+D1608CMD_TAIL);
+
+            unsigned int delay;
+            cmd_text = D1608CMD_FLAG;
+            cmd_text = cmd_text+"input<"+IntToStr(dsp_num)+">.delay="+String(config_map.input_dsp[dsp_num-1].delay / 1000.0)+"ms";
+            SendCmd(cmd_text+D1608CMD_TAIL);
+
+            pnlDspDetail->Tag = dsp_num;
+            filter_set.SendPeqCmd(HP_FILTER);
+            filter_set.SendBypassCmd(HP_FILTER);
+            filter_set.SendPeqCmd(LP_FILTER);
+            filter_set.SendBypassCmd(LP_FILTER);
+
+            for (int i=FIRST_FILTER+2; i<=LAST_FILTER-2; i++)
+            {
+                filter_set.SendPeqCmd(i);
+                filter_set.SendBypassCmd(i);
+            }
+
+            filter_set.SendPeqCmd(HP_FILTER+1);
+            filter_set.SendBypassCmd(HP_FILTER+1);
+
+            filter_set.SendPeqCmd(LP_FILTER-1);
+            filter_set.SendBypassCmd(LP_FILTER-1);
         }
         else if (selected_channel.channel_type == ctOutput)
         {
@@ -6964,8 +7054,62 @@ void __fastcall TForm1::Paste1Click(TObject *Sender)
             else if (copied_channel.channel_type == ctOutput)
                 CloneChannelData(config_map.output_dsp[selected_channel.channel_id-1],
                                  config_map.output_dsp[copied_channel.channel_id-1]);
+
+            ApplyConfigToUI();
+            // 发出命令
+            int dsp_num = selected_channel.channel_id;
+
+            output_eq_btn[dsp_num-1]->OnClick(output_eq_btn[dsp_num-1]);
+            output_comp_btn[dsp_num-1]->OnClick(output_comp_btn[dsp_num-1]);
+            output_invert_btn[dsp_num-1]->OnClick(output_invert_btn[dsp_num-1]);
+            output_invert_btn[dsp_num-1]->OnClick(output_invert_btn[dsp_num-1]);
+            output_mute_btn[dsp_num-1]->OnClick(output_mute_btn[dsp_num-1]);
+            output_level_trackbar[dsp_num-1]->OnChange(output_level_trackbar[dsp_num-1]);
+            after_output_panel_dsp_numClick(output_dsp_name[dsp_num-1]);
+
+            String cmd_text;
+            cmd_text = D1608CMD_FLAG;
+            cmd_text = cmd_text+ "output<"+IntToStr(dsp_num)+">.gain="+OutputGain2String(config_map.output_dsp[dsp_num-1].gain);
+            SendCmd(cmd_text+D1608CMD_TAIL);
+
+            String send_level_b;
+            send_level_b = send_level_b.sprintf("%1.1f", config_map.output_dsp[dsp_num-1].level_b/10.0);
+            cmd_text = D1608CMD_FLAG;
+            cmd_text = cmd_text+"output<"+IntToStr(dsp_num)+">.inside_volume="+send_level_b+"dB";
+            SendCmd(cmd_text+D1608CMD_TAIL);
+
+            unsigned int delay;
+            cmd_text = D1608CMD_FLAG;
+            cmd_text = cmd_text+"output<"+IntToStr(dsp_num)+">.delay="+String(config_map.output_dsp[dsp_num-1].delay / 1000.0)+"ms";
+            SendCmd(cmd_text+D1608CMD_TAIL);
+
+            pnlDspDetail->Tag = dsp_num+100;
+            filter_set.SendPeqCmd(HP_FILTER);
+            filter_set.SendBypassCmd(HP_FILTER);
+            filter_set.SendPeqCmd(LP_FILTER);
+            filter_set.SendBypassCmd(LP_FILTER);
+
+            for (int i=FIRST_FILTER+2; i<=LAST_FILTER-2; i++)
+            {
+                filter_set.SendPeqCmd(i);
+                filter_set.SendBypassCmd(i);
+            }
+
+            filter_set.SendPeqCmd(HP_FILTER+1);
+            filter_set.SendBypassCmd(HP_FILTER+1);
+
+            filter_set.SendPeqCmd(LP_FILTER-1);
+            filter_set.SendBypassCmd(LP_FILTER-1);
+
+            // 压缩参数
+            edtCompRatioKeyDown(edtCompRatio, enter_key, TShiftState());
+            edtCompThresholdKeyDown(edtCompThreshold, enter_key, TShiftState());
+            edtCompGainKeyDown(edtCompGain, enter_key, TShiftState());
+            cbCompAutoTimeClick(cbCompAutoTime);
+            edtCompAttackTimeKeyDown(edtCompAttackTime, enter_key, TShiftState());
+            edtCompReleaseTimeKeyDown(edtCompReleaseTime, enter_key, TShiftState());
+
         }
-        ApplyConfigToUI();
     }
 }
 //---------------------------------------------------------------------------

@@ -131,9 +131,9 @@ static String GetPeqName(int band)
 }
 void FilterSet::SendPeqCmd(int band)
 {
-    int dsp_num = Form1->pnlDspDetail->Tag;
     if (band == 0)
         band = select_band;
+    int dsp_num = Form1->pnlDspDetail->Tag;
 
     if (band > 0)
     {

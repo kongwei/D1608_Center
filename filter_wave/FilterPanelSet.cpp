@@ -211,7 +211,7 @@ void __fastcall PanelAgent::cbTypeChange(TObject *Sender)
 
     SaveToConfigMap(band);
     _filter_set.RepaintPaint(band);
-    _filter_set.SendPeqCmd();
+    _filter_set.SendPeqCmd(band);
 }
 
 void __fastcall PanelAgent::cbBypassClick(TObject *Sender)
@@ -277,7 +277,7 @@ void __fastcall PanelAgent::edtFreqKeyDown(TObject *Sender, WORD &Key,
         SaveToConfigMap(band);
         _filter_set.RepaintPaint(band);
         if (abs(delta) > 0.00001)
-            _filter_set.SendPeqCmd();
+            _filter_set.SendPeqCmd(band);
     }
     else if (Key == VK_ESCAPE)
     {
@@ -307,7 +307,7 @@ void __fastcall PanelAgent::edtFreqKeyDown(TObject *Sender, WORD &Key,
         _filter_set.GetFilter(band)->SetFreq(current_freq);
         SaveToConfigMap(band);
         _filter_set.RepaintPaint(band);
-        _filter_set.SendPeqCmd();
+        _filter_set.SendPeqCmd(band);
     }
 }
 //---------------------------------------------------------------------------
@@ -336,7 +336,7 @@ void __fastcall PanelAgent::edtGainKeyDown(TObject *Sender, WORD &Key,
             SaveToConfigMap(band);
             _filter_set.RepaintPaint(band);
             if (abs(delta) > 0.00001)
-                _filter_set.SendPeqCmd();
+                _filter_set.SendPeqCmd(band);
 
             edtGain->Text = _filter_set.GetFilter(band)->GetGain();
             edtGain->SelectAll();
@@ -375,7 +375,7 @@ void __fastcall PanelAgent::edtGainKeyDown(TObject *Sender, WORD &Key,
         _filter_set.GetFilter(band)->SetGain(gain);
         SaveToConfigMap(band);
         _filter_set.RepaintPaint(band);
-        _filter_set.SendPeqCmd();
+        _filter_set.SendPeqCmd(band);
 
         edtGain->Text = _filter_set.GetFilter(band)->GetGain();
         edtGain->SelectAll();
@@ -402,7 +402,7 @@ void __fastcall PanelAgent::edtQKeyDown(TObject *Sender, WORD &Key,
         SaveToConfigMap(band);
         _filter_set.RepaintPaint(band);
         if (abs(delta) > 0.00001)
-            _filter_set.SendPeqCmd();
+            _filter_set.SendPeqCmd(band);
     }
     else if (Key == VK_ESCAPE)
     {
@@ -432,7 +432,7 @@ void __fastcall PanelAgent::edtQKeyDown(TObject *Sender, WORD &Key,
         _filter_set.GetFilter(band)->SetQ(current_q);
         SaveToConfigMap(band);
         _filter_set.RepaintPaint(band);
-        _filter_set.SendPeqCmd();
+        _filter_set.SendPeqCmd(band);
     }
 }
 //---------------------------------------------------------------------------
