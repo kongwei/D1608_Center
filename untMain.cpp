@@ -4926,6 +4926,12 @@ void __fastcall TForm1::lblPresetNameClick(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TForm1::btnDeviceNameClick(TObject *Sender)
 {
+    if (edtDeviceName->Text != "" && edtDeviceName->Text.Trim() == "")
+    {
+        ShowMessage("设备名称不能全部是空格");
+        return;
+    }
+
     strncpy(global_config.d1616_name, edtDeviceName->Text.c_str(), 16);
 
     UpdateCaption();
