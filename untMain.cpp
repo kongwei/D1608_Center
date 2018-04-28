@@ -7022,7 +7022,7 @@ void __fastcall TForm1::Paste1Click(TObject *Sender)
     // 考虑做成界面运动
     if (Paste1->Enabled)
     {
-        ShowMessage("Copy channel "+IntToStr(copied_channel.channel_id)+" to channel "+IntToStr(selected_channel.channel_id));
+        ShowMessage("Copy "+String((char)('A'+copied_channel.channel_id-1))+" to "+IntToStr(selected_channel.channel_id));
 
         // 需要根据输入和输出的状态进行区别处理
         if (selected_channel.channel_type == ctInput)
