@@ -4620,6 +4620,10 @@ void TForm1::OnFeedbackData(unsigned int cmd_id)
                 PaintBox1->Refresh();
             }
 		}
+        else if (cmd_id == offsetof(ConfigMap, input_dsp[ObjectIndex].dsp_name))
+		{
+            input_dsp_name[ObjectIndex]->Caption = config_map.input_dsp[ObjectIndex].dsp_name;
+		}
 	}
 	else if ((cmd_id >= GetOffsetOfData(&config_map.output_dsp))
 		&& (cmd_id < sizeof(config_map.output_dsp)+GetOffsetOfData(&config_map.output_dsp)))
@@ -4757,6 +4761,10 @@ void TForm1::OnFeedbackData(unsigned int cmd_id)
                     mix_level_trackbar[i]->Position = config_map.output_dsp[ObjectIndex].mix[i];
                 }
             }
+		}
+        else if (cmd_id == offsetof(ConfigMap, output_dsp[ObjectIndex].dsp_name))
+		{
+            output_dsp_name[ObjectIndex]->Caption = config_map.output_dsp[ObjectIndex].dsp_name;
 		}
 	}
 
@@ -4912,7 +4920,7 @@ void __fastcall TForm1::lblPresetNameClick(TObject *Sender)
         lblPresetName->Caption = new_name;
 
     String cmd_text = D1608CMD_CONTROL_FLAG;
-    cmd_text = cmd_text+"config.preset_name<"+IntToStr(cur_preset_id)+"]=" + lblPresetName->Caption.SubString(1,16);
+    cmd_text = cmd_text+"config.preset_name<"+IntToStr(cur_preset_id)+">=" + lblPresetName->Caption.SubString(1,16);
     SendCmd(cmd_text+D1608CMD_TAIL);
 }
 //---------------------------------------------------------------------------
