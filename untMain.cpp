@@ -4066,18 +4066,17 @@ void __fastcall TForm1::after_input_panel_dsp_numClick(TObject *Sender)
     TLabel* label = (TLabel*) Sender;
     int dsp_num = label->Tag + 1;
 
-    // ²¹×ã¿Õ°×
-    while (label->Caption.Length() < 6)
-    {
-        label->Caption = label->Caption + " ";
-    }
-
     if (label->Caption == edtInput->Text)
     {
         return;
     }
 
     label->Caption = edtInput->Text;
+    // ²¹×ã¿Õ°×
+    while (label->Caption.Length() < 5)
+    {
+        label->Caption = label->Caption + " ";
+    }
 
     String cmd_text = D1608CMD_FLAG;
     if (cbGlobalDspName->Checked)
@@ -4112,11 +4111,14 @@ void __fastcall TForm1::after_output_panel_dsp_numClick(TObject *Sender)
     {
         return;
     }
-    else
-    {
-        label->Caption = edtInput->Text;
-    }
 
+    label->Caption = edtInput->Text;
+    // ²¹×ã¿Õ°×
+    while (label->Caption.Length() < 5)
+    {
+        label->Caption = label->Caption + " ";
+    }
+    
     if (cbGlobalDspName->Checked)
     {
         String cmd_text = D1608CMD_FLAG;
