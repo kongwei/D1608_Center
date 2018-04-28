@@ -1647,13 +1647,13 @@ void __fastcall TForm1::btnSelectClick(TObject *Sender)
     StartReadCurrentPreset();
     restor_delay_count = 15;
     tmDelayBackup->Enabled = true;
-
+#if 0
+    // 从外部复制过来
     // 获取下位机PRESET数据，同时这个消息作为下位机认可的消息
     TPackage package = {0};
     package.udp_port = UDP_PORT_READ_PRESET;
     D1608PresetCmd preset_cmd(version);
     strcpy(preset_cmd.flag, D1608PRESETCMD_LINK_FLAG);
-
 
     // 其他设备信息
     preset_cmd.preset = 0; // 读取global_config
@@ -1671,8 +1671,7 @@ void __fastcall TForm1::btnSelectClick(TObject *Sender)
     read_one_preset_package_list.insert(read_one_preset_package_list.begin(), package);
     if (read_one_preset_package_list.size() == 1)
         SendBuffer(dst_ip, package.udp_port, package.data, package.data_size);
-
-
+#endif
 
     pnlOperator->Show();
     pnlDspDetail->Hide();
@@ -7177,6 +7176,31 @@ void TForm1::StartReadCurrentPreset()
 
     TPackage package = read_one_preset_package_list.back();
     SendBuffer(dst_ip, package.udp_port, package.data, package.data_size);
+
+
+    // 从外部复制过来
+    // 获取下位机PRESET数据，同时这个消息作为下位机认可的消息
+    //TPackage package = {0};
+    package.udp_port = UDP_PORT_READ_PRESET;
+    D1608PresetCmd preset_cmd(version);
+    strcpy(preset_cmd.flag, D1608PRESETCMD_LINK_FLAG);
+
+    // 其他设备信息
+    preset_cmd.preset = 0; // 读取global_config
+    preset_cmd.store_page = 1;  // 第2页，指其他设备信息
+    memcpy(package.data, &preset_cmd, offsetof(D1608PresetCmd, data));
+    package.data_size = offsetof(D1608PresetCmd, data);
+    read_one_preset_package_list.insert(read_one_preset_package_list.begin(), package);
+    if (read_one_preset_package_list.size() == 1)
+        SendBuffer(dst_ip, package.udp_port, package.data, package.data_size);
+    // global_config
+    preset_cmd.preset = 0; // 读取global_config
+    preset_cmd.store_page = 0;  // 第1页，指global_config
+    memcpy(package.data, &preset_cmd, offsetof(D1608PresetCmd, data));
+    package.data_size = offsetof(D1608PresetCmd, data);
+    read_one_preset_package_list.insert(read_one_preset_package_list.begin(), package);
+    if (read_one_preset_package_list.size() == 1)
+        SendBuffer(dst_ip, package.udp_port, package.data, package.data_size);
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::cbLedTestClick(TObject *Sender)
