@@ -864,15 +864,15 @@ private:
     void __fastcall UpdateDeviceType()
     {
         char * device_type;
-        if (global_config.device_type[0] == '*')
+        if (device_setting.device_type[0] == '*')
         {
             edtDeviceType->Color = clRed;
-            edtDeviceType->Text = global_config.device_type+1;
+            edtDeviceType->Text = device_setting.device_type+1;
         }
         else
         {
             edtDeviceType->Color = clWindow;
-            edtDeviceType->Text = global_config.device_type;
+            edtDeviceType->Text = device_setting.device_type;
         }
     }
 public:		// User declarations
@@ -933,8 +933,6 @@ public:
     TPaintBox * pb_watch_list[32];
 
 private:
-    String device_cpuid;
-
     unsigned __int64 running_timer;
     int roboot_count;
 

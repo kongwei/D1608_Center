@@ -54,6 +54,7 @@ TForm1 *Form1;
 ConfigMap all_config_map[PRESET_NUM];
 ConfigMap config_map;
 GlobalConfig global_config = {0};
+DeviceSetting device_setting = {0};
 static bool global_config_loaded = false;
 int REAL_INPUT_DSP_NUM = 16;
 int REAL_OUTPUT_DSP_NUM = 16;
@@ -122,7 +123,6 @@ struct T_slp_pack_Str
 {
     String ip;
     String mac;
-    String cpuid;
     String sn;
 	String name;
 	String default_device_name;
@@ -208,12 +208,12 @@ CompConfig release_config = {10, 50000, 10000, 10, 3};
 CompConfig gain_config = {0, 240, 0, 10, 3};
 VersionFunction TForm1::GetVersionConfig()
 {
-    if (global_config_loaded && String(global_config.version_function.name) == "")
+    if (global_config_loaded && String(device_setting.version_function.name) == "")
     {
         ShowMessage("读取配置表失败");
         keep_live_count = CONTROL_TIMEOUT_COUNT;
     }
-    return global_config.version_function;
+    return device_setting.version_function;
 }
 
 String Ration2String(double ratio)
@@ -1538,8 +1538,6 @@ void __fastcall TForm1::udpSLPUDPRead(TObject *Sender,
         slp_pack_str.name = slp_pack_str.default_device_name + "-" + slp_pack_str.sn;
     }
 
-    slp_pack_str.cpuid = "cpuid不正确";//GetDictValue(dict, 20, "cpuid");
-
     TListItem * item = NULL;
     // 查找是否列表中已经存在
     for (int i=0;i<lvDevice->Items->Count;i++)
@@ -1554,7 +1552,7 @@ void __fastcall TForm1::udpSLPUDPRead(TObject *Sender,
             //find_item->SubItems->Strings[2] = device_id;
             find_item->SubItems->Strings[3] = slp_pack_str.name;
             find_item->SubItems->Strings[4] = slp_pack_str.default_device_name;
-            find_item->SubItems->Strings[5] = slp_pack_str.cpuid;
+            find_item->SubItems->Strings[5] = "废弃，原先是cpuid";
             find_item->SubItems->Strings[6] = slp_pack_str.mac;
             find_item->SubItems->Strings[7] = slp_pack_str.sn;
             find_item->SubItems->Strings[8] = IsCompatibility(slp_pack_str.version);
@@ -1577,7 +1575,7 @@ void __fastcall TForm1::udpSLPUDPRead(TObject *Sender,
         item->SubItems->Add(""/*slp_pack.id*/);
         item->SubItems->Add(slp_pack_str.name);
         item->SubItems->Add(slp_pack_str.default_device_name);
-        item->SubItems->Add(slp_pack_str.cpuid);
+        item->SubItems->Add("废弃，原先是cpuid");
         item->SubItems->Add(slp_pack_str.mac);
         item->SubItems->Add(slp_pack_str.sn);
         item->SubItems->Add(IsCompatibility(slp_pack_str.version));
@@ -1629,7 +1627,6 @@ void __fastcall TForm1::btnSelectClick(TObject *Sender)
 
     dst_ip = selected->SubItems->Strings[0];
     String broadcast_ip = selected->SubItems->Strings[1];
-    device_cpuid = selected->SubItems->Strings[5];
         lvLog->Clear();
 
     sendcmd_list.clear();
@@ -1656,12 +1653,26 @@ void __fastcall TForm1::btnSelectClick(TObject *Sender)
     package.udp_port = UDP_PORT_READ_PRESET;
     D1608PresetCmd preset_cmd(version);
     strcpy(preset_cmd.flag, D1608PRESETCMD_LINK_FLAG);
+
+
+    // 其他设备信息
     preset_cmd.preset = 0; // 读取global_config
+    preset_cmd.store_page = 1;  // 第2页，指其他设备信息
     memcpy(package.data, &preset_cmd, offsetof(D1608PresetCmd, data));
-    package.data_size = offsetof(D1608PresetCmd, data);                               
+    package.data_size = offsetof(D1608PresetCmd, data);
     read_one_preset_package_list.insert(read_one_preset_package_list.begin(), package);
     if (read_one_preset_package_list.size() == 1)
         SendBuffer(dst_ip, package.udp_port, package.data, package.data_size);
+    // global_config
+    preset_cmd.preset = 0; // 读取global_config
+    preset_cmd.store_page = 0;  // 第1页，指global_config
+    memcpy(package.data, &preset_cmd, offsetof(D1608PresetCmd, data));
+    package.data_size = offsetof(D1608PresetCmd, data);
+    read_one_preset_package_list.insert(read_one_preset_package_list.begin(), package);
+    if (read_one_preset_package_list.size() == 1)
+        SendBuffer(dst_ip, package.udp_port, package.data, package.data_size);
+
+
 
     pnlOperator->Show();
     pnlDspDetail->Hide();
@@ -1693,7 +1704,6 @@ void __fastcall TForm1::btnSelectClick(TObject *Sender)
 
     btnGetLog->Enabled = true;
 
-    lblCpuId->Caption = "cpu id: "+device_cpuid;
     lblSn->Caption = "sn: " + String(last_connection.data.sn);
     lblConfigFilename->Caption = "file: --";
 }
@@ -2219,7 +2229,15 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             preset_id = cur_preset_id;
 
         // 保存
-        if ((preset_id & 0x7F) == 0)
+        if ((preset_id & 0x7F) == 0 && preset_cmd.store_page == 1)
+        {
+            memcpy(&device_setting, preset_cmd.data, sizeof(device_setting));
+            device_setting.cpu_id[0] = device_setting.cpu_id[0] ^ 0x4E4A4C53;
+			device_setting.cpu_id[1] = device_setting.cpu_id[1] ^ 0x5F534D43;
+			device_setting.cpu_id[2] = device_setting.cpu_id[2] ^ 0x4E4A4C53;
+
+        }
+        else if ((preset_id & 0x7F) == 0)
         {
             // global_config
             memcpy(&global_config, preset_cmd.data, sizeof(global_config));
@@ -2262,22 +2280,20 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             clbAvaliablePreset->Items->Add(global_config.preset_name[6][0] ? global_config.preset_name[6] : "PRESET7");
             clbAvaliablePreset->Items->Add(global_config.preset_name[7][0] ? global_config.preset_name[7] : "PRESET8");
 
-            // 版本校验
-            if (global_config.version >= offsetof(GlobalConfig, ad_da_card))
             {
                 int dsp_920_num = 0;
                 TPanel* iDsp[8] = {iDsp1, iDsp2, iDsp3, iDsp4, iDsp5, iDsp6, iDsp7, iDsp8};
                 for (int i=0;i<8;i++) // xDO: 暂时只考虑8片
                 {
-                    dsp_920_num += global_config.yss920[i];
-                    iDsp[i]->Caption = (global_config.yss920[i]?"920":"X");
+                    dsp_920_num += device_setting.yss920[i];
+                    iDsp[i]->Caption = (device_setting.yss920[i]?"920":"X");
                 }
 
                 TPanel* iAdDa[8] = {iAD_abcd, iAD_efgh, iAD_ijkl, iAD_mnop, iDA_1234, iDA_5678, iDA_9_12, iDA_13_16};
                 for (int i=0;i<8;i++)
-                    iAdDa[i]->Caption = global_config.ad_da_card[i];
+                    iAdDa[i]->Caption = device_setting.ad_da_card[i];
 
-                iLed->Caption = global_config.led_control_count;
+                iLed->Caption = device_setting.led_control_count;
 
                 REAL_INPUT_DSP_NUM = GetVersionConfig().input_channel_count;
                 REAL_OUTPUT_DSP_NUM = GetVersionConfig().output_channel_count;
@@ -4793,14 +4809,14 @@ void __fastcall TForm1::UpdateBuildTime()
 {
     try
     {
-        edtStartBuildTime->Text = DateTime2Str(GetDateTimeFromMarco(global_config.start_build_time));
+        edtStartBuildTime->Text = DateTime2Str(GetDateTimeFromMarco(device_setting.start_build_time));
     }
     catch(...)
     {
-        edtStartBuildTime->Text = global_config.start_build_time;
+        edtStartBuildTime->Text = device_setting.start_build_time;
         AppendLog(__FUNC__);
     }
-    edtStartBuildTime->Text = edtStartBuildTime->Text+"\t" + AppBuildTime2Str(global_config.build_time) + "\t";
+    edtStartBuildTime->Text = edtStartBuildTime->Text+"\t" + AppBuildTime2Str(device_setting.build_time) + "\t";
     edtStartBuildTime->Text = edtStartBuildTime->Text + DateTime2Str(GetDateTimeFromMarco(compile_time));
 }
 //---------------------------------------------------------------------------
@@ -5598,58 +5614,58 @@ void __fastcall TForm1::lbl5VdClick(TObject *Sender)
 
     if (control == lbl3_3V)
     {
-        up_line_value = global_config.adc_range.vote_3v3m_up;
-        down_line_value = global_config.adc_range.vote_3v3m_down;
+        up_line_value = device_setting.adc_range.vote_3v3m_up;
+        down_line_value = device_setting.adc_range.vote_3v3m_down;
     }
     else  if (control == lbl3_3Vd)
     {
-        up_line_value = global_config.adc_range.vote_3v3_up;
-        down_line_value = global_config.adc_range.vote_3v3_down;
+        up_line_value =device_setting.adc_range.vote_3v3_up;
+        down_line_value =device_setting.adc_range.vote_3v3_down;
     }
     else  if (control == lbl5Va)
     {
-        up_line_value = global_config.adc_range.vote_5va_up;
-        down_line_value = global_config.adc_range.vote_5va_down;
+        up_line_value =device_setting.adc_range.vote_5va_up;
+        down_line_value =device_setting.adc_range.vote_5va_down;
     }
     else  if (control == lbl5Vd)
     {
-        up_line_value = global_config.adc_range.vote_5vd_up;
-        down_line_value = global_config.adc_range.vote_5vd_down;
+        up_line_value =device_setting.adc_range.vote_5vd_up;
+        down_line_value =device_setting.adc_range.vote_5vd_down;
     }
     else  if (control == lbl8Vac)
     {
-        up_line_value = global_config.adc_range.vote_8vac_up;
-        down_line_value = global_config.adc_range.vote_8vac_down;
+        up_line_value =device_setting.adc_range.vote_8vac_up;
+        down_line_value =device_setting.adc_range.vote_8vac_down;
     }
     else  if (control == lbl8Vdc)
     {
-        up_line_value = global_config.adc_range.vote_8vdc_up;
-        down_line_value = global_config.adc_range.vote_8vdc_down;
+        up_line_value =device_setting.adc_range.vote_8vdc_up;
+        down_line_value =device_setting.adc_range.vote_8vdc_down;
     }
     else  if (control == lbl12Va)
     {
-        up_line_value = global_config.adc_range.vote_12va_up;
-        down_line_value = global_config.adc_range.vote_12va_down;
+        up_line_value =device_setting.adc_range.vote_12va_up;
+        down_line_value =device_setting.adc_range.vote_12va_down;
     }
     else  if (control == lbl_12Va)
     {
-        up_line_value = global_config.adc_range.vote_x12va_up;
-        down_line_value = global_config.adc_range.vote_x12va_down;
+        up_line_value =device_setting.adc_range.vote_x12va_up;
+        down_line_value =device_setting.adc_range.vote_x12va_down;
     }
     else  if (control == lbl16Vac)
     {
-        up_line_value = global_config.adc_range.vote_16vac_up;
-        down_line_value = global_config.adc_range.vote_16vac_down;
+        up_line_value =device_setting.adc_range.vote_16vac_up;
+        down_line_value =device_setting.adc_range.vote_16vac_down;
     }
     else  if (control == lbl_16Vac)
     {
-        up_line_value = global_config.adc_range.vote_x16vac_up;
-        down_line_value = global_config.adc_range.vote_x16vac_down;
+        up_line_value =device_setting.adc_range.vote_x16vac_up;
+        down_line_value =device_setting.adc_range.vote_x16vac_down;
     }
     else  if (control == lbl48Vp)
     {
-        up_line_value = global_config.adc_range.vote_48vp_up;
-        down_line_value = global_config.adc_range.vote_48vp_down;
+        up_line_value =device_setting.adc_range.vote_48vp_up;
+        down_line_value =device_setting.adc_range.vote_48vp_down;
     }
 
     up_line_value = up_line_value / 1000;
@@ -6307,7 +6323,7 @@ void __fastcall TForm1::btnSaveFlashToFileClick(TObject *Sender)
             memset(smc_config.device_flash_dump, 0, sizeof(smc_config.device_flash_dump));
             smc_config.file_version = file_version;
             smc_config.device_version = last_connection.data.version;
-            memcpy(smc_config.cpu_id, last_connection.data.cpuid.c_str(), sizeof(smc_config.cpu_id));
+            memcpy(smc_config.cpu_id, device_setting.cpu_id, sizeof(smc_config.cpu_id));
             memcpy(smc_config.mac, last_connection.data.mac.c_str(), sizeof(smc_config.mac));
 
             for (int address=PRESET_START_PAGE;address<0x8000000+256*1024;address+=1024)
@@ -6398,7 +6414,10 @@ void __fastcall TForm1::btnLoadFileToFlashClick(TObject *Sender)
 
             // 读取设备信息
             last_connection.data.version = smc_config.device_version;
-            last_connection.data.cpuid.sprintf("%08X%08X%08X", smc_config.cpu_id[0], smc_config.cpu_id[1], smc_config.cpu_id[2]);
+            //last_connection.data.cpuid.sprintf("%08X%08X%08X", smc_config.cpu_id[0], smc_config.cpu_id[1], smc_config.cpu_id[2]);
+                device_setting.cpu_id[0] = smc_config.cpu_id[0];
+                device_setting.cpu_id[1] = smc_config.cpu_id[1];
+                device_setting.cpu_id[2] = smc_config.cpu_id[2];
             last_connection.data.mac.sprintf("%02X:%02X:%02X:%02X:%02X:%02X",
                         smc_config.mac[0], smc_config.mac[2], smc_config.mac[3],
                         smc_config.mac[3], smc_config.mac[4], smc_config.mac[5]);
@@ -6418,14 +6437,14 @@ void __fastcall TForm1::btnLoadFileToFlashClick(TObject *Sender)
                     last_connection.data.mac[5]);
                 edtMAC->Text = mac;
 
-            // device_cpuid用于日志存盘
-            device_cpuid = last_connection.data.cpuid;
-                lvLog->Clear();
+            lvLog->Clear();
 
             const T_sn_pack * sn_pack_on_flash = (T_sn_pack*)(smc_config.device_flash_dump+(SN_START_PAGE-PRESET_START_PAGE)+active_code_length);
             lblDeviceName->Caption = sn_pack_on_flash->sn;
             lblDeviceName->Show();
 
+            String device_cpuid;
+            device_cpuid.sprintf("%08X%08X%08X", smc_config.cpu_id[0], smc_config.cpu_id[1], smc_config.cpu_id[2]);
             lblCpuId->Caption = "cpu id: "+device_cpuid;
             lblSn->Caption = "sn: " + String(sn_pack_on_flash->sn);
             lblConfigFilename->Caption = "file: " + String(sn_pack_on_flash->name2);
@@ -6795,6 +6814,9 @@ void __fastcall TForm1::btnSaveLogClick(TObject *Sender)
     String path = ExtractFilePath(Application->ExeName);
 
     // 合并日志
+    String device_cpuid;
+    device_cpuid.sprintf("%08X%08X%08X", device_setting.cpu_id[0], device_setting.cpu_id[1], device_setting.cpu_id[2]);
+
     if (FileExists(path+device_cpuid+".log"))
     {
         // 合并日志
@@ -7258,27 +7280,27 @@ void __fastcall TForm1::vleAdcMaxDrawCell(TObject *Sender, int ACol,
 
     switch(ARow-1)
     {
-    case 0 :        data = this->adc_ex_max._3_3vd       ;        range = global_config.adc_range.vote_3v3_up;                 break;
-    case 1 :        data = this->adc_ex_max.base         ;        range = global_config.adc_range.vote_3v3m_up;                break;
-    case 2 :        data = this->adc_ex_max._5vd         ;        range = global_config.adc_range.vote_5vd_up;                 break;
-    case 3 :        data = this->adc_ex_max._8vdc        ;        range = global_config.adc_range.vote_8vdc_up;                break;
-    case 4 :        data = this->adc_ex_max._8vac        ;        range = global_config.adc_range.vote_8vac_up;                break;
-    case 5 :        data = this->adc_ex_max._8vad        ;        range = global_config.adc_range.vote_8vad_up;                break;
-    case 6 :        data = this->adc_ex_max._x16vac      ;        range = global_config.adc_range.vote_x16vac_up;              break;
-    case 7 :        data = this->adc_ex_max._x16va       ;        range = global_config.adc_range.vote_x16va_up;               break;
-    case 8 :        data = this->adc_ex_max._50vpc       ;        range = global_config.adc_range.vote_50vpc_up;               break;
-    case 9 :        data = this->adc_ex_max._50vp        ;        range = global_config.adc_range.vote_50vp_up;                break;
-    case 10:        data = this->adc_ex_max._48vp        ;        range = global_config.adc_range.vote_48vp_up;                break;
-    case 11:        data = this->adc_ex_max._5va         ;        range = global_config.adc_range.vote_5va_up;                 break;
-    case 12:        data = this->adc_ex_max._x12va       ;        range = global_config.adc_range.vote_x12va_up;               break;
-    case 13:        data = this->adc_ex_max._12va        ;        range = global_config.adc_range.vote_12va_up;                break;
-    case 14:        data = this->adc_ex_max._16va        ;        range = global_config.adc_range.vote_16va_up;                break;
-    case 15:        data = this->adc_ex_max._16vac       ;        range = global_config.adc_range.vote_16vac_up;               break;
-    case 17:        data = this->adc_ex_max._8va_current ;        range = global_config.adc_range.current_8vd_up;              break;
-    case 18:        data = this->adc_ex_max._8vd_current ;        range = global_config.adc_range.current_8vd_up;              break;
-    case 19:        data = this->adc_ex_max._16v_current ;        range = global_config.adc_range.current_16v_up;              break;
-    case 20:        data = this->adc_ex_max._x16v_current;        range = global_config.adc_range.current_x16v_up;             break;
-    case 21:        data = this->adc_ex_max._50v_current ;        range = global_config.adc_range.current_50v_up;              break;
+    case 0 :        data = this->adc_ex_max._3_3vd       ;        range =device_setting.adc_range.vote_3v3_up;                 break;
+    case 1 :        data = this->adc_ex_max.base         ;        range =device_setting.adc_range.vote_3v3m_up;                break;
+    case 2 :        data = this->adc_ex_max._5vd         ;        range =device_setting.adc_range.vote_5vd_up;                 break;
+    case 3 :        data = this->adc_ex_max._8vdc        ;        range =device_setting.adc_range.vote_8vdc_up;                break;
+    case 4 :        data = this->adc_ex_max._8vac        ;        range =device_setting.adc_range.vote_8vac_up;                break;
+    case 5 :        data = this->adc_ex_max._8vad        ;        range =device_setting.adc_range.vote_8vad_up;                break;
+    case 6 :        data = this->adc_ex_max._x16vac      ;        range =device_setting.adc_range.vote_x16vac_up;              break;
+    case 7 :        data = this->adc_ex_max._x16va       ;        range =device_setting.adc_range.vote_x16va_up;               break;
+    case 8 :        data = this->adc_ex_max._50vpc       ;        range =device_setting.adc_range.vote_50vpc_up;               break;
+    case 9 :        data = this->adc_ex_max._50vp        ;        range =device_setting.adc_range.vote_50vp_up;                break;
+    case 10:        data = this->adc_ex_max._48vp        ;        range =device_setting.adc_range.vote_48vp_up;                break;
+    case 11:        data = this->adc_ex_max._5va         ;        range =device_setting.adc_range.vote_5va_up;                 break;
+    case 12:        data = this->adc_ex_max._x12va       ;        range =device_setting.adc_range.vote_x12va_up;               break;
+    case 13:        data = this->adc_ex_max._12va        ;        range =device_setting.adc_range.vote_12va_up;                break;
+    case 14:        data = this->adc_ex_max._16va        ;        range =device_setting.adc_range.vote_16va_up;                break;
+    case 15:        data = this->adc_ex_max._16vac       ;        range =device_setting.adc_range.vote_16vac_up;               break;
+    case 17:        data = this->adc_ex_max._8va_current ;        range =device_setting.adc_range.current_8vd_up;              break;
+    case 18:        data = this->adc_ex_max._8vd_current ;        range =device_setting.adc_range.current_8vd_up;              break;
+    case 19:        data = this->adc_ex_max._16v_current ;        range =device_setting.adc_range.current_16v_up;              break;
+    case 20:        data = this->adc_ex_max._x16v_current;        range =device_setting.adc_range.current_x16v_up;             break;
+    case 21:        data = this->adc_ex_max._50v_current ;        range =device_setting.adc_range.current_50v_up;              break;
     }
 
     if (data > range)
@@ -7300,27 +7322,27 @@ void __fastcall TForm1::vleAdcMinDrawCell(TObject *Sender, int ACol,
 
     switch(ARow-1)
     {
-    case 0 :        data = this->adc_ex_min._3_3vd       ;        range = global_config.adc_range.vote_3v3_down;                 break;
-    case 1 :        data = this->adc_ex_min.base         ;        range = global_config.adc_range.vote_3v3m_down;                break;
-    case 2 :        data = this->adc_ex_min._5vd         ;        range = global_config.adc_range.vote_5vd_down;                 break;
-    case 3 :        data = this->adc_ex_min._8vdc        ;        range = global_config.adc_range.vote_8vdc_down;                break;
-    case 4 :        data = this->adc_ex_min._8vac        ;        range = global_config.adc_range.vote_8vac_down;                break;
-    case 5 :        data = this->adc_ex_min._8vad        ;        range = global_config.adc_range.vote_8vad_down;                break;
-    case 6 :        data = this->adc_ex_min._x16vac      ;        range = global_config.adc_range.vote_x16vac_down;              break;
-    case 7 :        data = this->adc_ex_min._x16va       ;        range = global_config.adc_range.vote_x16va_down;               break;
-    case 8 :        data = this->adc_ex_min._50vpc       ;        range = global_config.adc_range.vote_50vpc_down;               break;
-    case 9 :        data = this->adc_ex_min._50vp        ;        range = global_config.adc_range.vote_50vp_down;                break;
-    case 10:        data = this->adc_ex_min._48vp        ;        range = global_config.adc_range.vote_48vp_down;                break;
-    case 11:        data = this->adc_ex_min._5va         ;        range = global_config.adc_range.vote_5va_down;                 break;
-    case 12:        data = this->adc_ex_min._x12va       ;        range = global_config.adc_range.vote_x12va_down;               break;
-    case 13:        data = this->adc_ex_min._12va        ;        range = global_config.adc_range.vote_12va_down;                break;
-    case 14:        data = this->adc_ex_min._16va        ;        range = global_config.adc_range.vote_16va_down;                break;
-    case 15:        data = this->adc_ex_min._16vac       ;        range = global_config.adc_range.vote_16vac_down;               break;
-    case 17:        data = this->adc_ex_min._8va_current ;        range = global_config.adc_range.current_8vd_down;              break;
-    case 18:        data = this->adc_ex_min._8vd_current ;        range = global_config.adc_range.current_8vd_down;              break;
-    case 19:        data = this->adc_ex_min._16v_current ;        range = global_config.adc_range.current_16v_down;              break;
-    case 20:        data = this->adc_ex_min._x16v_current;        range = global_config.adc_range.current_x16v_down;             break;
-    case 21:        data = this->adc_ex_min._50v_current ;        range = global_config.adc_range.current_50v_down;              break;
+    case 0 :        data = this->adc_ex_min._3_3vd       ;        range =device_setting.adc_range.vote_3v3_down;                 break;
+    case 1 :        data = this->adc_ex_min.base         ;        range =device_setting.adc_range.vote_3v3m_down;                break;
+    case 2 :        data = this->adc_ex_min._5vd         ;        range =device_setting.adc_range.vote_5vd_down;                 break;
+    case 3 :        data = this->adc_ex_min._8vdc        ;        range =device_setting.adc_range.vote_8vdc_down;                break;
+    case 4 :        data = this->adc_ex_min._8vac        ;        range =device_setting.adc_range.vote_8vac_down;                break;
+    case 5 :        data = this->adc_ex_min._8vad        ;        range =device_setting.adc_range.vote_8vad_down;                break;
+    case 6 :        data = this->adc_ex_min._x16vac      ;        range =device_setting.adc_range.vote_x16vac_down;              break;
+    case 7 :        data = this->adc_ex_min._x16va       ;        range =device_setting.adc_range.vote_x16va_down;               break;
+    case 8 :        data = this->adc_ex_min._50vpc       ;        range =device_setting.adc_range.vote_50vpc_down;               break;
+    case 9 :        data = this->adc_ex_min._50vp        ;        range =device_setting.adc_range.vote_50vp_down;                break;
+    case 10:        data = this->adc_ex_min._48vp        ;        range =device_setting.adc_range.vote_48vp_down;                break;
+    case 11:        data = this->adc_ex_min._5va         ;        range =device_setting.adc_range.vote_5va_down;                 break;
+    case 12:        data = this->adc_ex_min._x12va       ;        range =device_setting.adc_range.vote_x12va_down;               break;
+    case 13:        data = this->adc_ex_min._12va        ;        range =device_setting.adc_range.vote_12va_down;                break;
+    case 14:        data = this->adc_ex_min._16va        ;        range =device_setting.adc_range.vote_16va_down;                break;
+    case 15:        data = this->adc_ex_min._16vac       ;        range =device_setting.adc_range.vote_16vac_down;               break;
+    case 17:        data = this->adc_ex_min._8va_current ;        range =device_setting.adc_range.current_8vd_down;              break;
+    case 18:        data = this->adc_ex_min._8vd_current ;        range =device_setting.adc_range.current_8vd_down;              break;
+    case 19:        data = this->adc_ex_min._16v_current ;        range =device_setting.adc_range.current_16v_down;              break;
+    case 20:        data = this->adc_ex_min._x16v_current;        range =device_setting.adc_range.current_x16v_down;             break;
+    case 21:        data = this->adc_ex_min._50v_current ;        range =device_setting.adc_range.current_50v_down;              break;
     }
 
     if (data < range)
