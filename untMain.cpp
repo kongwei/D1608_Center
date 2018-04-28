@@ -6915,7 +6915,7 @@ void __fastcall TForm1::PopupMenu3Popup(TObject *Sender)
             selected_channel.channel_type = ctInput;
             selected_channel.channel_id = input_dsp_id;
 
-            Copy1->Caption = "Copy Channel Input " + IntToStr(input_dsp_id);
+            Copy1->Caption = "Copy Input " + String((char)('A'+input_dsp_id-1));//IntToStr(input_dsp_id);
             Copy1->Enabled = true;
             Copy1->Tag = input_dsp_id;
         }
@@ -6929,7 +6929,7 @@ void __fastcall TForm1::PopupMenu3Popup(TObject *Sender)
             selected_channel.channel_type = ctOutput;
             selected_channel.channel_id = output_dsp_id;
 
-            Copy1->Caption = "Copy Channel Output " + IntToStr(output_dsp_id);
+            Copy1->Caption = "Copy Output " + IntToStr(output_dsp_id);
             Copy1->Enabled = true;
         }
     }
@@ -6942,9 +6942,8 @@ void __fastcall TForm1::PopupMenu3Popup(TObject *Sender)
         Copy1->Enabled = false;
     }
 
-    Paste1->Enabled = (selected_channel.channel_type != ctNone)
-                   //&& (selected_channel.channel_type == copied_channel.channel_type)
-                   && (selected_channel.channel_id != copied_channel.channel_id);
+    Paste1->Enabled = (selected_channel.channel_type != ctNone) && (copied_channel.channel_type != ctNone)
+                   && ((selected_channel.channel_type != copied_channel.channel_type) || (selected_channel.channel_id != copied_channel.channel_id));
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::Copy1Click(TObject *Sender)

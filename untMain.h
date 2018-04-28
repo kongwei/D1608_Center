@@ -471,7 +471,6 @@ __published:	// IDE-managed Components
     TImage *Image7;
     TPanel *iLed;
     TMenuItem *N1;
-    TMenuItem *Copy1;
     TMenuItem *Paste1;
     TImage *imgLogo;
     TLabel *lblVersion;
@@ -517,6 +516,7 @@ __published:	// IDE-managed Components
     TButton *Button3;
     TEdit *edtDebufExPort;
     TCheckBox *cbLogEnabled;
+    TMenuItem *Copy1;
     void __fastcall FormCreate(TObject *Sender);
     void __fastcall btnRefreshClick(TObject *Sender);
     void __fastcall udpSLPUDPRead(TObject *Sender, TStream *AData,
