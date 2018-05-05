@@ -2081,6 +2081,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
 
             if (cmd_string=="config.action=disconnect]")
             {
+                AppendLog("config.action=disconnect");
                 keep_live_count = CONTROL_TIMEOUT_COUNT;
                 received_cmd_seq = 0;
             }
@@ -2092,6 +2093,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
                 cmd_text = cmd_text+   cmd_string.SubString(1, cmd_string.Length()-1)   +"_confirm";
                 SendCmd2(cmd_text+D1608CMD_TAIL);
 
+                AppendLog("config.action=reboot");
                 keep_live_count = CONTROL_TIMEOUT_COUNT;
                 received_cmd_seq = 0;
                 {
@@ -2406,6 +2408,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             this->Enabled = true;
 
             // 失联
+            AppendLog("package_list.empty()");
             keep_live_count = CONTROL_TIMEOUT_COUNT;
         }
         else
@@ -2474,6 +2477,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             delete file;
 
             // 失联
+            AppendLog("package_list.empty2()");
             keep_live_count = CONTROL_TIMEOUT_COUNT;
         }
         else
@@ -6611,8 +6615,7 @@ void __fastcall TForm1::tmDelayBackupTimer(TObject *Sender)
         // 如果存在读取preset失败，那么需要重新连接
         if (read_one_preset_package_list.size() != 0)
         {
-            SendDisconnect();
-            udpControl->Active = false;
+            CloseControlLink("read_one_preset_package_list 超时太多");
         }
     }
     else
@@ -6770,6 +6773,7 @@ void __fastcall TForm1::tmDelaySendCmdTimer(TObject *Sender)
         // 超时，终止本次同步
         sendcmd_list.clear();
         // 设置为失联
+        AppendLog("sendcmd_delay_count == 0");
         keep_live_count = CONTROL_TIMEOUT_COUNT;
     }
     else if ((sendcmd_delay_count%5) == 1)
