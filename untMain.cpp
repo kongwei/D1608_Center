@@ -1624,6 +1624,7 @@ void __fastcall TForm1::btnSelectClick(TObject *Sender)
     SendDisconnect();
 
     is_manual_disconnect = false;
+    received_cmd_seq = 0;
 
     dst_ip = selected->SubItems->Strings[0];
     String broadcast_ip = selected->SubItems->Strings[1];
@@ -6957,15 +6958,23 @@ static void CloneChannelData(InputConfigMap &dest, InputConfigMap &src)
     // master_level_a和master_mute不能覆盖
     unsigned char master_mute_switch = dest.master_mute_switch;
     short master_level_a = dest.master_level_a;
+    // 通道名称不覆盖
+    char dsp_name[7]; memcpy(dsp_name, src.dsp_name, sizeof(dsp_name));
 
     dest = src;
 
     dest.master_mute_switch = master_mute_switch;
     dest.master_level_a = master_level_a;
+    memcpy(dest.dsp_name, dsp_name, sizeof(dsp_name));
 }
 static void CloneChannelData(OutputConfigMap &dest, OutputConfigMap &src)
 {
+    // 通道名称不覆盖
+    char dsp_name[7]; memcpy(dsp_name, src.dsp_name, sizeof(dsp_name));
+
     dest = src;
+
+    memcpy(dest.dsp_name, dsp_name, sizeof(dsp_name));
 }
 static void CloneChannelData(InputConfigMap &dest, OutputConfigMap &src)
 {
@@ -6981,7 +6990,6 @@ static void CloneChannelData(InputConfigMap &dest, OutputConfigMap &src)
     dest.gain             = src.gain           ;
     dest.delay            = src.delay          ;
     memcpy(dest.filter, src.filter, sizeof(dest.filter));
-    memcpy(dest.dsp_name, src.dsp_name, sizeof(dest.dsp_name));
     //                    = src.ratio          ;
     //                    = src.threshold      ;
     //                    = src.attack_time    ;
@@ -7004,7 +7012,6 @@ static void CloneChannelData(OutputConfigMap &dest, InputConfigMap &src)
     dest.gain             = src.gain           ;
     dest.delay            = src.delay          ;
     memcpy(dest.filter, src.filter, sizeof(dest.filter));
-    memcpy(dest.dsp_name, src.dsp_name, sizeof(dest.dsp_name));
     //                    = src.ratio          ;
     //                    = src.threshold      ;
     //                    = src.attack_time    ;
@@ -7014,14 +7021,34 @@ static void CloneChannelData(OutputConfigMap &dest, InputConfigMap &src)
 }
 void __fastcall TForm1::Paste1Click(TObject *Sender)
 {
-    Paste1->Enabled = (selected_channel.channel_type != ctNone)
-                   //&& (selected_channel.channel_type == copied_channel.channel_type)
-                   && (selected_channel.channel_id != copied_channel.channel_id);
+    Paste1->Enabled = (selected_channel.channel_type != ctNone) && (copied_channel.channel_type != ctNone)
+                   && ((selected_channel.channel_type != copied_channel.channel_type) || (selected_channel.channel_id != copied_channel.channel_id));
 
     // 考虑做成界面运动
     if (Paste1->Enabled)
     {
-        ShowMessage("Copy "+String((char)('A'+copied_channel.channel_id-1))+" to "+IntToStr(selected_channel.channel_id));
+        String message = "";
+        if (copied_channel.channel_type == ctInput)
+        {
+            message = "Copy Input "+String((char)('A'+copied_channel.channel_id-1));
+        }
+        else
+        {
+            message = "Copy Output "+IntToStr(copied_channel.channel_id);
+        }
+        if (selected_channel.channel_type == ctInput)
+        {
+            message = message + " to Input "+String((char)('A'+selected_channel.channel_id-1));
+        }
+        else
+        {
+            message = message + " to Output "+IntToStr(selected_channel.channel_id);
+        }
+        if (Application->MessageBox(message.c_str(), "确认复制", MB_OKCANCEL) != IDOK)
+        {
+            return;
+        }
+
 
         // 需要根据输入和输出的状态进行区别处理
         if (selected_channel.channel_type == ctInput)
@@ -7042,7 +7069,7 @@ void __fastcall TForm1::Paste1Click(TObject *Sender)
             input_noise_btn[dsp_num-1]->OnClick(input_noise_btn[dsp_num-1]);
             input_mute_btn[dsp_num-1]->OnClick(input_mute_btn[dsp_num-1]);
             input_level_trackbar[dsp_num-1]->OnChange(input_level_trackbar[dsp_num-1]);
-            after_input_panel_dsp_numClick(input_dsp_name[dsp_num-1]);
+            //after_input_panel_dsp_numClick(input_dsp_name[dsp_num-1]);
 
             String cmd_text;
             cmd_text = D1608CMD_FLAG;
@@ -7101,7 +7128,7 @@ void __fastcall TForm1::Paste1Click(TObject *Sender)
             output_invert_btn[dsp_num-1]->OnClick(output_invert_btn[dsp_num-1]);
             output_mute_btn[dsp_num-1]->OnClick(output_mute_btn[dsp_num-1]);
             output_level_trackbar[dsp_num-1]->OnChange(output_level_trackbar[dsp_num-1]);
-            after_output_panel_dsp_numClick(output_dsp_name[dsp_num-1]);
+            //after_output_panel_dsp_numClick(output_dsp_name[dsp_num-1]);
 
             String cmd_text;
             cmd_text = D1608CMD_FLAG;
