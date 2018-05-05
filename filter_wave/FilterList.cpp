@@ -181,23 +181,43 @@ void FilterSet::SendPeqCmd(int band)
             {
                 config_map.input_dsp[dsp_num-1].filter[band-1] = data_filter;
 
-                cmd_text = cmd_text+"input<"+IntToStr(dsp_num)+">."+GetPeqName(band)+"="
-                    +FormatFloat("0.0", GetFilterFreq(band))+"Hz,"
-                    +q_text+","
-                    +gain_text+","
-                    +GetFilter(band)->GetSimpleType()+""
-                    +"]";
+                if (q_text=="NA" && gain_text=="NA")
+                {
+                    cmd_text = cmd_text+"input<"+IntToStr(dsp_num)+">."+GetPeqName(band)+"="
+                        +FormatFloat("0.0", GetFilterFreq(band))+"Hz,"
+                        +GetFilter(band)->GetSimpleType()+""
+                        +"]";
+                }
+                else
+                {
+                    cmd_text = cmd_text+"input<"+IntToStr(dsp_num)+">."+GetPeqName(band)+"="
+                        +FormatFloat("0.0", GetFilterFreq(band))+"Hz,"
+                        +q_text+","
+                        +gain_text+","
+                        +GetFilter(band)->GetSimpleType()+""
+                        +"]";
+                }
             }
             else
             {
                 config_map.output_dsp[dsp_num-101].filter[band-1] = data_filter;
 
-                cmd_text = cmd_text+"output<"+IntToStr(dsp_num-100)+">."+GetPeqName(band)+"="
-                    +FormatFloat("0.0", GetFilterFreq(band))+"Hz,"
-                    +q_text+","
-                    +gain_text+","
-                    +GetFilter(band)->GetSimpleType()+""
-                    +"]";
+                if (q_text=="NA" && gain_text=="NA")
+                {
+                    cmd_text = cmd_text+"output<"+IntToStr(dsp_num-100)+">."+GetPeqName(band)+"="
+                        +FormatFloat("0.0", GetFilterFreq(band))+"Hz,"
+                        +GetFilter(band)->GetSimpleType()+""
+                        +"]";
+                }
+                else
+                {
+                    cmd_text = cmd_text+"output<"+IntToStr(dsp_num-100)+">."+GetPeqName(band)+"="
+                        +FormatFloat("0.0", GetFilterFreq(band))+"Hz,"
+                        +q_text+","
+                        +gain_text+","
+                        +GetFilter(band)->GetSimpleType()+""
+                        +"]";
+                }
             }
             
             Form1->SendCmd(cmd_text);
