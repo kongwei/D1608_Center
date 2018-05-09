@@ -7176,13 +7176,29 @@ void __fastcall TForm1::Paste1Click(TObject *Sender)
             filter_set.SendBypassCmd(LP_FILTER-1);
 
             // Ñ¹Ëõ²ÎÊý
-            edtCompRatioKeyDown(edtCompRatio, enter_key, TShiftState());
-            edtCompThresholdKeyDown(edtCompThreshold, enter_key, TShiftState());
-            edtCompGainKeyDown(edtCompGain, enter_key, TShiftState());
-            cbCompAutoTimeClick(cbCompAutoTime);
-            edtCompAttackTimeKeyDown(edtCompAttackTime, enter_key, TShiftState());
-            edtCompReleaseTimeKeyDown(edtCompReleaseTime, enter_key, TShiftState());
+            cmd_text = D1608CMD_FLAG;
+            cmd_text = cmd_text+"output<"+IntToStr(dsp_num)+">.comp.ratio="+Ration2String(config_map.output_dsp[dsp_num-1].ratio);
+            SendCmd(cmd_text+D1608CMD_TAIL);
 
+            cmd_text = D1608CMD_FLAG;
+            cmd_text = cmd_text+"output<"+IntToStr(dsp_num)+">.comp.threshold="+String(config_map.output_dsp[dsp_num-1].threshold/10.0)+"dB";
+            SendCmd(cmd_text+D1608CMD_TAIL);
+
+            cmd_text = D1608CMD_FLAG;
+            cmd_text = cmd_text+"output<"+IntToStr(dsp_num)+">.comp.gain="+String(config_map.output_dsp[dsp_num-1].comp_gain/10.0)+"dB";
+            SendCmd(cmd_text+D1608CMD_TAIL);
+
+            cmd_text = D1608CMD_FLAG;
+            cmd_text = cmd_text+ "output<"+IntToStr(dsp_num+1)+">.auto_comp="+(config_map.output_dsp[dsp_num-1].auto_time?"on":"off");
+            SendCmd(cmd_text+D1608CMD_TAIL);
+
+            cmd_text = D1608CMD_FLAG;
+            cmd_text = cmd_text+"output<"+IntToStr(dsp_num)+">.comp.attack_time="+String(config_map.output_dsp[dsp_num-1].attack_time/attack_config.scale)+"ms";
+            SendCmd(cmd_text+D1608CMD_TAIL);
+
+            cmd_text = D1608CMD_FLAG;
+            cmd_text = cmd_text+"output<"+IntToStr(dsp_num)+">.comp.release_time="+String(config_map.output_dsp[dsp_num-1].release_time/release_config.scale)+"ms";
+            SendCmd(cmd_text+D1608CMD_TAIL);
         }
     }
 }
