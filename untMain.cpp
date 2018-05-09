@@ -1965,10 +1965,10 @@ void TForm1::ProcessPackageMessageFeedback(char * data)
     if (keep_live_count<CONTROL_TIMEOUT_COUNT)
         keep_live_count = 0;
 
-    if ( (double)(Now() - last_keeplive_time) > (1.0f/24/60/60) )
+    //if ( (double)(Now() - last_keeplive_time) > (1.0f/24/60/60) )
     {
         String cmd_text = D1608CMD_KEEPLIVE_FLAG;
-        cmd_text = cmd_text+"config.action.keeplive="+IntToStr(received_cmd_seq);
+        cmd_text = cmd_text+"config.action.syn_msg_id="+IntToStr(received_cmd_seq);
         SendCmd2(cmd_text+D1608CMD_TAIL);
         send_keeplive_count++;
         last_keeplive_time = Now();
@@ -2111,7 +2111,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
                     device_connected = false;
                 }
             }
-            else if (cmd_string.SubString(1, 11) == "config.lock" || cmd_string.SubString(1, 13) == "config.unlock" || cmd_string == "config.action=Reload_Link]")
+            else if (cmd_string.SubString(1, 12) == "config.lock="/*与locl_key有冲突*/ || cmd_string.SubString(1, 13) == "config.unlock" || cmd_string == "config.action=Reload_Link]")
             {
                 // 重新获取数据
                 TPackage package = {0};
@@ -2239,7 +2239,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
 			device_setting.cpu_id[2] = device_setting.cpu_id[2] ^ 0x4E4A4C53;
 
         }
-        else if ((preset_id & 0x7F) == 0)
+        else if ((preset_id & 0x7F) == 0 && preset_cmd.store_page == 0)
         {
             // global_config
             memcpy(&global_config, preset_cmd.data, sizeof(global_config));
@@ -6964,21 +6964,27 @@ static void CloneChannelData(InputConfigMap &dest, InputConfigMap &src)
     short master_level_a = dest.master_level_a;
     // 通道名称不覆盖
     char dsp_name[7]; memcpy(dsp_name, src.dsp_name, sizeof(dsp_name));
+    // 不复制gain
+    unsigned gain = src.gain;
 
     dest = src;
 
     dest.master_mute_switch = master_mute_switch;
     dest.master_level_a = master_level_a;
     memcpy(dest.dsp_name, dsp_name, sizeof(dsp_name));
+    dest.gain = gain;
 }
 static void CloneChannelData(OutputConfigMap &dest, OutputConfigMap &src)
 {
     // 通道名称不覆盖
     char dsp_name[7]; memcpy(dsp_name, src.dsp_name, sizeof(dsp_name));
+    // 不复制gain
+    unsigned gain = src.gain;
 
     dest = src;
 
     memcpy(dest.dsp_name, dsp_name, sizeof(dsp_name));
+    dest.gain = gain;
 }
 static void CloneChannelData(InputConfigMap &dest, OutputConfigMap &src)
 {
@@ -6991,7 +6997,7 @@ static void CloneChannelData(InputConfigMap &dest, OutputConfigMap &src)
     //dest.phantom_switch =                    ;
     dest.level_a          = src.level_a        ;
     dest.level_b          = src.level_b        ;
-    dest.gain             = src.gain           ;
+    //dest.gain             = src.gain           ;
     dest.delay            = src.delay          ;
     memcpy(dest.filter, src.filter, sizeof(dest.filter));
     //                    = src.ratio          ;
@@ -7013,7 +7019,7 @@ static void CloneChannelData(OutputConfigMap &dest, InputConfigMap &src)
     //dest.phantom_switch =                    ;
     dest.level_a          = src.level_a        ;
     dest.level_b          = src.level_b        ;
-    dest.gain             = src.gain           ;
+    //dest.gain             = src.gain           ;
     dest.delay            = src.delay          ;
     memcpy(dest.filter, src.filter, sizeof(dest.filter));
     //                    = src.ratio          ;
@@ -7075,11 +7081,12 @@ void __fastcall TForm1::Paste1Click(TObject *Sender)
             input_level_trackbar[dsp_num-1]->OnChange(input_level_trackbar[dsp_num-1]);
             //after_input_panel_dsp_numClick(input_dsp_name[dsp_num-1]);
 
-            String cmd_text;
-            cmd_text = D1608CMD_FLAG;
-            cmd_text = cmd_text+ "input<"+IntToStr(dsp_num)+">.gain="+InputGain2String(config_map.input_dsp[dsp_num-1].gain);
-            SendCmd(cmd_text+D1608CMD_TAIL);
+            // 不复制gain
+            //cmd_text = D1608CMD_FLAG;
+            //cmd_text = cmd_text+ "input<"+IntToStr(dsp_num)+">.gain="+InputGain2String(config_map.input_dsp[dsp_num-1].gain);
+            //SendCmd(cmd_text+D1608CMD_TAIL);
 
+            String cmd_text;
             cmd_text = D1608CMD_FLAG;
             cmd_text = cmd_text+ "input<"+IntToStr(dsp_num)+">.phantom="+(config_map.input_dsp[dsp_num-1].phantom_switch?"on":"off");
             SendCmd(cmd_text+D1608CMD_TAIL);
@@ -7129,16 +7136,16 @@ void __fastcall TForm1::Paste1Click(TObject *Sender)
             output_eq_btn[dsp_num-1]->OnClick(output_eq_btn[dsp_num-1]);
             output_comp_btn[dsp_num-1]->OnClick(output_comp_btn[dsp_num-1]);
             output_invert_btn[dsp_num-1]->OnClick(output_invert_btn[dsp_num-1]);
-            output_invert_btn[dsp_num-1]->OnClick(output_invert_btn[dsp_num-1]);
             output_mute_btn[dsp_num-1]->OnClick(output_mute_btn[dsp_num-1]);
             output_level_trackbar[dsp_num-1]->OnChange(output_level_trackbar[dsp_num-1]);
             //after_output_panel_dsp_numClick(output_dsp_name[dsp_num-1]);
 
-            String cmd_text;
-            cmd_text = D1608CMD_FLAG;
-            cmd_text = cmd_text+ "output<"+IntToStr(dsp_num)+">.gain="+OutputGain2String(config_map.output_dsp[dsp_num-1].gain);
-            SendCmd(cmd_text+D1608CMD_TAIL);
+            // 不复制gain
+            //cmd_text = D1608CMD_FLAG;
+            //cmd_text = cmd_text+ "output<"+IntToStr(dsp_num)+">.gain="+OutputGain2String(config_map.output_dsp[dsp_num-1].gain);
+            //SendCmd(cmd_text+D1608CMD_TAIL);
 
+            String cmd_text;
             String send_level_b;
             send_level_b = send_level_b.sprintf("%1.1f", config_map.output_dsp[dsp_num-1].level_b/10.0);
             cmd_text = D1608CMD_FLAG;
@@ -7619,4 +7626,5 @@ void __fastcall TForm1::Button3Click(TObject *Sender)
     memo_debug_ex->CutToClipboard();
 }
 //---------------------------------------------------------------------------
+
 
