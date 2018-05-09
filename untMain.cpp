@@ -4951,6 +4951,11 @@ void __fastcall TForm1::btnDeviceNameClick(TObject *Sender)
         ShowMessage("设备名称不能全部是空格");
         return;
     }
+    if (edtDeviceName->Text.Pos(";") != 0)
+    {
+        ShowMessage("设备名称不能含有分号';'");
+        return;
+    }
 
     strncpy(global_config.d1616_name, edtDeviceName->Text.c_str(), 16);
 
