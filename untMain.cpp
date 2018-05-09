@@ -6994,7 +6994,7 @@ static void CloneChannelData(OutputConfigMap &dest, OutputConfigMap &src)
 static void CloneChannelData(InputConfigMap &dest, OutputConfigMap &src)
 {
     dest.eq_switch        = src.eq_switch      ;
-    dest.comp_switch      = src.comp_switch    ;
+    //dest.comp_switch      = src.comp_switch    ;
     //dest.auto_switch    =                    ;
     dest.invert_switch    = src.invert_switch  ;
     //dest.noise_switch   =                    ;
