@@ -1877,7 +1877,7 @@ String IntOrZeroSring(int value)
 }
 void TForm1::ProcessPackageMessageFeedback(char * data)
 {
-    TextSynMsg text_syn_msg[RECORD_TEXT_MSG_SIZE] = {0};
+    ReplyMsg text_syn_msg[REPLY_TEXT_MSG_SIZE] = {0};
     for (int i=0;i<RECORD_TEXT_MSG_SIZE;i++)
     {
         memcpy(&text_syn_msg[i].msg_id, data, 4);
