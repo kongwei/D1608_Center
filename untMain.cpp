@@ -6979,17 +6979,31 @@ static void CloneChannelData(InputConfigMap &dest, InputConfigMap &src)
     memcpy(dest.dsp_name, dsp_name, sizeof(dsp_name));
     dest.gain = gain;
 }
-static void CloneChannelData(OutputConfigMap &dest, OutputConfigMap &src)
+static void CloneChannelData(OutputConfigMap &dest, OutputConfigMap &src, bool is_comp)
 {
-    // 通道名称不覆盖
-    char dsp_name[7]; memcpy(dsp_name, src.dsp_name, sizeof(dsp_name));
-    // 不复制gain
-    unsigned gain = src.gain;
+    dest.eq_switch                 = src.eq_switch                ;
+    dest.invert_switch             = src.invert_switch            ;
+    dest.mute_switch               = src.mute_switch              ;
+    dest.eq_mute_switch            = src.eq_mute_switch           ;
+    dest.level_a                   = src.level_a                  ;
+    dest.level_b                   = src.level_b                  ;
+    //dest.gain                      = src.gain                     ;
+    dest.delay                     = src.delay                    ;
+    memcpy(dest.filter, src.filter, sizeof(dest.filter));
+    //dest.dsp_name[7]               = src.dsp_name[7]              ;
+	memcpy(dest.mix, src.mix, sizeof(dest.mix));
+	memcpy(dest.mix_mute, src.mix_mute, sizeof(dest.mix_mute));
 
-    dest = src;
-
-    memcpy(dest.dsp_name, dsp_name, sizeof(dsp_name));
-    dest.gain = gain;
+    if (is_comp)
+    {
+        dest.comp_switch               = src.comp_switch              ;
+        dest.ratio                     = src.ratio                    ;
+        dest.threshold                 = src.threshold                ;
+        dest.attack_time               = src.attack_time              ;
+        dest.release_time              = src.release_time             ;
+        dest.comp_gain                 = src.comp_gain                ;
+        dest.auto_time                 = src.auto_time                ;
+    }
 }
 static void CloneChannelData(InputConfigMap &dest, OutputConfigMap &src)
 {
@@ -7132,14 +7146,14 @@ void __fastcall TForm1::Paste1Click(TObject *Sender)
                                  config_map.input_dsp[copied_channel.channel_id-1]);
             else if (copied_channel.channel_type == ctOutput)
                 CloneChannelData(config_map.output_dsp[selected_channel.channel_id-1],
-                                 config_map.output_dsp[copied_channel.channel_id-1]);
+                                 config_map.output_dsp[copied_channel.channel_id-1],
+                                 GetVersionConfig().is_comp);
 
             ApplyConfigToUI();
             // 发出命令
             int dsp_num = selected_channel.channel_id;
 
             output_eq_btn[dsp_num-1]->OnClick(output_eq_btn[dsp_num-1]);
-            output_comp_btn[dsp_num-1]->OnClick(output_comp_btn[dsp_num-1]);
             output_invert_btn[dsp_num-1]->OnClick(output_invert_btn[dsp_num-1]);
             output_mute_btn[dsp_num-1]->OnClick(output_mute_btn[dsp_num-1]);
             output_level_trackbar[dsp_num-1]->OnChange(output_level_trackbar[dsp_num-1]);
@@ -7150,60 +7164,67 @@ void __fastcall TForm1::Paste1Click(TObject *Sender)
             //cmd_text = cmd_text+ "output<"+IntToStr(dsp_num)+">.gain="+OutputGain2String(config_map.output_dsp[dsp_num-1].gain);
             //SendCmd(cmd_text+D1608CMD_TAIL);
 
-            String cmd_text;
-            String send_level_b;
-            send_level_b = send_level_b.sprintf("%1.1f", config_map.output_dsp[dsp_num-1].level_b/10.0);
-            cmd_text = D1608CMD_FLAG;
-            cmd_text = cmd_text+"output<"+IntToStr(dsp_num)+">.inside_volume="+send_level_b+"dB";
-            SendCmd(cmd_text+D1608CMD_TAIL);
-
-            unsigned int delay;
-            cmd_text = D1608CMD_FLAG;
-            cmd_text = cmd_text+"output<"+IntToStr(dsp_num)+">.delay="+String(config_map.output_dsp[dsp_num-1].delay / 1000.0)+"ms";
-            SendCmd(cmd_text+D1608CMD_TAIL);
-
-            pnlDspDetail->Tag = dsp_num+100;
-            filter_set.SendPeqCmd(HP_FILTER);
-            filter_set.SendBypassCmd(HP_FILTER);
-            filter_set.SendPeqCmd(LP_FILTER);
-            filter_set.SendBypassCmd(LP_FILTER);
-
-            for (int i=FIRST_FILTER+2; i<=LAST_FILTER-2; i++)
+            // 只有 Output -> Output 才需要发压缩命令
+            // 如果没有压缩功能，也不发命令
+            if (copied_channel.channel_type == ctOutput && GetVersionConfig().is_comp)
             {
-                filter_set.SendPeqCmd(i);
-                filter_set.SendBypassCmd(i);
+                output_comp_btn[dsp_num-1]->OnClick(output_comp_btn[dsp_num-1]);
+
+                String cmd_text;
+                String send_level_b;
+                send_level_b = send_level_b.sprintf("%1.1f", config_map.output_dsp[dsp_num-1].level_b/10.0);
+                cmd_text = D1608CMD_FLAG;
+                cmd_text = cmd_text+"output<"+IntToStr(dsp_num)+">.inside_volume="+send_level_b+"dB";
+                SendCmd(cmd_text+D1608CMD_TAIL);
+
+                unsigned int delay;
+                cmd_text = D1608CMD_FLAG;
+                cmd_text = cmd_text+"output<"+IntToStr(dsp_num)+">.delay="+String(config_map.output_dsp[dsp_num-1].delay / 1000.0)+"ms";
+                SendCmd(cmd_text+D1608CMD_TAIL);
+
+                pnlDspDetail->Tag = dsp_num+100;
+                filter_set.SendPeqCmd(HP_FILTER);
+                filter_set.SendBypassCmd(HP_FILTER);
+                filter_set.SendPeqCmd(LP_FILTER);
+                filter_set.SendBypassCmd(LP_FILTER);
+
+                for (int i=FIRST_FILTER+2; i<=LAST_FILTER-2; i++)
+                {
+                    filter_set.SendPeqCmd(i);
+                    filter_set.SendBypassCmd(i);
+                }
+
+                filter_set.SendPeqCmd(HP_FILTER+1);
+                filter_set.SendBypassCmd(HP_FILTER+1);
+
+                filter_set.SendPeqCmd(LP_FILTER-1);
+                filter_set.SendBypassCmd(LP_FILTER-1);
+
+                // 压缩参数
+                cmd_text = D1608CMD_FLAG;
+                cmd_text = cmd_text+"output<"+IntToStr(dsp_num)+">.comp.ratio="+Ration2String(config_map.output_dsp[dsp_num-1].ratio);
+                SendCmd(cmd_text+D1608CMD_TAIL);
+
+                cmd_text = D1608CMD_FLAG;
+                cmd_text = cmd_text+"output<"+IntToStr(dsp_num)+">.comp.threshold="+String(config_map.output_dsp[dsp_num-1].threshold/10.0)+"dB";
+                SendCmd(cmd_text+D1608CMD_TAIL);
+
+                cmd_text = D1608CMD_FLAG;
+                cmd_text = cmd_text+"output<"+IntToStr(dsp_num)+">.comp.gain="+String(config_map.output_dsp[dsp_num-1].comp_gain/10.0)+"dB";
+                SendCmd(cmd_text+D1608CMD_TAIL);
+
+                cmd_text = D1608CMD_FLAG;
+                cmd_text = cmd_text+ "output<"+IntToStr(dsp_num+1)+">.auto_comp="+(config_map.output_dsp[dsp_num-1].auto_time?"on":"off");
+                SendCmd(cmd_text+D1608CMD_TAIL);
+
+                cmd_text = D1608CMD_FLAG;
+                cmd_text = cmd_text+"output<"+IntToStr(dsp_num)+">.comp.attack_time="+String(config_map.output_dsp[dsp_num-1].attack_time/attack_config.scale)+"ms";
+                SendCmd(cmd_text+D1608CMD_TAIL);
+
+                cmd_text = D1608CMD_FLAG;
+                cmd_text = cmd_text+"output<"+IntToStr(dsp_num)+">.comp.release_time="+String(config_map.output_dsp[dsp_num-1].release_time/release_config.scale)+"ms";
+                SendCmd(cmd_text+D1608CMD_TAIL);
             }
-
-            filter_set.SendPeqCmd(HP_FILTER+1);
-            filter_set.SendBypassCmd(HP_FILTER+1);
-
-            filter_set.SendPeqCmd(LP_FILTER-1);
-            filter_set.SendBypassCmd(LP_FILTER-1);
-
-            // 压缩参数
-            cmd_text = D1608CMD_FLAG;
-            cmd_text = cmd_text+"output<"+IntToStr(dsp_num)+">.comp.ratio="+Ration2String(config_map.output_dsp[dsp_num-1].ratio);
-            SendCmd(cmd_text+D1608CMD_TAIL);
-
-            cmd_text = D1608CMD_FLAG;
-            cmd_text = cmd_text+"output<"+IntToStr(dsp_num)+">.comp.threshold="+String(config_map.output_dsp[dsp_num-1].threshold/10.0)+"dB";
-            SendCmd(cmd_text+D1608CMD_TAIL);
-
-            cmd_text = D1608CMD_FLAG;
-            cmd_text = cmd_text+"output<"+IntToStr(dsp_num)+">.comp.gain="+String(config_map.output_dsp[dsp_num-1].comp_gain/10.0)+"dB";
-            SendCmd(cmd_text+D1608CMD_TAIL);
-
-            cmd_text = D1608CMD_FLAG;
-            cmd_text = cmd_text+ "output<"+IntToStr(dsp_num+1)+">.auto_comp="+(config_map.output_dsp[dsp_num-1].auto_time?"on":"off");
-            SendCmd(cmd_text+D1608CMD_TAIL);
-
-            cmd_text = D1608CMD_FLAG;
-            cmd_text = cmd_text+"output<"+IntToStr(dsp_num)+">.comp.attack_time="+String(config_map.output_dsp[dsp_num-1].attack_time/attack_config.scale)+"ms";
-            SendCmd(cmd_text+D1608CMD_TAIL);
-
-            cmd_text = D1608CMD_FLAG;
-            cmd_text = cmd_text+"output<"+IntToStr(dsp_num)+">.comp.release_time="+String(config_map.output_dsp[dsp_num-1].release_time/release_config.scale)+"ms";
-            SendCmd(cmd_text+D1608CMD_TAIL);
         }
     }
 }
