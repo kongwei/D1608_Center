@@ -1869,7 +1869,8 @@ String IntOrZeroSring(int value)
 void TForm1::ProcessPackageMessageFeedback(char * data)
 {
     ReplyMsg text_syn_msg[REPLY_TEXT_MSG_SIZE] = {0};
-    for (int i=0;i<RECORD_TEXT_MSG_SIZE;i++)
+    int reply_msg_count = 0;
+    for (int i=0;i<REPLY_TEXT_MSG_SIZE;i++)
     {
         memcpy(&text_syn_msg[i].msg_id, data, 4);
         data += 4;
@@ -1879,6 +1880,7 @@ void TForm1::ProcessPackageMessageFeedback(char * data)
         {
             memcpy(&text_syn_msg[i].text_cmd, data, right-data+1);
             data = right + 1;
+            reply_msg_count++;
         }
         else
         {
@@ -1889,7 +1891,7 @@ void TForm1::ProcessPackageMessageFeedback(char * data)
     unsigned int oldest_msg_id = text_syn_msg[0].msg_id;
     unsigned int current_msg_id = text_syn_msg[0].msg_id;
 
-    for (int i=0;i<RECORD_TEXT_MSG_SIZE;i++)
+    for (int i=0;i<REPLY_TEXT_MSG_SIZE;i++)
     {
         oldest_msg_id = min(oldest_msg_id, text_syn_msg[i].msg_id);
         current_msg_id = max(current_msg_id, text_syn_msg[i].msg_id);
@@ -1906,9 +1908,9 @@ void TForm1::ProcessPackageMessageFeedback(char * data)
     }
     else
     {
-        AppendLog(GetTime()+"同步: local="+IntToStr(received_cmd_seq)+", device="+IntToStr(oldest_msg_id)+"-"+IntToStr(current_msg_id));
+        AppendLog(GetTime()+"同步: local="+IntToStr(received_cmd_seq)+", " + IntToStr(reply_msg_count) + ": device=" +IntToStr(oldest_msg_id)+"-"+IntToStr(current_msg_id));
 
-        for (int i=0;i<RECORD_TEXT_MSG_SIZE;i++)
+        for (int i=0;i<REPLY_TEXT_MSG_SIZE;i++)
         {
             if (text_syn_msg[i].msg_id > received_cmd_seq)
             {
@@ -1950,7 +1952,6 @@ void TForm1::ProcessPackageMessageFeedback(char * data)
         }
     }
 
-    AppendLog("received_cmd_seq1:" + IntToStr(received_cmd_seq));
     received_cmd_seq = current_msg_id;
 
     if (keep_live_count<CONTROL_TIMEOUT_COUNT)
@@ -1961,9 +1962,9 @@ void TForm1::ProcessPackageMessageFeedback(char * data)
         String cmd_text = D1608CMD_KEEPLIVE_FLAG;
         cmd_text = cmd_text+"config.action.syn_msg_id="+IntToStr(received_cmd_seq);
         SendCmd2(cmd_text+D1608CMD_TAIL);
-        send_keeplive_count++;
-        last_keeplive_time = Now();
-        AppendLog(GetTime()+"发送保活: " + IntToStr(keep_live_count));
+        //send_keeplive_count++;
+        //last_keeplive_time = Now();
+        //AppendLog(GetTime()+"发送保活: " + IntToStr(keep_live_count));
     }
 }
 bool IsReplyCmd(char * str)
