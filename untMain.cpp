@@ -1889,6 +1889,17 @@ void TForm1::CachePackageMessageFeedback(char * data)
     }
 
     reply_msg_buf.push_back(reply_msg_list);
+
+    //unsigned int oldest_msg_id = reply_msg_list.reply[0].msg_id;
+    unsigned int current_msg_id = reply_msg_list.reply[0].msg_id;
+
+    for (int i=0;i<REPLY_TEXT_MSG_SIZE;i++)
+    {
+        //oldest_msg_id = min(oldest_msg_id, reply_msg_list.reply[i].msg_id);
+        current_msg_id = max(current_msg_id, reply_msg_list.reply[i].msg_id);
+    }
+
+    pre_received_msg_id = current_msg_id;
 }
 void TForm1::ProcessPackageMessageFeedback(ReplyMsg text_syn_msg[REPLY_TEXT_MSG_SIZE], int reply_msg_count)
 {
@@ -4419,6 +4430,7 @@ void __fastcall TForm1::ClearUI()
 void __fastcall TForm1::ApplyConfigToUI()
 {
     on_loading = true;
+    //LockWindowUpdate(this->Handle);
 
     lblPresetName->Caption = global_config.preset_name[cur_preset_id-1];
     /*edtMAC->Text.sprintf("%02X:%02X:%02X:%02X:%02X:%02X",
@@ -4535,6 +4547,7 @@ void __fastcall TForm1::ApplyConfigToUI()
     master_panel_trackbar->Position = config_map.input_dsp[0].master_level_a;
     btnMasterMute->Down = (config_map.input_dsp[0].master_mute_switch==1);
 
+    //LockWindowUpdate(NULL);
     on_loading = false;
 }
 void TForm1::OnFeedbackData(unsigned int cmd_id)
@@ -7632,7 +7645,13 @@ void __fastcall TForm1::tmProcessReplyTimer(TObject *Sender)
 {
     tmProcessReply->Enabled = false;
 
+    String cmd_text = D1608CMD_KEEPLIVE_FLAG;
+    cmd_text = cmd_text+"config.action.syn_msg_id="+IntToStr(pre_received_msg_id);
+    SendCmd2(cmd_text+D1608CMD_TAIL);
+
     AppendLog("处理reply消息: " + IntToStr(reply_msg_buf.size()));
+
+    LockWindowUpdate(this->Handle);
 
     for (UINT i=0;i<reply_msg_buf.size();i++)
     {
@@ -7640,9 +7659,11 @@ void __fastcall TForm1::tmProcessReplyTimer(TObject *Sender)
     }
     reply_msg_buf.clear();
 
-    String cmd_text = D1608CMD_KEEPLIVE_FLAG;
-    cmd_text = cmd_text+"config.action.syn_msg_id="+IntToStr(received_cmd_seq);
-    SendCmd2(cmd_text+D1608CMD_TAIL);
+    //String cmd_text = D1608CMD_KEEPLIVE_FLAG;
+    //cmd_text = cmd_text+"config.action.syn_msg_id="+IntToStr(received_cmd_seq);
+    //SendCmd2(cmd_text+D1608CMD_TAIL);
+
+    LockWindowUpdate(NULL);
 }
 //---------------------------------------------------------------------------
 

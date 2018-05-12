@@ -918,6 +918,7 @@ private:
         ReplyMsg reply[REPLY_TEXT_MSG_SIZE];
     };
     vector<ReplyMsgList> reply_msg_buf;
+    unsigned int pre_received_msg_id;
     void CachePackageMessageFeedback(char*);
     void ProcessPackageMessageFeedback(ReplyMsg text_syn_msg[REPLY_TEXT_MSG_SIZE], int reply_msg_count);
 
