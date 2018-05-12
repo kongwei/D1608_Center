@@ -1866,21 +1866,21 @@ String IntOrZeroSring(int value)
 {
     return String((value>0?value:0));
 }
-void TForm1::ProcessPackageMessageFeedback(char * data)
+
+void TForm1::CachePackageMessageFeedback(char * data)
 {
-    ReplyMsg text_syn_msg[REPLY_TEXT_MSG_SIZE] = {0};
-    int reply_msg_count = 0;
+    ReplyMsgList reply_msg_list = {0};
     for (int i=0;i<REPLY_TEXT_MSG_SIZE;i++)
     {
-        memcpy(&text_syn_msg[i].msg_id, data, 4);
+        memcpy(&reply_msg_list.reply[i].msg_id, data, 4);
         data += 4;
         // 找到 ]
         char * right = strstr(data, "]");
         if (right != NULL)
         {
-            memcpy(&text_syn_msg[i].text_cmd, data, right-data+1);
+            reply_msg_list.count++;
+            memcpy(&reply_msg_list.reply[i].text_cmd, data, right-data+1);
             data = right + 1;
-            reply_msg_count++;
         }
         else
         {
@@ -1888,6 +1888,10 @@ void TForm1::ProcessPackageMessageFeedback(char * data)
         }
     }
 
+    reply_msg_buf.push_back(reply_msg_list);
+}
+void TForm1::ProcessPackageMessageFeedback(ReplyMsg text_syn_msg[REPLY_TEXT_MSG_SIZE], int reply_msg_count)
+{
     unsigned int oldest_msg_id = text_syn_msg[0].msg_id;
     unsigned int current_msg_id = text_syn_msg[0].msg_id;
 
@@ -1956,16 +1960,6 @@ void TForm1::ProcessPackageMessageFeedback(char * data)
 
     if (keep_live_count<CONTROL_TIMEOUT_COUNT)
         keep_live_count = 0;
-
-    //if ( (double)(Now() - last_keeplive_time) > (1.0f/24/60/60) )
-    {
-        String cmd_text = D1608CMD_KEEPLIVE_FLAG;
-        cmd_text = cmd_text+"config.action.syn_msg_id="+IntToStr(received_cmd_seq);
-        SendCmd2(cmd_text+D1608CMD_TAIL);
-        //send_keeplive_count++;
-        //last_keeplive_time = Now();
-        //AppendLog(GetTime()+"发送保活: " + IntToStr(keep_live_count));
-    }
 }
 bool IsReplyCmd(char * str)
 {
@@ -2037,15 +2031,12 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
 
         if (IsReplyCmd(cmd_text))
         {
+            CachePackageMessageFeedback(cmd_text+strlen(D1608CMD_REPLY_FLAG));
             // 没有初始化完毕，不处理数据回报
             if (received_cmd_seq != 0)
             {
-                ProcessPackageMessageFeedback(cmd_text+strlen(D1608CMD_REPLY_FLAG));
-            }
-            else
-            {
-                // TODO: 缓冲报文
-                //////
+                // 给自己发消息处理
+                tmProcessReply->Enabled = true;
             }
         }
         else if (IsKeepliveCmd(cmd_text) && AData->Size==(strlen(D1608CMD_KEEPLIVE_FLAG)+sizeof(NotStorageCmd)))
@@ -2066,6 +2057,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             {
                 AppendLog(GetTime()+"同步消息中的序号: local="+IntToStr(received_cmd_seq)+", device="+IntToStr(keep_alive->noop));
                 received_cmd_seq = (UINT)keep_alive->noop;
+                tmProcessReply->Enabled = true;
             }
 
             ProcessWatchLevel(keep_alive->watch_level, keep_alive->watch_level_comp);
@@ -7636,5 +7628,21 @@ void __fastcall TForm1::Button3Click(TObject *Sender)
     memo_debug_ex->CutToClipboard();
 }
 //---------------------------------------------------------------------------
+void __fastcall TForm1::tmProcessReplyTimer(TObject *Sender)
+{
+    tmProcessReply->Enabled = false;
 
+    AppendLog("处理reply消息: " + IntToStr(reply_msg_buf.size()));
+
+    for (UINT i=0;i<reply_msg_buf.size();i++)
+    {
+        ProcessPackageMessageFeedback(reply_msg_buf[i].reply, reply_msg_buf[i].count);
+    }
+    reply_msg_buf.clear();
+
+    String cmd_text = D1608CMD_KEEPLIVE_FLAG;
+    cmd_text = cmd_text+"config.action.syn_msg_id="+IntToStr(received_cmd_seq);
+    SendCmd2(cmd_text+D1608CMD_TAIL);
+}
+//---------------------------------------------------------------------------
 

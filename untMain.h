@@ -517,6 +517,7 @@ __published:	// IDE-managed Components
     TEdit *edtDebufExPort;
     TCheckBox *cbLogEnabled;
     TMenuItem *Copy1;
+    TTimer *tmProcessReply;
     void __fastcall FormCreate(TObject *Sender);
     void __fastcall btnRefreshClick(TObject *Sender);
     void __fastcall udpSLPUDPRead(TObject *Sender, TStream *AData,
@@ -701,6 +702,7 @@ __published:	// IDE-managed Components
     void __fastcall btnStopDebugInfoExClick(TObject *Sender);
     void __fastcall Button2Click(TObject *Sender);
     void __fastcall Button3Click(TObject *Sender);
+    void __fastcall tmProcessReplyTimer(TObject *Sender);
 private:
     HANDLE h_sem;
 
@@ -910,7 +912,14 @@ public:		// User declarations
     TAdvTrackBar* mix_level_trackbar[17];
 
 private:
-    void ProcessPackageMessageFeedback(char*);
+    // reply»º³åÇø
+    struct ReplyMsgList{
+        int count;
+        ReplyMsg reply[REPLY_TEXT_MSG_SIZE];
+    };
+    vector<ReplyMsgList> reply_msg_buf;
+    void CachePackageMessageFeedback(char*);
+    void ProcessPackageMessageFeedback(ReplyMsg text_syn_msg[REPLY_TEXT_MSG_SIZE], int reply_msg_count);
 
     void CalcAllVote(ADC_Data_Ex & adc_data);
     void ProcessKeepAlive(int preset_id, unsigned __int64 timer);
