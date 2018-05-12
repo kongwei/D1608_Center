@@ -7155,41 +7155,41 @@ void __fastcall TForm1::Paste1Click(TObject *Sender)
             //cmd_text = cmd_text+ "output<"+IntToStr(dsp_num)+">.gain="+OutputGain2String(config_map.output_dsp[dsp_num-1].gain);
             //SendCmd(cmd_text+D1608CMD_TAIL);
 
-            // 只有 Output -> Output 才需要发压缩命令
+            String cmd_text;
+            String send_level_b;
+            send_level_b = send_level_b.sprintf("%1.1f", config_map.output_dsp[dsp_num-1].level_b/10.0);
+            cmd_text = D1608CMD_FLAG;
+            cmd_text = cmd_text+"output<"+IntToStr(dsp_num)+">.inside_volume="+send_level_b+"dB";
+            SendCmd(cmd_text+D1608CMD_TAIL);
+
+            unsigned int delay;
+            cmd_text = D1608CMD_FLAG;
+            cmd_text = cmd_text+"output<"+IntToStr(dsp_num)+">.delay="+String(config_map.output_dsp[dsp_num-1].delay / 1000.0)+"ms";
+            SendCmd(cmd_text+D1608CMD_TAIL);
+
+            pnlDspDetail->Tag = dsp_num+100;
+            filter_set.SendPeqCmd(HP_FILTER);
+            filter_set.SendBypassCmd(HP_FILTER);
+            filter_set.SendPeqCmd(LP_FILTER);
+            filter_set.SendBypassCmd(LP_FILTER);
+
+            for (int i=FIRST_FILTER+2; i<=LAST_FILTER-2; i++)
+            {
+                filter_set.SendPeqCmd(i);
+                filter_set.SendBypassCmd(i);
+            }
+
+            filter_set.SendPeqCmd(HP_FILTER+1);
+            filter_set.SendBypassCmd(HP_FILTER+1);
+
+            filter_set.SendPeqCmd(LP_FILTER-1);
+            filter_set.SendBypassCmd(LP_FILTER-1);
+
             // 如果没有压缩功能，也不发命令
             if (copied_channel.channel_type == ctOutput && GetVersionConfig().is_comp)
             {
+                // 只有 Output -> Output 才需要发压缩命令
                 output_comp_btn[dsp_num-1]->OnClick(output_comp_btn[dsp_num-1]);
-
-                String cmd_text;
-                String send_level_b;
-                send_level_b = send_level_b.sprintf("%1.1f", config_map.output_dsp[dsp_num-1].level_b/10.0);
-                cmd_text = D1608CMD_FLAG;
-                cmd_text = cmd_text+"output<"+IntToStr(dsp_num)+">.inside_volume="+send_level_b+"dB";
-                SendCmd(cmd_text+D1608CMD_TAIL);
-
-                unsigned int delay;
-                cmd_text = D1608CMD_FLAG;
-                cmd_text = cmd_text+"output<"+IntToStr(dsp_num)+">.delay="+String(config_map.output_dsp[dsp_num-1].delay / 1000.0)+"ms";
-                SendCmd(cmd_text+D1608CMD_TAIL);
-
-                pnlDspDetail->Tag = dsp_num+100;
-                filter_set.SendPeqCmd(HP_FILTER);
-                filter_set.SendBypassCmd(HP_FILTER);
-                filter_set.SendPeqCmd(LP_FILTER);
-                filter_set.SendBypassCmd(LP_FILTER);
-
-                for (int i=FIRST_FILTER+2; i<=LAST_FILTER-2; i++)
-                {
-                    filter_set.SendPeqCmd(i);
-                    filter_set.SendBypassCmd(i);
-                }
-
-                filter_set.SendPeqCmd(HP_FILTER+1);
-                filter_set.SendBypassCmd(HP_FILTER+1);
-
-                filter_set.SendPeqCmd(LP_FILTER-1);
-                filter_set.SendBypassCmd(LP_FILTER-1);
 
                 // 压缩参数
                 cmd_text = D1608CMD_FLAG;
