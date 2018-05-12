@@ -149,7 +149,7 @@ void FilterSet::SendPeqCmd(int band)
         tmp = GetFilterGain(band)*10;
         data_filter.GAIN = tmp;
 
-        // TODO: 1940会变成1939？
+        // 浮点数会有精度损失: 1940会变成1939
         tmp = GetFilter(band)->GetQ()*1000; 
         data_filter.Q = ((int)tmp)/10;
 
@@ -244,7 +244,7 @@ void FilterSet::SendBypassCmd(int band)
         tmp = GetFilterGain(band)*10;
         data_filter.GAIN = tmp;
 
-        // TODO: 1940会变成1939？
+        // 浮点数会有精度损失: 1940会变成1939
         tmp = GetFilter(band)->GetQ()*1000; 
         data_filter.Q = ((int)tmp)/10;
 

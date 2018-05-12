@@ -1329,15 +1329,6 @@ void TForm1::SendLogBuff(int udp_port, void * buff, int size)
 }
 void TForm1::SendCmd(String cmd)
 {
-    // TODO: 修改成名称
-    //edtCmdId->Text = cmd.id;
-
-    //if (!udpControl->Active)
-    //{
-    //    edtCmdId->Text = edtCmdId->Text + "*";
-    //    return;
-    //}
-
     if (on_loading || !udpControl->Active || keep_live_count >= CONTROL_TIMEOUT_COUNT)
     {
         return;
@@ -2049,6 +2040,11 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             if (received_cmd_seq != 0)
             {
                 ProcessPackageMessageFeedback(cmd_text+strlen(D1608CMD_REPLY_FLAG));
+            }
+            else
+            {
+                // TODO: 缓冲报文
+                //////
             }
         }
         else if (IsKeepliveCmd(cmd_text) && AData->Size==(strlen(D1608CMD_KEEPLIVE_FLAG)+sizeof(NotStorageCmd)))
@@ -4307,14 +4303,9 @@ void __fastcall TForm1::btnLoadPresetFromFileClick(TObject *Sender)
 
         delete file;
 
-        ///ApplyConfigToUI();
-        ///CloseDspDetail();
-
         if (!udpControl->Active)
         {
             // 脱机
-            //all_config_map[select_preset_id-1] = smc_config.all_config_map[select_preset_id-1].ToConfigMap();
-            // TODO: 是否更新当前界面？
             if (cur_preset_id == select_preset_id)
             {
                 CloseDspDetail();
@@ -6486,7 +6477,7 @@ void __fastcall TForm1::btnLoadFileToFlashClick(TObject *Sender)
                 D1608PresetCmd preset_cmd(version);
                 strcpy(preset_cmd.flag, D1608PRESETCMD_PC2FLASH_FLAG);
                 preset_cmd.preset = 0x80;
-                preset_cmd.store_page = 8;  // 使用8表示最后一页，TODO: 表达不是很清楚
+                preset_cmd.store_page = 0;   // 原先是 preset_cmd.store_page = 8;  // 使用8表示最后一页，TODO: 表达不是很清楚
                 memcpy(preset_cmd.data, &smc_config.global_config, sizeof(smc_config.global_config));
                 preset_cmd.verify -= UdpPackageVerifyDiff((unsigned char*)&preset_cmd, sizeof(preset_cmd));
 
