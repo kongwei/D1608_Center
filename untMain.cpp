@@ -5318,6 +5318,9 @@ void __fastcall TForm1::edtCompRatioKeyDown(TObject *Sender, WORD &Key,
             else if (config_map.output_dsp[dsp_num-1].ratio < ratio_config.min_value)
                 config_map.output_dsp[dsp_num-1].ratio = ratio_config.min_value;
 
+            edt->Text = Ration2String(config_map.output_dsp[dsp_num-1].ratio);
+            edt->SelectAll();
+
             if (ratio != config_map.output_dsp[dsp_num-1].ratio)
             {
                 String cmd_text = D1608CMD_FLAG;
@@ -5332,9 +5335,6 @@ void __fastcall TForm1::edtCompRatioKeyDown(TObject *Sender, WORD &Key,
         {
             AppendLog(__FUNC__);
         }
-
-        edt->Text = Ration2String(config_map.output_dsp[dsp_num-1].ratio);
-        edt->SelectAll();
     }
 }
 //---------------------------------------------------------------------------
@@ -5365,6 +5365,9 @@ void __fastcall TForm1::edtCompThresholdKeyDown(TObject *Sender, WORD &Key,
             else if (config_map.output_dsp[dsp_num-1].threshold < threshold_config.min_value)
                 config_map.output_dsp[dsp_num-1].threshold = threshold_config.min_value;
 
+            edt->Text = FormatFloat(config_map.output_dsp[dsp_num-1].threshold/threshold_config.scale, threshold_config.precise);
+            edt->SelectAll();
+
             if (threshold != config_map.output_dsp[dsp_num-1].threshold)
             {
                 String cmd_text = D1608CMD_FLAG;
@@ -5379,9 +5382,6 @@ void __fastcall TForm1::edtCompThresholdKeyDown(TObject *Sender, WORD &Key,
         {
             AppendLog(__FUNC__);
         }
-
-        edt->Text = FormatFloat(config_map.output_dsp[dsp_num-1].threshold/threshold_config.scale, threshold_config.precise);
-        edt->SelectAll();
     }
 }
 //---------------------------------------------------------------------------
@@ -5412,6 +5412,9 @@ void __fastcall TForm1::edtCompAttackTimeKeyDown(TObject *Sender,
             else if (config_map.output_dsp[dsp_num-1].attack_time < attack_config.min_value)
                 config_map.output_dsp[dsp_num-1].attack_time = attack_config.min_value;
 
+            edt->Text = FormatFloat(config_map.output_dsp[dsp_num-1].attack_time/attack_config.scale, attack_config.precise);
+            edt->SelectAll();
+
             if (attack_time != config_map.output_dsp[dsp_num-1].attack_time)
             {
                 String cmd_text = D1608CMD_FLAG;
@@ -5423,9 +5426,6 @@ void __fastcall TForm1::edtCompAttackTimeKeyDown(TObject *Sender,
         {
             AppendLog(__FUNC__);
         }
-
-        edt->Text = FormatFloat(config_map.output_dsp[dsp_num-1].attack_time/attack_config.scale, attack_config.precise);
-        edt->SelectAll();
     }
 }
 //---------------------------------------------------------------------------
@@ -5456,6 +5456,9 @@ void __fastcall TForm1::edtCompReleaseTimeKeyDown(TObject *Sender,
             else if (config_map.output_dsp[dsp_num-1].release_time < release_config.min_value)
                 config_map.output_dsp[dsp_num-1].release_time = release_config.min_value;
 
+            edt->Text = FormatFloat(config_map.output_dsp[dsp_num-1].release_time/release_config.scale, release_config.precise);
+            edt->SelectAll();
+
             if (release_time != config_map.output_dsp[dsp_num-1].release_time)
             {
                 String cmd_text = D1608CMD_FLAG;
@@ -5467,9 +5470,6 @@ void __fastcall TForm1::edtCompReleaseTimeKeyDown(TObject *Sender,
         {
             AppendLog(__FUNC__);
         }
-
-        edt->Text = FormatFloat(config_map.output_dsp[dsp_num-1].release_time/release_config.scale, release_config.precise);
-        edt->SelectAll();
     }
 }
 //---------------------------------------------------------------------------
@@ -5500,6 +5500,9 @@ void __fastcall TForm1::edtCompGainKeyDown(TObject *Sender, WORD &Key,
             else if (config_map.output_dsp[dsp_num-1].comp_gain < gain_config.min_value)
                 config_map.output_dsp[dsp_num-1].comp_gain = gain_config.min_value;
 
+            edt->Text = FormatFloat(config_map.output_dsp[dsp_num-1].comp_gain/gain_config.scale, gain_config.precise);
+            edt->SelectAll();
+
             if (comp_gain != config_map.output_dsp[dsp_num-1].comp_gain)
             {
                 String cmd_text = D1608CMD_FLAG;
@@ -5514,9 +5517,6 @@ void __fastcall TForm1::edtCompGainKeyDown(TObject *Sender, WORD &Key,
         {
             AppendLog(__FUNC__);
         }
-
-        edt->Text = FormatFloat(config_map.output_dsp[dsp_num-1].comp_gain/gain_config.scale, gain_config.precise);
-        edt->SelectAll();
     }
 }
 //---------------------------------------------------------------------------
