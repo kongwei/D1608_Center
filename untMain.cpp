@@ -7676,7 +7676,7 @@ void __fastcall TForm1::tmProcessReplyTimer(TObject *Sender)
 
     AppendLog(GetTime()+": begin tmProcessReplyTimer");
 
-    String cmd_text = D1608CMD_KEEPLIVE_FLAG;
+    String cmd_text = D1608CMD_REPLY_FLAG;
     cmd_text = cmd_text+"config.action.syn_msg_id="+IntToStr(pre_received_msg_id);
     SendCmd2(cmd_text+D1608CMD_TAIL);
 
