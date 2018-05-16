@@ -1013,6 +1013,8 @@ private:
     TTime last_keeplive_time;
 
     void CloseControlLink(String reason);
+private:
+    void AdjustOutputCompParam(int dsp_num);
 public:
     void AppendLog(String str)
     {

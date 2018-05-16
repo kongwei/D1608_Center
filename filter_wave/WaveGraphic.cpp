@@ -511,8 +511,8 @@ void __fastcall PaintAgent::OnCompPaint(TObject * Sender)
     // 整体增益提高
     double gain = _filter_set.gain;
 
-    ratio = max(0, ratio);
-    ratio = min(1, ratio);
+    //ratio = max(0.0, ratio);
+    //ratio = min(1.0, ratio);
 
     // 计算3个点
     Gdiplus::Point point_org(-48, -48+gain);

@@ -184,17 +184,17 @@ void FilterSet::SendPeqCmd(int band)
                 if (q_text=="NA" && gain_text=="NA")
                 {
                     cmd_text = cmd_text+"input<"+IntToStr(dsp_num)+">."+GetPeqName(band)+"="
-                        +FormatFloat("0.0", GetFilterFreq(band))+"Hz,"
-                        +GetFilter(band)->GetSimpleType()+""
+                        +GetFilter(band)->GetSimpleType()+","
+                        +FormatFloat("0.0", GetFilterFreq(band))+"Hz"
                         +"]";
                 }
                 else
                 {
                     cmd_text = cmd_text+"input<"+IntToStr(dsp_num)+">."+GetPeqName(band)+"="
+                        +GetFilter(band)->GetSimpleType()+","
                         +FormatFloat("0.0", GetFilterFreq(band))+"Hz,"
                         +q_text+","
-                        +gain_text+","
-                        +GetFilter(band)->GetSimpleType()+""
+                        +gain_text+""
                         +"]";
                 }
             }
@@ -205,17 +205,17 @@ void FilterSet::SendPeqCmd(int band)
                 if (q_text=="NA" && gain_text=="NA")
                 {
                     cmd_text = cmd_text+"output<"+IntToStr(dsp_num-100)+">."+GetPeqName(band)+"="
-                        +FormatFloat("0.0", GetFilterFreq(band))+"Hz,"
-                        +GetFilter(band)->GetSimpleType()+""
+                        +GetFilter(band)->GetSimpleType()+","
+                        +FormatFloat("0.0", GetFilterFreq(band))+"Hz"
                         +"]";
                 }
                 else
                 {
                     cmd_text = cmd_text+"output<"+IntToStr(dsp_num-100)+">."+GetPeqName(band)+"="
-                        +FormatFloat("0.0", GetFilterFreq(band))+"Hz,"
+                        +GetFilter(band)->GetSimpleType()+","
+                        +FormatFloat("0.0", GetFilterFreq(band))+"Hz"
                         +q_text+","
                         +gain_text+","
-                        +GetFilter(band)->GetSimpleType()+""
                         +"]";
                 }
             }

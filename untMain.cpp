@@ -2042,6 +2042,10 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
 
         if (IsReplyCmd(cmd_text))
         {
+            if (reply_msg_buf.empty())
+            {
+                AppendLog(GetTime()+": 第一个UDP包");
+            }
             CachePackageMessageFeedback(cmd_text+strlen(D1608CMD_REPLY_FLAG));
             // 没有初始化完毕，不处理数据回报
             if (received_cmd_seq != 0)
@@ -2052,6 +2056,8 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
         }
         else if (IsKeepliveCmd(cmd_text) && AData->Size==(strlen(D1608CMD_KEEPLIVE_FLAG)+sizeof(NotStorageCmd)))
         {
+            AppendLog(GetTime()+": begin keeplive");
+
             static int last_diff = 0;
             recv_keeplive_count++;
             if (send_keeplive_count-recv_keeplive_count != last_diff)
@@ -2071,9 +2077,17 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
                 tmProcessReply->Enabled = true;
             }
 
+            LockWindowUpdate(this->Handle);
+            AppendLog(GetTime()+":      begin ProcessWatchLevel");
             ProcessWatchLevel(keep_alive->watch_level, keep_alive->watch_level_comp);
+            AppendLog(GetTime()+":      begin ProcessVote");
             ProcessVote(keep_alive->adc_ex, keep_alive->adc_ex_max, keep_alive->adc_ex_min);
+            AppendLog(GetTime()+":      begin ProcessKeepAlive");
             ProcessKeepAlive(keep_alive->switch_preset, keep_alive->set_time_ex);
+            AppendLog(GetTime()+":      done");
+            LockWindowUpdate(NULL);
+
+            AppendLog(GetTime()+": end keeplive");
         }
         else
         {
@@ -3522,6 +3536,7 @@ void __fastcall TForm1::ToggleDSP(TObject *Sender)
             }
 
             // COMP
+            AdjustOutputCompParam(dsp_num);
             btnDspComp->Down = config_map.output_dsp[dsp_num-1].comp_switch;
             edtCompRatio->Text = Ration2String(config_map.output_dsp[dsp_num-1].ratio);
             edtCompThreshold->Text = config_map.output_dsp[dsp_num-1].threshold/10.0;
@@ -5536,7 +5551,9 @@ void __fastcall TForm1::cbCompAutoTimeClick(TObject *Sender)
         return;
     }
 
-    dsp_num -= 101;
+    dsp_num -= 100;
+
+    AdjustOutputCompParam(dsp_num);
 
     if (cbCompAutoTime->Checked)
     {
@@ -5549,21 +5566,21 @@ void __fastcall TForm1::cbCompAutoTimeClick(TObject *Sender)
     {
         edtCompReleaseTime->Enabled = true;
         edtCompAttackTime->Enabled = true;
-        edtCompAttackTime->Text = config_map.output_dsp[dsp_num].attack_time/attack_config.scale;
-        edtCompReleaseTime->Text = config_map.output_dsp[dsp_num].release_time/release_config.scale;
+        edtCompAttackTime->Text = config_map.output_dsp[dsp_num-1].attack_time/attack_config.scale;
+        edtCompReleaseTime->Text = config_map.output_dsp[dsp_num-1].release_time/release_config.scale;
     }
 
-    if (cbCompAutoTime->Checked == config_map.output_dsp[dsp_num].auto_time)
+    if (cbCompAutoTime->Checked == config_map.output_dsp[dsp_num-1].auto_time)
     {
-        edtCompAttackTime->Enabled = !config_map.output_dsp[dsp_num].auto_time;
-        edtCompReleaseTime->Enabled = !config_map.output_dsp[dsp_num].auto_time;
+        edtCompAttackTime->Enabled = !config_map.output_dsp[dsp_num-1].auto_time;
+        edtCompReleaseTime->Enabled = !config_map.output_dsp[dsp_num-1].auto_time;
         return;
     }
 
-    config_map.output_dsp[dsp_num].auto_time = check_box->Checked;
+    config_map.output_dsp[dsp_num-1].auto_time = check_box->Checked;
 
     String cmd_text = D1608CMD_FLAG;
-    cmd_text = cmd_text+ "output<"+IntToStr(dsp_num+1)+">.auto_comp="+(cbCompAutoTime->Checked?"on":"off");
+    cmd_text = cmd_text+ "output<"+IntToStr(dsp_num)+">.auto_comp="+(cbCompAutoTime->Checked?"on":"off");
     SendCmd(cmd_text+D1608CMD_TAIL);
 }
 //---------------------------------------------------------------------------
@@ -7645,6 +7662,8 @@ void __fastcall TForm1::tmProcessReplyTimer(TObject *Sender)
 {
     tmProcessReply->Enabled = false;
 
+    AppendLog(GetTime()+": begin tmProcessReplyTimer");
+
     String cmd_text = D1608CMD_KEEPLIVE_FLAG;
     cmd_text = cmd_text+"config.action.syn_msg_id="+IntToStr(pre_received_msg_id);
     SendCmd2(cmd_text+D1608CMD_TAIL);
@@ -7659,11 +7678,35 @@ void __fastcall TForm1::tmProcessReplyTimer(TObject *Sender)
     }
     reply_msg_buf.clear();
 
-    //String cmd_text = D1608CMD_KEEPLIVE_FLAG;
-    //cmd_text = cmd_text+"config.action.syn_msg_id="+IntToStr(received_cmd_seq);
-    //SendCmd2(cmd_text+D1608CMD_TAIL);
-
     LockWindowUpdate(NULL);
+    AppendLog(GetTime()+": end tmProcessReplyTimer");
 }
 //---------------------------------------------------------------------------
+void TForm1::AdjustOutputCompParam(int dsp_num)
+{
+    if (config_map.output_dsp[dsp_num-1].ratio > ratio_config.max_value)
+        config_map.output_dsp[dsp_num-1].ratio = ratio_config.max_value;
+    else if (config_map.output_dsp[dsp_num-1].ratio < ratio_config.min_value)
+        config_map.output_dsp[dsp_num-1].ratio = ratio_config.min_value;
 
+    if (config_map.output_dsp[dsp_num-1].threshold > threshold_config.max_value)
+        config_map.output_dsp[dsp_num-1].threshold = threshold_config.max_value;
+    else if (config_map.output_dsp[dsp_num-1].threshold < threshold_config.min_value)
+        config_map.output_dsp[dsp_num-1].threshold = threshold_config.min_value;
+
+    if (config_map.output_dsp[dsp_num-1].attack_time > attack_config.max_value)
+        config_map.output_dsp[dsp_num-1].attack_time = attack_config.max_value;
+    else if (config_map.output_dsp[dsp_num-1].attack_time < attack_config.min_value)
+        config_map.output_dsp[dsp_num-1].attack_time = attack_config.min_value;
+
+    if (config_map.output_dsp[dsp_num-1].release_time > release_config.max_value)
+        config_map.output_dsp[dsp_num-1].release_time = release_config.max_value;
+    else if (config_map.output_dsp[dsp_num-1].release_time < release_config.min_value)
+        config_map.output_dsp[dsp_num-1].release_time = release_config.min_value;
+
+    if (config_map.output_dsp[dsp_num-1].comp_gain > gain_config.max_value)
+        config_map.output_dsp[dsp_num-1].comp_gain = gain_config.max_value;
+    else if (config_map.output_dsp[dsp_num-1].comp_gain < gain_config.min_value)
+        config_map.output_dsp[dsp_num-1].comp_gain = gain_config.min_value;
+}
+//---------------------------------------------------------------------------
