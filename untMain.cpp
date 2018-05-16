@@ -2553,9 +2553,13 @@ void TForm1::ProcessVote(ADC_Data_Ex adc_ex, ADC_Data_Ex adc_ex_max, ADC_Data_Ex
 {
     this->adc_ex_max = adc_ex_max;
     this->adc_ex_min = adc_ex_min;
-    UpdateAdc_ValueListEditor(ValueListEditor2, adc_ex);
-    UpdateAdc_ValueListEditor(vleAdcMax, adc_ex_max);
-    UpdateAdc_ValueListEditor(vleAdcMin, adc_ex_min);
+
+    if (pnlMist->Visible)
+    {
+        UpdateAdc_ValueListEditor(ValueListEditor2, adc_ex);
+        UpdateAdc_ValueListEditor(vleAdcMax, adc_ex_max);
+        UpdateAdc_ValueListEditor(vleAdcMin, adc_ex_min);
+    }
 
 
     lblDiff->Caption = adc_ex._8vdc-adc_ex._8vad;
@@ -5620,6 +5624,14 @@ void __fastcall TForm1::SpeedButtonNoFrame2MouseDown(TObject *Sender,
             }
         }
         break;
+    }
+    switch (tag)
+    {
+    case 3:
+        break;
+    default:
+        // 用pnlMist->Visible表示是否需要刷新电压数据显示
+        pnlMist->Hide();
     }
 }
 //---------------------------------------------------------------------------
