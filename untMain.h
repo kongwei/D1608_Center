@@ -253,7 +253,6 @@ __published:	// IDE-managed Components
     TMenuItem *N82;
     TEdit *edtIp;
     TSpeedButton *btnSetIp;
-    TValueListEditor *ValueListEditor2;
     TLabel *lblDiff;
     TListView *lvLog;
     TButton *btnGetLog;
@@ -492,10 +491,8 @@ __published:	// IDE-managed Components
     TLabel *lblCpuId;
     TLabel *lblSn;
     TLabel *lblConfigFilename;
-    TValueListEditor *vleAdcMin;
-    TValueListEditor *vleAdcMax;
     TButton *btnCopyVoteDataToClip;
-    TMemo *mmVoteData2Clip;
+    TMemo *mmVoteOrg;
     TSpeedButton *btnClearDataAndTime;
     TEdit *edtDeviceFullName;
     TButton *btnCopyDebugLog;
@@ -518,6 +515,7 @@ __published:	// IDE-managed Components
     TCheckBox *cbLogEnabled;
     TMenuItem *Copy1;
     TTimer *tmProcessReply;
+    TMemo *mmVote;
     void __fastcall FormCreate(TObject *Sender);
     void __fastcall btnRefreshClick(TObject *Sender);
     void __fastcall udpSLPUDPRead(TObject *Sender, TStream *AData,

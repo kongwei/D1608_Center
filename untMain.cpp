@@ -2079,14 +2079,29 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
                 tmProcessReply->Enabled = true;
             }
 
+            TTime tmp;
+            String start_str;
+            double diff;
             LockWindowUpdate(this->Handle);
-            AppendLog(GetTime()+":      begin ProcessWatchLevel");
-            ProcessWatchLevel(keep_alive->watch_level, keep_alive->watch_level_comp);
-            AppendLog(GetTime()+":      begin ProcessVote");
-            ProcessVote(keep_alive->adc_ex, keep_alive->adc_ex_max, keep_alive->adc_ex_min);
-            AppendLog(GetTime()+":      begin ProcessKeepAlive");
-            ProcessKeepAlive(keep_alive->switch_preset, keep_alive->set_time_ex);
-            AppendLog(GetTime()+":      done");
+
+                tmp = Now();
+                start_str = GetTime();
+                ProcessWatchLevel(keep_alive->watch_level, keep_alive->watch_level_comp);
+                diff = (Now()-tmp); diff = diff*24*3600*1000;
+                AppendLog(start_str+":      begin ProcessWatchLevel: "+IntToStr((int)diff) );
+
+                tmp = Now();
+                start_str = GetTime();
+                ProcessVote(keep_alive->adc_ex, keep_alive->adc_ex_max, keep_alive->adc_ex_min);
+                diff = (Now()-tmp); diff = diff*24*3600*1000;
+                AppendLog(start_str+":      begin ProcessVote:       "+IntToStr((int)diff) );
+
+                tmp = Now();
+                start_str = GetTime();
+                ProcessKeepAlive(keep_alive->switch_preset, keep_alive->set_time_ex);
+                diff = (Now()-tmp); diff = diff*24*3600*1000;
+                AppendLog(start_str+":      begin ProcessKeepAlive:  "+IntToStr((int)diff) );
+
             LockWindowUpdate(NULL);
 
             AppendLog(GetTime()+": end keeplive");
@@ -2525,8 +2540,33 @@ static ADC_Data_Ex AdjustAdcDataByBootAdcDataEx(ADC_Data_Ex true_data, ADC_Data 
     return result;
 }
 
-static void UpdateAdc_ValueListEditor(TValueListEditor * vls, ADC_Data_Ex data)
+static void UpdateAdc_ValueListEditor(TStrings * vls, ADC_Data_Ex data)
 {
+    // 用上电电压校准
+    String _;
+    vls->Strings[0 ] = vls->Strings[0 ] + "\t" + _.sprintf("%10.5f", data._3_3vd  / 1000.0f);
+    vls->Strings[1 ] = vls->Strings[1 ] + "\t" + _.sprintf("%10.5f", data.base    / 1000.0f);
+    vls->Strings[2 ] = vls->Strings[2 ] + "\t" + _.sprintf("%10.5f", data._5vd    / 1000.0f);
+    vls->Strings[3 ] = vls->Strings[3 ] + "\t" + _.sprintf("%10.5f", data._8vdc   / 1000.0f);
+    vls->Strings[4 ] = vls->Strings[4 ] + "\t" + _.sprintf("%10.5f", data._8vac   / 1000.0f);
+    vls->Strings[5 ] = vls->Strings[5 ] + "\t" + _.sprintf("%10.5f", data._8vad   / 1000.0f);
+    vls->Strings[6 ] = vls->Strings[6 ] + "\t" + _.sprintf("%10.5f", data._x16vac / 1000.0f);
+    vls->Strings[7 ] = vls->Strings[7 ] + "\t" + _.sprintf("%10.5f", data._x16va  / 1000.0f);
+    vls->Strings[8 ] = vls->Strings[8 ] + "\t" + _.sprintf("%10.5f", data._50vpc  / 1000.0f);
+    vls->Strings[9 ] = vls->Strings[9 ] + "\t" + _.sprintf("%10.5f", data._50vp   / 1000.0f);
+    vls->Strings[10] = vls->Strings[10] + "\t" + _.sprintf("%10.5f", data._48vp   / 1000.0f);
+    vls->Strings[11] = vls->Strings[11] + "\t" + _.sprintf("%10.5f", data._5va    / 1000.0f);
+    vls->Strings[12] = vls->Strings[12] + "\t" + _.sprintf("%10.5f", data._x12va  / 1000.0f);
+    vls->Strings[13] = vls->Strings[13] + "\t" + _.sprintf("%10.5f", data._12va   / 1000.0f);
+    vls->Strings[14] = vls->Strings[14] + "\t" + _.sprintf("%10.5f", data._16va   / 1000.0f);
+    vls->Strings[15] = vls->Strings[15] + "\t" + _.sprintf("%10.5f", data._16vac  / 1000.0f);
+
+    vls->Strings[17] = vls->Strings[17] + "\t" + _.sprintf("%10.5f", data._8va_current);
+    vls->Strings[18] = vls->Strings[18] + "\t" + _.sprintf("%10.5f", data._8vd_current);
+    vls->Strings[19] = vls->Strings[19] + "\t" + _.sprintf("%10.5f", data._16v_current);
+    vls->Strings[20] = vls->Strings[20] + "\t" + _.sprintf("%10.5f", data._x16v_current);
+    vls->Strings[21] = vls->Strings[21] + "\t" + _.sprintf("%10.5f", data._50v_current);
+#if 0
     // 用上电电压校准
     vls->Cells[1][0 +1] = String::FormatFloat("0.00000 ", data._3_3vd  / 1000.0f);
     vls->Cells[1][1 +1] = String::FormatFloat("0.00000 ", data.base    / 1000.0f);
@@ -2550,18 +2590,29 @@ static void UpdateAdc_ValueListEditor(TValueListEditor * vls, ADC_Data_Ex data)
     vls->Cells[1][20] = String::FormatFloat("0.00000 ", data._16v_current);
     vls->Cells[1][21] = String::FormatFloat("0.00000 ", data._x16v_current);
     vls->Cells[1][22] = String::FormatFloat("0.00000 ", data._50v_current);
+#endif
 }
 void TForm1::ProcessVote(ADC_Data_Ex adc_ex, ADC_Data_Ex adc_ex_max, ADC_Data_Ex adc_ex_min)
 {
     this->adc_ex_max = adc_ex_max;
     this->adc_ex_min = adc_ex_min;
 
-    if (pnlMist->Visible)
+    //-----------------------------
+    TStrings * vote_list = new TStringList;
+    vote_list->AddStrings(mmVoteOrg->Lines);
+
+    //if (pnlMist->Visible)
     {
-        UpdateAdc_ValueListEditor(ValueListEditor2, adc_ex);
-        UpdateAdc_ValueListEditor(vleAdcMax, adc_ex_max);
-        UpdateAdc_ValueListEditor(vleAdcMin, adc_ex_min);
+        UpdateAdc_ValueListEditor(vote_list, adc_ex);
+        UpdateAdc_ValueListEditor(vote_list, adc_ex_max);
+        UpdateAdc_ValueListEditor(vote_list, adc_ex_min);
     }
+
+    mmVote->Clear();
+    mmVote->Lines->Add("        \t   当前  \t   max   \t    min");
+    mmVote->Lines->Add("----------------------------------------------------------");
+    mmVote->Lines->AddStrings(vote_list);
+    delete vote_list;
 
 
     lblDiff->Caption = adc_ex._8vdc-adc_ex._8vad;
@@ -7463,22 +7514,8 @@ void __fastcall TForm1::vleAdcMinDrawCell(TObject *Sender, int ACol,
 //---------------------------------------------------------------------------
 void __fastcall TForm1::btnCopyVoteDataToClipClick(TObject *Sender)
 {
-    String vote_data_str = "";
-    for (int i=0;i<ValueListEditor2->RowCount;i++)
-    {
-        String name = ValueListEditor2->Cells[0][i];
-        String cur_data = ValueListEditor2->Cells[1][i];
-        String max = vleAdcMax->Cells[1][i];
-        String min = vleAdcMin->Cells[1][i];
-        vote_data_str = vote_data_str + name + "\t"
-                        + cur_data + "\t"
-                        + max + "\t"
-                        + min + "\n";
-    }
-
-    mmVoteData2Clip->Text = vote_data_str;
-    mmVoteData2Clip->SelectAll();
-    mmVoteData2Clip->CopyToClipboard();
+    mmVote->SelectAll();
+    mmVote->CopyToClipboard();
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::btnClearDataAndTimeClick(TObject *Sender)
