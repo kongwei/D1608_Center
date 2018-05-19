@@ -482,7 +482,7 @@ void InitConfigMap(ConfigMap& tmp_config_map)
 		{
 			tmp_config_map.input_dsp[i].filter[j-1].GAIN = 0;
 			tmp_config_map.input_dsp[i].filter[j-1].bypass = 0;
-			tmp_config_map.input_dsp[i].filter[j-1].FREQ = preset_freq[j-1] * 10;
+			tmp_config_map.input_dsp[i].filter[j-1].FREQ = preset_freq[j-1] * FREQ_RATE;
 			tmp_config_map.input_dsp[i].filter[j-1].Q = 409;
 		}
 
@@ -507,7 +507,7 @@ void InitConfigMap(ConfigMap& tmp_config_map)
 		{
 			tmp_config_map.output_dsp[i].filter[j-1].GAIN = 0;
 			tmp_config_map.output_dsp[i].filter[j-1].bypass = 0;
-			tmp_config_map.output_dsp[i].filter[j-1].FREQ = preset_freq[j-1] * 10;
+			tmp_config_map.output_dsp[i].filter[j-1].FREQ = preset_freq[j-1] * FREQ_RATE;
 			tmp_config_map.output_dsp[i].filter[j-1].Q = 409;
 		}
 

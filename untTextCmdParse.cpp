@@ -254,7 +254,7 @@ std::vector<UINT> ProcessTextCommand(String command_head)
 					cmd_id = offsetof(ConfigMap, input_dsp[input_channel].gain);
                     ret.insert(ret.begin(), cmd_id);
 				}
-				else if (!strcmp(result.vars[1].var_name, "delay") && IsValidTimeMs(result.value))
+				else if (!strcmp(result.vars[1].var_name, "delay") && IsValidTimeMs(result.value, NULL))
 				{
                     config_map.input_dsp[input_channel].delay = StringToTimeMs(result.value, 1000);	// us
 					cmd_id = offsetof(ConfigMap, input_dsp[input_channel].delay);
@@ -363,7 +363,7 @@ std::vector<UINT> ProcessTextCommand(String command_head)
 					cmd_id = offsetof(ConfigMap, output_dsp[output_channel].gain);
                     ret.insert(ret.begin(), cmd_id);
 				}
-				else if (!strcmp(result.vars[1].var_name, "delay") && IsValidTimeMs(result.value))
+				else if (!strcmp(result.vars[1].var_name, "delay") && IsValidTimeMs(result.value, NULL))
 				{
                     config_map.output_dsp[output_channel].delay = StringToTimeMs(result.value, 1000);	// us
 					cmd_id = offsetof(ConfigMap, output_dsp[output_channel].delay);
@@ -410,13 +410,13 @@ std::vector<UINT> ProcessTextCommand(String command_head)
 					cmd_id = offsetof(ConfigMap, output_dsp[output_channel].threshold);
                     ret.insert(ret.begin(), cmd_id);
 				}
-				else if (!strcmp(result.vars[2].var_name, "attack_time") && IsValidTimeMs(result.value))
+				else if (!strcmp(result.vars[2].var_name, "attack_time") && IsValidTimeMs(result.value, NULL))
 				{
                     config_map.output_dsp[output_channel].attack_time = StringToTimeMs(result.value, 10);	// ms
 					cmd_id = offsetof(ConfigMap, output_dsp[output_channel].attack_time);
                     ret.insert(ret.begin(), cmd_id);
 				}
-				else if (!strcmp(result.vars[2].var_name, "release_time") && IsValidTimeMs(result.value))
+				else if (!strcmp(result.vars[2].var_name, "release_time") && IsValidTimeMs(result.value, NULL))
 				{
                     config_map.output_dsp[output_channel].release_time = StringToTimeMs(result.value, 10);	// ms
 					cmd_id = offsetof(ConfigMap, output_dsp[output_channel].release_time);

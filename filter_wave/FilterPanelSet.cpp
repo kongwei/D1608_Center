@@ -145,7 +145,7 @@ void PanelAgent::LoadPreset()
             else if (dsp_id < 100)
             {
                  _filter_set.GetFilter(band)->SetTypeId(config_map.input_dsp[dsp_id-1].filter[band-1].TYPE);
-                 _filter_set.GetFilter(band)->SetFreq(config_map.input_dsp[dsp_id-1].filter[band-1].FREQ / 10.0);
+                 _filter_set.GetFilter(band)->SetFreq(config_map.input_dsp[dsp_id-1].filter[band-1].FREQ / FREQ_RATE);
                  _filter_set.GetFilter(band)->SetGain(config_map.input_dsp[dsp_id-1].filter[band-1].GAIN / 10.0);
                  _filter_set.GetFilter(band)->SetQ(config_map.input_dsp[dsp_id-1].filter[band-1].Q / 100.0);
                  _filter_set.SetBypass(band, config_map.input_dsp[dsp_id-1].filter[band-1].bypass);
@@ -153,7 +153,7 @@ void PanelAgent::LoadPreset()
             else
             {
                  _filter_set.GetFilter(band)->SetTypeId(config_map.output_dsp[dsp_id-101].filter[band-1].TYPE);
-                 _filter_set.GetFilter(band)->SetFreq(config_map.output_dsp[dsp_id-101].filter[band-1].FREQ / 10.0);
+                 _filter_set.GetFilter(band)->SetFreq(config_map.output_dsp[dsp_id-101].filter[band-1].FREQ / FREQ_RATE);
                  _filter_set.GetFilter(band)->SetGain(config_map.output_dsp[dsp_id-101].filter[band-1].GAIN / 10.0);
                  _filter_set.GetFilter(band)->SetQ(config_map.output_dsp[dsp_id-101].filter[band-1].Q / 100.0);
                  _filter_set.SetBypass(band, config_map.output_dsp[dsp_id-101].filter[band-1].bypass);

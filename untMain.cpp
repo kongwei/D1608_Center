@@ -4449,7 +4449,6 @@ void __fastcall TForm1::ClearUI()
 void __fastcall TForm1::ApplyConfigToUI()
 {
     on_loading = true;
-    //LockWindowUpdate(this->Handle);
 
     lblPresetName->Caption = global_config.preset_name[cur_preset_id-1];
     /*edtMAC->Text.sprintf("%02X:%02X:%02X:%02X:%02X:%02X",
@@ -4566,7 +4565,6 @@ void __fastcall TForm1::ApplyConfigToUI()
     master_panel_trackbar->Position = config_map.input_dsp[0].master_level_a;
     btnMasterMute->Down = (config_map.input_dsp[0].master_mute_switch==1);
 
-    //LockWindowUpdate(NULL);
     on_loading = false;
 }
 void TForm1::OnFeedbackData(unsigned int cmd_id)
