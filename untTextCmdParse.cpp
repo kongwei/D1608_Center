@@ -13,6 +13,15 @@
 
 #pragma package(smart_init)
 
+void DelayProcessTextCommand(String command_head, std::vector<UINT> & cmd_queue)
+{
+    std::vector<UINT> ret = ProcessTextCommand(command_head);
+    for (UINT cmd_index=0; cmd_index<ret.size(); cmd_index++)
+    {
+        cmd_queue.push_back(ret[cmd_index]);
+    }
+}
+
 std::vector<UINT> ProcessTextCommand(String command_head)
 {
     std::vector<UINT> ret;

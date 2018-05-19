@@ -1901,7 +1901,7 @@ void TForm1::CachePackageMessageFeedback(char * data)
 
     pre_received_msg_id = current_msg_id;
 }
-void TForm1::ProcessPackageMessageFeedback(ReplyMsg text_syn_msg[REPLY_TEXT_MSG_SIZE], int reply_msg_count)
+void TForm1::ProcessPackageMessageFeedback(ReplyMsg text_syn_msg[REPLY_TEXT_MSG_SIZE], int reply_msg_count, std::vector<UINT> & cmd_id_list)
 {
     unsigned int oldest_msg_id = text_syn_msg[0].msg_id;
     unsigned int current_msg_id = text_syn_msg[0].msg_id;
@@ -1950,7 +1950,9 @@ void TForm1::ProcessPackageMessageFeedback(ReplyMsg text_syn_msg[REPLY_TEXT_MSG_
                 String bare_cmd = text_syn_msg[i].text_cmd;
                 bare_cmd = bare_cmd.SubString(2, bare_cmd.Length());
                 String full_cmd = String("[NJLS_SMC|parameter|") + bare_cmd;
-                std::vector<UINT> cmd_id_list = ProcessTextCommand(full_cmd);
+
+                DelayProcessTextCommand(full_cmd, cmd_id_list);
+                /*std::vector<UINT> cmd_id_list = ProcessTextCommand(full_cmd);
                 for (UINT cmd_index=0; cmd_index<cmd_id_list.size(); cmd_index++)
                 {
                     int cmd_id = cmd_id_list[cmd_index];
@@ -1962,7 +1964,7 @@ void TForm1::ProcessPackageMessageFeedback(ReplyMsg text_syn_msg[REPLY_TEXT_MSG_
                     {
                         OnFeedbackData(cmd_id);
                     }
-                }
+                }*/
             }
         }
     }
@@ -7680,14 +7682,27 @@ void __fastcall TForm1::tmProcessReplyTimer(TObject *Sender)
 
     AppendLog("处理reply消息: " + IntToStr(reply_msg_buf.size()));
 
-    LockWindowUpdate(this->Handle);
-
+    std::vector<UINT> cmd_id_list;
     for (UINT i=0;i<reply_msg_buf.size();i++)
     {
-        ProcessPackageMessageFeedback(reply_msg_buf[i].reply, reply_msg_buf[i].count);
+        ProcessPackageMessageFeedback(reply_msg_buf[i].reply, reply_msg_buf[i].count, cmd_id_list);
     }
     reply_msg_buf.clear();
 
+    LockWindowUpdate(this->Handle);
+    for (UINT cmd_index=0; cmd_index<cmd_id_list.size(); cmd_index++)
+    {
+        int cmd_id = cmd_id_list[cmd_index];
+        if (cmd_id < 0)
+        {
+            ApplyConfigToUI();
+            break;
+        }
+        else
+        {
+            OnFeedbackData(cmd_id);
+        }
+    }
     LockWindowUpdate(NULL);
     AppendLog(GetTime()+": end tmProcessReplyTimer");
 }

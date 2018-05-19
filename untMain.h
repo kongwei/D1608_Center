@@ -920,7 +920,7 @@ private:
     vector<ReplyMsgList> reply_msg_buf;
     unsigned int pre_received_msg_id;
     void CachePackageMessageFeedback(char*);
-    void ProcessPackageMessageFeedback(ReplyMsg text_syn_msg[REPLY_TEXT_MSG_SIZE], int reply_msg_count);
+    void ProcessPackageMessageFeedback(ReplyMsg text_syn_msg[REPLY_TEXT_MSG_SIZE], int reply_msg_count, std::vector<UINT> & cmd_id_list);
 
     void CalcAllVote(ADC_Data_Ex & adc_data);
     void ProcessKeepAlive(int preset_id, unsigned __int64 timer);
