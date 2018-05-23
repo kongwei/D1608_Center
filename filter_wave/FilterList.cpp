@@ -143,7 +143,7 @@ void FilterSet::SendPeqCmd(int band)
 
         data_filter.TYPE = GetFilter(band)->GetTypeId();
 
-        tmp = GetFilterFreq(band)*10;
+        tmp = GetFilterFreq(band)*FREQ_RATE;
         data_filter.FREQ = tmp;
 
         tmp = GetFilterGain(band)*10;
@@ -238,7 +238,7 @@ void FilterSet::SendBypassCmd(int band)
 
         data_filter.TYPE = GetFilter(band)->GetTypeId();
 
-        tmp = GetFilterFreq(band)*10;
+        tmp = GetFilterFreq(band)*FREQ_RATE;
         data_filter.FREQ = tmp;
 
         tmp = GetFilterGain(band)*10;
