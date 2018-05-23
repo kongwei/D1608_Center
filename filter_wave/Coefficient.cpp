@@ -139,6 +139,9 @@ void Coefficient::ChangFilterParameter(String type, double freq, double gain, do
         return;
     }
 
+    freq = std::max(freq, 20.0);
+    freq = std::min(freq, 20000.0);
+
     gain = std::max(gain, -30.0);
     gain = std::min(gain, 15.0);
 
