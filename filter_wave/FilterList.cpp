@@ -213,9 +213,9 @@ void FilterSet::SendPeqCmd(int band)
                 {
                     cmd_text = cmd_text+"output<"+IntToStr(dsp_num-100)+">."+GetPeqName(band)+"="
                         +GetFilter(band)->GetSimpleType()+","
-                        +FormatFloat("0.0", GetFilterFreq(band))+"Hz"
+                        +FormatFloat("0.0", GetFilterFreq(band))+"Hz"+","
                         +q_text+","
-                        +gain_text+","
+                        +gain_text
                         +"]";
                 }
             }
