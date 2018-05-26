@@ -943,7 +943,7 @@ __fastcall TForm1::TForm1(TComponent* Owner)
 
     // 私有变量初始化
     keep_live_count = CONTROL_TIMEOUT_COUNT;
-    received_cmd_seq = 0;
+    received_cmd_seq = 0;       pre_received_msg_id = 0;
     device_connected = false;
 
     // 读取配置
@@ -1615,7 +1615,7 @@ void __fastcall TForm1::btnSelectClick(TObject *Sender)
     SendDisconnect();
 
     is_manual_disconnect = false;
-    received_cmd_seq = 0;
+    received_cmd_seq = 0;   pre_received_msg_id = 0;
 
     dst_ip = selected->SubItems->Strings[0];
     String broadcast_ip = selected->SubItems->Strings[1];
@@ -1951,20 +1951,12 @@ void TForm1::ProcessPackageMessageFeedback(ReplyMsg text_syn_msg[REPLY_TEXT_MSG_
                 bare_cmd = bare_cmd.SubString(2, bare_cmd.Length());
                 String full_cmd = String("[NJLS_SMC|parameter|") + bare_cmd;
 
-                DelayProcessTextCommand(full_cmd, cmd_id_list);
-                /*std::vector<UINT> cmd_id_list = ProcessTextCommand(full_cmd);
-                for (UINT cmd_index=0; cmd_index<cmd_id_list.size(); cmd_index++)
+                if (DelayProcessTextCommand(full_cmd, cmd_id_list) == -1)
                 {
-                    int cmd_id = cmd_id_list[cmd_index];
-                    if (cmd_id < 0)
-                    {
-                        ApplyConfigToUI();
-                    }
-                    else
-                    {
-                        OnFeedbackData(cmd_id);
-                    }
-                }*/
+                    // 失联
+                    AppendLog("收到未知报文: " + full_cmd);
+                    keep_live_count = CONTROL_TIMEOUT_COUNT+2;
+                }
             }
         }
     }
@@ -2114,7 +2106,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             {
                 AppendLog("config.action=disconnect");
                 keep_live_count = CONTROL_TIMEOUT_COUNT;
-                received_cmd_seq = 0;
+                received_cmd_seq = 0;    pre_received_msg_id = 0;
             }
             else if (cmd_string=="config.action=reboot]" || cmd_string=="config.action=init]" || cmd_string=="config.action=clear_preset]")
             {
@@ -2126,7 +2118,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
 
                 AppendLog("config.action=reboot");
                 keep_live_count = CONTROL_TIMEOUT_COUNT;
-                received_cmd_seq = 0;
+                received_cmd_seq = 0;          pre_received_msg_id = 0;
                 {
                     sendcmd_list.empty();
                     shape_live->Hide();
@@ -3343,7 +3335,7 @@ void __fastcall TForm1::tmWatchTimer(TObject *Sender)
             UpdateWatchLevel(i, -49);
         }
         device_connected = false;
-        received_cmd_seq = 0;
+        received_cmd_seq = 0;       pre_received_msg_id = 0;
 
         ClearUI();
     }
@@ -7108,7 +7100,7 @@ static void CloneChannelData(InputConfigMap &dest, OutputConfigMap &src)
 static void CloneChannelData(OutputConfigMap &dest, InputConfigMap &src)
 {
     dest.eq_switch        = src.eq_switch      ;
-    dest.comp_switch      = src.comp_switch    ;
+    //dest.comp_switch      = src.comp_switch    ;
     //dest.auto_switch    =                    ;
     dest.invert_switch    = src.invert_switch  ;
     //dest.noise_switch   =                    ;
