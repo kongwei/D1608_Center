@@ -5447,11 +5447,41 @@ void __fastcall TForm1::edtCompThresholdKeyDown(TObject *Sender, WORD &Key,
     {
         edt->Text = FormatFloat(config_map.output_dsp[dsp_num-1].threshold/threshold_config.scale, threshold_config.precise);
     }
-    else if (Key == VK_RETURN)
+    else if (Key == VK_RETURN || Key == VK_PRIOR || Key == VK_NEXT || Key == VK_UP || Key == VK_DOWN)
     {
         int threshold = config_map.output_dsp[dsp_num-1].threshold;
         try{
-            config_map.output_dsp[dsp_num-1].threshold = edt->Text.ToDouble()*threshold_config.scale;
+            int value = edt->Text.ToDouble()*threshold_config.scale;
+            if (Key == VK_RETURN)
+            {
+                config_map.output_dsp[dsp_num-1].threshold = value;
+            }
+            else if (Key == VK_PRIOR)
+            {
+                //if (value > 0)
+                //    value = (value/5)*5;
+                if (value < 0)
+                    value = ((value-4)/5)*5;
+
+                config_map.output_dsp[dsp_num-1].threshold = value + 5;
+            }
+            else if (Key == VK_NEXT)
+            {
+                //if (value > 0)
+                //    value = ((value+4)/5)*5;
+                if (value < 0)
+                    value = (value/5)*5;
+
+                config_map.output_dsp[dsp_num-1].threshold = value - 5;
+            }
+            else if (Key == VK_UP)
+            {
+                config_map.output_dsp[dsp_num-1].threshold = value + 1;
+            }
+            else if (Key == VK_DOWN)
+            {
+                config_map.output_dsp[dsp_num-1].threshold = value - 1;
+            }
 
             if (config_map.output_dsp[dsp_num-1].threshold > threshold_config.max_value)
                 config_map.output_dsp[dsp_num-1].threshold = threshold_config.max_value;
@@ -5582,11 +5612,41 @@ void __fastcall TForm1::edtCompGainKeyDown(TObject *Sender, WORD &Key,
     {
         edt->Text = FormatFloat(config_map.output_dsp[dsp_num-1].comp_gain/gain_config.scale, gain_config.precise);
     }
-    else if (Key == VK_RETURN)
+    else if (Key == VK_RETURN || Key == VK_PRIOR || Key == VK_NEXT || Key == VK_UP || Key == VK_DOWN)
     {
         int comp_gain = config_map.output_dsp[dsp_num-1].comp_gain;
         try{
-            config_map.output_dsp[dsp_num-1].comp_gain = edt->Text.ToDouble()*gain_config.scale;
+            int value = edt->Text.ToDouble()*gain_config.scale;
+            if (Key == VK_RETURN)
+            {
+                config_map.output_dsp[dsp_num-1].comp_gain = value;
+            }
+            else if (Key == VK_PRIOR)
+            {
+                if (value > 0)
+                    value = (value/5)*5;
+                if (value < 0)
+                    value = ((value-4)/5)*5;
+
+                config_map.output_dsp[dsp_num-1].comp_gain = value + 5;
+            }
+            else if (Key == VK_NEXT)
+            {
+                if (value > 0)
+                    value = ((value+4)/5)*5;
+                if (value < 0)
+                    value = (value/5)*5;
+
+                config_map.output_dsp[dsp_num-1].comp_gain = value - 5;
+            }
+            else if (Key == VK_UP)
+            {
+                config_map.output_dsp[dsp_num-1].comp_gain = value + 1;
+            }
+            else if (Key == VK_DOWN)
+            {
+                config_map.output_dsp[dsp_num-1].comp_gain = value - 1;
+            }
 
             if (config_map.output_dsp[dsp_num-1].comp_gain > gain_config.max_value)
                 config_map.output_dsp[dsp_num-1].comp_gain = gain_config.max_value;
