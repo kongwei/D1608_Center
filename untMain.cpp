@@ -737,6 +737,7 @@ __fastcall TForm1::TForm1(TComponent* Owner)
     int mix_panel_left = input_panel_left + REAL_INPUT_DSP_NUM * PANEL_WIDTH;
     imgMasterMixBg->Left = mix_panel_left;
     imgPresetBg->Left = mix_panel_left;
+    lblMaster->Left = mix_panel_left + PANEL_WIDTH;
     mix_panel_trackbar->Left = mix_panel_left;
     master_panel_trackbar->Left = mix_panel_left+mix_panel_trackbar->Width;
     mix_panel_level_edit->Left = mix_panel_left+5;
@@ -6133,6 +6134,7 @@ void TForm1::SetIOChannelNum()
     int mix_panel_left = input_panel_left + REAL_INPUT_DSP_NUM * PANEL_WIDTH;
     imgMasterMixBg->Left = mix_panel_left;
     imgPresetBg->Left = mix_panel_left;
+    lblMaster->Left = mix_panel_left + PANEL_WIDTH;
     mix_panel_trackbar->Left = mix_panel_left;
     master_panel_trackbar->Left = mix_panel_left+mix_panel_trackbar->Width;
     mix_panel_level_edit->Left = mix_panel_left+5;

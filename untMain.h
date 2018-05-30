@@ -516,6 +516,7 @@ __published:	// IDE-managed Components
     TMenuItem *Copy1;
     TTimer *tmProcessReply;
     TMemo *mmVote;
+    TLabel *lblMaster;
     void __fastcall FormCreate(TObject *Sender);
     void __fastcall btnRefreshClick(TObject *Sender);
     void __fastcall udpSLPUDPRead(TObject *Sender, TStream *AData,
