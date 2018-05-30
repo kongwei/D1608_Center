@@ -1481,6 +1481,9 @@ void __fastcall TForm1::btnRefreshClick(TObject *Sender)
 void __fastcall TForm1::udpSLPUDPRead(TObject *Sender,
       TStream *AData, TIdSocketHandle *ABinding)
 {
+    TIdUDPServer * udp_server = (TIdUDPServer*)Sender;
+    udp_server->Tag++;
+
     slp_count++;
     char str[1500] = "";
 
@@ -1704,6 +1707,16 @@ void __fastcall TForm1::tmSLPTimer(TObject *Sender)
 {
     tmSLP->Enabled = false;
 
+    bool need_chcek_ack_count = false;
+    static TTime last_check_timr = 0;
+
+    if ((double)(Now() - last_check_timr) > (1.0/24/60/6))    // 10秒
+    {
+        last_check_timr = Now();
+        need_chcek_ack_count = true;
+        AppendLog("check slp ack.");
+    }
+
     btnRefresh->Click();
     if (ip_info.size() > 0)
     {
@@ -1711,6 +1724,13 @@ void __fastcall TForm1::tmSLPTimer(TObject *Sender)
         {
             if (udpSLPList[i]->Bindings->Count == 1)
             {
+                if (need_chcek_ack_count && udpSLPList[i]->Tag == 0)
+                {
+                    String ip = udpSLPList[i]->Bindings->Items[0]->IP;
+                    AppendLog("reset SLP " + IntToStr(i+1) + " " + ip);
+                    udpSLPList[i]->Active = false;
+                }
+
                 try{
                     udpSLPList[i]->Active = true;
                     String ip = udpSLPList[i]->Bindings->Items[0]->IP;
@@ -1924,7 +1944,7 @@ void TForm1::ProcessPackageMessageFeedback(ReplyMsg text_syn_msg[REPLY_TEXT_MSG_
     }
     else
     {
-        AppendLog(GetTime()+"同步: local="+IntToStr(received_cmd_seq)+", " + IntToStr(reply_msg_count) + ": device=" +IntToStr(oldest_msg_id)+"-"+IntToStr(current_msg_id));
+        //AppendLog(GetTime()+"同步: local="+IntToStr(received_cmd_seq)+", " + IntToStr(reply_msg_count) + ": device=" +IntToStr(oldest_msg_id)+"-"+IntToStr(current_msg_id));
 
         for (int i=0;i<REPLY_TEXT_MSG_SIZE;i++)
         {
@@ -2039,7 +2059,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
         {
             if (reply_msg_buf.empty())
             {
-                AppendLog(GetTime()+": 第一个UDP包");
+                //AppendLog(GetTime()+": 第一个UDP包");
             }
             CachePackageMessageFeedback(cmd_text+strlen(D1608CMD_REPLY_FLAG));
             // 没有初始化完毕，不处理数据回报
@@ -2051,7 +2071,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
         }
         else if (IsKeepliveCmd(cmd_text) && AData->Size==(strlen(D1608CMD_KEEPLIVE_FLAG)+sizeof(NotStorageCmd)))
         {
-            AppendLog(GetTime()+": begin keeplive");
+            //AppendLog(GetTime()+": begin keeplive");
 
             static int last_diff = 0;
             recv_keeplive_count++;
@@ -2081,35 +2101,37 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
                 start_str = GetTime();
                 ProcessWatchLevel(keep_alive->watch_level, keep_alive->watch_level_comp);
                 diff = (Now()-tmp); diff = diff*24*3600*1000;
-                AppendLog(start_str+":      begin ProcessWatchLevel: "+IntToStr((int)diff) );
+                //AppendLog(start_str+":      begin ProcessWatchLevel: "+IntToStr((int)diff) );
 
                 tmp = Now();
                 start_str = GetTime();
                 ProcessVote(keep_alive->adc_ex, keep_alive->adc_ex_max, keep_alive->adc_ex_min);
                 diff = (Now()-tmp); diff = diff*24*3600*1000;
-                AppendLog(start_str+":      begin ProcessVote:       "+IntToStr((int)diff) );
+                //AppendLog(start_str+":      begin ProcessVote:       "+IntToStr((int)diff) );
 
                 tmp = Now();
                 start_str = GetTime();
                 ProcessKeepAlive(keep_alive->switch_preset, keep_alive->set_time_ex);
                 diff = (Now()-tmp); diff = diff*24*3600*1000;
-                AppendLog(start_str+":      begin ProcessKeepAlive:  "+IntToStr((int)diff) );
+                //AppendLog(start_str+":      begin ProcessKeepAlive:  "+IntToStr((int)diff) );
 
             LockWindowUpdate(NULL);
 
-            AppendLog(GetTime()+": end keeplive");
+            //AppendLog(GetTime()+": end keeplive");
         }
         else
         {
             String cmd_string = TextCmdPtr(cmd_text);
 
-            if (cmd_string=="config.action=disconnect]")
+            if (!cmd_string.AnsiCompareIC("config.action=disconnect]"))
             {
                 AppendLog("config.action=disconnect");
                 keep_live_count = CONTROL_TIMEOUT_COUNT;
                 received_cmd_seq = 0;    pre_received_msg_id = 0;
             }
-            else if (cmd_string=="config.action=reboot]" || cmd_string=="config.action=init]" || cmd_string=="config.action=clear_preset]")
+            else if (!cmd_string.AnsiCompareIC("config.action=reboot]")
+                  || !cmd_string.AnsiCompareIC("config.action=init]")
+                  || !cmd_string.AnsiCompareIC("config.action=clear_preset]"))
             {
                 AppendLog(GetTime()+cmd_string);
 
@@ -2135,7 +2157,9 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
                     device_connected = false;
                 }
             }
-            else if (cmd_string.SubString(1, 12) == "config.lock="/*与locl_key有冲突*/ || cmd_string.SubString(1, 13) == "config.unlock" || cmd_string == "config.action=Reload_Link]")
+            else if (!(cmd_string.SubString(1, 12).AnsiCompareIC("config.lock="))/*与locl_key有冲突*/
+                  || !(cmd_string.SubString(1, 13).AnsiCompareIC("config.unlock"))
+                  || !cmd_string.AnsiCompareIC("config.action=Reload_Link]"))
             {
                 // 重新获取数据
                 TPackage package = {0};
@@ -7705,13 +7729,13 @@ void __fastcall TForm1::tmProcessReplyTimer(TObject *Sender)
 {
     tmProcessReply->Enabled = false;
 
-    AppendLog(GetTime()+": begin tmProcessReplyTimer");
+    //AppendLog(GetTime()+": begin tmProcessReplyTimer");
 
     String cmd_text = D1608CMD_REPLY_FLAG;
     cmd_text = cmd_text+"config.action.syn_msg_id="+IntToStr(pre_received_msg_id);
     SendCmd2(cmd_text+D1608CMD_TAIL);
 
-    AppendLog("处理reply消息: " + IntToStr(reply_msg_buf.size()));
+    //AppendLog("处理reply消息: " + IntToStr(reply_msg_buf.size()));
 
     std::vector<UINT> cmd_id_list;
     for (UINT i=0;i<reply_msg_buf.size();i++)
@@ -7735,7 +7759,7 @@ void __fastcall TForm1::tmProcessReplyTimer(TObject *Sender)
         }
     }
     LockWindowUpdate(NULL);
-    AppendLog(GetTime()+": end tmProcessReplyTimer");
+    //AppendLog(GetTime()+": end tmProcessReplyTimer");
 }
 //---------------------------------------------------------------------------
 void TForm1::AdjustOutputCompParam(int dsp_num)
