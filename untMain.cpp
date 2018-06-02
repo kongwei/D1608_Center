@@ -33,6 +33,8 @@
 
 #define CONTROL_TIMEOUT_COUNT 5
 
+static int delay_send_cmd_check_count = 5;
+
 String inner_mac[6] = {"10-0B-A9-2F-55-90", "00-5A-39-FF-49-28","00-E0-4C-39-17-31","74-D0-2B-95-48-02","00-E0-4C-15-1B-C0", "38-2C-4A-BA-EF-54"};
 
 const String compile_time = __DATE__ " " __TIME__;
@@ -1327,7 +1329,7 @@ void TForm1::SendLogBuff(int udp_port, void * buff, int size)
         {
             CloseControlLink("发送消息失败, SendLogBuff");
         }
-        sendcmd_delay_count = 15;
+        sendcmd_delay_count = delay_send_cmd_check_count * 3;
     }
 }
 void TForm1::SendCmd(String cmd)
@@ -1374,7 +1376,7 @@ void TForm1::SendCmd(String cmd)
     {
         AppendLog(GetTime()+"发出消息:"+cmd);
         SendCmd2(cmd);
-        sendcmd_delay_count = 15;
+        sendcmd_delay_count = delay_send_cmd_check_count * 3;
     }
     else
     {
@@ -1517,11 +1519,23 @@ void __fastcall TForm1::udpSLPUDPRead(TObject *Sender,
     if (app_time_str == "")
     {
         slp_pack_str.delay = 1000;
+        delay_send_cmd_check_count = 5;
     }
     else
     {
         TTime app_time(app_time_str);
         slp_pack_str.delay = ((double)Now()-app_time)*24*3600*1000;
+
+        if (last_connection.data.mac == slp_pack_str.mac)
+        {
+            last_connection.data.delay = slp_pack_str.delay;
+            // 修改 delay_send_cmd_check_count
+            int new_delay_send_cmd_check_count = 5 + (last_connection.data.delay+10)/33;
+            if (delay_send_cmd_check_count != new_delay_send_cmd_check_count)
+            {
+                delay_send_cmd_check_count = new_delay_send_cmd_check_count;
+            }
+        }
     }
 
     String version_string = GetDictValue(dict, 20, "VER");
@@ -2750,7 +2764,7 @@ bool TForm1::ProcessSendTextCmdAck(String cmd_text, TStream *AData, TIdSocketHan
         AppendLog(GetTime()+" 继续下一个消息:"+cmd);
 
         SendBuffer(dst_ip, package.udp_port, package.data, package.data_size);
-        sendcmd_delay_count = 15;
+        sendcmd_delay_count = delay_send_cmd_check_count * 3;
     }
 
     return true;
@@ -3288,7 +3302,7 @@ bool TForm1::ProcessLogBuffAck(LogBuff& buff, TStream *AData, TIdSocketHandle *A
         {
             package = sendcmd_list.back();
             SendBuffer(dst_ip, package.udp_port, package.data, package.data_size);
-            sendcmd_delay_count = 15;
+            sendcmd_delay_count = delay_send_cmd_check_count * 3;
         }
     }
     return true;
@@ -6976,7 +6990,7 @@ void __fastcall TForm1::tmDelaySendCmdTimer(TObject *Sender)
         AppendLog("sendcmd_delay_count == 0");
         keep_live_count = CONTROL_TIMEOUT_COUNT;
     }
-    else if ((sendcmd_delay_count%5) == 1)
+    else if ((sendcmd_delay_count % delay_send_cmd_check_count) == 1)
     {
         TPackage package = sendcmd_list.back();
 
