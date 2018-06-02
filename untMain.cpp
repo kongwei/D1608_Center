@@ -127,6 +127,8 @@ struct T_slp_pack_Str
 	String name;
 	String default_device_name;
     unsigned int version;
+    int links;
+    int delay;
 };
 
 struct DeviceData
@@ -1510,6 +1512,17 @@ void __fastcall TForm1::udpSLPUDPRead(TObject *Sender,
     slp_pack_str.name = GetDictValue(dict, 20, "Name");
     slp_pack_str.default_device_name = GetDictValue(dict, 20, "Device");
     slp_pack_str.sn = GetDictValue(dict, 20, "SN");
+    slp_pack_str.links = String(GetDictValue(dict, 20, "Links")).ToIntDef(0);
+    String app_time_str = GetDictValue(dict, 20, "APP_Time");
+    if (app_time_str == "")
+    {
+        slp_pack_str.delay = 1000;
+    }
+    else
+    {
+        TTime app_time(app_time_str);
+        slp_pack_str.delay = ((double)Now()-app_time)*24*3600*1000;
+    }
 
     String version_string = GetDictValue(dict, 20, "VER");
     TStrings * version_part = new TStringList();
@@ -1541,7 +1554,7 @@ void __fastcall TForm1::udpSLPUDPRead(TObject *Sender,
         if (find_item->SubItems->Strings[6] == slp_pack_str.mac)
         {
             // ¸üÐÂÊôÐÔ
-            find_item->Caption = slp_pack_str.name.UpperCase();
+            find_item->Caption = slp_pack_str.name.UpperCase()+"|"+IntToStr(slp_pack_str.links)+"|"+IntToStr(slp_pack_str.delay);
             find_item->SubItems->Strings[0] = slp_pack_str.ip;
             find_item->SubItems->Strings[1] = ABinding->IP;
             //find_item->SubItems->Strings[2] = device_id;
@@ -1551,6 +1564,8 @@ void __fastcall TForm1::udpSLPUDPRead(TObject *Sender,
             find_item->SubItems->Strings[6] = slp_pack_str.mac;
             find_item->SubItems->Strings[7] = slp_pack_str.sn;
             find_item->SubItems->Strings[8] = IsCompatibility(slp_pack_str.version);
+            find_item->SubItems->Strings[9] = slp_pack_str.links;
+            //find_item->SubItems->Strings[10] = slp_pack_str.delay;
 
             DeviceData * data = (DeviceData*)find_item->Data;
             data->count = 3;
@@ -1564,7 +1579,7 @@ void __fastcall TForm1::udpSLPUDPRead(TObject *Sender,
     if (item == NULL)
     {
         item = lvDevice->Items->Add();
-        item->Caption = slp_pack_str.name.UpperCase();
+        item->Caption = slp_pack_str.name.UpperCase()+"|"+IntToStr(slp_pack_str.links)+"|"+IntToStr(slp_pack_str.delay);
         item->SubItems->Add(slp_pack_str.ip);
         item->SubItems->Add(ABinding->IP);
         item->SubItems->Add(""/*slp_pack.id*/);
@@ -1574,6 +1589,8 @@ void __fastcall TForm1::udpSLPUDPRead(TObject *Sender,
         item->SubItems->Add(slp_pack_str.mac);
         item->SubItems->Add(slp_pack_str.sn);
         item->SubItems->Add(IsCompatibility(slp_pack_str.version));
+        item->SubItems->Add(slp_pack_str.links);
+        //item->SubItems->Add(slp_pack_str.delay);
 
         DeviceData * data = new DeviceData;
         data->count = 4;
@@ -1762,7 +1779,7 @@ void __fastcall TForm1::tmSLPTimer(TObject *Sender)
                     else
                         text_cmd = text_cmd + "OLED_Debug=Off;";
 
-                    text_cmd = text_cmd + "APP_Time="+FormatDateTime("yyyy/mm/dd hh:nn:ss", Now());
+                    text_cmd = text_cmd + "APP_Time="+FormatDateTime("yyyy/mm/dd hh:nn:ss.zzz", Now());
 
                     udpSLPList[i]->Send("255.255.255.255", UDP_PORT_SLP_EX, text_cmd+D1608CMD_TAIL);
                 }
