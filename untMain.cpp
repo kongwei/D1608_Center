@@ -1632,6 +1632,16 @@ void __fastcall TForm1::btnSelectClick(TObject *Sender)
         return;
     }
 
+    DeviceData * data = (DeviceData*)selected->Data;
+    if (data != NULL)
+    {
+        if (data->data.links >= 16)
+        {
+            ShowMessage("下位机连接池已满（16）");
+            return;
+        }
+    }
+
     // 给原先的设备发送断链消息
     SendDisconnect();
 
