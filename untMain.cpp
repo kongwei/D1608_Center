@@ -1455,6 +1455,11 @@ void __fastcall TForm1::btnRefreshClick(TObject *Sender)
                 udpSLPList[i]->Bindings->Items[0]->IP = ip_info[i].ip;
                 udpSLPList[i]->Bindings->Items[0]->Port = 0;
                 udpSLPList[i]->Active = true;
+                
+                int port = udpSLPList[i]->Bindings->Items[0]->Port;
+                udpSLPList[i]->Active = false;
+                udpSLPList[i]->Bindings->Items[0]->Port = port;
+                udpSLPList[i]->Active = true;
             }
             catch(...)
             {
@@ -1710,7 +1715,7 @@ void __fastcall TForm1::tmSLPTimer(TObject *Sender)
     bool need_chcek_ack_count = false;
     static TTime last_check_timr = 0;
 
-    if ((double)(Now() - last_check_timr) > (1.0/24/60/6))    // 10√Î
+    if ((double)(Now() - last_check_timr) > (1.0/24/60/6/2))    // 5√Î
     {
         last_check_timr = Now();
         need_chcek_ack_count = true;
