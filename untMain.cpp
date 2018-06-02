@@ -205,7 +205,7 @@ struct CompConfig
     //int step;
 };
 
-CompConfig ratio_config = {0, 100, 100, 100, 2};
+CompConfig ratio_config = {0, 100, 100, 100, 3};
 CompConfig threshold_config = {-320, 0, 0, 10, 3};
 CompConfig attack_config = {1, 20000, 640, 10, 3};
 CompConfig release_config = {10, 50000, 10000, 10, 3};
@@ -5451,14 +5451,35 @@ void __fastcall TForm1::edtCompRatioKeyDown(TObject *Sender, WORD &Key,
     {
         edt->Text = Ration2String(config_map.output_dsp[dsp_num-1].ratio);
     }
-    else if (Key == VK_RETURN)
+    else if (Key == VK_RETURN || Key == VK_PRIOR || Key == VK_NEXT || Key == VK_UP || Key == VK_DOWN)
     {
         int ratio = config_map.output_dsp[dsp_num-1].ratio;
         try{
-            if (edt->Text == "¡Þ")
-                config_map.output_dsp[dsp_num-1].ratio = 0;
-            else
-                config_map.output_dsp[dsp_num-1].ratio = 100.0 / edt->Text.ToDouble();//*ratio_config.scale;
+            //int value = edt->Text.ToDouble()*threshold_config.scale;
+            if (Key == VK_RETURN)
+            {
+                if (edt->Text == "¡Þ")
+                    config_map.output_dsp[dsp_num-1].ratio = 0;
+                else
+                    config_map.output_dsp[dsp_num-1].ratio = 100.0 / edt->Text.ToDouble();//*ratio_config.scale;
+            }
+            else if (Key == VK_PRIOR)
+            {
+                config_map.output_dsp[dsp_num-1].ratio += 5;
+            }
+            else if (Key == VK_NEXT)
+            {
+                config_map.output_dsp[dsp_num-1].ratio -= 5;
+            }
+            else if (Key == VK_UP)
+            {
+                config_map.output_dsp[dsp_num-1].ratio++;
+            }
+            else if (Key == VK_DOWN)
+            {
+                config_map.output_dsp[dsp_num-1].ratio--;
+            }
+
             if (config_map.output_dsp[dsp_num-1].ratio > ratio_config.max_value)
                 config_map.output_dsp[dsp_num-1].ratio = ratio_config.max_value;
             else if (config_map.output_dsp[dsp_num-1].ratio < ratio_config.min_value)
