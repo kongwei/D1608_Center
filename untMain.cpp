@@ -286,7 +286,7 @@ void GetLocalIpListEx(vector<IpInfo> & ip_info)
                 ip.is_dhcp = pAdapter->DhcpEnabled
                          && (pAdapter->DhcpServer.IpAddress.String[0]!='0')
                          && (pAdapter->DhcpServer.IpAddress.String[0]!='\0');
-                if (ip.ip != "0.0.0.0" && ip.mask != INADDR_NONE)
+                if (ip.ip != "0.0.0.0" && ip.ip != "" && ip.mask != INADDR_NONE)
                     ip_info.push_back(ip);
                 pIPAddr = pIPAddr->Next;  
             }  
@@ -1412,7 +1412,7 @@ void __fastcall TForm1::btnRefreshClick(TObject *Sender)
     
     bool is_ip_changed = false;
     UINT ip_count = 0;
-    for (int i=0;i<3;i++)
+    for (UINT i=0;i<3;i++)
     {
         if (udpSLPList[i]->Active && udpSLPList[i]->Bindings->Count == 1)
         {
@@ -1454,11 +1454,6 @@ void __fastcall TForm1::btnRefreshClick(TObject *Sender)
                 udpSLPList[i]->Bindings->Add();
                 udpSLPList[i]->Bindings->Items[0]->IP = ip_info[i].ip;
                 udpSLPList[i]->Bindings->Items[0]->Port = 0;
-                udpSLPList[i]->Active = true;
-                
-                int port = udpSLPList[i]->Bindings->Items[0]->Port;
-                udpSLPList[i]->Active = false;
-                udpSLPList[i]->Bindings->Items[0]->Port = port;
                 udpSLPList[i]->Active = true;
             }
             catch(...)
@@ -1732,7 +1727,8 @@ void __fastcall TForm1::tmSLPTimer(TObject *Sender)
                 if (need_chcek_ack_count && udpSLPList[i]->Tag == 0)
                 {
                     String ip = udpSLPList[i]->Bindings->Items[0]->IP;
-                    AppendLog("reset SLP " + IntToStr(i+1) + " " + ip);
+                    int port = udpSLPList[i]->Bindings->Items[0]->Port;
+                    AppendLog("reset SLP " + IntToStr(i+1) + " " + ip + ":" + IntToStr(port));
                     udpSLPList[i]->Active = false;
                 }
 
@@ -1931,11 +1927,15 @@ void TForm1::ProcessPackageMessageFeedback(ReplyMsg text_syn_msg[REPLY_TEXT_MSG_
 {
     unsigned int oldest_msg_id = text_syn_msg[0].msg_id;
     unsigned int current_msg_id = text_syn_msg[0].msg_id;
+    //unsigned int enabled_oldest_msg_id = INT_MAX;
 
     for (int i=0;i<REPLY_TEXT_MSG_SIZE;i++)
     {
         oldest_msg_id = min(oldest_msg_id, text_syn_msg[i].msg_id);
         current_msg_id = max(current_msg_id, text_syn_msg[i].msg_id);
+
+        //if (String("[]") != text_syn_msg[i].text_cmd)
+        //    enabled_oldest_msg_id = min(enabled_oldest_msg_id, text_syn_msg[i].msg_id);
     }
     // 失联判断
     if (received_cmd_seq < oldest_msg_id && (oldest_msg_id-received_cmd_seq>1))
@@ -1949,12 +1949,19 @@ void TForm1::ProcessPackageMessageFeedback(ReplyMsg text_syn_msg[REPLY_TEXT_MSG_
     }
     else
     {
-        //AppendLog(GetTime()+"同步: local="+IntToStr(received_cmd_seq)+", " + IntToStr(reply_msg_count) + ": device=" +IntToStr(oldest_msg_id)+"-"+IntToStr(current_msg_id));
+        //AppendLog(GetTime()+"同步: local="+IntToStr(received_cmd_seq)+", " + IntToStr(reply_msg_count) + ": device=" +IntToStr(enabled_oldest_msg_id)+"-"+IntToStr(current_msg_id));
 
         for (int i=0;i<REPLY_TEXT_MSG_SIZE;i++)
         {
             if (text_syn_msg[i].msg_id > received_cmd_seq)
             {
+                if (String("[]") == text_syn_msg[i].text_cmd)
+                {
+                    // 失联
+                    AppendLog(GetTime()+"失联: local="+IntToStr(received_cmd_seq)+", device_empty_msg="+IntToStr(text_syn_msg[i].msg_id));
+                    keep_live_count = CONTROL_TIMEOUT_COUNT+3;
+                }
+
                 // 防止自己响应
                 if (sendcmd_list.size() > 0)
                 {
@@ -1987,7 +1994,7 @@ void TForm1::ProcessPackageMessageFeedback(ReplyMsg text_syn_msg[REPLY_TEXT_MSG_
         }
     }
 
-    received_cmd_seq = current_msg_id;
+    received_cmd_seq = max(received_cmd_seq, current_msg_id);
 
     if (keep_live_count<CONTROL_TIMEOUT_COUNT)
         keep_live_count = 0;
