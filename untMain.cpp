@@ -1649,9 +1649,10 @@ void __fastcall TForm1::btnSelectClick(TObject *Sender)
     DeviceData * data = (DeviceData*)selected->Data;
     if (data != NULL)
     {
-        if (data->data.links >= 16)
+        if (data->data.links >= 2)
         {
-            ShowMessage("下位机连接池已满（16）");
+            if (Sender != NULL)
+                ShowMessage("下位机连接池已满（16）");
             return;
         }
     }
