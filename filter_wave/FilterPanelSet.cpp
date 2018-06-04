@@ -293,12 +293,28 @@ void __fastcall PanelAgent::edtFreqKeyDown(TObject *Sender, WORD &Key,
         current_freq *= 10;
         current_freq = Floor(current_freq+0.5);
         current_freq = current_freq / 10;
-        if (Key == VK_UP || Key == VK_PRIOR)
+        if (Key == VK_UP)
         {
             current_freq = NextLargeFreq(current_freq);
         }
-        else if (Key == VK_DOWN || Key == VK_NEXT)
+        if (Key == VK_PRIOR)
         {
+            current_freq = NextLargeFreq(current_freq);
+            current_freq = NextLargeFreq(current_freq);
+            current_freq = NextLargeFreq(current_freq);
+            current_freq = NextLargeFreq(current_freq);
+            current_freq = NextLargeFreq(current_freq);
+        }
+        else if (Key == VK_DOWN)
+        {
+            current_freq = NextSmallFreq(current_freq);
+        }
+        else if (Key == VK_NEXT)
+        {
+            current_freq = NextSmallFreq(current_freq);
+            current_freq = NextSmallFreq(current_freq);
+            current_freq = NextSmallFreq(current_freq);
+            current_freq = NextSmallFreq(current_freq);
             current_freq = NextSmallFreq(current_freq);
         }
         edtFreq->Text = current_freq;
@@ -418,12 +434,28 @@ void __fastcall PanelAgent::edtQKeyDown(TObject *Sender, WORD &Key,
         current_q *= 100;
         current_q = Floor(current_q+0.5);
         current_q = current_q / 100;
-        if (Key == VK_UP || Key == VK_PRIOR)
+        if (Key == VK_UP)
         {
             current_q = NextLargeQ(current_q);
         }
-        else if (Key == VK_DOWN || Key == VK_NEXT)
+        else if (Key == VK_PRIOR)
         {
+            current_q = NextLargeQ(current_q);
+            current_q = NextLargeQ(current_q);
+            current_q = NextLargeQ(current_q);
+            current_q = NextLargeQ(current_q);
+            current_q = NextLargeQ(current_q);
+        }
+        else if (Key == VK_DOWN)
+        {
+            current_q = NextSmallQ(current_q);
+        }
+        else if (Key == VK_NEXT)
+        {
+            current_q = NextSmallQ(current_q);
+            current_q = NextSmallQ(current_q);
+            current_q = NextSmallQ(current_q);
+            current_q = NextSmallQ(current_q);
             current_q = NextSmallQ(current_q);
         }
         edtQ->Text = current_q;
