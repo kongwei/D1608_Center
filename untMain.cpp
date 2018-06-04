@@ -3386,8 +3386,9 @@ void __fastcall TForm1::tmWatchTimer(TObject *Sender)
         if ((keep_live_count < CONTROL_TIMEOUT_COUNT) && udpControl->Active)
         {
             keep_live_count++;
-            //AppendLog(GetTime()+"保活计数器++: " + IntToStr(keep_live_count));
             _disconnected = false;
+            if (keep_live_count >= CONTROL_TIMEOUT_COUNT)
+                AppendLog(GetTime()+"保活计数器达到超时阈值: " + IntToStr(keep_live_count));
         }
         else
         {
@@ -3397,7 +3398,8 @@ void __fastcall TForm1::tmWatchTimer(TObject *Sender)
 
     if (_disconnected)
     {
-        CloseControlLink("保活超时");
+        if (udpControl->Active)
+            CloseControlLink("保活超时");
         sendcmd_list.empty();
         shape_live->Hide();
         shape_link->Hide();
