@@ -34,6 +34,7 @@
 #define CONTROL_TIMEOUT_COUNT 5
 
 static int delay_send_cmd_check_count = 5;
+static int restor_delay_check_count = 5;
 
 String inner_mac[6] = {"10-0B-A9-2F-55-90", "00-5A-39-FF-49-28","00-E0-4C-39-17-31","74-D0-2B-95-48-02","00-E0-4C-15-1B-C0", "38-2C-4A-BA-EF-54"};
 
@@ -1520,6 +1521,7 @@ void __fastcall TForm1::udpSLPUDPRead(TObject *Sender,
     {
         slp_pack_str.delay = 1000;
         delay_send_cmd_check_count = 5;
+        restor_delay_check_count = 5;
     }
     else
     {
@@ -1528,12 +1530,19 @@ void __fastcall TForm1::udpSLPUDPRead(TObject *Sender,
 
         if (last_connection.data.mac == slp_pack_str.mac)
         {
-            last_connection.data.delay = slp_pack_str.delay;
+            last_connection.data.delay = (last_connection.data.delay*9+slp_pack_str.delay)/10;
+
             // 修改 delay_send_cmd_check_count
             int new_delay_send_cmd_check_count = 5 + (last_connection.data.delay+10)/33;
             if (delay_send_cmd_check_count != new_delay_send_cmd_check_count)
             {
                 delay_send_cmd_check_count = new_delay_send_cmd_check_count;
+            }
+            // 修改 restor_delay_check_count
+            int new_restor_delay_check_count = 5 + (last_connection.data.delay+10)/60;
+            if (restor_delay_check_count != new_restor_delay_check_count)
+            {
+                restor_delay_check_count = new_restor_delay_check_count;
             }
         }
     }
@@ -1649,7 +1658,7 @@ void __fastcall TForm1::btnSelectClick(TObject *Sender)
     DeviceData * data = (DeviceData*)selected->Data;
     if (data != NULL)
     {
-        if (data->data.links >= 2)
+        if (data->data.links >= 16)
         {
             if (Sender != NULL)
                 ShowMessage("下位机连接池已满（16）");
@@ -1683,9 +1692,9 @@ void __fastcall TForm1::btnSelectClick(TObject *Sender)
     UpdateCaption();
 
     StartReadCurrentPreset();
-    restor_delay_count = 15;
+    restor_delay_count = restor_delay_check_count * 3;
     tmDelayBackup->Enabled = true;
-#if 1
+#if 0
     // 从外部复制过来
     // 获取下位机PRESET数据，同时这个消息作为下位机认可的消息
     TPackage package = {0};
@@ -2484,7 +2493,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             package = read_one_preset_package_list.back();
             SendBuffer(dst_ip, package.udp_port, package.data, package.data_size);
 
-            restor_delay_count = 15;
+            restor_delay_count = restor_delay_check_count * 3;
             tmDelayBackup->Enabled = true;
         }
     }
@@ -2520,7 +2529,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             SendBuffer(dst_ip, package.udp_port, package.data, package.data_size);
 
             pbBackup->Position = pbBackup->Max - package_list.size();
-            restor_delay_count = 15;
+            restor_delay_count = restor_delay_check_count * 3;
             tmDelayBackup->Enabled = true;
 
             lblDeviceName->Show();
@@ -2589,7 +2598,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             SendBuffer(dst_ip, package.udp_port, package.data, package.data_size);
 
             pbBackup->Position = pbBackup->Max - package_list.size();
-            restor_delay_count = 15;
+            restor_delay_count = restor_delay_check_count * 3;
             tmDelayBackup->Enabled = true;
 
             lblDeviceName->Show();
@@ -2782,7 +2791,7 @@ void TForm1::ProcessKeepAlive(int preset_id, unsigned __int64 timer)
     {
         SetPresetId(preset_id);
         StartReadCurrentPreset();
-        restor_delay_count = 15;
+        restor_delay_count = restor_delay_check_count * 3;
         tmDelayBackup->Enabled = true;
     }
 
@@ -4520,7 +4529,7 @@ void __fastcall TForm1::btnLoadPresetFromFileClick(TObject *Sender)
 
             //last_command = UDP_PORT_STORE_PRESET_PC2FLASH;
             //last_restore_package = preset_cmd;
-            restor_delay_count = 15;
+            restor_delay_count = restor_delay_check_count * 3;
             tmDelayBackup->Enabled = true;
 
             pbBackup->Max = package_list.size();
@@ -6589,7 +6598,7 @@ void __fastcall TForm1::btnSaveFlashToFileClick(TObject *Sender)
             TPackage package = package_list.back();
             SendBuffer(dst_ip, package.udp_port, package.data, package.data_size);
 
-            restor_delay_count = 15;
+            restor_delay_count = restor_delay_check_count * 3;
             tmDelayBackup->Enabled = true;
 
             pbBackup->Max = package_list.size();
@@ -6813,7 +6822,7 @@ void __fastcall TForm1::btnLoadFileToFlashClick(TObject *Sender)
 
             //last_command = UDP_PORT_STORE_PRESET_PC2FLASH;
             //last_restore_package = preset_cmd;
-            restor_delay_count = 15;
+            restor_delay_count = restor_delay_check_count * 3;
             tmDelayBackup->Enabled = true;
 
             pbBackup->Max = package_list.size();
@@ -6858,7 +6867,7 @@ void __fastcall TForm1::tmDelayBackupTimer(TObject *Sender)
     }
     else
     {
-        if (package_list.size() != 0 && (restor_delay_count%5 == 1))
+        if (package_list.size() != 0 && (restor_delay_count % restor_delay_check_count == 1))
         {
             TPackage package = package_list.back();
             SendBuffer(dst_ip, package.udp_port, package.data, package.data_size);
@@ -6866,7 +6875,7 @@ void __fastcall TForm1::tmDelayBackupTimer(TObject *Sender)
             // 备份 恢复 流程使用的延时计时器
             AppendLog(GetTime()+"retry package_list");
         }
-        else if (read_one_preset_package_list.size() != 0 && (restor_delay_count >= 1))
+        else if (read_one_preset_package_list.size() != 0 && (restor_delay_count%restor_delay_check_count == 1))
         {
             TPackage package = read_one_preset_package_list.back();
             SendBuffer(dst_ip, package.udp_port, package.data, package.data_size);
@@ -6874,40 +6883,12 @@ void __fastcall TForm1::tmDelayBackupTimer(TObject *Sender)
             // 备份 恢复 流程使用的延时计时器
             AppendLog(GetTime()+"retry read_one_preset_package_list");
         }
-        else if (restor_delay_count%5 == 1)
+        else if (restor_delay_count%restor_delay_check_count == 1)
         {
             AppendLog(GetTime()+"列表空");
             tmDelayBackup->Enabled = false;
         }
     }
-/*
-    else if ((restor_delay_count%5) == 1)
-    {
-        if(package_list.size() != 0)
-        {
-            TPackage package = package_list.back();
-            SendBuffer(dst_ip, package.udp_port, package.data, package.data_size);
-
-            // 备份 恢复 流程使用的延时计时器
-            AppendLog(GetTime()+"retry package_list");
-        }
-        else if (read_one_preset_package_list.size() != 0)
-        {
-            TPackage package = read_one_preset_package_list.back();
-            SendBuffer(dst_ip, package.udp_port, package.data, package.data_size);
-
-            // 备份 恢复 流程使用的延时计时器
-            AppendLog(GetTime()+"retry read_one_preset_package_list");
-        }
-        else
-        {
-            AppendLog(GetTime()+"列表空");
-            tmDelayBackup->Enabled = false;
-        }
-    }
-
-*/
-
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::pmPresetSaveLoadPopup(TObject *Sender)
@@ -7489,6 +7470,32 @@ void TForm1::StartReadCurrentPreset()
 
     TPackage package = read_one_preset_package_list.back();
     SendBuffer(dst_ip, package.udp_port, package.data, package.data_size);
+
+    {
+    // 从外部复制过来
+    // 获取下位机PRESET数据，同时这个消息作为下位机认可的消息
+    TPackage package = {0};
+    package.udp_port = UDP_PORT_READ_PRESET;
+    D1608PresetCmd preset_cmd(version);
+    strcpy(preset_cmd.flag, D1608PRESETCMD_LINK_FLAG);
+
+    // 其他设备信息
+    preset_cmd.preset = 0; // 读取global_config
+    preset_cmd.store_page = 1;  // 第2页，指其他设备信息
+    memcpy(package.data, &preset_cmd, offsetof(D1608PresetCmd, data));
+    package.data_size = offsetof(D1608PresetCmd, data);
+    read_one_preset_package_list.insert(read_one_preset_package_list.begin(), package);
+    if (read_one_preset_package_list.size() == 1)
+        SendBuffer(dst_ip, package.udp_port, package.data, package.data_size);
+    // global_config
+    preset_cmd.preset = 0; // 读取global_config
+    preset_cmd.store_page = 0;  // 第1页，指global_config
+    memcpy(package.data, &preset_cmd, offsetof(D1608PresetCmd, data));
+    package.data_size = offsetof(D1608PresetCmd, data);
+    read_one_preset_package_list.insert(read_one_preset_package_list.begin(), package);
+    if (read_one_preset_package_list.size() == 1)
+        SendBuffer(dst_ip, package.udp_port, package.data, package.data_size);
+    }
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::cbLedTestClick(TObject *Sender)
