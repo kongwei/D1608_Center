@@ -70,6 +70,7 @@ extern String GetMacList();
 struct SmcConfig
 {
     GlobalConfig global_config;
+    DeviceSetting device_setting;
     UINT file_version;
     UINT device_version;
     UINT cpu_id[3];        // cpu_id 位空表示是脱机文件
@@ -145,7 +146,7 @@ static unsigned int received_cmd_seq = 0;
 //------------------------------------------------
 // 版本兼容信息
 static UINT version = 0x04000001;
-static UINT file_version = 0x00000002;
+static UINT file_version = 0x00000003;
 // 返回YES或者下位机版本号
 // version_list以0结尾
 String IsCompatibility(unsigned int device_version)
@@ -6541,6 +6542,7 @@ void __fastcall TForm1::btnSaveFlashToFileClick(TObject *Sender)
 
             smc_config.file_version = file_version;
             smc_config.global_config = global_config;
+            smc_config.device_setting = device_setting;
 
             // 前80k是存盘使用，2k一页
             for (int i=0;i<8;i++)
@@ -6563,6 +6565,8 @@ void __fastcall TForm1::btnSaveFlashToFileClick(TObject *Sender)
         }
         else
         {
+            smc_config.device_setting = device_setting;
+
             // 联机，保存为flash dump，读取完毕后转换成smc
             save_device_to_file_filename = SaveDialog1->FileName;
 
@@ -6666,6 +6670,7 @@ void __fastcall TForm1::btnLoadFileToFlashClick(TObject *Sender)
             // 读取设备信息
             last_connection.data.version = smc_config.device_version;
             //last_connection.data.cpuid.sprintf("%08X%08X%08X", smc_config.cpu_id[0], smc_config.cpu_id[1], smc_config.cpu_id[2]);
+            device_setting = smc_config.device_setting;
                 device_setting.cpu_id[0] = smc_config.cpu_id[0];
                 device_setting.cpu_id[1] = smc_config.cpu_id[1];
                 device_setting.cpu_id[2] = smc_config.cpu_id[2];
@@ -6678,15 +6683,7 @@ void __fastcall TForm1::btnLoadFileToFlashClick(TObject *Sender)
             lblDeviceInfo->Show();
             UpdateDeviceType();
             UpdateBuildTime();
-            String mac;
-                mac.sprintf("%02X:%02X:%02X:%02X:%02X:%02X",
-                    last_connection.data.mac[0],
-                    last_connection.data.mac[1],
-                    last_connection.data.mac[2],
-                    last_connection.data.mac[3],
-                    last_connection.data.mac[4],
-                    last_connection.data.mac[5]);
-                edtMAC->Text = mac;
+            edtMAC->Text = last_connection.data.mac;
 
             lvLog->Clear();
 

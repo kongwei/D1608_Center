@@ -14,7 +14,7 @@
 
 #define CONFIG_ID 500
 
-#define PRESET_SIZE (96*1024)
+#define PRESET_SIZE (86*1024)
 
 
 static int IsPageChecked(unsigned char* address)
