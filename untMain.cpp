@@ -1531,7 +1531,7 @@ void __fastcall TForm1::udpSLPUDPRead(TObject *Sender,
 
         if (last_connection.data.mac == slp_pack_str.mac)
         {
-            last_connection.data.delay = (last_connection.data.delay*9+slp_pack_str.delay)/10;
+            last_connection.data.delay = (last_connection.data.delay*0+slp_pack_str.delay*10)/10;
 
             // 修改 delay_send_cmd_check_count
             int new_delay_send_cmd_check_count = 5 + (last_connection.data.delay+10)/33;
@@ -1766,7 +1766,7 @@ void __fastcall TForm1::tmSLPTimer(TObject *Sender)
     {
         last_check_timr = Now();
         need_chcek_ack_count = true;
-        AppendLog("check slp ack.");
+        //AppendLog("check slp ack.");
     }
 
     btnRefresh->Click();
@@ -1780,7 +1780,7 @@ void __fastcall TForm1::tmSLPTimer(TObject *Sender)
                 {
                     String ip = udpSLPList[i]->Bindings->Items[0]->IP;
                     int port = udpSLPList[i]->Bindings->Items[0]->Port;
-                    AppendLog("reset SLP " + IntToStr(i+1) + " " + ip + ":" + IntToStr(port));
+                    //AppendLog("reset SLP " + IntToStr(i+1) + " " + ip + ":" + IntToStr(port));
                     udpSLPList[i]->Active = false;
                 }
 
@@ -1979,15 +1979,15 @@ void TForm1::ProcessPackageMessageFeedback(ReplyMsg text_syn_msg[REPLY_TEXT_MSG_
 {
     unsigned int oldest_msg_id = text_syn_msg[0].msg_id;
     unsigned int current_msg_id = text_syn_msg[0].msg_id;
-    //unsigned int enabled_oldest_msg_id = INT_MAX;
+    unsigned int enabled_oldest_msg_id = INT_MAX;
 
     for (int i=0;i<REPLY_TEXT_MSG_SIZE;i++)
     {
         oldest_msg_id = min(oldest_msg_id, text_syn_msg[i].msg_id);
         current_msg_id = max(current_msg_id, text_syn_msg[i].msg_id);
 
-        //if (String("[]") != text_syn_msg[i].text_cmd)
-        //    enabled_oldest_msg_id = min(enabled_oldest_msg_id, text_syn_msg[i].msg_id);
+        if (String("[]") != text_syn_msg[i].text_cmd)
+            enabled_oldest_msg_id = min(enabled_oldest_msg_id, text_syn_msg[i].msg_id);
     }
     // 失联判断
     if (received_cmd_seq < oldest_msg_id && (oldest_msg_id-received_cmd_seq>1))
@@ -2001,7 +2001,9 @@ void TForm1::ProcessPackageMessageFeedback(ReplyMsg text_syn_msg[REPLY_TEXT_MSG_
     }
     else
     {
-        //AppendLog(GetTime()+"同步: local="+IntToStr(received_cmd_seq)+", " + IntToStr(reply_msg_count) + ": device=" +IntToStr(enabled_oldest_msg_id)+"-"+IntToStr(current_msg_id));
+        AppendLog(GetTime()
+            +"同步: local="+IntToStr(received_cmd_seq)+", " + IntToStr(reply_msg_count)
+            + ": device=" +IntToStr(oldest_msg_id)+"-"+IntToStr(enabled_oldest_msg_id)+"-"+IntToStr(current_msg_id));
 
         for (int i=0;i<REPLY_TEXT_MSG_SIZE;i++)
         {
