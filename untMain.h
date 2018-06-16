@@ -978,7 +978,7 @@ private:
     vector<TPackage> package_list;
 
     vector<TPackage> read_one_preset_package_list;
-    void StartReadCurrentPreset();
+    void StartReadCurrentPreset(int preset_id);
 
     void ResetLHFilter()
     {

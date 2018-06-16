@@ -1692,10 +1692,10 @@ void __fastcall TForm1::btnSelectClick(TObject *Sender)
 
     UpdateCaption();
 
-    StartReadCurrentPreset();
+    StartReadCurrentPreset(0xFF);// 0xFF表示上电时期同步当前Preset，并且会lock住下位机
     restor_delay_count = restor_delay_check_count * 3;
     tmDelayBackup->Enabled = true;
-#if 0
+#if 1
     // 从外部复制过来
     // 获取下位机PRESET数据，同时这个消息作为下位机认可的消息
     TPackage package = {0};
@@ -2793,7 +2793,7 @@ void TForm1::ProcessKeepAlive(int preset_id, unsigned __int64 timer)
     if (preset_id != cur_preset_id)
     {
         SetPresetId(preset_id);
-        StartReadCurrentPreset();
+        StartReadCurrentPreset(preset_id);
         restor_delay_count = restor_delay_check_count * 3;
         tmDelayBackup->Enabled = true;
     }
@@ -7463,14 +7463,14 @@ void __fastcall TForm1::FormResize(TObject *Sender)
     need_resize = true;
 }
 //---------------------------------------------------------------------------
-void TForm1::StartReadCurrentPreset()
+void TForm1::StartReadCurrentPreset(int preset_id)
 {
     AppendLog(GetTime()+"同步当前Preset数据");
     read_one_preset_package_list.clear();
     for (int store_page=0;store_page<8;store_page++)
     {
         D1608PresetCmd preset_cmd(version);
-        preset_cmd.preset = 0xFF; // 读取preset
+        preset_cmd.preset = preset_id;
         // 从0页读取
         preset_cmd.store_page = store_page;
         preset_cmd.verify -= UdpPackageVerifyDiff((unsigned char*)&preset_cmd, sizeof(preset_cmd));
@@ -7485,7 +7485,7 @@ void TForm1::StartReadCurrentPreset()
 
     TPackage package = read_one_preset_package_list.back();
     SendBuffer(dst_ip, package.udp_port, package.data, package.data_size);
-
+#if 0
     {
     // 从外部复制过来
     // 获取下位机PRESET数据，同时这个消息作为下位机认可的消息
@@ -7511,6 +7511,7 @@ void TForm1::StartReadCurrentPreset()
     if (read_one_preset_package_list.size() == 1)
         SendBuffer(dst_ip, package.udp_port, package.data, package.data_size);
     }
+#endif
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::cbLedTestClick(TObject *Sender)
