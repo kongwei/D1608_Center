@@ -88,6 +88,7 @@ typedef struct
 void SavePresetById(int preset_id, int index, void * buf, unsigned char* flash_dump_data);
 void LoadPresetById(int preset_id, ConfigMap& tmp_config_map, unsigned char* flash_dump_data);
 void LoadGlobalConfig(GlobalConfig& global_config, unsigned char* flash_dump_data);
+void LoadSinglePreset(ConfigMap& tmp_config_map, unsigned char* flash_dump_data);
 
 // 多包交互统一处理
 // 用一个大数组记录需要发送的报文

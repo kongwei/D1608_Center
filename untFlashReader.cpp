@@ -212,7 +212,78 @@ void LoadPresetById(int preset_id, ConfigMap& tmp_config_map, unsigned char* fla
         }
     }
 }
-
+void LoadSinglePreset(ConfigMap& tmp_config_map, unsigned char* flash_dump_data)
+{
+    int preset_id = 1;
+    Using_Page using_page = {0};
+    using_page.preset_address[preset_id-1][0] = 0*2048+flash_dump_data;
+    using_page.preset_address[preset_id-1][1] = 1*2048+flash_dump_data;
+    using_page.preset_address[preset_id-1][2] = 2*2048+flash_dump_data;
+    using_page.preset_address[preset_id-1][3] = 3*2048+flash_dump_data;
+	InitConfigMap(tmp_config_map);
+	// input
+	if (using_page.preset_address[preset_id-1][0] != 0)
+    {
+        const OlaList * input_dict = (OlaList*)(using_page.preset_address[preset_id-1][0]+sizeof(Page_Header));
+        char * input_data_base = (char*)input_dict +
+                sizeof(input_dict->length) +
+                sizeof(input_dict->struct_length) +
+                input_dict->length * sizeof(OlaInfo);
+        for (int i=0;i<8;i++)
+        {
+            ReadIODspMem((char*)(tmp_config_map.input_dsp + i),
+                input_data_base + i*input_dict->struct_length,
+                input_dict,
+                (OlaList*)&input_dsp_ola_list);
+        }
+    }
+	if (using_page.preset_address[preset_id-1][1] != 0)
+    {
+        const OlaList * input_dict = (OlaList*)(using_page.preset_address[preset_id-1][1]+sizeof(Page_Header));
+        char * input_data_base = (char*)input_dict +
+                sizeof(input_dict->length) +
+                sizeof(input_dict->struct_length) +
+                input_dict->length * sizeof(OlaInfo);
+        for (int i=0;i<8;i++)
+        {
+            ReadIODspMem((char*)(tmp_config_map.input_dsp + i + 8),
+                input_data_base + i*input_dict->struct_length,
+                input_dict,
+                (OlaList*)&input_dsp_ola_list);
+        }
+    }
+	// output
+	if (using_page.preset_address[preset_id-1][2] != 0)
+    {
+        const OlaList * output_dict = (OlaList*)(using_page.preset_address[preset_id-1][2]+sizeof(Page_Header));
+        char * output_data_base = (char*)output_dict +
+                sizeof(output_dict->length) +
+                sizeof(output_dict->struct_length) +
+                output_dict->length * sizeof(OlaInfo);
+        for (int i=0;i<8;i++)
+        {
+            ReadIODspMem((char*)(tmp_config_map.output_dsp + i),
+                output_data_base + i*output_dict->struct_length,
+                output_dict,
+                (OlaList*)&output_dsp_ola_list);
+        }
+    }
+	if (using_page.preset_address[preset_id-1][3] != 0)
+    {
+        const OlaList * output_dict = (OlaList*)(using_page.preset_address[preset_id-1][3]+sizeof(Page_Header));
+        char * output_data_base = (char*)output_dict +
+                sizeof(output_dict->length) +
+                sizeof(output_dict->struct_length) +
+                output_dict->length * sizeof(OlaInfo);
+        for (int i=0;i<8;i++)
+        {
+            ReadIODspMem((char*)(tmp_config_map.output_dsp + i + 8),
+                output_data_base + i*output_dict->struct_length,
+                output_dict,
+                (OlaList*)&output_dsp_ola_list);
+        }
+    }
+}
 static void ResetGlobalConfig(GlobalConfig& global_config)
 {
 	global_config.is_global_name = 0;

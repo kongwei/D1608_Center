@@ -1779,7 +1779,7 @@ void __fastcall TForm1::tmSLPTimer(TObject *Sender)
                 if (need_chcek_ack_count && udpSLPList[i]->Tag == 0)
                 {
                     String ip = udpSLPList[i]->Bindings->Items[0]->IP;
-                    int port = udpSLPList[i]->Bindings->Items[0]->Port;
+                    //int port = udpSLPList[i]->Bindings->Items[0]->Port;
                     //AppendLog("reset SLP " + IntToStr(i+1) + " " + ip + ":" + IntToStr(port));
                     udpSLPList[i]->Active = false;
                 }
@@ -4431,7 +4431,20 @@ void __fastcall TForm1::btnSavePresetToFileClick(TObject *Sender)
             return;
         }
 
-        file->WriteBuffer(&config_map, sizeof(config_map));
+        int select_preset_id = clbAvaliablePreset->ItemIndex + 1;
+
+        if (cur_preset_id == select_preset_id)
+        {
+            all_config_map[select_preset_id-1] = config_map;
+        }
+
+        //file->WriteBuffer(&config_map, sizeof(config_map));
+        char save_buffer[8*1024];
+        SavePresetById(1, 0, &all_config_map[select_preset_id-1].input_dsp[0], save_buffer);
+        SavePresetById(1, 1, &all_config_map[select_preset_id-1].input_dsp[8], save_buffer);
+        SavePresetById(1, 2, &all_config_map[select_preset_id-1].output_dsp[0], save_buffer);
+        SavePresetById(1, 3, &all_config_map[select_preset_id-1].output_dsp[8], save_buffer);
+        file->WriteBuffer(&save_buffer, sizeof(save_buffer));
 
         delete file;
     }
@@ -4461,7 +4474,10 @@ void __fastcall TForm1::btnLoadPresetFromFileClick(TObject *Sender)
             return;
         }
 
-        file->ReadBuffer(&all_config_map[select_preset_id-1], sizeof(config_map));
+        //file->ReadBuffer(&all_config_map[select_preset_id-1], sizeof(config_map));
+        unsigned char save_buffer[8*1024];
+        file->ReadBuffer(&save_buffer, sizeof(save_buffer));
+        LoadSinglePreset(all_config_map[select_preset_id-1], save_buffer);
 
         delete file;
 
