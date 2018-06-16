@@ -1692,7 +1692,7 @@ void __fastcall TForm1::btnSelectClick(TObject *Sender)
 
     UpdateCaption();
 
-    StartReadCurrentPreset(0xFF);// 0xFF表示上电时期同步当前Preset，并且会lock住下位机
+    StartReadCurrentPreset(true);// 0xFF表示上电时期同步当前Preset，并且会lock住下位机
     restor_delay_count = restor_delay_check_count * 3;
     tmDelayBackup->Enabled = true;
 #if 1
@@ -1702,6 +1702,7 @@ void __fastcall TForm1::btnSelectClick(TObject *Sender)
     package.udp_port = UDP_PORT_READ_PRESET;
     D1608PresetCmd preset_cmd(version);
     strcpy(preset_cmd.flag, D1608PRESETCMD_LINK_FLAG);
+    preset_cmd.store_page = 1;
 
     // 其他设备信息
     preset_cmd.preset = 0; // 读取global_config
@@ -2235,7 +2236,8 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
                 strcpy(preset_cmd.flag, D1608PRESETCMD_LINK_FLAG);
                 preset_cmd.preset = 0; // 读取global_config
                 preset_cmd.store_page = 0;
-                preset_cmd.verify -= UdpPackageVerifyDiff((unsigned char*)&preset_cmd, offsetof(D1608PresetCmd, data));
+                preset_cmd.lock_flag = 0;
+                //preset_cmd.verify -= UdpPackageVerifyDiff((unsigned char*)&preset_cmd, offsetof(D1608PresetCmd, data));
                 memcpy(package.data, &preset_cmd, offsetof(D1608PresetCmd, data)/*sizeof(preset_cmd)*/);
                 package.data_size = offsetof(D1608PresetCmd, data)/*sizeof(preset_cmd)*/;
                 read_one_preset_package_list.insert(read_one_preset_package_list.begin(), package);
@@ -2793,7 +2795,7 @@ void TForm1::ProcessKeepAlive(int preset_id, unsigned __int64 timer)
     if (preset_id != cur_preset_id)
     {
         SetPresetId(preset_id);
-        StartReadCurrentPreset(preset_id);
+        StartReadCurrentPreset(false);
         restor_delay_count = restor_delay_check_count * 3;
         tmDelayBackup->Enabled = true;
     }
@@ -6745,7 +6747,8 @@ void __fastcall TForm1::btnLoadFileToFlashClick(TObject *Sender)
                 preset_cmd.preset = 0x80;
                 preset_cmd.store_page = 0;   // 原先是 preset_cmd.store_page = 8;  // 使用8表示最后一页，TODO: 表达不是很清楚
                 memcpy(preset_cmd.data, &smc_config.global_config, sizeof(smc_config.global_config));
-                preset_cmd.verify -= UdpPackageVerifyDiff((unsigned char*)&preset_cmd, sizeof(preset_cmd));
+                preset_cmd.lock_flag = 0;
+                //preset_cmd.verify -= UdpPackageVerifyDiff((unsigned char*)&preset_cmd, sizeof(preset_cmd));
 
                 TPackage package = {0};
                 memcpy(package.data, &preset_cmd, sizeof(preset_cmd));
@@ -6806,7 +6809,8 @@ void __fastcall TForm1::btnLoadFileToFlashClick(TObject *Sender)
                             break;
                         }
                     }
-                    preset_cmd.verify -= UdpPackageVerifyDiff((unsigned char*)&preset_cmd, sizeof(preset_cmd));
+                    preset_cmd.lock_flag = 0;
+                    //preset_cmd.verify -= UdpPackageVerifyDiff((unsigned char*)&preset_cmd, sizeof(preset_cmd));
 
                     TPackage package = {0};
                     memcpy(package.data, &preset_cmd, sizeof(preset_cmd));
@@ -6822,7 +6826,8 @@ void __fastcall TForm1::btnLoadFileToFlashClick(TObject *Sender)
                 D1608PresetCmd preset_cmd(version);
                 strcpy(preset_cmd.flag, D1608PRESETCMD_PC2FLASH_FLAG);
                 preset_cmd.preset = 0x89;
-                preset_cmd.verify -= UdpPackageVerifyDiff((unsigned char*)&preset_cmd, sizeof(preset_cmd));
+                preset_cmd.lock_flag = 0;
+                //preset_cmd.verify -= UdpPackageVerifyDiff((unsigned char*)&preset_cmd, sizeof(preset_cmd));
 
                 TPackage package = {0};
                 memcpy(package.data, &preset_cmd, sizeof(preset_cmd));
@@ -7463,17 +7468,18 @@ void __fastcall TForm1::FormResize(TObject *Sender)
     need_resize = true;
 }
 //---------------------------------------------------------------------------
-void TForm1::StartReadCurrentPreset(int preset_id)
+void TForm1::StartReadCurrentPreset(bool lock_flag)
 {
     AppendLog(GetTime()+"同步当前Preset数据");
     read_one_preset_package_list.clear();
     for (int store_page=0;store_page<8;store_page++)
     {
         D1608PresetCmd preset_cmd(version);
-        preset_cmd.preset = preset_id;
+        preset_cmd.preset = 0xFF;
+        preset_cmd.lock_flag = lock_flag? 1: 0;
         // 从0页读取
         preset_cmd.store_page = store_page;
-        preset_cmd.verify -= UdpPackageVerifyDiff((unsigned char*)&preset_cmd, sizeof(preset_cmd));
+        //preset_cmd.verify -= UdpPackageVerifyDiff((unsigned char*)&preset_cmd, sizeof(preset_cmd));
 
         TPackage package = {0};
         package.udp_port = UDP_PORT_READ_PRESET;
