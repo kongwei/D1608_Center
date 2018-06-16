@@ -94,11 +94,13 @@ void LoadSinglePreset(ConfigMap& tmp_config_map, unsigned char* flash_dump_data)
 // 用一个大数组记录需要发送的报文
 // 每次交互完处理下一个包
 // 每包数据不超过2k字节
+enum Action {ACT_NOOP=0, ACT_RELOAD_PRESET, ACT_DISCONNECT};
 struct TPackage
 {
     unsigned char data[1500];
     int udp_port;
     int data_size;
+    enum Action action;
 };
 
 #define EVENT_POOL_SIZE (LOG_SIZE/sizeof(Event))

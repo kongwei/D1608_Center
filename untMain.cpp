@@ -1695,14 +1695,13 @@ void __fastcall TForm1::btnSelectClick(TObject *Sender)
     StartReadCurrentPreset(true);// 0xFF表示上电时期同步当前Preset，并且会lock住下位机
     restor_delay_count = restor_delay_check_count * 3;
     tmDelayBackup->Enabled = true;
-#if 1
-    // 从外部复制过来
+
     // 获取下位机PRESET数据，同时这个消息作为下位机认可的消息
     TPackage package = {0};
     package.udp_port = UDP_PORT_READ_PRESET;
     D1608PresetCmd preset_cmd(version);
     strcpy(preset_cmd.flag, D1608PRESETCMD_LINK_FLAG);
-    preset_cmd.store_page = 1;
+    preset_cmd.lock_flag = 1;
 
     // 其他设备信息
     preset_cmd.preset = 0; // 读取global_config
@@ -1720,7 +1719,7 @@ void __fastcall TForm1::btnSelectClick(TObject *Sender)
     read_one_preset_package_list.insert(read_one_preset_package_list.begin(), package);
     if (read_one_preset_package_list.size() == 1)
         SendBuffer(dst_ip, package.udp_port, package.data, package.data_size);
-#endif
+
 
     pnlOperator->Show();
     pnlDspDetail->Hide();
@@ -2178,7 +2177,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
 
                 tmp = Now();
                 start_str = GetTime();
-                ProcessKeepAlive(keep_alive->switch_preset, keep_alive->set_time_ex);
+                ProcessKeepAlive(keep_alive->switch_preset & 0x7F, keep_alive->switch_preset & 0x80, keep_alive->set_time_ex);
                 diff = (Now()-tmp); diff = diff*24*3600*1000;
                 //AppendLog(start_str+":      begin ProcessKeepAlive:  "+IntToStr((int)diff) );
 
@@ -2481,17 +2480,39 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
 
         if (read_one_preset_package_list.empty())
         {
-            if (preset_id == cur_preset_id || preset_id==0)
+            if (preset_id == cur_preset_id ||  preset_id==0) // GlobalConfig可能在最后
+            {
                 config_map = all_config_map[cur_preset_id-1];
 
-            tmDelayUpdateUI->Enabled = false;
-            ApplyConfigToUI();
-            CloseDspDetail();
-            AppendLog(GetTime()+"同步完成");
+                tmDelayUpdateUI->Enabled = false;
+                ApplyConfigToUI();
+                CloseDspDetail();
+                AppendLog(GetTime()+"同步完成");
 
-            lblVersion->Caption = VersionToStr(last_connection.data.version)+ " " +VersionToStr(version);
-            edtDeviceFullName->Text = edtDeviceFullName_data;
-            tmWatch->Enabled = true;
+                lblVersion->Caption = VersionToStr(last_connection.data.version)+ " " +VersionToStr(version);
+                edtDeviceFullName->Text = edtDeviceFullName_data;
+                tmWatch->Enabled = true;
+            }
+            else
+            {
+                // 存盘
+                TFileStream * file = new TFileStream(save_single_preset_to_file_filename, fmCreate);
+                if (!file)
+                {
+                    ShowMessage("打开文件失败");
+                    return;
+                }
+
+                //file->WriteBuffer(&config_map, sizeof(config_map));
+                char save_buffer[8*1024];
+                SavePresetById(1, 0, &all_config_map[preset_id-1].input_dsp[0], save_buffer);
+                SavePresetById(1, 1, &all_config_map[preset_id-1].input_dsp[8], save_buffer);
+                SavePresetById(1, 2, &all_config_map[preset_id-1].output_dsp[0], save_buffer);
+                SavePresetById(1, 3, &all_config_map[preset_id-1].output_dsp[8], save_buffer);
+                file->WriteBuffer(&save_buffer, sizeof(save_buffer));
+
+                delete file;
+            }
         }
         else
         {
@@ -2524,9 +2545,15 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             pbBackup->Hide();
             this->Enabled = true;
 
-            // 失联
-            AppendLog("package_list.empty()");
-            keep_live_count = CONTROL_TIMEOUT_COUNT;
+            if (package.action == ACT_DISCONNECT)
+            {
+                // 失联
+                AppendLog("package_list.empty()");
+                keep_live_count = CONTROL_TIMEOUT_COUNT;
+            }
+            else if (package.action == ACT_RELOAD_PRESET)
+            {
+            }
         }
         else
         {
@@ -2784,7 +2811,7 @@ bool TForm1::ProcessSendTextCmdAck(String cmd_text, TStream *AData, TIdSocketHan
 
     return true;
 }
-void TForm1::ProcessKeepAlive(int preset_id, unsigned __int64 timer)
+void TForm1::ProcessKeepAlive(int preset_id, bool need_reload, unsigned __int64 timer)
 {
     if (preset_id<1 || preset_id>8)
     {
@@ -2792,7 +2819,7 @@ void TForm1::ProcessKeepAlive(int preset_id, unsigned __int64 timer)
         return;
     }
 
-    if (preset_id != cur_preset_id)
+    if (preset_id != cur_preset_id || need_reload)
     {
         SetPresetId(preset_id);
         StartReadCurrentPreset(false);
@@ -4425,30 +4452,38 @@ void __fastcall TForm1::btnSavePresetToFileClick(TObject *Sender)
     SaveDialog1->Filter = "preset|*.preset";
     if (SaveDialog1->Execute())
     {
-        // save config_map to file
-        TFileStream * file = new TFileStream(SaveDialog1->FileName, fmCreate);
-        if (!file)
-        {
-            ShowMessage("打开文件失败");
-            return;
-        }
-
         int select_preset_id = clbAvaliablePreset->ItemIndex + 1;
+        // save config_map to file
+        save_single_preset_to_file_filename = SaveDialog1->FileName;
 
-        if (cur_preset_id == select_preset_id)
+        if (!udpControl->Active)
         {
-            all_config_map[select_preset_id-1] = config_map;
+            TFileStream * file = new TFileStream(save_single_preset_to_file_filename, fmCreate);
+            if (!file)
+            {
+                ShowMessage("打开文件失败");
+                return;
+            }
+
+            if (cur_preset_id == select_preset_id)
+            {
+                all_config_map[select_preset_id-1] = config_map;
+            }
+
+            //file->WriteBuffer(&config_map, sizeof(config_map));
+            char save_buffer[8*1024];
+            SavePresetById(1, 0, &all_config_map[select_preset_id-1].input_dsp[0], save_buffer);
+            SavePresetById(1, 1, &all_config_map[select_preset_id-1].input_dsp[8], save_buffer);
+            SavePresetById(1, 2, &all_config_map[select_preset_id-1].output_dsp[0], save_buffer);
+            SavePresetById(1, 3, &all_config_map[select_preset_id-1].output_dsp[8], save_buffer);
+            file->WriteBuffer(&save_buffer, sizeof(save_buffer));
+
+            delete file;
         }
-
-        //file->WriteBuffer(&config_map, sizeof(config_map));
-        char save_buffer[8*1024];
-        SavePresetById(1, 0, &all_config_map[select_preset_id-1].input_dsp[0], save_buffer);
-        SavePresetById(1, 1, &all_config_map[select_preset_id-1].input_dsp[8], save_buffer);
-        SavePresetById(1, 2, &all_config_map[select_preset_id-1].output_dsp[0], save_buffer);
-        SavePresetById(1, 3, &all_config_map[select_preset_id-1].output_dsp[8], save_buffer);
-        file->WriteBuffer(&save_buffer, sizeof(save_buffer));
-
-        delete file;
+        else
+        {
+            StartReadPreset(select_preset_id);
+        }
     }
 }
 //---------------------------------------------------------------------------
@@ -4498,52 +4533,103 @@ void __fastcall TForm1::btnLoadPresetFromFileClick(TObject *Sender)
             clbAvaliablePreset->Checked[select_preset_id-1] = true;
             clbAvaliablePresetClickCheck(NULL);
 
-            // Download To Device
-            // 写入所有的preset数据
-            D1608PresetCmd preset_cmd(version);
-            strcpy(preset_cmd.flag, D1608PRESETCMD_PC2FLASH_FLAG);
-            preset_cmd.preset = select_preset_id;
-
-            //for (int i=select_preset_id-1;i<=select_preset_id-1;i++)
-            int i = select_preset_id;
-            for (int store_page=0;store_page<8;store_page++)
+            int preset_id = select_preset_id;
             {
-                preset_cmd.store_page = store_page;
-                switch(preset_cmd.store_page)
+                D1608PresetCmd preset_cmd(version);
+                strcpy(preset_cmd.flag, D1608PRESETCMD_PC2FLASH_FLAG);
+                preset_cmd.preset = 0x80+preset_id;
+                for (int store_page=0;store_page<8;store_page++)
                 {
-                case 0:
-                    memcpy(preset_cmd.data, &all_config_map[i].input_dsp[0], sizeof(InputConfigMap)*4);
-                    break;
-                case 1:
-                    memcpy(preset_cmd.data, &all_config_map[i].input_dsp[4], sizeof(InputConfigMap)*4);
-                    break;
-                case 2:
-                    memcpy(preset_cmd.data, &all_config_map[i].input_dsp[8], sizeof(InputConfigMap)*4);
-                    break;
-                case 3:
-                    memcpy(preset_cmd.data, &all_config_map[i].input_dsp[12], sizeof(InputConfigMap)*4);
-                    break;
-                case 4:
-                    memcpy(preset_cmd.data, &all_config_map[i].output_dsp[0], sizeof(OutputConfigMap)*4);
-                    break;
-                case 5:
-                    memcpy(preset_cmd.data, &all_config_map[i].output_dsp[4], sizeof(OutputConfigMap)*4);
-                    break;
-                case 6:
-                    memcpy(preset_cmd.data, &all_config_map[i].output_dsp[8], sizeof(OutputConfigMap)*4);
-                    break;
-                case 7:
-                    memcpy(preset_cmd.data, &all_config_map[i].output_dsp[12], sizeof(OutputConfigMap)*4);
-                    break;
+                    preset_cmd.store_page = store_page;
+                    int page_index = preset_cmd.store_page / 2;
+                    int address = 2048 * page_index;
+                    switch(preset_cmd.store_page)
+                    {
+                    case 0:
+                    case 1:
+                    case 2:
+                    case 3:
+                        {
+                            const OlaList * input_dict = (const OlaList *)(save_buffer+address+sizeof(Page_Header));
+                            int input_dict_size = 
+                                    sizeof(input_dict->length) +
+                                    sizeof(input_dict->struct_length) +
+                                    input_dict->length * sizeof(OlaInfo);
+
+                            memcpy(preset_cmd.data, input_dict, input_dict_size);
+                            memcpy(preset_cmd.data+input_dict_size,
+                                   ((char*)input_dict)+ input_dict_size + ((preset_cmd.store_page%2==0) ? 0 : input_dict->struct_length*4),
+                                   input_dict->struct_length*4);
+                            break;
+                        }
+                    case 4:
+                    case 5:
+                    case 6:
+                    case 7:
+                        {
+                            const OlaList * output_dict = (const OlaList *)(save_buffer+address+sizeof(Page_Header));
+                            int output_dict_size = 
+                                    sizeof(output_dict->length) +
+                                    sizeof(output_dict->struct_length) +
+                                    output_dict->length * sizeof(OlaInfo);
+
+                            memcpy(preset_cmd.data, output_dict, output_dict_size);
+                            memcpy(preset_cmd.data+output_dict_size,
+                                   ((char*)output_dict)+ output_dict_size+ ((preset_cmd.store_page%2==0) ? 0 : output_dict->struct_length*4),
+                                   output_dict->struct_length*4);
+                            break;
+                        }
+                    }
+                    preset_cmd.lock_flag = 0;
+                    //preset_cmd.verify -= UdpPackageVerifyDiff((unsigned char*)&preset_cmd, sizeof(preset_cmd));
+
+                    TPackage package = {0};
+                    memcpy(package.data, &preset_cmd, sizeof(preset_cmd));
+                    package.udp_port = UDP_PORT_STORE_PRESET_PC2FLASH;
+                    package.data_size = sizeof(preset_cmd);
+
+                    package_list.insert(package_list.begin(), package);
                 }
 
-                TPackage package = {0};
-                memcpy(package.data, &preset_cmd, sizeof(preset_cmd));
-                package.udp_port = UDP_PORT_STORE_PRESET_PC2FLASH;
-                package.data_size = sizeof(preset_cmd);
+                {
+                    // 追加一个0x89作为结束标志
+                    D1608PresetCmd preset_cmd(version);
+                    strcpy(preset_cmd.flag, D1608PRESETCMD_PC2FLASH_FLAG);
+                    preset_cmd.preset = 0x89;
+                    preset_cmd.lock_flag = 0;
+                    //preset_cmd.verify -= UdpPackageVerifyDiff((unsigned char*)&preset_cmd, sizeof(preset_cmd));
 
-                package_list.insert(package_list.begin(), package);
+                    TPackage package = {0};
+                    memcpy(package.data, &preset_cmd, sizeof(preset_cmd));
+                    package.udp_port = UDP_PORT_STORE_PRESET_PC2FLASH;
+                    package.data_size = sizeof(preset_cmd);
+
+                    package_list.insert(package_list.begin(), package);
+                }
             }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
             TPackage package = package_list.back();
             SendBuffer(dst_ip, package.udp_port, package.data, package.data_size);
@@ -6616,6 +6702,9 @@ void __fastcall TForm1::btnSaveFlashToFileClick(TObject *Sender)
                 package.udp_port = UDP_PORT_READ_FLASH;
                 package.data_size = offsetof(FlashRW_Data, data);//sizeof(flash_rw);
 
+                if (address == address<0x8000000+256*1024-1024)
+                    package.action = ACT_DISCONNECT;
+
                 package_list.insert(package_list.begin(), package);
             }
                     
@@ -6760,15 +6849,15 @@ void __fastcall TForm1::btnLoadFileToFlashClick(TObject *Sender)
             // 写入所有的preset数据
             Using_Page using_page;
             GetUsingPage(&using_page, smc_config.device_flash_dump);
-            for (int preset_id=0;preset_id<8;preset_id++)
+            for (int preset_id=1;preset_id<=8;preset_id++)
             {
                 D1608PresetCmd preset_cmd(version);
                 strcpy(preset_cmd.flag, D1608PRESETCMD_PC2FLASH_FLAG);
-                preset_cmd.preset = 0x80+preset_id+1;
+                preset_cmd.preset = 0x80+preset_id;
                 for (int store_page=0;store_page<8;store_page++)
                 {
                     // 没有的页直接清除了 TODO: 下位机需要首先清理一下
-                    if (using_page.preset_address[preset_id][store_page/2] == 0)
+                    if (using_page.preset_address[preset_id-1][store_page/2] == 0)
                         continue;
 
                     preset_cmd.store_page = store_page;
@@ -6779,7 +6868,7 @@ void __fastcall TForm1::btnLoadFileToFlashClick(TObject *Sender)
                     case 2:
                     case 3:
                         {
-                            const OlaList * input_dict = (const OlaList *)(using_page.preset_address[preset_id][preset_cmd.store_page/2]+sizeof(Page_Header));
+                            const OlaList * input_dict = (const OlaList *)(using_page.preset_address[preset_id-1][preset_cmd.store_page/2]+sizeof(Page_Header));
                             int input_dict_size = 
                                     sizeof(input_dict->length) +
                                     sizeof(input_dict->struct_length) +
@@ -6796,7 +6885,7 @@ void __fastcall TForm1::btnLoadFileToFlashClick(TObject *Sender)
                     case 6:
                     case 7:
                         {
-                            const OlaList * output_dict = (const OlaList *)(using_page.preset_address[preset_id][preset_cmd.store_page/2]+sizeof(Page_Header));
+                            const OlaList * output_dict = (const OlaList *)(using_page.preset_address[preset_id-1][preset_cmd.store_page/2]+sizeof(Page_Header));
                             int output_dict_size = 
                                     sizeof(output_dict->length) +
                                     sizeof(output_dict->struct_length) +
@@ -6830,6 +6919,7 @@ void __fastcall TForm1::btnLoadFileToFlashClick(TObject *Sender)
                 //preset_cmd.verify -= UdpPackageVerifyDiff((unsigned char*)&preset_cmd, sizeof(preset_cmd));
 
                 TPackage package = {0};
+                package.action = ACT_DISCONNECT;
                 memcpy(package.data, &preset_cmd, sizeof(preset_cmd));
                 package.udp_port = UDP_PORT_STORE_PRESET_PC2FLASH;
                 package.data_size = sizeof(preset_cmd);
@@ -7491,33 +7581,30 @@ void TForm1::StartReadCurrentPreset(bool lock_flag)
 
     TPackage package = read_one_preset_package_list.back();
     SendBuffer(dst_ip, package.udp_port, package.data, package.data_size);
-#if 0
+}
+void TForm1::StartReadPreset(int preset_id)
+{
+    AppendLog(GetTime()+"同步Preset数据"+IntToStr(preset_id));
+    read_one_preset_package_list.clear();
+    for (int store_page=0;store_page<8;store_page++)
     {
-    // 从外部复制过来
-    // 获取下位机PRESET数据，同时这个消息作为下位机认可的消息
-    TPackage package = {0};
-    package.udp_port = UDP_PORT_READ_PRESET;
-    D1608PresetCmd preset_cmd(version);
-    strcpy(preset_cmd.flag, D1608PRESETCMD_LINK_FLAG);
+        D1608PresetCmd preset_cmd(version);
+        preset_cmd.preset = preset_id;
+        preset_cmd.lock_flag = 0;
+        // 从0页读取
+        preset_cmd.store_page = store_page;
+        //preset_cmd.verify -= UdpPackageVerifyDiff((unsigned char*)&preset_cmd, sizeof(preset_cmd));
 
-    // 其他设备信息
-    preset_cmd.preset = 0; // 读取global_config
-    preset_cmd.store_page = 1;  // 第2页，指其他设备信息
-    memcpy(package.data, &preset_cmd, offsetof(D1608PresetCmd, data));
-    package.data_size = offsetof(D1608PresetCmd, data);
-    read_one_preset_package_list.insert(read_one_preset_package_list.begin(), package);
-    if (read_one_preset_package_list.size() == 1)
-        SendBuffer(dst_ip, package.udp_port, package.data, package.data_size);
-    // global_config
-    preset_cmd.preset = 0; // 读取global_config
-    preset_cmd.store_page = 0;  // 第1页，指global_config
-    memcpy(package.data, &preset_cmd, offsetof(D1608PresetCmd, data));
-    package.data_size = offsetof(D1608PresetCmd, data);
-    read_one_preset_package_list.insert(read_one_preset_package_list.begin(), package);
-    if (read_one_preset_package_list.size() == 1)
-        SendBuffer(dst_ip, package.udp_port, package.data, package.data_size);
+        TPackage package = {0};
+        package.udp_port = UDP_PORT_READ_PRESET;
+        memcpy(package.data, &preset_cmd, offsetof(D1608PresetCmd, data));
+        package.data_size = offsetof(D1608PresetCmd, data);
+
+        read_one_preset_package_list.insert(read_one_preset_package_list.begin(), package);
     }
-#endif
+
+    TPackage package = read_one_preset_package_list.back();
+    SendBuffer(dst_ip, package.udp_port, package.data, package.data_size);
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::cbLedTestClick(TObject *Sender)

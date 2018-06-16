@@ -124,10 +124,14 @@ void SavePresetById(int preset_id, int index, void * buf, unsigned char* flash_d
     case 2:
         src = buf;
         size = sizeof(config_map.output_dsp[0]) * 8;
+        dict_ptr = &output_dsp_ola_list;
+        dict_size = sizeof(output_dsp_ola_list);
         break;
     case 3:
         src = buf;
         size = sizeof(config_map.output_dsp[0]) * 8;
+        dict_ptr = &output_dsp_ola_list;
+        dict_size = sizeof(output_dsp_ola_list);
         break;
     }
     header.count = 1;

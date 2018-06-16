@@ -922,7 +922,7 @@ private:
     void ProcessPackageMessageFeedback(ReplyMsg text_syn_msg[REPLY_TEXT_MSG_SIZE], int reply_msg_count, std::vector<UINT> & cmd_id_list);
 
     void CalcAllVote(ADC_Data_Ex & adc_data);
-    void ProcessKeepAlive(int preset_id, unsigned __int64 timer);
+    void ProcessKeepAlive(int preset_id, bool need_reload, unsigned __int64 timer);
     void ProcessVote(ADC_Data_Ex adc_ex, ADC_Data_Ex adc_ex_max, ADC_Data_Ex adc_ex_min);
     void ProcessWatchLevel(int watch_level[INPUT_DSP_NUM + OUTPUT_DSP_NUM], int watch_level_comp[OUTPUT_DSP_NUM]);
     ADC_Data_Ex adc_ex_max;
@@ -973,12 +973,14 @@ private:
 private:
     // 备份设备到文件流程专用
     String save_device_to_file_filename;
+    String save_single_preset_to_file_filename;
 
     int restor_delay_count;
     vector<TPackage> package_list;
 
     vector<TPackage> read_one_preset_package_list;
     void StartReadCurrentPreset(bool lock_flag);
+    void StartReadPreset(int preset_id);
 
     void ResetLHFilter()
     {
