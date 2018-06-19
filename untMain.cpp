@@ -562,89 +562,6 @@ static void CopyWatchPanel(int panel_id, TForm1 * form, String label, int left)
         form->output_type_lbl[panel_id-17] = input_type;
     }
 }
-static TSpeedButton * CopyPnlMixButton(TSpeedButton * src_btn, int dsp_id, Graphics::TBitmap* bmp=NULL)
-{
-    TSpeedButton * dsp_btn = new TSpeedButtonNoFrame(src_btn->Owner);
-    dsp_btn->Caption = src_btn->Caption;
-    dsp_btn->BoundsRect = src_btn->BoundsRect;
-    dsp_btn->Left = src_btn->Left + (dsp_id-1) * PANEL_WIDTH;
-    dsp_btn->AllowAllUp = src_btn->AllowAllUp;
-    dsp_btn->GroupIndex = src_btn->GroupIndex;
-    dsp_btn->Flat = src_btn->Flat;
-    if (bmp == NULL)
-    {
-        dsp_btn->Glyph = src_btn->Glyph;
-    }
-    else
-    {
-        dsp_btn->Glyph = bmp;
-    }
-    dsp_btn->NumGlyphs = src_btn->NumGlyphs;
-    dsp_btn->Layout = src_btn->Layout;
-    dsp_btn->OnClick = src_btn->OnClick;
-    dsp_btn->Parent = src_btn->Parent;
-
-    dsp_btn->Tag = dsp_id;
-    dsp_btn->GroupIndex = (int)dsp_btn; // 所有按钮互不影响
-
-    return dsp_btn;
-}
-/*static TAdvTrackBar * CopyPnlMixTrackbar(TAdvTrackBar * src_trackbar, int dsp_id)
-{
-    TAdvTrackBar * trackbar = new TAdvTrackBar(src_trackbar->Parent);
-    trackbar->Parent = src_trackbar->Parent;
-
-    trackbar->OnChange = src_trackbar->OnChange;
-    trackbar->OnKeyDown = src_trackbar->OnKeyDown;
-    trackbar->OnEnter = src_trackbar->OnEnter;
-    trackbar->OnExit = src_trackbar->OnExit;
-    trackbar->OnMouseMove = src_trackbar->OnMouseMove;
-
-    trackbar->Buttons->Size = src_trackbar->Buttons->Size;
-    trackbar->Buttons->Spacing = src_trackbar->Buttons->Spacing;
-    trackbar->Direction  = src_trackbar->Direction ;
-    trackbar->Max        = src_trackbar->Max       ;
-    trackbar->Min        = src_trackbar->Min       ;
-    trackbar->Orientation = src_trackbar->Orientation;
-
-    trackbar->Slider->Visible = src_trackbar->Slider->Visible;
-    trackbar->Slider->Offset = src_trackbar->Slider->Offset;
-    trackbar->Slider->Size = src_trackbar->Slider->Size;
-
-    trackbar->TickMark->Style = src_trackbar->TickMark->Style;
-
-    trackbar->BackGround = src_trackbar->BackGround;
-    trackbar->BackGroundStretched = src_trackbar->BackGroundStretched;
-
-    trackbar->Thumb->Picture = src_trackbar->Thumb->Picture;
-    trackbar->Thumb->PictureHot = src_trackbar->Thumb->PictureHot;
-    trackbar->Thumb->PictureDown = src_trackbar->Thumb->PictureDown;
-
-    trackbar->BoundsRect = src_trackbar->BoundsRect;
-    trackbar->Left = src_trackbar->Left + (dsp_id-1) * PANEL_WIDTH;
-
-    trackbar->Tag = dsp_id;
-
-    trackbar->OnChange(trackbar);
-
-    return trackbar;
-}*/
-/*static TEdit * CopyPnlMixEdit(TEdit * src_edit, int dsp_id)
-{
-    TEdit * edit = new TEdit(src_edit->Parent);
-    edit->BoundsRect = src_edit->BoundsRect;
-    edit->Left = src_edit->Left + (dsp_id-1) * PANEL_WIDTH;
-    edit->BorderStyle = src_edit->BorderStyle;
-    edit->Color = src_edit->Color;
-    edit->Font = src_edit->Font;
-    edit->Parent = src_edit->Parent;
-    edit->OnClick = src_edit->OnClick;
-    edit->OnKeyDown = src_edit->OnKeyDown;
-    edit->OnExit = src_edit->OnExit;
-    edit->Tag = dsp_id;
-    SetWindowLong(edit->Handle, GWL_STYLE, GetWindowLong(edit->Handle, GWL_STYLE) | ES_RIGHT);
-    return edit;
-}*/
 static void CreatePnlMix(int panel_id, TForm1 * form)
 {
     form->mix_mute_btn[panel_id-1] = CopyInputPanelButton(form->pnlmix_mute, panel_id);
@@ -4178,6 +4095,9 @@ void __fastcall TForm1::io_panel_trackbarKeyDown(TObject *Sender,
         track->Position = value - 5;
         Key = 0;
     }
+
+    if (Key == VK_HOME || Key == VK_END)
+        Key = 0;
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::WatchPaint(TObject *Sender)
@@ -6504,7 +6424,7 @@ void TForm1::SetIOChannelNum()
     //============================
     //----------------------------------
     // 生成pnlmix背景
-    pnlmix_background->Picture->Bitmap->Width = REAL_INPUT_DSP_NUM * PANEL_WIDTH;  // xDO: 原来是17个，包括automix，现在只按照输入数量
+    pnlmix_background->Picture->Bitmap->Width = INPUT_DSP_NUM * PANEL_WIDTH;  // xDO: 原来是17个，包括automix，现在只按照输入数量
     for (int i=1;i<REAL_INPUT_DSP_NUM;i++)   // xDO: 原来是17个，包括automix，现在只按照输入数量
     {
         TRect templet_image_rect = pnlmix_background->BoundsRect;
