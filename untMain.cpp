@@ -3123,7 +3123,7 @@ static void ApplyLogData( TListItem* item, Event event, int address, String syn_
         break;
     case EVENT_POWER_SAVE_ERROR:
         item->SubItems->Add("µôµç´æÅÌ´íÎó");
-        item->SubItems->Add("");
+        item->SubItems->Add(IntToStr(event.event_data));
         break;
     case EVENT_28J60_VERSION_ERROR:
         {
