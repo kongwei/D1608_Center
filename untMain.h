@@ -517,6 +517,8 @@ __published:	// IDE-managed Components
     TTimer *tmProcessReply;
     TMemo *mmVote;
     TLabel *lblMaster;
+    TPaintBox *input_panel_thumb;
+    TPaintBox *output_panel_thumb;
     void __fastcall FormCreate(TObject *Sender);
     void __fastcall btnRefreshClick(TObject *Sender);
     void __fastcall udpSLPUDPRead(TObject *Sender, TStream *AData,
@@ -702,6 +704,8 @@ __published:	// IDE-managed Components
     void __fastcall Button2Click(TObject *Sender);
     void __fastcall Button3Click(TObject *Sender);
     void __fastcall tmProcessReplyTimer(TObject *Sender);
+    void __fastcall input_panel_thumbPaint(TObject *Sender);
+    void __fastcall output_panel_thumbPaint(TObject *Sender);
 private:
     HANDLE h_sem;
 
@@ -894,6 +898,7 @@ public:		// User declarations
     TEdit* input_level_edit[17];
     TAdvTrackBar* input_level_trackbar[17];
     TStaticText* input_dsp_name[17];
+    TPaintBox * input_thumb[17];
 
     TSpeedButton* output_dsp_btn[16];
     TLabel* output_type_lbl[16];
@@ -904,7 +909,8 @@ public:		// User declarations
     TSpeedButton* output_mute_btn[16];
     TEdit* output_level_edit[16];
     TAdvTrackBar* output_level_trackbar[16];
-    TStaticText* output_dsp_name[17];
+    TStaticText* output_dsp_name[16];
+    TPaintBox * output_thumb[16];
 
     TSpeedButton* mix_mute_btn[17];
     TEdit* mix_level_edit[17];

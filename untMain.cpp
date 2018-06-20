@@ -485,6 +485,14 @@ static void CreateInputPanel(int panel_id, TForm1 * form)
     form->input_level_trackbar[panel_id-1] = CopyInputPanelTrackbar(form->input_panel_trackbar, panel_id);
     form->input_dsp_name[panel_id-1] = CopyInputPanelLabel(form->input_panel_dsp_num, panel_id);
         form->input_dsp_name[panel_id-1]->Caption = String(char('A'-1+panel_id));
+
+    form->input_thumb[panel_id-1] = new TPaintBox(form);
+        form->input_thumb[panel_id-1]->Visible = form->input_panel_thumb->Visible;
+        form->input_thumb[panel_id-1]->Parent = form->input_panel_thumb->Parent;
+        form->input_thumb[panel_id-1]->BoundsRect = form->input_panel_thumb->BoundsRect;
+        form->input_thumb[panel_id-1]->Left = form->input_panel_thumb->Left + (panel_id-1) * PANEL_WIDTH;
+        form->input_thumb[panel_id-1]->OnPaint = form->input_panel_thumb->OnPaint;
+        form->input_thumb[panel_id-1]->Tag = panel_id;
 }
 static void CreateOutputPanel(int panel_id, TForm1 * form)
 {
@@ -505,6 +513,14 @@ static void CreateOutputPanel(int panel_id, TForm1 * form)
     form->output_level_trackbar[panel_id-1] = CopyInputPanelTrackbar(form->output_panel_trackbar, panel_id);
     form->output_dsp_name[panel_id-1] = CopyInputPanelLabel(form->output_panel_dsp_num, panel_id);
         form->output_dsp_name[panel_id-1]->Caption = IntToStr(panel_id);
+        
+    form->output_thumb[panel_id-1] = new TPaintBox(form);
+        form->output_thumb[panel_id-1]->Visible = form->output_panel_thumb->Visible;
+        form->output_thumb[panel_id-1]->Parent = form->output_panel_thumb->Parent;
+        form->output_thumb[panel_id-1]->BoundsRect = form->output_panel_thumb->BoundsRect;
+        form->output_thumb[panel_id-1]->Left = form->output_panel_thumb->Left + (panel_id-1) * PANEL_WIDTH;
+        form->output_thumb[panel_id-1]->OnPaint = form->output_panel_thumb->OnPaint;
+        form->output_thumb[panel_id-1]->Tag = panel_id;
 }
 static void CopyWatchPanel(int panel_id, TForm1 * form, String label, int left)
 {
@@ -616,6 +632,7 @@ __fastcall TForm1::TForm1(TComponent* Owner)
     input_panel_level_edit->Left = input_panel_left+4;
     input_panel_trackbar->Left = input_panel_left;
     input_panel_dsp_num->Left = input_panel_left+4;
+    input_panel_thumb->Left = input_panel_left+4;
 
     input_panel_bkground->Picture->Bitmap->Width = REAL_INPUT_DSP_NUM * PANEL_WIDTH;
     input_panel_bkground->Picture->Bitmap->Height = imgInputTemplate->Height;
@@ -647,6 +664,7 @@ __fastcall TForm1::TForm1(TComponent* Owner)
     input_noise_btn[0] = input_panel_noise_btn;
     input_mute_btn[0] = input_panel_mute_btn;
     input_dsp_name[0] = input_panel_dsp_num;
+    input_thumb[0] = input_panel_thumb;
     for (int i=2;i<=INPUT_DSP_NUM;i++)
     {
         CreateInputPanel(i, this);
@@ -711,6 +729,7 @@ __fastcall TForm1::TForm1(TComponent* Owner)
     output_panel_level_edit->Left = output_panel_left+4;
     output_panel_trackbar->Left = output_panel_left;
     output_panel_dsp_num->Left = output_panel_left+4;
+    output_panel_thumb->Left = output_panel_left+4;
 
     output_panel_bkground->Width = REAL_OUTPUT_DSP_NUM * PANEL_WIDTH;
     output_panel_bkground->Picture->Bitmap->Width = output_panel_bkground->Width;
@@ -758,6 +777,8 @@ __fastcall TForm1::TForm1(TComponent* Owner)
     output_invert_btn[0] = output_panel_invert_btn;
     output_mute_btn[0] = output_panel_mute_btn;
     output_dsp_name[0] = output_panel_dsp_num;
+    output_thumb[0] = output_panel_thumb;
+
     for (int i=2;i<=REAL_OUTPUT_DSP_NUM;i++)
     {
         CreateOutputPanel(i, this);
@@ -4816,6 +4837,8 @@ void TForm1::OnFeedbackData(unsigned int cmd_id)
                 panel_agent->LoadPreset();
                 PaintBox1->Refresh();
             }
+            // ËõÂÔÍ¼
+            input_thumb[ObjectIndex]->Invalidate();
 		}
         else if (cmd_id == offsetof(ConfigMap, input_dsp[ObjectIndex].dsp_name))
 		{
@@ -4932,6 +4955,8 @@ void TForm1::OnFeedbackData(unsigned int cmd_id)
                 panel_agent->LoadPreset();
                 PaintBox1->Refresh();
             }
+            // ËõÂÔÍ¼
+            output_thumb[ObjectIndex]->Invalidate();
 		}
 		else if (cmd_id >= GetOffsetOfData(&config_map.output_dsp[ObjectIndex].mix_mute)
 			&& (cmd_id < GetOffsetOfData(&config_map.output_dsp[ObjectIndex].mix_mute) + sizeof(config_map.output_dsp[ObjectIndex].mix_mute)))
@@ -6229,6 +6254,8 @@ static void MoveInputPanel(int panel_id, TForm1 * form)
     form->input_level_edit[panel_id-1]->Left      = form->input_panel_level_edit->Left + (panel_id-1) * PANEL_WIDTH;
     form->input_level_trackbar[panel_id-1]->Left  = form->input_panel_trackbar->Left + (panel_id-1) * PANEL_WIDTH;
     form->input_dsp_name[panel_id-1]->Left        = form->input_panel_dsp_num->Left + (panel_id-1) * PANEL_WIDTH;
+    form->input_thumb[panel_id-1]->Left           = form->input_panel_thumb->Left + (panel_id-1) * PANEL_WIDTH;
+
 
     form->input_dsp_btn[panel_id-1]->Visible = (panel_id <= REAL_INPUT_DSP_NUM);
     form->input_eq_btn[panel_id-1]->Visible = (panel_id <= REAL_INPUT_DSP_NUM);
@@ -6241,6 +6268,7 @@ static void MoveInputPanel(int panel_id, TForm1 * form)
     form->input_level_edit[panel_id-1]->Visible = (panel_id <= REAL_INPUT_DSP_NUM);
     form->input_level_trackbar[panel_id-1]->Visible = (panel_id <= REAL_INPUT_DSP_NUM);
     form->input_dsp_name[panel_id-1]->Visible = (panel_id <= REAL_INPUT_DSP_NUM);
+    form->input_thumb[panel_id-1]->Visible = (panel_id <= REAL_INPUT_DSP_NUM);
 }
 static void MoveWatchPanel(int panel_id, TForm1 * form, String label, int left)
 {
@@ -6261,6 +6289,7 @@ static void MoveOutputPanel(int panel_id, TForm1 * form)
     form->output_level_edit[panel_id-1]->Left       = form->output_panel_level_edit->Left + (panel_id-1) * PANEL_WIDTH;
     form->output_level_trackbar[panel_id-1]->Left   = form->output_panel_trackbar->Left + (panel_id-1) * PANEL_WIDTH;
     form->output_dsp_name[panel_id-1]->Left         = form->output_panel_dsp_num->Left + (panel_id-1) * PANEL_WIDTH;
+    form->output_thumb[panel_id-1]->Left            = form->output_panel_thumb->Left + (panel_id-1) * PANEL_WIDTH;
 
     form->output_dsp_btn[panel_id-1]->Visible = (panel_id <= REAL_OUTPUT_DSP_NUM);
     form->output_eq_btn[panel_id-1]->Visible = (panel_id <= REAL_OUTPUT_DSP_NUM);
@@ -6271,6 +6300,7 @@ static void MoveOutputPanel(int panel_id, TForm1 * form)
     form->output_level_edit[panel_id-1]->Visible = (panel_id <= REAL_OUTPUT_DSP_NUM);
     form->output_level_trackbar[panel_id-1]->Visible = (panel_id <= REAL_OUTPUT_DSP_NUM);
     form->output_dsp_name[panel_id-1]->Visible = (panel_id <= REAL_OUTPUT_DSP_NUM);
+    form->output_thumb[panel_id-1]->Visible = (panel_id <= REAL_OUTPUT_DSP_NUM);
 }
 static void MovePnlMix(int panel_id, TForm1 * form)
 {
@@ -6303,6 +6333,8 @@ void TForm1::SetIOChannelNum()
     input_panel_level_edit->Left = input_panel_left+4;
     input_panel_trackbar->Left = input_panel_left;
     input_panel_dsp_num->Left = input_panel_left+4;
+    input_panel_thumb->Left = input_panel_left+4;
+
 
     input_panel_bkground->Picture->Bitmap->Width = REAL_INPUT_DSP_NUM * PANEL_WIDTH;
     input_panel_bkground->Picture->Bitmap->Height = imgInputTemplate->Height;
@@ -6381,6 +6413,7 @@ void TForm1::SetIOChannelNum()
     output_panel_level_edit->Left = output_panel_left+4;
     output_panel_trackbar->Left = output_panel_left;
     output_panel_dsp_num->Left = output_panel_left+4;
+    output_panel_thumb->Left = output_panel_left+4;
 
     output_panel_bkground->Width = REAL_OUTPUT_DSP_NUM * PANEL_WIDTH;
     output_panel_bkground->Picture->Bitmap->Width = output_panel_bkground->Width;
@@ -7963,3 +7996,48 @@ void TForm1::AdjustOutputCompParam(int dsp_num)
         config_map.output_dsp[dsp_num-1].comp_gain = gain_config.min_value;
 }
 //---------------------------------------------------------------------------
+void __fastcall TForm1::input_panel_thumbPaint(TObject *Sender)
+{
+    TPaintBox * thumb_box = (TPaintBox*)Sender;
+    int dsp_id = thumb_box->Tag;
+    static FilterSet _filter_set;
+
+    for (int band=1;band<12;band++)
+    {
+        _filter_set.SetBypass(band, config_map.input_dsp[dsp_id-1].filter[band-1].bypass);
+
+        _filter_set.GetFilter(band)->name = IntToStr(band-1);
+        String type_name = Coefficient::GetTypeName(config_map.input_dsp[dsp_id-1].filter[band-1].TYPE);
+        _filter_set.GetFilter(band)->ChangFilterParameter(
+                    type_name,
+                    config_map.input_dsp[dsp_id-1].filter[band-1].FREQ / FREQ_RATE,
+                    config_map.input_dsp[dsp_id-1].filter[band-1].GAIN / 10.0,
+                    config_map.input_dsp[dsp_id-1].filter[band-1].Q / 100.0);
+    }
+
+    paint_agent->PaintThumbnail(thumb_box, _filter_set);
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::output_panel_thumbPaint(TObject *Sender)
+{
+    TPaintBox * thumb_box = (TPaintBox*)Sender;
+    int dsp_id = thumb_box->Tag;
+    static FilterSet _filter_set;
+
+    for (int band=1;band<12;band++)
+    {
+        _filter_set.SetBypass(band, config_map.output_dsp[dsp_id-1].filter[band-1].bypass);
+
+        _filter_set.GetFilter(band)->name = IntToStr(band-1);
+        String type_name = Coefficient::GetTypeName(config_map.output_dsp[dsp_id-1].filter[band-1].TYPE);
+        _filter_set.GetFilter(band)->ChangFilterParameter(
+                    type_name,
+                    config_map.output_dsp[dsp_id-1].filter[band-1].FREQ / FREQ_RATE,
+                    config_map.output_dsp[dsp_id-1].filter[band-1].GAIN / 10.0,
+                    config_map.output_dsp[dsp_id-1].filter[band-1].Q / 100.0);
+    }
+
+    paint_agent->PaintThumbnail(thumb_box, _filter_set);
+}
+//---------------------------------------------------------------------------
+

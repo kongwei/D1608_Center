@@ -652,4 +652,41 @@ void __fastcall PaintAgent::OnCompMouseMove(TObject *Sender, TShiftState Shift,
         //paint_control_comp->Invalidate();
     }
 }
+static Gdiplus::PointF point_gp[1001];
+void PaintAgent::PaintThumbnail(TPaintBox * Thumbnail, FilterSet & filter_set)
+{
+    // 计算比例
+    double CHART_HEIGHT_RATIO = (Thumbnail->Height) / 40.0;
+    double CHART_WIDTH_RATIO = (Thumbnail->Width) / 1000.0;
+
+    TCanvas * canvas = Thumbnail->Canvas;
+    Gdiplus::Graphics gdiplus_g(canvas->Handle);
+
+    // 清除图像
+    gdiplus_g.Clear(BACKGROUND_COLOR);
+
+    double point[1001];
+    // 绘制所有filter图像
+    Coefficient::InitPointData(point);
+    for (int i=1;i<12;i++)
+    {
+        if (!filter_set.IsBypass(i) && !filter_set.IsBandForbidden(i))
+        {
+            filter_set.GetFilter(i)->AddToMiddle(point);
+        }
+    }
+
+    for (int i=0;i<1001;i++)
+    {
+        point_gp[i].X = i*CHART_WIDTH_RATIO;
+        point_gp[i].Y = CHART_HEIGHT_RATIO * (21 - max(point[i], -18.0));
+    }
+
+    Pen pen(WAVE_COLOR, 2);
+    GraphicsPath path;
+    path.AddLines(point_gp, 1001);
+
+    gdiplus_g.SetSmoothingMode(GDIPLUS_MODE);
+    gdiplus_g.DrawPath(&pen, &path);
+}
 

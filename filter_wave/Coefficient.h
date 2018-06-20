@@ -890,7 +890,7 @@ private:
     double _freq;
     double _gain;
     double _q;
-
+public:
     static String GetTypeName(int type_id);
 };
 

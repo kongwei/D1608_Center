@@ -43,6 +43,8 @@ private:
     bool is_comp_gain_selected;
     bool is_comp_threshold_selected;
     bool is_comp_ratio_selected;
+public:
+    void PaintThumbnail(TPaintBox *, FilterSet & filter_set);
 };
 
 #endif
