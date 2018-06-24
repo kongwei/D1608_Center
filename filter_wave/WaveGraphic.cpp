@@ -302,6 +302,18 @@ void __fastcall PaintAgent::OnPaint(TObject * Sender)
             }
         }
     }
+    else
+    {
+        if (!_filter_set.IsBypass(LP_FILTER) && !_filter_set.IsBandForbidden(LP_FILTER))
+        {
+            _filter_set.GetFilter(LP_FILTER)->AddToMiddle(point);
+        }
+        if (!_filter_set.IsBypass(HP_FILTER) && !_filter_set.IsBandForbidden(HP_FILTER))
+        {
+            _filter_set.GetFilter(HP_FILTER)->AddToMiddle(point);
+        }
+    }
+
     DrawWave(point, gdiplus_g);
 
     // µ×±ß
@@ -682,6 +694,17 @@ void PaintAgent::PaintThumbnail(TPaintBox * Thumbnail, FilterSet & filter_set)
             {
                 filter_set.GetFilter(i)->AddToMiddle(point);
             }
+        }
+    }
+    else
+    {
+        if (!filter_set.IsBypass(LP_FILTER) && !filter_set.IsBandForbidden(LP_FILTER))
+        {
+            filter_set.GetFilter(LP_FILTER)->AddToMiddle(point);
+        }
+        if (!filter_set.IsBypass(HP_FILTER) && !filter_set.IsBandForbidden(HP_FILTER))
+        {
+            filter_set.GetFilter(HP_FILTER)->AddToMiddle(point);
         }
     }
 

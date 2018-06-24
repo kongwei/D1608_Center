@@ -7,6 +7,13 @@
 #include <ExtCtrls.hpp>
 #include "FilterPanelSet.h"    
 //---------------------------------------------------------------------------
+
+#define FIRST_FILTER 1
+#define LAST_FILTER 9
+#define HP_FILTER 1
+#define LP_FILTER 11
+
+
 void Switch2Panel(int band);
 
 class PanelAgent : public TObject
