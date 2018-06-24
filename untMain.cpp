@@ -3786,7 +3786,7 @@ void __fastcall TForm1::FormMouseWheel(TObject *Sender, TShiftState Shift,
       int WheelDelta, TPoint &MousePos, bool &Handled)
 {
     TEdit * edt = dynamic_cast<TEdit*>(ActiveControl);
-    if (edt)
+    if (edt && edt!=edt4Tab)
     {
         TShiftState shift;
         WORD key;
@@ -8048,10 +8048,10 @@ void __fastcall TForm1::PaintBox1Click(TObject *Sender)
         paint_agent->Repaint();
     }
 
-    Edit1->SetFocus();
+    edt4Tab->SetFocus();
 }
 //---------------------------------------------------------------------------
-void __fastcall TForm1::Edit1KeyDown(TObject *Sender, WORD &Key,
+void __fastcall TForm1::edt4TabKeyDown(TObject *Sender, WORD &Key,
       TShiftState Shift)
 {
     int band = filter_set.GetActiveBand();
@@ -8081,7 +8081,7 @@ void __fastcall TForm1::Edit1KeyDown(TObject *Sender, WORD &Key,
 //---------------------------------------------------------------------------
 void __fastcall TForm1::Edit2Enter(TObject *Sender)
 {
-    Edit1->SetFocus();
+    edt4Tab->SetFocus();
 
     // 移动到下一个band
     filter_set.MoveToNextBand();
@@ -8090,7 +8090,7 @@ void __fastcall TForm1::Edit2Enter(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TForm1::Edit3Enter(TObject *Sender)
 {
-    Edit1->SetFocus();
+    edt4Tab->SetFocus();
 
     // 移动到前一个band
     filter_set.MoveToPrevBand();
