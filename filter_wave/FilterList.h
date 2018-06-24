@@ -44,6 +44,15 @@ public:
     void UpdateCompRatio();
     void UpdateCompThreshold();
     void UpdateCompGain();
+
+    bool GetEqSwitch()
+    {
+        return eq_switch;
+    }
+    void SetEqSwitch(bool value)
+    {
+        eq_switch = value;
+    }
 private:
     
     // BAD: 浪费了第一个元素
@@ -57,6 +66,9 @@ private:
     double GetFilterFreq(int band);
     double GetFilterGain(int band);
     String GetFilterType(int band);
+
+    // EQ开关
+    bool eq_switch;
 };
 
 #endif

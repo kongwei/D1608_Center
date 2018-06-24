@@ -1872,6 +1872,8 @@ void __fastcall TForm1::ToogleEQ(TObject *Sender)
     SendCmd(cmd_text+D1608CMD_TAIL);
 
     config_map.input_dsp[dsp_num-1].eq_switch = btn->Down;
+
+    input_thumb[dsp_num-1]->Invalidate();
 }
 //---------------------------------------------------------------------------
 String IntOrZeroSring(int value)
@@ -3511,6 +3513,8 @@ void __fastcall TForm1::ToogleOutputEQ(TObject *Sender)
     SendCmd(cmd_text+D1608CMD_TAIL);
 
     config_map.output_dsp[dsp_num-1].eq_switch = btn->Down;
+
+    output_thumb[dsp_num-1]->Invalidate();
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::OutputVolumeChange(TObject *Sender)
@@ -5471,6 +5475,9 @@ void __fastcall TForm1::btnDspEqClick(TObject *Sender)
         output_eq_btn[dsp_id-101]->Down = btn->Down;
         output_eq_btn[dsp_id-101]->Click();
     }
+
+    filter_set.SetEqSwitch(btn->Down);
+    paint_agent->Repaint();
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::ToogleDSPCOMP(TObject *Sender)
@@ -8015,6 +8022,7 @@ void __fastcall TForm1::input_panel_thumbPaint(TObject *Sender)
                     config_map.input_dsp[dsp_id-1].filter[band-1].Q / 100.0);
     }
 
+    _filter_set.SetEqSwitch(config_map.input_dsp[dsp_id-1].eq_switch);
     paint_agent->PaintThumbnail(thumb_box, _filter_set);
 }
 //---------------------------------------------------------------------------
@@ -8037,6 +8045,7 @@ void __fastcall TForm1::output_panel_thumbPaint(TObject *Sender)
                     config_map.output_dsp[dsp_id-1].filter[band-1].Q / 100.0);
     }
 
+    _filter_set.SetEqSwitch(config_map.output_dsp[dsp_id-1].eq_switch);
     paint_agent->PaintThumbnail(thumb_box, _filter_set);
 }
 //---------------------------------------------------------------------------

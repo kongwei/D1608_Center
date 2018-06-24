@@ -171,6 +171,16 @@ void PanelAgent::LoadPreset()
         _filter_set.release_time = config_map.output_dsp[dsp_id-101].release_time / 10.0;
         _filter_set.gain = (config_map.output_dsp[dsp_id-101].comp_gain / 10.0);
     }
+
+    // eq_switch
+    if (dsp_id < 100)
+    {
+        _filter_set.SetEqSwitch(config_map.input_dsp[dsp_id-1].eq_switch);
+    }
+    else
+    {
+        _filter_set.SetEqSwitch(config_map.output_dsp[dsp_id-101].eq_switch);
+    }
 }
 void PanelAgent::UpdateUIEnabled()
 {

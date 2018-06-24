@@ -286,19 +286,25 @@ void __fastcall PaintAgent::OnPaint(TObject * Sender)
         DrawFillWave(point, gdiplus_g);
     }
 
+    // 绘制捕捉点
+    DrawThumb(this, gdiplus_g);
+
     // 绘制所有filter图像
     Coefficient::InitPointData(point);
-    for (int i=1;i<12;i++)
+
+    if (_filter_set.GetEqSwitch())
     {
-        if (!_filter_set.IsBypass(i) && !_filter_set.IsBandForbidden(i))
+        for (int i=1;i<12;i++)
         {
-            _filter_set.GetFilter(i)->AddToMiddle(point);
+            if (!_filter_set.IsBypass(i) && !_filter_set.IsBandForbidden(i))
+            {
+                _filter_set.GetFilter(i)->AddToMiddle(point);
+            }
         }
     }
-
-    DrawThumb(this, gdiplus_g);
     DrawWave(point, gdiplus_g);
 
+    // 底边
     y = Gain2Canvas(-18); gdiplus_g.DrawLine(&bold_pen, left-8, y, right, y);
 }
 //---------------------------------------------------------------------------
@@ -668,11 +674,14 @@ void PaintAgent::PaintThumbnail(TPaintBox * Thumbnail, FilterSet & filter_set)
     double point[1001];
     // 绘制所有filter图像
     Coefficient::InitPointData(point);
-    for (int i=1;i<12;i++)
+    if (filter_set.GetEqSwitch())
     {
-        if (!filter_set.IsBypass(i) && !filter_set.IsBandForbidden(i))
+        for (int i=1;i<12;i++)
         {
-            filter_set.GetFilter(i)->AddToMiddle(point);
+            if (!filter_set.IsBypass(i) && !filter_set.IsBandForbidden(i))
+            {
+                filter_set.GetFilter(i)->AddToMiddle(point);
+            }
         }
     }
 
