@@ -519,6 +519,9 @@ __published:	// IDE-managed Components
     TLabel *lblMaster;
     TPaintBox *input_panel_thumb;
     TPaintBox *output_panel_thumb;
+    TEdit *Edit1;
+    TEdit *Edit2;
+    TEdit *Edit3;
     void __fastcall FormCreate(TObject *Sender);
     void __fastcall btnRefreshClick(TObject *Sender);
     void __fastcall udpSLPUDPRead(TObject *Sender, TStream *AData,
@@ -706,6 +709,11 @@ __published:	// IDE-managed Components
     void __fastcall tmProcessReplyTimer(TObject *Sender);
     void __fastcall input_panel_thumbPaint(TObject *Sender);
     void __fastcall output_panel_thumbPaint(TObject *Sender);
+    void __fastcall PaintBox1Click(TObject *Sender);
+    void __fastcall Edit1KeyDown(TObject *Sender, WORD &Key,
+          TShiftState Shift);
+    void __fastcall Edit2Enter(TObject *Sender);
+    void __fastcall Edit3Enter(TObject *Sender);
 private:
     HANDLE h_sem;
 

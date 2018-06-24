@@ -22,7 +22,28 @@ void FilterSet::SetActiveBand(int band)
 
     select_band = band;
 }
+int FilterSet::MoveToNextBand()
+{
+    int band = select_band;
 
+    band = (band+1) % 12;
+    while (IsBandForbidden(band))
+        band = (band+1) % 12;
+
+    SetActiveBand(band);
+    return band;
+}
+int FilterSet::MoveToPrevBand()
+{
+    int band = select_band;
+
+    band = (band+11) % 12;
+    while (IsBandForbidden(band))
+        band = (band+11) % 12;
+
+    SetActiveBand(band);
+    return band;
+}
 bool FilterSet::IsBandForbidden(int band)
 {
     if (filter[band].name == NULL)

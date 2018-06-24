@@ -8040,4 +8040,61 @@ void __fastcall TForm1::output_panel_thumbPaint(TObject *Sender)
     paint_agent->PaintThumbnail(thumb_box, _filter_set);
 }
 //---------------------------------------------------------------------------
+void __fastcall TForm1::PaintBox1Click(TObject *Sender)
+{
+    if (filter_set.GetActiveBand() == 0)
+    {
+        filter_set.MoveToNextBand();
+        paint_agent->Repaint();
+    }
+
+    Edit1->SetFocus();
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::Edit1KeyDown(TObject *Sender, WORD &Key,
+      TShiftState Shift)
+{
+    int band = filter_set.GetActiveBand();
+    switch(Key)
+    {
+    case VK_UP:
+        if (Shift.Contains(ssShift))
+            panel_agent->OnQKeyDown(band, VK_UP);
+        else
+            panel_agent->OnGainKeyDown(band, VK_UP);
+        break;
+    case VK_DOWN:
+        if (Shift.Contains(ssShift))
+            panel_agent->OnQKeyDown(band, VK_DOWN);
+        else
+            panel_agent->OnGainKeyDown(band, VK_DOWN);
+        break;
+    case VK_LEFT:
+        panel_agent->OnFreqKey(band, VK_DOWN);
+        break;
+    case VK_RIGHT:
+        panel_agent->OnFreqKey(band, VK_UP);
+        break;
+    }
+    Key = 0;
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::Edit2Enter(TObject *Sender)
+{
+    Edit1->SetFocus();
+
+    // 移动到下一个band
+    filter_set.MoveToNextBand();
+    paint_agent->Repaint();
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::Edit3Enter(TObject *Sender)
+{
+    Edit1->SetFocus();
+
+    // 移动到前一个band
+    filter_set.MoveToPrevBand();
+    paint_agent->Repaint();
+}
+//---------------------------------------------------------------------------
 

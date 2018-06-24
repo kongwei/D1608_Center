@@ -21,6 +21,8 @@ public:
 
     int GetActiveBand();
     void SetActiveBand(int band);
+    int MoveToNextBand();
+    int MoveToPrevBand();
 
     bool IsBandForbidden(int band);
 

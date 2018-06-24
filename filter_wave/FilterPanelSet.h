@@ -43,6 +43,28 @@ public:
     void SetPanelSelect(int band);
 
     void LoadPreset();
+
+    void OnGainKeyDown(int band, WORD Key)
+    {
+        if (_edtGain[band])
+        {
+            edtGainKeyDown(_edtGain[band], Key, TShiftState());
+        }
+    }
+    void OnFreqKey(int band, WORD Key)
+    {
+        if (_edtFreq[band])
+        {
+            edtFreqKeyDown(_edtFreq[band], Key, TShiftState());
+        }
+    }
+    void OnQKeyDown(int band, WORD Key)
+    {
+        if (_edtQ[band])
+        {
+            edtQKeyDown(_edtQ[band], Key, TShiftState());
+        }
+    }
 private:
     // BAD:浪费了第一个元素
     TPanel* _panel[12];
