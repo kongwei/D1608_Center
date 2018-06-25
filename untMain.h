@@ -517,6 +517,10 @@ __published:	// IDE-managed Components
     TEdit *edt4Tab;
     TEdit *Edit2;
     TEdit *Edit3;
+    TImage *Image8;
+    TEdit *edtAdminPassword;
+    TSpeedButton *btnAdminPassword;
+    TLabel *Label18;
     void __fastcall FormCreate(TObject *Sender);
     void __fastcall btnRefreshClick(TObject *Sender);
     void __fastcall udpSLPUDPRead(TObject *Sender, TStream *AData,
@@ -709,6 +713,7 @@ __published:	// IDE-managed Components
           TShiftState Shift);
     void __fastcall Edit2Enter(TObject *Sender);
     void __fastcall Edit3Enter(TObject *Sender);
+    void __fastcall btnAdminPasswordClick(TObject *Sender);
 private:
     HANDLE h_sem;
 

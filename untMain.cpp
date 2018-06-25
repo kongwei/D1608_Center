@@ -2135,6 +2135,11 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
                 keep_live_count = CONTROL_TIMEOUT_COUNT;
                 received_cmd_seq = 0;    pre_received_msg_id = 0;
             }
+            else if (!cmd_string.SubString(1,13).AnsiCompareIC("config.admin="))
+            {
+                pnlSystem->Show();
+                pnlSystem->BringToFront();
+            }
             else if (!cmd_string.AnsiCompareIC("config.action=reboot]")
                   || !cmd_string.AnsiCompareIC("config.action=init]")
                   || !cmd_string.AnsiCompareIC("config.action=clear_preset]"))
@@ -5887,8 +5892,20 @@ void __fastcall TForm1::SpeedButtonNoFrame2MouseDown(TObject *Sender,
         pnlMonitor->BringToFront();
         break;
     case 2:
-        pnlSystem->Show();
-        pnlSystem->BringToFront();
+        if (global_config.admin_password[0] != 0)
+        {
+            String password = InputBox("输入密码", "输入密码", "");
+            // 发送命令
+            String cmd_text = D1608CMD_CONTROL_FLAG;
+            cmd_text = cmd_text+ "config.admin="+password;
+            SendCmd2(cmd_text+D1608CMD_TAIL);
+            SendCmd2(cmd_text);
+        }
+        else
+        {
+            pnlSystem->Show();
+            pnlSystem->BringToFront();
+        }
         break;
     case 3:
         if (is_inner_pc)
@@ -8112,6 +8129,17 @@ void __fastcall TForm1::Edit3Enter(TObject *Sender)
     // 移动到前一个band
     filter_set.MoveToPrevBand();
     paint_agent->Repaint();
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::btnAdminPasswordClick(TObject *Sender)
+{
+    strncpy(global_config.admin_password, edtAdminPassword->Text.c_str(), 20);
+
+    String cmd_text = D1608CMD_CONTROL_FLAG;
+    cmd_text = cmd_text+"config.admin_password="+edtAdminPassword->Text.SubString(1,20);
+    SendCmd2(cmd_text+D1608CMD_TAIL);
+
+    edtAdminPassword->Text = "";
 }
 //---------------------------------------------------------------------------
 
