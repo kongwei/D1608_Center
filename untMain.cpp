@@ -4722,6 +4722,7 @@ void __fastcall TForm1::ApplyConfigToUI()
             input_dsp_name[i]->Caption = dsp_name;
 
         input_type_lbl[i]->Caption = InputGain2String(config_map.input_dsp[i].gain);
+        input_thumb[i]->Invalidate();
     }
 
     for (int i=0;i<REAL_OUTPUT_DSP_NUM;i++)
@@ -4746,6 +4747,7 @@ void __fastcall TForm1::ApplyConfigToUI()
             output_dsp_name[i]->Caption = dsp_name;
 
         output_type_lbl[i]->Caption = OutputGain2String(config_map.output_dsp[i].gain);
+        output_thumb[i]->Invalidate();
     }
 
     // master
@@ -5072,7 +5074,7 @@ void __fastcall TForm1::RecallClick(TObject *Sender)
 
     if (udpControl->Active)
     {
-        String cmd_text = D1608CMD_CONTROL_FLAG;
+        String cmd_text = D1608CMD_FLAG;
         cmd_text = cmd_text+"config.active_preset="+IntToStr(menu->Tag);
         SendCmd2(cmd_text+D1608CMD_TAIL);
 
