@@ -53,6 +53,15 @@ public:
     {
         eq_switch = value;
     }
+
+    bool GetCompSwitch()
+    {
+        return comp_switch;
+    }
+    void SetCompSwitch(bool value)
+    {
+        comp_switch = value;
+    }
 private:
     
     // BAD: 浪费了第一个元素
@@ -69,6 +78,8 @@ private:
 
     // EQ开关
     bool eq_switch;
+    // 压缩开关
+    bool comp_switch;
 };
 
 #endif

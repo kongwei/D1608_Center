@@ -18,6 +18,7 @@ public:
     void Repaint()
     {
         paint_control->Repaint();
+        paint_control_comp->Repaint();
     }
 
     bool IsMouseDown()

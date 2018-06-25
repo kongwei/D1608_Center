@@ -181,6 +181,14 @@ void PanelAgent::LoadPreset()
     {
         _filter_set.SetEqSwitch(config_map.output_dsp[dsp_id-101].eq_switch);
     }
+    // comp_switch
+    if (dsp_id < 100)
+    {
+    }
+    else
+    {
+        _filter_set.SetEqSwitch(config_map.output_dsp[dsp_id-101].comp_switch);
+    }
 }
 void PanelAgent::UpdateUIEnabled()
 {

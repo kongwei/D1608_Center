@@ -545,8 +545,24 @@ void __fastcall PaintAgent::OnCompPaint(TObject * Sender)
     point_end.Y = Comp2CanvasY(point_end.Y);
 
     Gdiplus::Pen wave_pen(WAVE_COLOR, 2);
-    gdiplus_g.DrawLine(&wave_pen, point_org, point_threshold);
-    gdiplus_g.DrawLine(&wave_pen, point_threshold, point_end);
+
+    if (_filter_set.GetCompSwitch())
+    {
+        gdiplus_g.DrawLine(&wave_pen, point_org, point_threshold);
+        gdiplus_g.DrawLine(&wave_pen, point_threshold, point_end);
+    }
+    else
+    {
+        Gdiplus::Point point_48(-48, -48);
+        point_48.X = Comp2CanvasX(point_48.X);
+        point_48.Y = Comp2CanvasY(point_48.Y);
+        
+        Gdiplus::Point point_0(0, 0);
+        point_0.X = Comp2CanvasX(point_0.X);
+        point_0.Y = Comp2CanvasY(point_0.Y);
+
+        gdiplus_g.DrawLine(&wave_pen, point_48, point_0);
+    }
 
 
     

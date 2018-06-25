@@ -5492,6 +5492,9 @@ void __fastcall TForm1::ToogleDSPCOMP(TObject *Sender)
 
     output_comp_btn[dsp_id-101]->Down = btn->Down;
     output_comp_btn[dsp_id-101]->Click();
+
+    filter_set.SetCompSwitch(btn->Down);
+    paint_agent->Repaint();
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::ToogleCOMP(TObject *Sender)
@@ -8047,6 +8050,9 @@ void __fastcall TForm1::output_panel_thumbPaint(TObject *Sender)
 
     _filter_set.SetEqSwitch(config_map.output_dsp[dsp_id-1].eq_switch);
     paint_agent->PaintThumbnail(thumb_box, _filter_set);
+
+    // TODO：暂时没有压缩图示
+    //_filter_set.SetCompSwitch(config_map.output_dsp[dsp_id-1].comp_switch);
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::PaintBox1Click(TObject *Sender)
