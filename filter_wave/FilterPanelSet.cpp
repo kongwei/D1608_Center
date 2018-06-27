@@ -186,8 +186,8 @@ void PanelAgent::LoadPreset()
     {
     }
     else
-    {
-        _filter_set.SetEqSwitch(config_map.output_dsp[dsp_id-101].comp_switch);
+    {                     
+        _filter_set.SetCompSwitch(config_map.output_dsp[dsp_id-101].comp_switch);
     }
 }
 void PanelAgent::UpdateUIEnabled()
