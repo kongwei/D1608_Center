@@ -521,6 +521,7 @@ __published:	// IDE-managed Components
     TEdit *edtAdminPassword;
     TSpeedButton *btnAdminPassword;
     TLabel *Label18;
+    TCheckBox *cbLockParameter;
     void __fastcall FormCreate(TObject *Sender);
     void __fastcall btnRefreshClick(TObject *Sender);
     void __fastcall udpSLPUDPRead(TObject *Sender, TStream *AData,
@@ -714,6 +715,7 @@ __published:	// IDE-managed Components
     void __fastcall Edit2Enter(TObject *Sender);
     void __fastcall Edit3Enter(TObject *Sender);
     void __fastcall btnAdminPasswordClick(TObject *Sender);
+    void __fastcall cbLockParameterClick(TObject *Sender);
 private:
     HANDLE h_sem;
 

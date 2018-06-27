@@ -2255,6 +2255,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
         for (int i=0;i<50;i++)
         {
             if (log_data[i].timer != 0)
+            //if (String(log_data[i].desc) != "")
             {
                 TListItem * item = lvDebug->Items->Insert(0);
 
@@ -2369,6 +2370,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
                 // 读取'自动保存'配置
                 cbPresetAutoSaved->Checked = ((global_config.auto_saved == 1) || (global_config.auto_saved == 0xFF));
                 cbLedTest->Checked = (global_config.led_test == 1);
+                cbLockParameter->Checked = (global_config.lock_parameter == 1);
 
                 cbUsart1ReceiveAck->Checked = (global_config.usart1_receive_other_ack == 1);
                 cbUsart3ReceiveAck->Checked = (global_config.usart3_receive_other_ack == 1);
@@ -6114,6 +6116,7 @@ void __fastcall TForm1::PaintBox3Paint(TObject *Sender)
     cbLockedString->Color = bmp->Canvas->Brush->Color;
     cbGlobalDspName->Color = bmp->Canvas->Brush->Color;
     cbPresetAutoSaved->Color = bmp->Canvas->Brush->Color;
+    cbLockParameter->Color = bmp->Canvas->Brush->Color;
     cbLockUpDownMenuKey->Color = bmp->Canvas->Brush->Color;
     cbLedTest->Color = bmp->Canvas->Brush->Color;
     cbUsart1ReceiveAck->Color = bmp->Canvas->Brush->Color;
@@ -8140,6 +8143,13 @@ void __fastcall TForm1::btnAdminPasswordClick(TObject *Sender)
     SendCmd2(cmd_text+D1608CMD_TAIL);
 
     edtAdminPassword->Text = "";
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::cbLockParameterClick(TObject *Sender)
+{
+    String cmd_text = D1608CMD_CONTROL_FLAG;
+    cmd_text = cmd_text+String("config.lock_parameter=")+(cbLockParameter->Checked?"on":"off");
+    SendCmd(cmd_text+D1608CMD_TAIL);
 }
 //---------------------------------------------------------------------------
 
