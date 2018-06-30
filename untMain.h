@@ -1019,6 +1019,8 @@ private:
     void ShowLockConfigArea();
     void HideLockConfigArea();
 private:
+    String admin_password;
+private:
     bool need_resize;
 
     VersionFunction GetVersionConfig();

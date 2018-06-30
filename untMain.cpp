@@ -9,6 +9,7 @@
 #include "untUtils.h"
 #include "untTextCmdParse.h"
 #include "TextCmdParse.h"
+#include "frmInputPassword.h"
 
 #include <winsock2.h>
 #include <IPHlpApi.h>  
@@ -2135,10 +2136,30 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
                 keep_live_count = CONTROL_TIMEOUT_COUNT;
                 received_cmd_seq = 0;    pre_received_msg_id = 0;
             }
-            else if (!cmd_string.SubString(1,13).AnsiCompareIC("config.admin="))
+            else if (!cmd_string.SubString(1,15).AnsiCompareIC("config.admin=ok"))
             {
                 pnlSystem->Show();
                 pnlSystem->BringToFront();
+            }
+            else if (!cmd_string.SubString(1,18).AnsiCompareIC("config.admin=error"))
+            {
+                if (Application->MessageBox("√‹¬Î¥ÌŒÛ£¨÷ÿ–¬ ‰»Î¬£ø", "√‹¬Î¥ÌŒÛ", MB_YESNO) == IDYES)
+                {
+                    if (admin_password == "")
+                    {
+                        InputPassword->Edit1->Text = "";
+                        if (InputPassword->ShowModal() == mrOk)
+                            admin_password = InputPassword->Edit1->Text;
+                        else
+                            return;// break;
+                    }
+
+                    // ∑¢ÀÕ√¸¡Ó
+                    String cmd_text = D1608CMD_CONTROL_FLAG;
+                    cmd_text = cmd_text+ "config.admin="+admin_password;
+                    SendCmd2(cmd_text+D1608CMD_TAIL);
+                    SendCmd2(cmd_text);
+                }
             }
             else if (!cmd_string.AnsiCompareIC("config.action=reboot]")
                   || !cmd_string.AnsiCompareIC("config.action=init]")
@@ -5896,10 +5917,17 @@ void __fastcall TForm1::SpeedButtonNoFrame2MouseDown(TObject *Sender,
     case 2:
         if (global_config.admin_password[0] != 0)
         {
-            String password = InputBox(" ‰»Î√‹¬Î", " ‰»Î√‹¬Î", "");
+            if (admin_password == "")
+            {
+                InputPassword->Edit1->Text = "";
+                if (InputPassword->ShowModal() == mrOk)
+                    admin_password = InputPassword->Edit1->Text;
+                else
+                    return;// break;
+            }
             // ∑¢ÀÕ√¸¡Ó
             String cmd_text = D1608CMD_CONTROL_FLAG;
-            cmd_text = cmd_text+ "config.admin="+password;
+            cmd_text = cmd_text+ "config.admin="+admin_password;
             SendCmd2(cmd_text+D1608CMD_TAIL);
             SendCmd2(cmd_text);
         }
