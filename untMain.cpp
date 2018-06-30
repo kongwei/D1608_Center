@@ -2138,6 +2138,8 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             }
             else if (!cmd_string.SubString(1,15).AnsiCompareIC("config.admin=ok"))
             {
+                admin_password_ok = true;
+                UpdateParameterEnabled();
                 pnlSystem->Show();
                 pnlSystem->BringToFront();
             }
@@ -2145,14 +2147,11 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             {
                 if (Application->MessageBox("√‹¬Î¥ÌŒÛ£¨÷ÿ–¬ ‰»Î¬£ø", "√‹¬Î¥ÌŒÛ", MB_YESNO) == IDYES)
                 {
-                    if (admin_password == "")
-                    {
-                        InputPassword->Edit1->Text = "";
-                        if (InputPassword->ShowModal() == mrOk)
-                            admin_password = InputPassword->Edit1->Text;
-                        else
-                            return;// break;
-                    }
+                    InputPassword->Edit1->Text = "";
+                    if (InputPassword->ShowModal() == mrOk)
+                        admin_password = InputPassword->Edit1->Text;
+                    else
+                        return;// break;
 
                     // ∑¢ÀÕ√¸¡Ó
                     String cmd_text = D1608CMD_CONTROL_FLAG;
@@ -2328,6 +2327,8 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             memcpy(&global_config, preset_cmd.data, sizeof(global_config));
 
             global_config_loaded = true;
+
+            UpdateParameterEnabled();
 
             UpdateCaption();
 
@@ -4724,6 +4725,8 @@ void __fastcall TForm1::ApplyConfigToUI()
 
     EnableWindow(hIpEdit, rbStaticIpEnabled->Checked);
 
+    UpdateParameterEnabled();
+
     // –ﬁ∏ƒΩÁ√Ê
     for (int i=0;i<REAL_INPUT_DSP_NUM;i++)
     {
@@ -6774,6 +6777,7 @@ void __fastcall TForm1::btnLoadFileToFlashClick(TObject *Sender)
         smc_config.global_config.import_filename[0] = 'l';
         strncpy(smc_config.global_config.import_filename+1, ExtractFileName(OpenDialog1->FileName).c_str(), 8);
         global_config = smc_config.global_config;
+        UpdateParameterEnabled();
 
         for (int i=0;i<PRESET_NUM;i++)
         {
@@ -7878,6 +7882,7 @@ void TForm1::CloseControlLink(String reason)
     SendDisconnect();
     udpControl->Active = false;
     broken_count++;
+    admin_password_ok = false;
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::output_panel_level_editEnter(TObject *Sender)
@@ -8178,6 +8183,24 @@ void __fastcall TForm1::cbLockParameterClick(TObject *Sender)
     String cmd_text = D1608CMD_CONTROL_FLAG;
     cmd_text = cmd_text+String("config.lock_parameter=")+(cbLockParameter->Checked?"on":"off");
     SendCmd(cmd_text+D1608CMD_TAIL);
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::imgMaskMouseDown(TObject *Sender,
+      TMouseButton Button, TShiftState Shift, int X, int Y)
+{
+    if (admin_password == "")
+    {
+        InputPassword->Edit1->Text = "";
+        if (InputPassword->ShowModal() == mrOk)
+            admin_password = InputPassword->Edit1->Text;
+        else
+            return;// break;
+    }
+    // ∑¢ÀÕ√¸¡Ó
+    String cmd_text = D1608CMD_CONTROL_FLAG;
+    cmd_text = cmd_text+ "config.admin="+admin_password;
+    SendCmd2(cmd_text+D1608CMD_TAIL);
+    SendCmd2(cmd_text);
 }
 //---------------------------------------------------------------------------
 

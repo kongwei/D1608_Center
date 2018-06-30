@@ -522,6 +522,7 @@ __published:	// IDE-managed Components
     TSpeedButton *btnAdminPassword;
     TLabel *Label18;
     TCheckBox *cbLockParameter;
+    TImage *imgMask;
     void __fastcall FormCreate(TObject *Sender);
     void __fastcall btnRefreshClick(TObject *Sender);
     void __fastcall udpSLPUDPRead(TObject *Sender, TStream *AData,
@@ -716,6 +717,8 @@ __published:	// IDE-managed Components
     void __fastcall Edit3Enter(TObject *Sender);
     void __fastcall btnAdminPasswordClick(TObject *Sender);
     void __fastcall cbLockParameterClick(TObject *Sender);
+    void __fastcall imgMaskMouseDown(TObject *Sender, TMouseButton Button,
+          TShiftState Shift, int X, int Y);
 private:
     HANDLE h_sem;
 
@@ -1020,6 +1023,16 @@ private:
     void HideLockConfigArea();
 private:
     String admin_password;
+    bool admin_password_ok;
+    void UpdateParameterEnabled()
+    {
+        bool value = (global_config.lock_parameter==0 || admin_password_ok);
+        //pnlOperator->Enabled = value;
+        if (value)
+            imgMask->SendToBack();
+        else
+            imgMask->BringToFront();
+    }
 private:
     bool need_resize;
 

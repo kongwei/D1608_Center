@@ -149,6 +149,10 @@ std::vector<UINT> ProcessTextCommand(String command_head)
             {
                 global_config.usart3_receive_other_ack = StringToBool(result.value);
             }
+            else if (!strcasecmp(result.vars[1].var_name, "lock_parameter") && IsValidBoolString(result.value))
+            {
+                global_config.lock_parameter = StringToBool(result.value);
+            }
 
             // 用 -1 表示立即刷新
             ret.insert(ret.begin(), -1);
