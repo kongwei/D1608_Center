@@ -363,9 +363,6 @@ __published:	// IDE-managed Components
     TPanel *iDA_13_16;
     TCheckBox *cbCompAutoTime;
     TLabel *Label47;
-    TListView *lvDevice;
-    TLabel *Label50;
-    TBevel *Bevel10;
     TEdit *edtDeviceType;
     TRadioButton *rbStaticIpEnabled;
     TRadioButton *rbDhcpEnabled;
@@ -482,7 +479,6 @@ __published:	// IDE-managed Components
     TButton *btnInsertUserLog;
     TLabel *lblDeviceRunningTime2;
     TButton *Button1;
-    TButton *btnDisconnect;
     TLabel *lblCpuId;
     TLabel *lblSn;
     TLabel *lblConfigFilename;
@@ -523,6 +519,15 @@ __published:	// IDE-managed Components
     TLabel *Label18;
     TCheckBox *cbLockParameter;
     TImage *imgMask;
+    TTabSheet *TabSheet4;
+    TBevel *Bevel10;
+    TLabel *Label50;
+    TButton *btnDisconnect;
+    TListView *lvDevice;
+    TSpeedButtonNoFrame *SpeedButtonNoFrame5;
+    TPanel *pnlConnect;
+    TPaintBox *PaintBox5;
+    TBevel *Bevel1;
     void __fastcall FormCreate(TObject *Sender);
     void __fastcall btnRefreshClick(TObject *Sender);
     void __fastcall udpSLPUDPRead(TObject *Sender, TStream *AData,
@@ -719,6 +724,7 @@ __published:	// IDE-managed Components
     void __fastcall cbLockParameterClick(TObject *Sender);
     void __fastcall imgMaskMouseDown(TObject *Sender, TMouseButton Button,
           TShiftState Shift, int X, int Y);
+    void __fastcall PaintBox5Paint(TObject *Sender);
 private:
     HANDLE h_sem;
 

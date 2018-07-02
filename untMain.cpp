@@ -853,6 +853,7 @@ __fastcall TForm1::TForm1(TComponent* Owner)
     pnlDspDetail->DoubleBuffered = true;
     pnlHeader->DoubleBuffered = true;
     pnlMonitor->DoubleBuffered = true;
+    pnlConnect->DoubleBuffered = true;
 
     // 受到滤波器数量影响
     panel_agent->SetPanel(0, panelBand0, edtFreq0, edtQ0, edtGain0, cbType0, cbBypass0);
@@ -1077,6 +1078,7 @@ void __fastcall TForm1::FormCreate(TObject *Sender)
     pnlMonitor->Parent = this;
     pnlSystem->Parent = this;
     pnlMist->Parent = this;
+    pnlConnect->Parent = this;
     PageControl1->Hide();
 
     TInitCommonControlsEx ICC;
@@ -5929,7 +5931,7 @@ void __fastcall TForm1::SpeedButtonNoFrame2MouseDown(TObject *Sender,
     TControl* control = (TControl*)Sender;
     int tag = control->Tag;
     if (Button == mbRight)
-        tag = tag + 3;
+        tag = tag + 4;
 
     ActiveControl = NULL;
 
@@ -5967,6 +5969,10 @@ void __fastcall TForm1::SpeedButtonNoFrame2MouseDown(TObject *Sender,
         }
         break;
     case 3:
+        pnlConnect->Show();
+        pnlConnect->BringToFront();
+        break;
+    case 4:
         if (is_inner_pc)
         {
             pnlMist->Show();
@@ -5981,7 +5987,7 @@ void __fastcall TForm1::SpeedButtonNoFrame2MouseDown(TObject *Sender,
     }
     switch (tag)
     {
-    case 3:
+    case 4:
         break;
     default:
         // 用pnlMist->Visible表示是否需要刷新电压数据显示
@@ -6161,8 +6167,9 @@ void __fastcall TForm1::PaintBox3Paint(TObject *Sender)
         bmp->Canvas->Handle, 0, 0, Bevel7->Width,Bevel7->Height, blend);
 
     ::AlphaBlend(PaintBox3->Canvas->Handle,
-        Bevel10->Left,Bevel10->Top,Bevel10->Width,Bevel10->Height,
-        bmp->Canvas->Handle, 0, 0, Bevel10->Width,Bevel10->Height, blend);
+        Bevel1->Left,Bevel1->Top,Bevel1->Width,Bevel1->Height,
+        bmp->Canvas->Handle, 0, 0, Bevel1->Width,Bevel1->Height, blend);
+
 
     // 设置CheckBox的背景
     // bmp->Canvas->Pixels[rbDhcpEnabled->Left+1][rbDhcpEnabled->Top+1];
@@ -8227,6 +8234,30 @@ void __fastcall TForm1::imgMaskMouseDown(TObject *Sender,
     cmd_text = cmd_text+ "parameter.admin="+admin_password;
     SendCmd2(cmd_text+D1608CMD_TAIL);
     SendCmd2(cmd_text);
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::PaintBox5Paint(TObject *Sender)
+{
+    Graphics::TBitmap * bmp = new Graphics::TBitmap();
+    bmp->Width = 500;
+    bmp->Height = 500;
+    bmp->Canvas->Brush->Color = TColor(0x4A392C);
+    bmp->Canvas->FillRect(Rect(0,0,500,500));
+
+
+    PaintBox5->Canvas->Draw(0,0,imgBody->Picture->Graphic);
+
+    BLENDFUNCTION blend;
+    blend.BlendOp = AC_SRC_OVER;
+    blend.BlendFlags = 0;
+    blend.SourceConstantAlpha = 200;
+    blend.AlphaFormat = 0;
+
+    ::AlphaBlend(PaintBox5->Canvas->Handle,
+        Bevel10->Left,Bevel10->Top,Bevel10->Width,Bevel10->Height,
+        bmp->Canvas->Handle, 0, 0, Bevel10->Width,Bevel10->Height, blend);
+
+    delete bmp;
 }
 //---------------------------------------------------------------------------
 
