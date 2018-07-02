@@ -699,7 +699,7 @@ void PaintAgent::PaintThumbnail(TPaintBox * Thumbnail, FilterSet & filter_set)
     // 清除图像
     //gdiplus_g.Clear(BACKGROUND_COLOR);
     SolidBrush brush(BACKGROUND_COLOR);
-    gdiplus_g.FillPie(&brush, -6,-6,40+2*6-1,33+2*6-1, 0,360);
+    gdiplus_g.FillPie(&brush, -7,-7,40+2*7-1,40+2*7-1, 0,360);
 
     double point[1001];
     // 绘制所有filter图像
