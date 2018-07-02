@@ -2136,6 +2136,8 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
                 keep_live_count = CONTROL_TIMEOUT_COUNT;
                 received_cmd_seq = 0;    pre_received_msg_id = 0;
             }
+
+            // config.admin ”Î parameter.admin ∏ﬂ∂»œ‡À∆
             else if (!cmd_string.SubString(1,15).AnsiCompareIC("config.admin=ok"))
             {
                 admin_password_ok = true;
@@ -2160,6 +2162,30 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
                     SendCmd2(cmd_text);
                 }
             }
+            
+            else if (!cmd_string.SubString(1,18).AnsiCompareIC("parameter.admin=ok"))
+            {
+                admin_password_ok = true;
+                UpdateParameterEnabled();
+            }
+            else if (!cmd_string.SubString(1,21).AnsiCompareIC("parameter.admin=error"))
+            {
+                if (Application->MessageBox("√‹¬Î¥ÌŒÛ£¨÷ÿ–¬ ‰»Î¬£ø", "√‹¬Î¥ÌŒÛ", MB_YESNO) == IDYES)
+                {
+                    InputPassword->Edit1->Text = "";
+                    if (InputPassword->ShowModal() == mrOk)
+                        admin_password = InputPassword->Edit1->Text;
+                    else
+                        return;// break;
+
+                    // ∑¢ÀÕ√¸¡Ó
+                    String cmd_text = D1608CMD_CONTROL_FLAG;
+                    cmd_text = cmd_text+ "parameter.admin="+admin_password;
+                    SendCmd2(cmd_text+D1608CMD_TAIL);
+                    SendCmd2(cmd_text);
+                }
+            }
+
             else if (!cmd_string.AnsiCompareIC("config.action=reboot]")
                   || !cmd_string.AnsiCompareIC("config.action=init]")
                   || !cmd_string.AnsiCompareIC("config.action=clear_preset]"))
@@ -8198,7 +8224,7 @@ void __fastcall TForm1::imgMaskMouseDown(TObject *Sender,
     }
     // ∑¢ÀÕ√¸¡Ó
     String cmd_text = D1608CMD_CONTROL_FLAG;
-    cmd_text = cmd_text+ "config.admin="+admin_password;
+    cmd_text = cmd_text+ "parameter.admin="+admin_password;
     SendCmd2(cmd_text+D1608CMD_TAIL);
     SendCmd2(cmd_text);
 }
