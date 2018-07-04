@@ -3,6 +3,7 @@ object InputPassword: TInputPassword
   Top = 255
   Width = 426
   Height = 225
+  ActiveControl = Edit1
   Caption = #36755#20837#23494#30721
   Color = clBtnFace
   Font.Charset = GB2312_CHARSET

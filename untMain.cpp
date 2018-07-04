@@ -1618,6 +1618,8 @@ void __fastcall TForm1::btnSelectClick(TObject *Sender)
     String broadcast_ip = selected->SubItems->Strings[1];
         lvLog->Clear();
 
+    admin_password = "";
+
     sendcmd_list.clear();
     // 初始化socket
     CloseControlLink("准备连接到新的下位机, 重置连接");
@@ -3198,9 +3200,21 @@ static void ApplyLogData( TListItem* item, Event event, int address, String syn_
         item->SubItems->Add("存盘或者恢复数量");
         item->SubItems->Add(event.event_data);
         break;
+    case EVENT_SPI_REENTER:
+        item->SubItems->Add("SPI重入错误");
+        item->SubItems->Add(event.event_data);
+        break;
+    case EVENT_EQ_COEF_ERR:
+        item->SubItems->Add("EQ系数错误");
+        item->SubItems->Add(event.event_data);
+        break;
+    case EVENT_POWER_SAVE_OK_TIME:
+        item->SubItems->Add("关机存盘成功时间");
+        item->SubItems->Add(event.event_data);
+        break;
     default:
         item->SubItems->Add(event.event_id);
-        item->SubItems->Add("0x"+IntToHex(event.event_data, 2));
+        item->SubItems->Add(IntToStr(event.event_data) + "(0x"+IntToHex(event.event_data, 2)+")");
         break;
     }
 
