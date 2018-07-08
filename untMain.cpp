@@ -525,10 +525,10 @@ static void CreateOutputPanel(int panel_id, TForm1 * form)
 }
 static void CopyWatchPanel(int panel_id, TForm1 * form, String label, int left)
 {
-    TPanel * watch_panel = new TPanel(form->pnlOperator);
+    TPanel * watch_panel = new TPanel(form->pnlOprX);
     watch_panel->SetBounds(left, form->watch_panel->Top, form->watch_panel->Width, form->watch_panel->Height);
     watch_panel->BevelOuter = form->watch_panel->BevelOuter;
-    watch_panel->Parent = form->pnlOperator;
+    watch_panel->Parent = form->pnlOprX;
     watch_panel->Color = form->watch_panel->Color;
     form->watch_panel_inner[panel_id-1] = watch_panel;
 
@@ -849,6 +849,7 @@ __fastcall TForm1::TForm1(TComponent* Owner)
     paint_agent = new PaintAgent(PaintBox1, pbComp, filter_set);
     filter_set.Register(paint_agent, panel_agent);
 
+    pnlOprX->DoubleBuffered = true;
     pnlOperator->DoubleBuffered = true;
     pnlDspDetail->DoubleBuffered = true;
     pnlHeader->DoubleBuffered = true;
@@ -2151,22 +2152,10 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             }
             else if (!cmd_string.SubString(1,18).AnsiCompareIC("config.admin=error"))
             {
-                if (Application->MessageBox("√‹¬Î¥ÌŒÛ£¨÷ÿ–¬ ‰»Î¬£ø", "√‹¬Î¥ÌŒÛ", MB_YESNO) == IDYES)
-                {
-                    InputPassword->Edit1->Text = "";
-                    if (InputPassword->ShowModal() == mrOk)
-                        admin_password = InputPassword->Edit1->Text;
-                    else
-                        return;// break;
-
-                    // ∑¢ÀÕ√¸¡Ó
-                    String cmd_text = D1608CMD_CONTROL_FLAG;
-                    cmd_text = cmd_text+ "config.admin="+admin_password;
-                    SendCmd2(cmd_text+D1608CMD_TAIL);
-                    SendCmd2(cmd_text);
-                }
+                PostMessage(btnConfigPasswordError->Handle, WM_LBUTTONDOWN, MK_LBUTTON, NULL);
+                PostMessage(btnConfigPasswordError->Handle, WM_LBUTTONUP, MK_LBUTTON, NULL);
             }
-            
+
             else if (!cmd_string.SubString(1,18).AnsiCompareIC("parameter.admin=ok"))
             {
                 admin_password_ok = true;
@@ -2174,20 +2163,8 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             }
             else if (!cmd_string.SubString(1,21).AnsiCompareIC("parameter.admin=error"))
             {
-                if (Application->MessageBox("√‹¬Î¥ÌŒÛ£¨÷ÿ–¬ ‰»Î¬£ø", "√‹¬Î¥ÌŒÛ", MB_YESNO) == IDYES)
-                {
-                    InputPassword->Edit1->Text = "";
-                    if (InputPassword->ShowModal() == mrOk)
-                        admin_password = InputPassword->Edit1->Text;
-                    else
-                        return;// break;
-
-                    // ∑¢ÀÕ√¸¡Ó
-                    String cmd_text = D1608CMD_CONTROL_FLAG;
-                    cmd_text = cmd_text+ "parameter.admin="+admin_password;
-                    SendCmd2(cmd_text+D1608CMD_TAIL);
-                    SendCmd2(cmd_text);
-                }
+                PostMessage(btnParameterPasswordError->Handle, WM_LBUTTONDOWN, MK_LBUTTON, NULL);
+                PostMessage(btnParameterPasswordError->Handle, WM_LBUTTONUP, MK_LBUTTON, NULL);
             }
 
             else if (!cmd_string.AnsiCompareIC("config.action=reboot]")
@@ -4724,6 +4701,8 @@ void __fastcall TForm1::ApplyConfigToUI()
     }
 
     cbLockUpDownMenuKey->Checked = global_config.lock_updownmenu;
+    cbLockParameter->Checked = global_config.lock_parameter;
+    cbPresetAutoSaved->Checked = global_config.auto_saved;
 
     {
         // º”√‹«¯”Ú
@@ -5960,15 +5939,22 @@ void __fastcall TForm1::SpeedButtonNoFrame2MouseDown(TObject *Sender,
         pnlMonitor->BringToFront();
         break;
     case 2:
-        if (global_config.admin_password[0] != 0)
+        if (String(global_config.admin_password) == String("need password"))
         {
             if (admin_password == "")
             {
                 InputPassword->Edit1->Text = "";
                 if (InputPassword->ShowModal() == mrOk)
-                    admin_password = InputPassword->Edit1->Text;
+                {
+                    char tmp_admin_password[20];
+                    ConfusionChar(InputPassword->Edit1->Text.c_str(), tmp_admin_password, D1608CMD_CONTROL_FLAG);
+
+                    admin_password = tmp_admin_password;
+                }
                 else
+                {
                     return;// break;
+                }
             }
             // ∑¢ÀÕ√¸¡Ó
             String cmd_text = D1608CMD_CONTROL_FLAG;
@@ -6627,6 +6613,7 @@ void __fastcall TForm1::Label42Click(TObject *Sender)
 void __fastcall TForm1::cbGlobalDspNameClick(TObject *Sender)
 {
     //ApplyConfigToUI();
+    global_config.is_global_name = cbGlobalDspName->Checked;
 
     String cmd_text = D1608CMD_CONTROL_FLAG;
     cmd_text = cmd_text+String("config.use_global_name=")+(cbGlobalDspName->Checked?"on":"off");
@@ -6635,6 +6622,8 @@ void __fastcall TForm1::cbGlobalDspNameClick(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TForm1::cbPresetAutoSavedClick(TObject *Sender)
 {
+    global_config.auto_saved = cbPresetAutoSaved->Checked;
+
     String cmd_text = D1608CMD_CONTROL_FLAG;
     cmd_text = cmd_text+String("config.auto_saved=")+(cbPresetAutoSaved->Checked?"on":"off");
     SendCmd(cmd_text+D1608CMD_TAIL);
@@ -6683,8 +6672,9 @@ void __fastcall TForm1::cbDownKeyFunctionChange(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TForm1::cbLockUpDownMenuKeyClick(TObject *Sender)
 {
-    String cmd_text = D1608CMD_CONTROL_FLAG;
+    global_config.lock_updownmenu = cbLockUpDownMenuKey->Checked;
 
+    String cmd_text = D1608CMD_CONTROL_FLAG;
     cmd_text = cmd_text+"config.lock_key="+String(cbLockUpDownMenuKey->Checked?"on":"off");
     SendCmd2(cmd_text+D1608CMD_TAIL);
 }
@@ -7752,6 +7742,9 @@ void __fastcall TForm1::btnDisconnectClick(TObject *Sender)
     REAL_OUTPUT_DSP_NUM = 16;
     need_resize = true;
 
+    // ∂œø™÷Æ∫Û£¨≤ª–Ë“™√‹¬Î¡À
+    memset(global_config.admin_password, 0, sizeof(global_config.admin_password));
+
     ClearUI();
 }
 //---------------------------------------------------------------------------
@@ -8216,17 +8209,22 @@ void __fastcall TForm1::Edit3Enter(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TForm1::btnAdminPasswordClick(TObject *Sender)
 {
-    strncpy(global_config.admin_password, edtAdminPassword->Text.c_str(), 20);
+    edtAdminPassword->Text = edtAdminPassword->Text.SubString(1, 12);
+    ConfusionChar(edtAdminPassword->Text.c_str(), global_config.admin_password, D1608CMD_CONTROL_FLAG);
 
     String cmd_text = D1608CMD_CONTROL_FLAG;
-    cmd_text = cmd_text+"config.admin_password="+edtAdminPassword->Text.SubString(1,20);
+    cmd_text = cmd_text+"config.admin_password="+String(global_config.admin_password);
     SendCmd2(cmd_text+D1608CMD_TAIL);
+
+    ProcessTextCommand(cmd_text+D1608CMD_TAIL);
 
     edtAdminPassword->Text = "";
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::cbLockParameterClick(TObject *Sender)
 {
+    global_config.lock_parameter = cbLockParameter->Checked;
+
     String cmd_text = D1608CMD_CONTROL_FLAG;
     cmd_text = cmd_text+String("config.lock_parameter=")+(cbLockParameter->Checked?"on":"off");
     SendCmd(cmd_text+D1608CMD_TAIL);
@@ -8272,6 +8270,56 @@ void __fastcall TForm1::PaintBox5Paint(TObject *Sender)
         bmp->Canvas->Handle, 0, 0, Bevel10->Width,Bevel10->Height, blend);
 
     delete bmp;
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::btnConfigPasswordErrorClick(TObject *Sender)
+{
+    if (Application->MessageBox("√‹¬Î¥ÌŒÛ£¨÷ÿ–¬ ‰»Î¬£ø", "√‹¬Î¥ÌŒÛ", MB_YESNO) == IDYES)
+    {
+        InputPassword->Edit1->Text = "";
+        if (InputPassword->ShowModal() == mrOk)
+        {
+            char tmp_admin_password[20];
+            ConfusionChar(InputPassword->Edit1->Text.c_str(), tmp_admin_password, D1608CMD_CONTROL_FLAG);
+
+            admin_password = tmp_admin_password;
+        }
+        else
+        {
+            return;// break;
+        }
+
+        // ∑¢ÀÕ√¸¡Ó
+        String cmd_text = D1608CMD_CONTROL_FLAG;
+        cmd_text = cmd_text+ "config.admin="+admin_password;
+        SendCmd2(cmd_text+D1608CMD_TAIL);
+        SendCmd2(cmd_text);
+    }
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::btnParameterPasswordErrorClick(TObject *Sender)
+{
+    if (Application->MessageBox("√‹¬Î¥ÌŒÛ£¨÷ÿ–¬ ‰»Î¬£ø", "√‹¬Î¥ÌŒÛ", MB_YESNO) == IDYES)
+    {
+        InputPassword->Edit1->Text = "";
+        if (InputPassword->ShowModal() == mrOk)
+        {
+            char tmp_admin_password[20];
+            ConfusionChar(InputPassword->Edit1->Text.c_str(), tmp_admin_password, D1608CMD_CONTROL_FLAG);
+
+            admin_password = tmp_admin_password;
+        }
+        else
+        {
+            return;// break;
+        }
+
+        // ∑¢ÀÕ√¸¡Ó
+        String cmd_text = D1608CMD_CONTROL_FLAG;
+        cmd_text = cmd_text+ "parameter.admin="+admin_password;
+        SendCmd2(cmd_text+D1608CMD_TAIL);
+        SendCmd2(cmd_text);
+    }
 }
 //---------------------------------------------------------------------------
 

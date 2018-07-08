@@ -15,6 +15,7 @@ __published:	// IDE-managed Components
     TLabel *Label1;
     TButton *Button1;
     TButton *Button2;
+    void __fastcall FormShow(TObject *Sender);
 private:	// User declarations
 public:		// User declarations
     __fastcall TInputPassword(TComponent* Owner);

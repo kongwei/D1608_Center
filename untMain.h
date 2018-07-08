@@ -315,7 +315,7 @@ __published:	// IDE-managed Components
     TTimer *tmLed;
     TShape *shape_live;
     TImage *imgBody;
-    TPanel *pnlOperator;
+    TPanel *pnlOprX;
     TPanel *pnlMonitor;
     TPanel *pnlSystem;
     TPanel *pnlMist;
@@ -518,7 +518,6 @@ __published:	// IDE-managed Components
     TSpeedButton *btnAdminPassword;
     TLabel *Label18;
     TCheckBox *cbLockParameter;
-    TImage *imgMask;
     TTabSheet *TabSheet4;
     TBevel *Bevel10;
     TLabel *Label50;
@@ -528,6 +527,10 @@ __published:	// IDE-managed Components
     TPanel *pnlConnect;
     TPaintBox *PaintBox5;
     TBevel *Bevel1;
+    TPanel *pnlOperator;
+    TImage *imgMask;
+    TButton *btnConfigPasswordError;
+    TButton *btnParameterPasswordError;
     void __fastcall FormCreate(TObject *Sender);
     void __fastcall btnRefreshClick(TObject *Sender);
     void __fastcall udpSLPUDPRead(TObject *Sender, TStream *AData,
@@ -725,6 +728,8 @@ __published:	// IDE-managed Components
     void __fastcall imgMaskMouseDown(TObject *Sender, TMouseButton Button,
           TShiftState Shift, int X, int Y);
     void __fastcall PaintBox5Paint(TObject *Sender);
+    void __fastcall btnConfigPasswordErrorClick(TObject *Sender);
+    void __fastcall btnParameterPasswordErrorClick(TObject *Sender);
 private:
     HANDLE h_sem;
 
@@ -1033,11 +1038,16 @@ private:
     void UpdateParameterEnabled()
     {
         bool value = (global_config.lock_parameter==0 || admin_password_ok);
-        //pnlOperator->Enabled = value;
         if (value)
+        {
             imgMask->SendToBack();
+            pnlOprX->Enabled = true;
+        }
         else
+        {
             imgMask->BringToFront();
+            pnlOprX->Enabled = false;
+        }
     }
 private:
     bool need_resize;

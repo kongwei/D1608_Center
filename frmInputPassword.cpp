@@ -14,4 +14,9 @@ __fastcall TInputPassword::TInputPassword(TComponent* Owner)
 {
 }
 //---------------------------------------------------------------------------
+void __fastcall TInputPassword::FormShow(TObject *Sender)
+{
+    this->ActiveControl = Edit1;
+}
+//---------------------------------------------------------------------------
 

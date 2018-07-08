@@ -13,6 +13,7 @@ object InputPassword: TInputPassword
   Font.Style = []
   OldCreateOrder = False
   Position = poMainFormCenter
+  OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 21
   object Label1: TLabel
@@ -27,6 +28,7 @@ object InputPassword: TInputPassword
     Top = 56
     Width = 121
     Height = 29
+    MaxLength = 12
     PasswordChar = '*'
     TabOrder = 0
     Text = 'Edit1'
@@ -37,6 +39,7 @@ object InputPassword: TInputPassword
     Width = 75
     Height = 25
     Caption = #30830#23450
+    Default = True
     ModalResult = 1
     TabOrder = 1
   end
