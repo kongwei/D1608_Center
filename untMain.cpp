@@ -1054,6 +1054,10 @@ void TForm1::HideLockConfigArea()
 }
 void __fastcall TForm1::FormCreate(TObject *Sender)
 {
+    // 设置时间格式
+    DateSeparator = '/';
+    TimeSeparator = ':';
+
     // 设置页的界面调整
     Label19             ->Top = Label19             ->Top - 246;
     Label22             ->Top = Label22             ->Top - 246;
@@ -2038,29 +2042,22 @@ char * TextCmdPtr(char * str)
 void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
       TIdSocketHandle *ABinding)
 {
-    if (ABinding->PeerPort == UDP_PORT_GET_DEBUG_INFO_EX)
+    if (ABinding->PeerPort == UDP_GET_ERROR_LOG)//UDP_PORT_GET_DEBUG_INFO_EX
     {
-        T_Debug debug_cmd;
-        AData->ReadBuffer(&debug_cmd, std::min(sizeof(debug_cmd), AData->Size));
+#if 0
+        Event events[200];
+        AData->ReadBuffer(&events, std::min(sizeof(events), AData->Size));
 
-        String windows_string = debug_cmd.debug_cmd;
-        int len = windows_string.Length();        
-        if (windows_string[len] == '\n')
+        int count = AData->Size / sizeof(Event);
+        count = min(count, 200);
+        
+        for (int i=0;i<count;i++)
         {
-            windows_string.SetLength(len-1);
+        //
         }
 
-        if (memo_debug_ex->Lines->Count == 0)
-        {
-            windows_string = StringReplace(windows_string, "\n", "\r\n", TReplaceFlags()<<rfReplaceAll<<rfIgnoreCase);
-        }
-        else
-        {
-            int index = windows_string.Pos("\n");
-            windows_string = windows_string.SubString(index+1, windows_string.Length());
-        }
-
-        memo_debug_ex->Lines->Add(windows_string);
+        //memo_debug_ex->Lines->Add();
+#endif
     }
     else if (ABinding->PeerPort == UDP_PORT_CONTROL)
     {
@@ -8014,7 +8011,9 @@ void __fastcall TForm1::btnDebugInfoExClick(TObject *Sender)
     String cmd_text = DEBUG_FLAG;
     cmd_text = cmd_text+"probe="+edtDebufExPort->Text;
     SendCmd2(cmd_text+D1608CMD_TAIL);
-    //SendBuffer(dst_ip, UDP_PORT_GET_DEBUG_INFO_EX, "", 1);
+
+    //char buf[2] = "1";
+    //udpControl->SendBuffer(dst_ip, UDP_GET_ERROR_LOG, buf, 1);
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::btnStopDebugInfoExClick(TObject *Sender)
