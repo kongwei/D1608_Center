@@ -144,7 +144,12 @@ struct DeviceData
 DeviceData last_connection;
 
 static unsigned int received_cmd_seq = 0;
+
 //------------------------------------------------
+
+static String Event2Sring(Event event);
+//------------------------------------------------
+
 // 版本兼容信息
 static UINT version = 0x04000001;
 static UINT file_version = 0x00000003;
@@ -2044,8 +2049,8 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
 {
     if (ABinding->PeerPort == UDP_GET_ERROR_LOG)//UDP_PORT_GET_DEBUG_INFO_EX
     {
-#if 0
-        Event events[200];
+#if 1
+        Event events[200] = {0};
         AData->ReadBuffer(&events, std::min(sizeof(events), AData->Size));
 
         int count = AData->Size / sizeof(Event);
@@ -2053,7 +2058,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
         
         for (int i=0;i<count;i++)
         {
-        //
+            memo_debug_ex->Lines->Add( Event2Sring(events[i]) );
         }
 
         //memo_debug_ex->Lines->Add();
@@ -2897,7 +2902,7 @@ static String GetNameOfAdc(int index)
     else
         return IntToStr(index);
 }
-static void ApplyLogData( TListItem* item, Event event, int address, String syn_time)
+static void ApplyLogData(TListItem* item, Event event, int address, String syn_time)
 {
     unsigned int event_timer = event.timer;
     item->Data = (void*)address;
@@ -3193,6 +3198,299 @@ static void ApplyLogData( TListItem* item, Event event, int address, String syn_
     }
 
     item->SubItems->Add(syn_time);
+}
+static String Event2Sring(Event event)
+{
+    unsigned int event_timer = event.timer;
+
+    int ms = event_timer % 10;  event_timer /= 10;
+    int sec = event_timer % 60; event_timer /= 60;
+    int min = event_timer % 60; event_timer /= 60;
+
+    String item_caption;
+    item_caption.sprintf("_%d:%02d:%02d.%d", event_timer, min, sec, ms);
+
+    switch (event.event_id)
+    {
+    case EVENT_POWER_OFF:
+        item_caption = item_caption + " " +("关闭电源");
+        item_caption = item_caption + " " +("下次启动次数"+IntToStr(event.event_data));
+        break;
+    case EVENT_SYSTEM_LIMIT:
+        item_caption = item_caption + " " +("达到运行次数或时间限制");
+        item_caption = item_caption + " " +(event.event_data);
+        break;
+    case EVENT_SAVE_PRESET:
+        item_caption = item_caption + " " +("保存Preset");
+
+        {
+            String page_indexs = "Preset编号:"+IntToStr(((event.event_data>>8) & 0x7F));
+            if ((event.event_data & 0x7F) == 0)
+            {
+                item_caption = item_caption + " " +("不需要存盘");
+            }
+            else
+            {
+                page_indexs = page_indexs + " 存盘页:";
+                if (event.event_data & 1) page_indexs = page_indexs + "1,";
+                if (event.event_data & 2) page_indexs = page_indexs + "2,";
+                if (event.event_data & 4) page_indexs = page_indexs + "3,";
+                if (event.event_data & 8) page_indexs = page_indexs + "4,";
+                if (event.event_data & 16) page_indexs = page_indexs + "5,";
+                item_caption = item_caption + " " +(page_indexs);
+            }
+        }
+        break;
+    case EVENT_POWER_SAVE_OK:
+        item_caption = item_caption + " " +("关机存盘成功");
+        item_caption = item_caption + " " +("下次启动次数"+IntToStr(event.event_data));
+        break;
+    case EVENT_INPUT_OVERFLOW:
+        item_caption = item_caption + " " +("input通道音量满过载警告");
+        item_caption = item_caption + " " +("通道号"+IntToStr(event.event_data));
+        break;
+    case EVENT_OUTPUT_OVERFLOW:
+        item_caption = item_caption + " " +("output通道音量满过载警告");
+        item_caption = item_caption + " " +("通道号"+IntToStr(event.event_data));
+        break;
+    case EVENT_WRITE_FLASH_ERROR:
+        item_caption = item_caption + " " +("写flash错误");
+        item_caption = item_caption + " " +("地址:0x"+IntToHex(event.event_data * 2048, 8));
+        break;
+    case EVENT_REBOOT:
+        if (event.event_data < 0x10)
+        {
+            item_caption = item_caption + " " +("上位机发起重启");
+            if (event.event_data == 0)
+            {
+                item_caption = item_caption + " " +("重启");
+            }
+            else if (event.event_data == 1)
+            {
+                item_caption = item_caption + " " +("清除PRESER");
+            }
+            else if (event.event_data == 2)
+            {
+                item_caption = item_caption + " " +("恢复出厂设置");
+            }
+            else if (event.event_data == 10)
+            {
+                item_caption = item_caption + " " +("进入升级程序");
+            }
+            else
+            {
+                item_caption = item_caption + " " +(event.event_data);
+            }
+        }
+        else
+        {
+            item_caption = item_caption + " " +("上电时清除");
+            if (event.event_data == 0x011)
+            {
+                item_caption = item_caption + " " +("清除PRESER");
+            }
+            else if (event.event_data == 0x12)
+            {
+                item_caption = item_caption + " " +("恢复出厂设置");
+            }
+            else
+            {
+                item_caption = item_caption + " " +(event.event_data);
+            }
+        }
+        break;
+    case EVENT_SAVE_PRESET_OK:
+        item_caption = item_caption + " " +("存盘完成");
+        {
+            String page_indexs = "存盘页";
+            if (event.event_data & 1) page_indexs = page_indexs + "1,";
+            if (event.event_data & 2) page_indexs = page_indexs + "2,";
+            if (event.event_data & 4) page_indexs = page_indexs + "3,";
+            if (event.event_data & 8) page_indexs = page_indexs + "4,";
+            if (event.event_data & 16) page_indexs = page_indexs + "5,";
+            item_caption = item_caption + " " +(page_indexs);
+        }
+        break;
+    case EVENT_CHECK_MD5_FAIL:
+        item_caption = item_caption + " " +("激活码错误");
+        item_caption = item_caption + " " +("");
+        break;
+    case EVENT_28J60_REINIT_ERROR:
+        item_caption = item_caption + " " +("ENC28J60初始化警告");
+        item_caption = item_caption + " " +("失败次数:"+IntToStr(event.event_data));
+        break;
+    case EVENT_MAC_ADDRESS_OVERFLOW:
+        item_caption = item_caption + " " +("MAC地址日志溢出");
+        item_caption = item_caption + " " +("");
+        break;
+    case EVENT_NO_KEY:
+        item_caption = item_caption + " " +("设备授权错误");
+        item_caption = item_caption + " " +("");
+        break;
+    case EVENT_DSP_NOT_MATCH_ERROR:
+        item_caption = item_caption + " " +("YSS920与配置不符错误");
+        if (event.event_data > 0x80)
+            item_caption = item_caption + " " +("缺少:"+IntToStr(event.event_data-0x80));
+        else
+            item_caption = item_caption + " " +("多出:"+IntToStr(event.event_data));
+        break;
+    case EVENT_LED_NUM_ERR:
+        item_caption = item_caption + " " +("LED控制芯片错误");
+        item_caption = item_caption + " " +(event.event_data);
+        break;
+    case EVENT_FILENAME_CHANGED:
+        item_caption = item_caption + " " +("导入/导出配置");
+        if (event.event_data == 1)
+            item_caption = item_caption + " " +("Load From File");
+        else
+            item_caption = item_caption + " " +("Save To File");
+        break;
+    case EVENT_SET_MAC_ADDRESS:
+        item_caption = item_caption + " " +("设置了MAC地址");
+        item_caption = item_caption + " " +(IntToHex(event.event_data, 6));
+        break;
+    case EVENT_ADDA_ERROR:
+        if (event.event_data > 32)
+            item_caption = item_caption + " " +("AD数量与配置不符错误");
+        else
+            item_caption = item_caption + " " +("DA数量与配置不符错误");
+        item_caption = item_caption + " " +("现有数量："+IntToStr(event.event_data%32));
+        break;
+    case EVENT_EACH_HOUR:
+        item_caption = item_caption + " " +("开机每小时标识");
+        item_caption = item_caption + " " +(IntToStr(event.event_data));
+        break;
+    case EVENT_TIME_1:
+        item_caption = item_caption + " " +("时间同步信息1");
+        item_caption = item_caption + " " +("0x"+IntToHex(event.event_data, 4));
+        break;
+    case EVENT_TIME_2:
+        item_caption = item_caption + " " +("时间同步信息2");
+        item_caption = item_caption + " " +("0x"+IntToHex(event.event_data, 4));
+        break;
+    case EVENT_TIME_3:
+        item_caption = item_caption + " " +("时间同步信息3");
+        item_caption = item_caption + " " +("0x"+IntToHex(event.event_data, 4));
+        break;
+    case EVENT_TIME_4:
+        item_caption = item_caption + " " +("时间同步信息4");
+        item_caption = item_caption + " " +("0x"+IntToHex(event.event_data, 4));
+        break;
+    case EVENT_SAVE_LOAD_TIMEOUT:
+        item_caption = item_caption + " " +("存盘或者恢复超时错误");
+        item_caption = item_caption + " " +(event.event_data==1?"LOAD FROM FILE":"SAVE TO FILE");
+        break;
+    case EVENT_48V:
+        item_caption = item_caption + " " +("48V与硬件不匹配");
+        item_caption = item_caption + " " +(event.event_data==0?"缺少":"多出");
+        break;
+    case EVENT_RESET_RUNNING_TIME:
+        item_caption = item_caption + " " +("重置运行时间警告");
+        item_caption = item_caption + " " +("");
+        break;
+    case EVENT_IWDG_REBOOT:
+        item_caption = item_caption + " " +("上次运行期间看门狗异常错误");
+        item_caption = item_caption + " " +("");
+        break;
+    case EVENT_POWER_SAVE_ERROR:
+        item_caption = item_caption + " " +("掉电存盘错误");
+        item_caption = item_caption + " " +(IntToStr(event.event_data));
+        break;
+    case EVENT_28J60_VERSION_ERROR:
+        {
+            item_caption = item_caption + " " +("28J60版本号错误");
+            item_caption = item_caption + " " +(IntToStr((event.event_data>>8)&0xFF)+" -> " + IntToStr(event.event_data&0xFF));
+        }
+        break;
+    case EVENT_UPGRADE_DATE:
+        item_caption = item_caption + " " +("升级时版本日期");
+        item_caption = item_caption + " " +(IntToHex(event.event_data, 4));
+        break;
+    case EVENT_UPGRADE_TIME:
+        item_caption = item_caption + " " +("升级时版本时间");
+        item_caption = item_caption + " " +(IntToHex(event.event_data, 4));
+        break;
+    case EVENT_MCU_CLK_ERR:
+        if (event.event_data == 0)
+        {
+            item_caption = item_caption + " " +("时钟校准");
+            item_caption = item_caption + " " +("正常");
+        }
+        else if (event.event_data == 1)
+        {
+            item_caption = item_caption + " " +("时钟校准异常警告");
+            item_caption = item_caption + " " +("设备时钟快5%以上");
+        }
+        else if (event.event_data == 2)
+        {
+            item_caption = item_caption + " " +("时钟校准异常警告");
+            item_caption = item_caption + " " +("设备时钟慢5%以上");
+        }
+        else
+        {
+            item_caption = item_caption + " " +("时钟校准异常数据");
+            item_caption = item_caption + " " +(IntToHex(event.event_data, 2));
+        }
+        break;
+    case EVENT_VOTE_UP_OVERFLOW:
+        item_caption = item_caption + " " +("电压/电流超过上限错误");
+        item_caption = item_caption + " " +(GetNameOfAdc(event.event_data));
+        break;
+    case EVENT_VOTE_DOWN_OVERFLOW:
+        item_caption = item_caption + " " +("电压/电流低于下限错误");
+        item_caption = item_caption + " " +(GetNameOfAdc(event.event_data));
+        break;
+    case EVENT_MAX_JOB_TIME:
+        item_caption = item_caption + " " +("任务处理时间过长");
+        item_caption = item_caption + " " +(IntToStr(event.event_data));
+        break;
+    case EVENT_ERR_JOB_FUNC_PTR:
+        item_caption = item_caption + " " +("任务队列出现空指针错误");
+        item_caption = item_caption + " " +("");
+        break;
+    case EVENT_ERR_WRITE_LOG:
+        item_caption = item_caption + " " +("写日志失败错误");
+        item_caption = item_caption + " " +(IntToStr(event.event_data));
+        break;
+    case EVENT_ERR_28J60_SENDDATA:
+        item_caption = item_caption + " " +("28J60发出报文出错");
+        item_caption = item_caption + " " +(IntToStr(event.event_data));
+        break;
+    case EVENT_ERR_EXTERN_RAM:
+        item_caption = item_caption + " " +("RAM检测错误");
+        item_caption = item_caption + " " +(IntToHex(event.event_data, 4));
+        break;
+    case EVENT_POWER_ON:
+        item_caption = item_caption + " " +("开启电源");
+        item_caption = item_caption + " " +("本次启动次数"+IntToStr(event.event_data));
+        break;
+    case EVENT_STACK_OVERFLOW:
+        item_caption = item_caption + " " +("栈溢出错误");
+        item_caption = item_caption + " " +(IntToStr(event.event_data));
+        break;
+    case EVENT_SAVE_LOAD_COUNT:
+        item_caption = item_caption + " " +("存盘或者恢复数量");
+        item_caption = item_caption + " " +(event.event_data);
+        break;
+    case EVENT_SPI_REENTER:
+        item_caption = item_caption + " " +("SPI重入错误");
+        item_caption = item_caption + " " +(event.event_data);
+        break;
+    case EVENT_EQ_COEF_ERR:
+        item_caption = item_caption + " " +("EQ系数错误");
+        item_caption = item_caption + " " +(event.event_data);
+        break;
+    case EVENT_POWER_SAVE_OK_TIME:
+        item_caption = item_caption + " " +("关机存盘成功时间");
+        item_caption = item_caption + " " +(event.event_data);
+        break;
+    default:
+        item_caption = item_caption + " " +(event.event_id);
+        item_caption = item_caption + " " +(IntToStr(event.event_data) + "(0x"+IntToHex(event.event_data, 2)+")");
+        break;
+    }
+
+    return item_caption;
 }
 void TForm1::ProcessLogData()
 {
@@ -8011,9 +8309,6 @@ void __fastcall TForm1::btnDebugInfoExClick(TObject *Sender)
     String cmd_text = DEBUG_FLAG;
     cmd_text = cmd_text+"probe="+edtDebufExPort->Text;
     SendCmd2(cmd_text+D1608CMD_TAIL);
-
-    //char buf[2] = "1";
-    //udpControl->SendBuffer(dst_ip, UDP_GET_ERROR_LOG, buf, 1);
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::btnStopDebugInfoExClick(TObject *Sender)
@@ -8319,6 +8614,13 @@ void __fastcall TForm1::btnParameterPasswordErrorClick(TObject *Sender)
         SendCmd2(cmd_text+D1608CMD_TAIL);
         SendCmd2(cmd_text);
     }
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::Button4Click(TObject *Sender)
+{
+    memo_debug_ex->Clear();
+    char buf[2] = "1";
+    udpControl->SendBuffer(dst_ip, UDP_GET_ERROR_LOG, buf, 1);
 }
 //---------------------------------------------------------------------------
 

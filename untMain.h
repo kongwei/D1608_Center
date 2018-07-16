@@ -531,6 +531,7 @@ __published:	// IDE-managed Components
     TImage *imgMask;
     TButton *btnConfigPasswordError;
     TButton *btnParameterPasswordError;
+    TButton *Button4;
     void __fastcall FormCreate(TObject *Sender);
     void __fastcall btnRefreshClick(TObject *Sender);
     void __fastcall udpSLPUDPRead(TObject *Sender, TStream *AData,
@@ -730,6 +731,7 @@ __published:	// IDE-managed Components
     void __fastcall PaintBox5Paint(TObject *Sender);
     void __fastcall btnConfigPasswordErrorClick(TObject *Sender);
     void __fastcall btnParameterPasswordErrorClick(TObject *Sender);
+    void __fastcall Button4Click(TObject *Sender);
 private:
     HANDLE h_sem;
 
