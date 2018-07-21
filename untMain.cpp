@@ -1059,10 +1059,6 @@ void TForm1::HideLockConfigArea()
 }
 void __fastcall TForm1::FormCreate(TObject *Sender)
 {
-    // 设置时间格式
-    DateSeparator = '/';
-    TimeSeparator = ':';
-
     // 设置页的界面调整
     Label19             ->Top = Label19             ->Top - 246;
     Label22             ->Top = Label22             ->Top - 246;
@@ -1205,6 +1201,13 @@ void __fastcall TForm1::FormCreate(TObject *Sender)
 
     // 版本号
     lblVersion->Caption = "-------- " +VersionToStr(version);
+
+    // 默认全局配置
+    global_config.avaliable_preset[0] = 1;
+    global_config.active_preset_id = 1;
+    global_config.version = sizeof(global_config);
+    global_config.auto_saved = 1;
+    ApplyConfigToUI();
 }
 //---------------------------------------------------------------------------
 void TForm1::SendBuffer(AnsiString AHost, const int APort, void *ABuffer, const int AByteCount)
@@ -1767,6 +1770,9 @@ void __fastcall TForm1::tmSLPTimer(TObject *Sender)
                     else
                         text_cmd = text_cmd + "OLED_Debug=Off;";
 
+                    // 设置时间格式
+                    DateSeparator = '/';
+                    TimeSeparator = ':';
                     text_cmd = text_cmd + "APP_Time="+FormatDateTime("yyyy/mm/dd hh:nn:ss.zzz", Now());
 
                     udpSLPList[i]->Send("255.255.255.255", UDP_PORT_SLP_EX, text_cmd+D1608CMD_TAIL);
@@ -2871,7 +2877,7 @@ void TForm1::ProcessKeepAlive(int preset_id, bool need_reload, unsigned __int64 
     device_connected = true;
 }
 
-static String GetNameOfAdc(int index)
+static String GetNameOfAdc(int value, int event_id)
 {
     String adc_name[21] = {
         "3.3vd",
@@ -2897,10 +2903,27 @@ static String GetNameOfAdc(int index)
         "50v_current"
     };
 
+    int index = value & 0xFF;
+    int percent = value >> 8;
+
+    if (percent != 0)   // 老机器残留日志是 0，避免除以0的错误
+    {
+        if (index == 6 || index == 7 || index == 12) // 负电压和负电流
+        {
+            if (event_id == EVENT_VOTE_DOWN_OVERFLOW)
+                percent = 10000 / percent;
+        }
+        else
+        {
+            if (event_id == EVENT_VOTE_UP_OVERFLOW)
+                 percent = 10000 / percent;
+        }
+    }
+
     if (index < 21)
-        return adc_name[index];
+        return adc_name[index] + ":" + IntToStr(percent) + "%";
     else
-        return IntToStr(index);
+        return IntToStr(index) + ":" + IntToStr(percent) + "%";
 }
 static void ApplyLogData(TListItem* item, Event event, int address, String syn_time)
 {
@@ -3141,11 +3164,11 @@ static void ApplyLogData(TListItem* item, Event event, int address, String syn_t
         break;
     case EVENT_VOTE_UP_OVERFLOW:
         item->SubItems->Add("电压/电流超过上限错误");
-        item->SubItems->Add(GetNameOfAdc(event.event_data));
+        item->SubItems->Add(GetNameOfAdc(event.event_data, EVENT_VOTE_UP_OVERFLOW));
         break;
     case EVENT_VOTE_DOWN_OVERFLOW:
         item->SubItems->Add("电压/电流低于下限错误");
-        item->SubItems->Add(GetNameOfAdc(event.event_data));
+        item->SubItems->Add(GetNameOfAdc(event.event_data, EVENT_VOTE_DOWN_OVERFLOW));
         break;
     case EVENT_MAX_JOB_TIME:
         item->SubItems->Add("任务处理时间过长");
@@ -3434,11 +3457,11 @@ static String Event2Sring(Event event)
         break;
     case EVENT_VOTE_UP_OVERFLOW:
         item_caption = item_caption + " " +("电压/电流超过上限错误");
-        item_caption = item_caption + " " +(GetNameOfAdc(event.event_data));
+        item_caption = item_caption + " " +(GetNameOfAdc(event.event_data, EVENT_VOTE_UP_OVERFLOW));
         break;
     case EVENT_VOTE_DOWN_OVERFLOW:
         item_caption = item_caption + " " +("电压/电流低于下限错误");
-        item_caption = item_caption + " " +(GetNameOfAdc(event.event_data));
+        item_caption = item_caption + " " +(GetNameOfAdc(event.event_data, EVENT_VOTE_DOWN_OVERFLOW));
         break;
     case EVENT_MAX_JOB_TIME:
         item_caption = item_caption + " " +("任务处理时间过长");
