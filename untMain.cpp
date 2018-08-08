@@ -2055,20 +2055,15 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
 {
     if (ABinding->PeerPort == UDP_GET_ERROR_LOG)//UDP_PORT_GET_DEBUG_INFO_EX
     {
-#if 1
-        Event events[200] = {0};
-        AData->ReadBuffer(&events, std::min(sizeof(events), AData->Size));
+        AlarmInfo alarm_info;
+        AData->ReadBuffer(&alarm_info, std::min(sizeof(alarm_info), AData->Size));
 
-        int count = AData->Size / sizeof(Event);
-        count = min(count, 200);
-        
-        for (int i=0;i<count;i++)
+        for (int i=0;i<100&&alarm_info.event[i].timer!=0;i++)
         {
-            memo_debug_ex->Lines->Add( Event2Sring(events[i]) );
+            memo_debug_ex->Lines->Add( Event2Sring(alarm_info.event[i]) );
         }
 
         //memo_debug_ex->Lines->Add();
-#endif
     }
     else if (ABinding->PeerPort == UDP_PORT_CONTROL)
     {
@@ -8646,4 +8641,3 @@ void __fastcall TForm1::Button4Click(TObject *Sender)
     udpControl->SendBuffer(dst_ip, UDP_GET_ERROR_LOG, buf, 1);
 }
 //---------------------------------------------------------------------------
-
