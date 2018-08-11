@@ -3081,9 +3081,9 @@ static void ApplyLogData(TListItem* item, Event event, int address, String syn_t
         break;
     case EVENT_ADDA_ERROR:
         if (event.event_data > 32)
-            item->SubItems->Add("AD数量与配置不符错误");
-        else
             item->SubItems->Add("DA数量与配置不符错误");
+        else
+            item->SubItems->Add("AD数量与配置不符错误");
         item->SubItems->Add("现有数量："+IntToStr(event.event_data%32));
         break;
     case EVENT_EACH_HOUR:
@@ -3221,6 +3221,9 @@ static void ApplyLogData(TListItem* item, Event event, int address, String syn_t
     }
 
     item->SubItems->Add(syn_time);
+
+    // 记录原始数据
+    item->SubItems->Add(IntToHex((int)event.timer, 8) + IntToHex(event.event_id, 4) + IntToHex(event.event_data, 4));
 }
 static String Event2Sring(Event event)
 {
@@ -7509,6 +7512,10 @@ void __fastcall TForm1::btnSaveLogClick(TObject *Sender)
             {
                 line = line + "\t" + lvLog->Items->Item[i]->SubItems->Strings[3];
             }
+            if (lvLog->Items->Item[i]->SubItems->Count > 4)
+            {
+                line = line + "\tHEX " + lvLog->Items->Item[i]->SubItems->Strings[4];
+            }
             log_strs->Add(line);
         }
         else
@@ -7524,12 +7531,31 @@ void __fastcall TForm1::btnSaveLogClick(TObject *Sender)
     String device_cpuid;
     device_cpuid.sprintf("%08X%08X%08X", device_setting.cpu_id[0], device_setting.cpu_id[1], device_setting.cpu_id[2]);
 
-    if (FileExists(path+device_cpuid+".log"))
-    {
-        // 合并日志
-        TStrings * log_data = new TStringList();
-        log_data->LoadFromFile(path+device_cpuid+".log");
+    // 工厂型号-串号加-cpuid
+    String log_file_name = path+edtDeviceType->Text + "-" + last_connection.data.sn + "-" + device_cpuid + ".log";
+    String old_log_file_name = path+device_cpuid + ".log";
 
+
+    // 合并日志
+    TStrings * log_data = NULL;
+    TStrings * mac_data = NULL;
+    if (FileExists(log_file_name))
+    {
+        log_data = new TStringList();
+        log_data->LoadFromFile(log_file_name);
+        mac_data = new TStringList();
+        mac_data->LoadFromFile(log_file_name);
+    }
+    else if (FileExists(old_log_file_name))
+    {
+        log_data = new TStringList();
+        log_data->LoadFromFile(old_log_file_name);
+        mac_data = new TStringList();
+        mac_data->LoadFromFile(old_log_file_name);
+    }
+    
+    if (log_data != NULL)
+    {
         // 删除抬头
         if (log_data->Count > 0 && log_data->Strings[0].Pos("地址")!=0)
         {
@@ -7540,8 +7566,6 @@ void __fastcall TForm1::btnSaveLogClick(TObject *Sender)
         delete log_data;
 
         // 合并mac
-        TStrings * mac_data = new TStringList();
-        mac_data->LoadFromFile(path+device_cpuid+".log");
         MergeMac(mac_strs, mac_data);
         delete mac_data;
     }
@@ -7553,10 +7577,11 @@ void __fastcall TForm1::btnSaveLogClick(TObject *Sender)
                 + lvLog->Column[1]->Caption + "\t"
                 + lvLog->Column[2]->Caption + "\t"
                 + lvLog->Column[3]->Caption + "\t"
-                + lvLog->Column[4]->Caption;
+                + lvLog->Column[4]->Caption + "\t"
+                + "DATA";
     log_strs->Insert(0, head);
 
-    log_strs->SaveToFile(path+device_cpuid+".log");
+    log_strs->SaveToFile(log_file_name);
 
     delete log_strs;
     delete mac_strs;
@@ -8232,6 +8257,7 @@ void __fastcall TForm1::lvLogData(TObject *Sender, TListItem *Item)
                             mac_data[mac_index][3], mac_data[mac_index][4], mac_data[mac_index][5]);
         Item->SubItems->Add(mac_string);
         Item->SubItems->Add(InnerMacInfo(mac_string));
+        Item->SubItems->Add("");
         Item->SubItems->Add("");
     }
 }
