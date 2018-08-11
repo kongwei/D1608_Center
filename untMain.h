@@ -532,6 +532,9 @@ __published:	// IDE-managed Components
     TButton *btnConfigPasswordError;
     TButton *btnParameterPasswordError;
     TButton *Button4;
+    TButton *Button5;
+    TPanel *Panel4;
+    TPaintBox *PaintBox6;
     void __fastcall FormCreate(TObject *Sender);
     void __fastcall btnRefreshClick(TObject *Sender);
     void __fastcall udpSLPUDPRead(TObject *Sender, TStream *AData,
@@ -732,6 +735,8 @@ __published:	// IDE-managed Components
     void __fastcall btnConfigPasswordErrorClick(TObject *Sender);
     void __fastcall btnParameterPasswordErrorClick(TObject *Sender);
     void __fastcall Button4Click(TObject *Sender);
+    void __fastcall Button5Click(TObject *Sender);
+    void __fastcall PaintBox6Paint(TObject *Sender);
 private:
     HANDLE h_sem;
 
@@ -1065,6 +1070,9 @@ private:
     void CloseControlLink(String reason);
 private:
     void AdjustOutputCompParam(int dsp_num);
+
+private:
+    unsigned char display_buffer[512];
 public:
     void AppendLog(String str)
     {

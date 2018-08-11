@@ -2065,6 +2065,11 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
 
         //memo_debug_ex->Lines->Add();
     }
+    else if (ABinding->PeerPort == UDP_PORT_GET_DISPLAY_BUFFER)
+    {
+        AData->ReadBuffer(display_buffer, std::min(sizeof(display_buffer), AData->Size));
+        PaintBox6->Refresh();
+    }    
     else if (ABinding->PeerPort == UDP_PORT_CONTROL)
     {
         char cmd_text[1500] = {0};
@@ -3775,6 +3780,8 @@ void __fastcall TForm1::tmWatchTimer(TObject *Sender)
         SetIOChannelNum();
         need_resize = false;
     }
+
+    Button5->Click();
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::ToogleOutputMute(TObject *Sender)
@@ -8641,3 +8648,26 @@ void __fastcall TForm1::Button4Click(TObject *Sender)
     udpControl->SendBuffer(dst_ip, UDP_GET_ERROR_LOG, buf, 1);
 }
 //---------------------------------------------------------------------------
+void __fastcall TForm1::Button5Click(TObject *Sender)
+{
+    if (udpControl->Active)
+        udpControl->SendBuffer(dst_ip, UDP_PORT_GET_DISPLAY_BUFFER, "1", 1);
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::PaintBox6Paint(TObject *Sender)
+{
+    for (int page = 0; page < 4; page ++)
+    {
+        for (int x = 0; x < 128; x++)
+        {
+            unsigned char data = display_buffer[page*128+x];
+
+            for (int y=0; y<8; y++)
+            {
+                PaintBox6->Canvas->Pixels[x][page*8+y] = (data & (1<<y)) ? clWhite : 0x69241D;
+            }
+        }
+    }
+}
+//---------------------------------------------------------------------------
+
