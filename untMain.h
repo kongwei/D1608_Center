@@ -303,7 +303,7 @@ __published:	// IDE-managed Components
     TBevel *Bevel7;
     TPanel *pnlHeader;
     TImage *imgHeader;
-        TSpeedButtonNoFrame *SpeedButtonNoFrame2;
+    TSpeedButtonNoFrame *btnMainUI;
     TSpeedButtonNoFrame *btnMonitor;
         TSpeedButtonNoFrame *SpeedButtonNoFrame4;
     TAdvTrackBar *input_panel_trackbar;
@@ -648,7 +648,7 @@ __published:	// IDE-managed Components
     void __fastcall lbl5VdClick(TObject *Sender);
     void __fastcall tmLedTimer(TObject *Sender);
     void __fastcall PaintBox2Paint(TObject *Sender);
-    void __fastcall SpeedButtonNoFrame2MouseDown(TObject *Sender,
+    void __fastcall btnMainUIMouseDown(TObject *Sender,
           TMouseButton Button, TShiftState Shift, int X, int Y);
     void __fastcall PaintBox3Paint(TObject *Sender);
     void __fastcall PaintBox4Paint(TObject *Sender);

@@ -1709,6 +1709,12 @@ void __fastcall TForm1::btnSelectClick(TObject *Sender)
 
     lblSn->Caption = "sn: " + String(last_connection.data.sn);
     lblConfigFilename->Caption = "file: --";
+
+    // 如果在设置页面，那么应该自动转到主页面
+    if (pnlSystem->Visible)
+    {
+        btnMainUI->OnMouseDown(btnMainUI, mbLeft, TShiftState(), 0, 0);
+    }
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::tmSLPTimer(TObject *Sender)
@@ -6241,7 +6247,7 @@ void __fastcall TForm1::cbCompAutoTimeClick(TObject *Sender)
     SendCmd(cmd_text+D1608CMD_TAIL);
 }
 //---------------------------------------------------------------------------
-void __fastcall TForm1::SpeedButtonNoFrame2MouseDown(TObject *Sender,
+void __fastcall TForm1::btnMainUIMouseDown(TObject *Sender,
       TMouseButton Button, TShiftState Shift, int X, int Y)
 {
     TControl* control = (TControl*)Sender;
