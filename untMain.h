@@ -74,7 +74,6 @@ __published:	// IDE-managed Components
     TPanel *pnlDspDetail;
     TLabel *lblDSPInfo;
     TEdit *edtDebug;
-    TLabel *Label31;
     TPanel *watch_panel;
     TImage *imgWatch;
     TLabel *label_watch;
@@ -103,7 +102,6 @@ __published:	// IDE-managed Components
     TImage *input_panel_bkground;
     TSpeedButtonNoFrame *input_panel_auto_btn;
     TStaticText *input_panel_dsp_num;
-    TImage *imgInputTemplate;
     TAdvTrackBar *output_panel_trackbar;
     TImage *output_panel_bkground;
     TSpeedButtonNoFrame *output_panel_mute_btn;
@@ -535,6 +533,10 @@ __published:	// IDE-managed Components
     TButton *Button5;
     TPanel *Panel4;
     TPaintBox *PaintBox6;
+    TTabSheet *TabSheet6;
+    TImage *imgBlank;
+    TImage *imgInputTemplate;
+    TImage *imgBlankWatchLevel;
     void __fastcall FormCreate(TObject *Sender);
     void __fastcall btnRefreshClick(TObject *Sender);
     void __fastcall udpSLPUDPRead(TObject *Sender, TStream *AData,
@@ -977,6 +979,8 @@ private:
     int level_meter[32][2];
 public:
     TPaintBox * pb_watch_list[32];
+    TImage * imgBlankWatch_list[32];
+    TLabel * label_watch_list[32];
 
 private:
     unsigned __int64 running_timer;

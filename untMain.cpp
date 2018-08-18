@@ -537,10 +537,11 @@ static void CopyWatchPanel(int panel_id, TForm1 * form, String label, int left)
     watch_panel->Color = form->watch_panel->Color;
     form->watch_panel_inner[panel_id-1] = watch_panel;
 
+    Graphics::TBitmap * tmp_bmp = new Graphics::TBitmap();
+
     TImage * bk_image = new TImage(watch_panel);
     bk_image->BoundsRect = form->imgWatch->BoundsRect;
     bk_image->Parent = watch_panel;
-    Graphics::TBitmap * tmp_bmp = new Graphics::TBitmap();
     bk_image->Picture->Bitmap = tmp_bmp;
     bk_image->Picture->Bitmap->Height = bk_image->Height;
     bk_image->Picture->Bitmap->Width = bk_image->Width;
@@ -550,6 +551,23 @@ static void CopyWatchPanel(int panel_id, TForm1 * form, String label, int left)
     ::AlphaBlend(bk_image->Canvas->Handle,
         0,0,bk_image->Width,bk_image->Height,
         form->imgWatch->Canvas->Handle, 0,0,bk_image->Width,bk_image->Height, blend);
+
+    // 空白图片
+    TImage * bk_blank_image = new TImage(watch_panel);
+    bk_blank_image->BoundsRect = form->imgWatch->BoundsRect;
+    bk_blank_image->Parent = watch_panel;
+    tmp_bmp = new Graphics::TBitmap();
+    bk_blank_image->Picture->Bitmap = tmp_bmp;
+    bk_blank_image->Picture->Bitmap->Height = bk_blank_image->Height;
+    bk_blank_image->Picture->Bitmap->Width = bk_blank_image->Width;
+    bk_blank_image->Canvas->Draw(-watch_panel->Left, -watch_panel->Top, form->imgBody->Picture->Graphic);
+    delete tmp_bmp;
+    form->imgBlankWatch_list[panel_id-1] = bk_blank_image;
+
+    ::AlphaBlend(bk_blank_image->Canvas->Handle,
+        0,0,bk_blank_image->Width,bk_blank_image->Height,
+        form->imgBlankWatchLevel->Canvas->Handle, 0,0,bk_blank_image->Width,bk_blank_image->Height, blend);
+
 
     TPaintBox * pb_level = new TPaintBox(watch_panel);
     pb_level->BoundsRect = form->pb_watch->BoundsRect;
@@ -564,6 +582,7 @@ static void CopyWatchPanel(int panel_id, TForm1 * form, String label, int left)
     label_watch->Transparent = form->label_watch->Transparent;
     label_watch->BoundsRect = form->label_watch->BoundsRect;
     label_watch->Parent = watch_panel;
+    form->label_watch_list[panel_id-1] = label_watch;
 
     TLabel * input_type = new TLabel(watch_panel);
     input_type->Caption = "MIC";
@@ -614,7 +633,7 @@ __fastcall TForm1::TForm1(TComponent* Owner)
     }
 
     pnlOperator->Width = REAL_INPUT_DSP_NUM * PANEL_WIDTH + imgPresetBg->Width + REAL_OUTPUT_DSP_NUM * PANEL_WIDTH;
-    pnlOperator->Width = Math::Max(pnlOperator->Width, Width-16);
+    pnlOperator->Width = max(pnlOperator->Width, Width-16);
         //HorzScrollBar->Visible = (pnlOperator->Width > Width);
     pnlOperator->Height = 650;//-(728-584);
     pnlOperator->Top = pnlHeader->Height;
@@ -625,7 +644,7 @@ __fastcall TForm1::TForm1(TComponent* Owner)
 
     //----------------------------------------
     // 输入
-    int input_panel_left = (pnlOperator->Width - (REAL_INPUT_DSP_NUM * PANEL_WIDTH + imgPresetBg->Width + REAL_OUTPUT_DSP_NUM * PANEL_WIDTH))/2;
+    int input_panel_left = (pnlOperator->Width - (16 * PANEL_WIDTH + imgPresetBg->Width + REAL_OUTPUT_DSP_NUM * PANEL_WIDTH))/2;
     //watch_panel->Left = input_panel_left;
     //input_type->Left = input_panel_left;
     input_panel_bkground->Left = input_panel_left;
@@ -3967,7 +3986,7 @@ void __fastcall TForm1::ToggleDSP(TObject *Sender)
             dsp_gain_trackbar->Max = 240;
             dsp_gain_trackbar->Min = -300;
             lblDSPInfo->Caption = "Input Channel " + IntToStr(btn->Tag) + " DSP Setup";
-            pnlDspDetail->Left = input_panel_bkground->Left + input_panel_bkground->Width - pnlDspDetail->Width - 2;
+            pnlDspDetail->Left = input_panel_bkground->Left;
 
             int dsp_num = btn->Tag;
             dsp_gain_trackbar->Position = config_map.input_dsp[dsp_num-1].level_b;
@@ -4012,7 +4031,7 @@ void __fastcall TForm1::ToggleDSP(TObject *Sender)
             dsp_gain_trackbar->Max = 120;
             dsp_gain_trackbar->Min = -300;
             lblDSPInfo->Caption = "Output Channel " + IntToStr(btn->Tag-100) + " DSP Setup";
-            pnlDspDetail->Left = output_panel_bkground->Left;
+            pnlDspDetail->Left = output_panel_bkground->Left + output_panel_bkground->Width - pnlDspDetail->Width;
 
             int dsp_num = btn->Tag-100;
             dsp_gain_trackbar->Position = config_map.output_dsp[dsp_num-1].level_b;
@@ -6703,13 +6722,41 @@ static void MoveInputPanel(int panel_id, TForm1 * form)
     form->input_dsp_name[panel_id-1]->Visible = (panel_id <= REAL_INPUT_DSP_NUM);
     form->input_thumb[panel_id-1]->Visible = (panel_id <= REAL_INPUT_DSP_NUM);
 }
-static void MoveWatchPanel(int panel_id, TForm1 * form, String label, int left)
+static void MoveWatchPanel(int panel_id, TForm1 * form, int left, int blank_count)
 {
-    form->watch_panel_inner[panel_id-1]->Left = left;
+    // 输出需要先流出空白
     if (panel_id <= 16)
-        form->watch_panel_inner[panel_id-1]->Visible = (panel_id <= REAL_INPUT_DSP_NUM);
+    {
+        form->watch_panel_inner[panel_id-1]->Left = left;
+
+        int max_count = REAL_INPUT_DSP_NUM + blank_count;
+        form->watch_panel_inner[panel_id-1]->Visible = (panel_id <= max_count);
+        form->pb_watch_list[panel_id-1]->Visible = (panel_id <= REAL_INPUT_DSP_NUM);
+        form->label_watch_list[panel_id-1]->Visible = (panel_id <= REAL_INPUT_DSP_NUM);
+        form->imgBlankWatch_list[panel_id-1]->Visible = !(panel_id <= REAL_INPUT_DSP_NUM);
+
+        form->input_type_lbl[panel_id-1]->Visible = (panel_id <= REAL_INPUT_DSP_NUM);
+    }
     else
-        form->watch_panel_inner[panel_id-1]->Visible = (panel_id-16 <= REAL_OUTPUT_DSP_NUM);
+    {
+        // 用 8-REAL_OUTPUT_DSP_NUM ~  8 的面板填充到前面
+        if (panel_id-16 <= REAL_OUTPUT_DSP_NUM)
+        {
+            form->watch_panel_inner[panel_id-1]->Left = left;
+        }
+        else
+        {
+            form->watch_panel_inner[panel_id-1]->Left = left - 8*PANEL_WIDTH;
+        }
+
+        int max_count = REAL_OUTPUT_DSP_NUM + blank_count;
+        form->watch_panel_inner[panel_id-1]->Visible = (panel_id-16 <= max_count);
+        form->pb_watch_list[panel_id-1]->Visible = (panel_id-16 <= REAL_OUTPUT_DSP_NUM);
+        form->label_watch_list[panel_id-1]->Visible = (panel_id-16 <= REAL_OUTPUT_DSP_NUM);
+        form->imgBlankWatch_list[panel_id-1]->Visible = !(panel_id-16 <= REAL_OUTPUT_DSP_NUM);
+
+        form->output_type_lbl[panel_id-1-16]->Visible = (panel_id-16 <= REAL_OUTPUT_DSP_NUM);
+    }
 }
 static void MoveOutputPanel(int panel_id, TForm1 * form)
 {
@@ -6745,15 +6792,30 @@ static void MovePnlMix(int panel_id, TForm1 * form)
 
 void TForm1::SetIOChannelNum()
 {
-    pnlOperator->Width = REAL_INPUT_DSP_NUM * PANEL_WIDTH + imgPresetBg->Width + REAL_OUTPUT_DSP_NUM * PANEL_WIDTH;
-    pnlOperator->Width = Math::Max(pnlOperator->Width, Width-16);
+    // 需要补充的白板的数量
+    int blank_count = 16 - (REAL_INPUT_DSP_NUM + REAL_OUTPUT_DSP_NUM);
+    blank_count = max(blank_count, 0);
+    // 输入的白板
+    int input_blank_count = 0;
+    input_blank_count = max(8 - REAL_INPUT_DSP_NUM, 0);         // 最多可以塞多少白板
+    input_blank_count = min(input_blank_count, blank_count);    // 实际塞多少白板
+    // 输出的白板
+    int output_blank_count = 0;
+    output_blank_count = max(8 - REAL_OUTPUT_DSP_NUM, 0);       // 最多可以塞多少白板
+    output_blank_count = min(input_blank_count, blank_count-input_blank_count);   // 实际塞多少白板
+
+
+    
+
+    pnlOperator->Width = imgPresetBg->Width + max(REAL_INPUT_DSP_NUM+REAL_OUTPUT_DSP_NUM, 16) * PANEL_WIDTH;
+    pnlOperator->Width = max(pnlOperator->Width, Width-16);
         //HorzScrollBar->Visible = (pnlOperator->Width > Width);
 
     pnlMix->Width = REAL_INPUT_DSP_NUM * PANEL_WIDTH;                               
 
     //--------------------------------------------
     // input
-    int input_panel_left = (pnlOperator->Width - (REAL_INPUT_DSP_NUM * PANEL_WIDTH + imgPresetBg->Width + REAL_OUTPUT_DSP_NUM * PANEL_WIDTH))/2;
+    int input_panel_left = (pnlOperator->Width - (max(REAL_INPUT_DSP_NUM, 8) * PANEL_WIDTH + imgPresetBg->Width + max(REAL_OUTPUT_DSP_NUM, 8) * PANEL_WIDTH))/2;
     //watch_panel->Left = input_panel_left;
     //input_type->Left = input_panel_left;
     input_panel_bkground->Left = input_panel_left;
@@ -6769,7 +6831,7 @@ void TForm1::SetIOChannelNum()
     input_panel_thumb->Left = input_panel_left+4;
 
 
-    input_panel_bkground->Width = REAL_INPUT_DSP_NUM * PANEL_WIDTH;
+    input_panel_bkground->Width = max(REAL_INPUT_DSP_NUM, 8) * PANEL_WIDTH;
     input_panel_bkground->Picture->Bitmap->Width = input_panel_bkground->Width;
     input_panel_bkground->Picture->Bitmap->Height = imgInputTemplate->Height;
 
@@ -6784,17 +6846,24 @@ void TForm1::SetIOChannelNum()
             i*PANEL_WIDTH,imgInputTemplate->Top,PANEL_WIDTH,imgInputTemplate->Height,
             imgInputTemplate->Canvas->Handle, 0, 0, PANEL_WIDTH,imgInputTemplate->Height, blend);
     }
+    for (int i=REAL_INPUT_DSP_NUM;i<REAL_INPUT_DSP_NUM+input_blank_count;i++)
+    {
+        ::AlphaBlend(input_panel_bkground->Canvas->Handle,
+            i*PANEL_WIDTH,imgBlank->Top,PANEL_WIDTH,imgBlank->Height,
+            imgBlank->Canvas->Handle, 0, 0, PANEL_WIDTH,imgBlank->Height, blend);
+    }
+
 
     for (int i=2;i<=INPUT_DSP_NUM;i++)
     {
         MoveInputPanel(i, this);
-        MoveWatchPanel(i, this, String((char)('A'-1+i))+" ("+IntToStr(i)+")", (i-1) * PANEL_WIDTH + input_panel_left);
+        MoveWatchPanel(i, this, (i-1) * PANEL_WIDTH + input_panel_left, input_blank_count);
     }
-    MoveWatchPanel(1, this, String((char)('A'-1+1))+" ("+IntToStr(1)+")", (1-1) * PANEL_WIDTH + input_panel_left);
+    MoveWatchPanel(1, this, (1-1) * PANEL_WIDTH + input_panel_left, input_blank_count);
 
     //--------------------------------------
     // mix master
-    int mix_panel_left = input_panel_left + REAL_INPUT_DSP_NUM * PANEL_WIDTH;
+    int mix_panel_left = input_panel_left + max(REAL_INPUT_DSP_NUM, 8) * PANEL_WIDTH;
     imgMasterMixBg->Left = mix_panel_left;
     imgPresetBg->Left = mix_panel_left;
     lblMaster->Left = mix_panel_left + PANEL_WIDTH;
@@ -6838,18 +6907,19 @@ void TForm1::SetIOChannelNum()
     // 输出
     int output_panel_left = mix_panel_left + imgPresetBg->Width;
     output_panel_bkground->Left = output_panel_left;
-    output_panel_dsp_btn->Left = output_panel_left+4;
-    output_panel_eq_btn->Left = output_panel_left+4;
-    output_panel_comp_btn->Left = output_panel_left+4;
-    output_panel_number_btn->Left = output_panel_left+4;
-    output_panel_invert_btn->Left = output_panel_left+4;
-    output_panel_mute_btn->Left = output_panel_left+4;
-    output_panel_level_edit->Left = output_panel_left+4;
-    output_panel_trackbar->Left = output_panel_left;
-    output_panel_dsp_num->Left = output_panel_left+4;
-    output_panel_thumb->Left = output_panel_left+4;
-
-    output_panel_bkground->Width = REAL_OUTPUT_DSP_NUM * PANEL_WIDTH;
+    int output_misc_left = output_panel_left + output_blank_count*PANEL_WIDTH;    // 注意空出白板位置
+    output_panel_dsp_btn->Left = output_misc_left+4;
+    output_panel_eq_btn->Left = output_misc_left+4;
+    output_panel_comp_btn->Left = output_misc_left+4;
+    output_panel_number_btn->Left = output_misc_left+4;
+    output_panel_invert_btn->Left = output_misc_left+4;
+    output_panel_mute_btn->Left = output_misc_left+4;
+    output_panel_level_edit->Left = output_misc_left+4;
+    output_panel_trackbar->Left = output_misc_left;
+    output_panel_dsp_num->Left = output_misc_left+4;
+    output_panel_thumb->Left = output_misc_left+4;
+                       
+    output_panel_bkground->Width = max(REAL_OUTPUT_DSP_NUM, 8) * PANEL_WIDTH;
     output_panel_bkground->Picture->Bitmap->Width = output_panel_bkground->Width;
     output_panel_bkground->Canvas->Draw(
         -output_panel_bkground->Left,
@@ -6868,10 +6938,19 @@ void TForm1::SetIOChannelNum()
             imgBody->Picture->Graphic);
     }
 
+    // 绘制白板
+    for (int i=0;i<output_blank_count;i++)
+    {
+        ::AlphaBlend(output_panel_bkground->Canvas->Handle,
+            i*PANEL_WIDTH,imgBlank->Top,PANEL_WIDTH,imgBlank->Height,
+            imgBlank->Canvas->Handle, 0, 0, PANEL_WIDTH,imgBlank->Height, blend);
+    }
+
+    // 注意空出白板位置
     for (int i=0;i<REAL_OUTPUT_DSP_NUM;i++)
     {
         ::AlphaBlend(output_panel_bkground->Canvas->Handle,
-            i*PANEL_WIDTH,imgOutputTemplate->Top,PANEL_WIDTH,imgOutputTemplate->Height,
+            (i+output_blank_count) * PANEL_WIDTH,imgOutputTemplate->Top,PANEL_WIDTH,imgOutputTemplate->Height,
             imgOutputTemplate->Canvas->Handle, 0, 0, PANEL_WIDTH,imgOutputTemplate->Height, blend);
     }
 
@@ -6885,7 +6964,8 @@ void TForm1::SetIOChannelNum()
     }
     for (int i=1;i<=OUTPUT_DSP_NUM;i++)
     {
-        MoveWatchPanel(i+16, this, String(i), imgMasterMixBg->Left + imgMasterMixBg->Width + (i-1) * PANEL_WIDTH);
+        // 注意流出白板位置
+        MoveWatchPanel(i+16, this, imgMasterMixBg->Left + imgMasterMixBg->Width + (i-1+output_blank_count) * PANEL_WIDTH, output_blank_count);
     }
 
     //============================
