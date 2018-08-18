@@ -640,7 +640,8 @@ __fastcall TForm1::TForm1(TComponent* Owner)
     input_panel_dsp_num->Left = input_panel_left+4;
     input_panel_thumb->Left = input_panel_left+4;
 
-    input_panel_bkground->Picture->Bitmap->Width = REAL_INPUT_DSP_NUM * PANEL_WIDTH;
+    input_panel_bkground->Width = REAL_INPUT_DSP_NUM * PANEL_WIDTH;
+    input_panel_bkground->Picture->Bitmap->Width = input_panel_bkground->Width;
     input_panel_bkground->Picture->Bitmap->Height = imgInputTemplate->Height;
 
     input_panel_bkground->Canvas->Draw(
@@ -3966,7 +3967,7 @@ void __fastcall TForm1::ToggleDSP(TObject *Sender)
             dsp_gain_trackbar->Max = 240;
             dsp_gain_trackbar->Min = -300;
             lblDSPInfo->Caption = "Input Channel " + IntToStr(btn->Tag) + " DSP Setup";
-            pnlDspDetail->Left = input_panel_bkground->Left;
+            pnlDspDetail->Left = input_panel_bkground->Left + input_panel_bkground->Width - pnlDspDetail->Width - 2;
 
             int dsp_num = btn->Tag;
             dsp_gain_trackbar->Position = config_map.input_dsp[dsp_num-1].level_b;
@@ -4011,7 +4012,7 @@ void __fastcall TForm1::ToggleDSP(TObject *Sender)
             dsp_gain_trackbar->Max = 120;
             dsp_gain_trackbar->Min = -300;
             lblDSPInfo->Caption = "Output Channel " + IntToStr(btn->Tag-100) + " DSP Setup";
-            pnlDspDetail->Left = output_panel_bkground->Left + output_panel_bkground->Width - pnlDspDetail->Width;
+            pnlDspDetail->Left = output_panel_bkground->Left;
 
             int dsp_num = btn->Tag-100;
             dsp_gain_trackbar->Position = config_map.output_dsp[dsp_num-1].level_b;
@@ -6768,7 +6769,8 @@ void TForm1::SetIOChannelNum()
     input_panel_thumb->Left = input_panel_left+4;
 
 
-    input_panel_bkground->Picture->Bitmap->Width = REAL_INPUT_DSP_NUM * PANEL_WIDTH;
+    input_panel_bkground->Width = REAL_INPUT_DSP_NUM * PANEL_WIDTH;
+    input_panel_bkground->Picture->Bitmap->Width = input_panel_bkground->Width;
     input_panel_bkground->Picture->Bitmap->Height = imgInputTemplate->Height;
 
     input_panel_bkground->Canvas->Draw(
