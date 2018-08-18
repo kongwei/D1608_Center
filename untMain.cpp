@@ -3066,9 +3066,9 @@ static void ApplyLogData(TListItem* item, Event event, int address, String syn_t
     case EVENT_DSP_NOT_MATCH_ERROR:
         item->SubItems->Add("YSS920与配置不符错误");
         if (event.event_data > 0x80)
-            item->SubItems->Add("缺少:"+IntToStr(event.event_data-0x80));
+            item->SubItems->Add("缺少左数第"+IntToStr(event.event_data-0x80));
         else
-            item->SubItems->Add("多出:"+IntToStr(event.event_data));
+            item->SubItems->Add("多出左数第"+IntToStr(event.event_data));
         break;
     case EVENT_LED_NUM_ERR:
         item->SubItems->Add("LED控制芯片错误");
@@ -3086,11 +3086,18 @@ static void ApplyLogData(TListItem* item, Event event, int address, String syn_t
         item->SubItems->Add(IntToHex(event.event_data, 6));
         break;
     case EVENT_ADDA_ERROR:
-        if (event.event_data > 32)
+        // xxxx xrr rrrtc cccc
+        // r表示应有数，t表示da还是ad，c表示当前检测到的数
+        if (event.event_data & 32)
             item->SubItems->Add("DA数量与配置不符错误");
         else
             item->SubItems->Add("AD数量与配置不符错误");
-        item->SubItems->Add("现有数量："+IntToStr(event.event_data%32));
+        // 计算数量
+        {
+            int test_count = event.event_data & 0x001F;
+            int config_count = (event.event_data>>6) & 0x001F;
+            item->SubItems->Add("现有数量："+IntToStr(test_count) + ",应有数量："+IntToStr(config_count));
+        }
         break;
     case EVENT_EACH_HOUR:
         item->SubItems->Add("开机每小时标识");
