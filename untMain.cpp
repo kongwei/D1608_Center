@@ -6805,17 +6805,17 @@ void TForm1::SetIOChannelNum()
     output_blank_count = min(input_blank_count, blank_count-input_blank_count);   // 实际塞多少白板
 
 
-    
 
-    pnlOperator->Width = imgPresetBg->Width + max(REAL_INPUT_DSP_NUM+REAL_OUTPUT_DSP_NUM, 16) * PANEL_WIDTH;
-    pnlOperator->Width = max(pnlOperator->Width, Width-16);
+    // i_m_o_panel_width 指： 输入 master 输出 三个面板总宽度 
+    int i_m_o_panel_width = imgPresetBg->Width + (REAL_INPUT_DSP_NUM+REAL_OUTPUT_DSP_NUM + blank_count) * PANEL_WIDTH;
+    pnlOperator->Width = max(i_m_o_panel_width, Width-16);
         //HorzScrollBar->Visible = (pnlOperator->Width > Width);
 
     pnlMix->Width = REAL_INPUT_DSP_NUM * PANEL_WIDTH;                               
 
     //--------------------------------------------
     // input
-    int input_panel_left = (pnlOperator->Width - (max(REAL_INPUT_DSP_NUM, 8) * PANEL_WIDTH + imgPresetBg->Width + max(REAL_OUTPUT_DSP_NUM, 8) * PANEL_WIDTH))/2;
+    int input_panel_left = (pnlOperator->Width - i_m_o_panel_width)/2;
     //watch_panel->Left = input_panel_left;
     //input_type->Left = input_panel_left;
     input_panel_bkground->Left = input_panel_left;
@@ -6831,7 +6831,7 @@ void TForm1::SetIOChannelNum()
     input_panel_thumb->Left = input_panel_left+4;
 
 
-    input_panel_bkground->Width = max(REAL_INPUT_DSP_NUM, 8) * PANEL_WIDTH;
+    input_panel_bkground->Width = (REAL_INPUT_DSP_NUM + input_blank_count) * PANEL_WIDTH;
     input_panel_bkground->Picture->Bitmap->Width = input_panel_bkground->Width;
     input_panel_bkground->Picture->Bitmap->Height = imgInputTemplate->Height;
 
@@ -6863,7 +6863,7 @@ void TForm1::SetIOChannelNum()
 
     //--------------------------------------
     // mix master
-    int mix_panel_left = input_panel_left + max(REAL_INPUT_DSP_NUM, 8) * PANEL_WIDTH;
+    int mix_panel_left = input_panel_left + (REAL_INPUT_DSP_NUM + input_blank_count) * PANEL_WIDTH;
     imgMasterMixBg->Left = mix_panel_left;
     imgPresetBg->Left = mix_panel_left;
     lblMaster->Left = mix_panel_left + PANEL_WIDTH;
@@ -6919,7 +6919,7 @@ void TForm1::SetIOChannelNum()
     output_panel_dsp_num->Left = output_misc_left+4;
     output_panel_thumb->Left = output_misc_left+4;
                        
-    output_panel_bkground->Width = max(REAL_OUTPUT_DSP_NUM, 8) * PANEL_WIDTH;
+    output_panel_bkground->Width = (REAL_OUTPUT_DSP_NUM + output_blank_count) * PANEL_WIDTH;
     output_panel_bkground->Picture->Bitmap->Width = output_panel_bkground->Width;
     output_panel_bkground->Canvas->Draw(
         -output_panel_bkground->Left,
