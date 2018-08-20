@@ -537,6 +537,7 @@ __published:	// IDE-managed Components
     TImage *imgBlank;
     TImage *imgInputTemplate;
     TImage *imgBlankWatchLevel;
+    TLabel *lblVersionInfo;
     void __fastcall FormCreate(TObject *Sender);
     void __fastcall btnRefreshClick(TObject *Sender);
     void __fastcall udpSLPUDPRead(TObject *Sender, TStream *AData,
