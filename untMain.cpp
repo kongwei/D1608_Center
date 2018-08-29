@@ -1213,16 +1213,15 @@ void __fastcall TForm1::FormCreate(TObject *Sender)
         // Height -- 3, 73px  -- 中线 38
         // imgLogo->Height/2  <-- 38
         imgLogo->Top = 38 - imgLogo->Height/2;
+        imgLogo->Left = 1500;
     }
 
     // 上位机时间
     edtStartBuildTime->Text = " \t \t";
     edtStartBuildTime->Text = edtStartBuildTime->Text + DateTime2Str(GetDateTimeFromMarco(compile_time));
 
-    lblVersionInfo->Caption = DateTime2Str(GetDateTimeFromMarco(compile_time));
-
     // 版本号
-    lblVersion->Caption = "-------- " +VersionToStr(version);
+    lblVersion->Caption = "-------- " +VersionToStr(version)+ " " + DateTime2Str(GetDateTimeFromMarco(compile_time));
 
     // 默认全局配置
     global_config.avaliable_preset[0] = 1;
@@ -2501,7 +2500,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
                 CloseDspDetail();
                 AppendLog(GetTime()+"同步完成");
 
-                lblVersion->Caption = VersionToStr(last_connection.data.version)+ " " +VersionToStr(version);
+                lblVersion->Caption = VersionToStr(last_connection.data.version)+ " " +VersionToStr(version)+ " " + DateTime2Str(GetDateTimeFromMarco(compile_time));;
                 edtDeviceFullName->Text = edtDeviceFullName_data;
                 tmWatch->Enabled = true;
             }
@@ -5035,7 +5034,7 @@ void __fastcall TForm1::ClearUI()
     edtStartBuildTime->Text = "N/A";
     lblDeviceRunningTime->Caption = "----";
     lblDeviceRunningTime2->Caption = "----";
-    lblVersion->Caption = "-------- " +VersionToStr(version);
+    lblVersion->Caption = "-------- " +VersionToStr(version)+ " " + DateTime2Str(GetDateTimeFromMarco(compile_time));;
 
     lblDeviceName->Caption = "";
     lblDeviceInfo->Caption = "";
@@ -7280,7 +7279,7 @@ void __fastcall TForm1::btnLoadFileToFlashClick(TObject *Sender)
                         smc_config.mac[0], smc_config.mac[2], smc_config.mac[3],
                         smc_config.mac[3], smc_config.mac[4], smc_config.mac[5]);
             // 更新到界面
-            lblVersion->Caption = VersionToStr(last_connection.data.version)+ " " +VersionToStr(version);
+            lblVersion->Caption = VersionToStr(last_connection.data.version)+ " " +VersionToStr(version)+ " " + DateTime2Str(GetDateTimeFromMarco(compile_time));;
             lblDeviceInfo->Caption = "VERSION " + VersionToStr(last_connection.data.version);
             lblDeviceInfo->Show();
             UpdateDeviceType();
