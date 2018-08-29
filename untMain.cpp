@@ -1219,7 +1219,7 @@ void __fastcall TForm1::FormCreate(TObject *Sender)
     edtStartBuildTime->Text = " \t \t";
     edtStartBuildTime->Text = edtStartBuildTime->Text + DateTime2Str(GetDateTimeFromMarco(compile_time));
 
-    lblVersionInfo->Caption = "下位机版本号："+ DateTime2Str(GetDateTimeFromMarco(compile_time));
+    lblVersionInfo->Caption = DateTime2Str(GetDateTimeFromMarco(compile_time));
 
     // 版本号
     lblVersion->Caption = "-------- " +VersionToStr(version);
@@ -3817,6 +3817,7 @@ void __fastcall TForm1::tmWatchTimer(TObject *Sender)
     {
         SetIOChannelNum();
         need_resize = false;
+        CloseDspDetail();
     }
 
     Button5->Click();
@@ -5039,6 +5040,23 @@ void __fastcall TForm1::ClearUI()
     lblDeviceName->Caption = "";
     lblDeviceInfo->Caption = "";
 }
+
+// 按键功能额映射
+static int FunctionKey2ItemIndex(int key_value, int default_index)
+{
+    switch (key_value)
+    {
+    case 1:
+        return 0;
+    case 2:
+        return 1;
+    case 3:
+        return 2;
+    case 5:
+        return 3;
+    }
+    return default_index;
+}
 void __fastcall TForm1::ApplyConfigToUI()
 {
     on_loading = true;
@@ -5085,9 +5103,9 @@ void __fastcall TForm1::ApplyConfigToUI()
 
     cbGlobalDspName->Checked = ((global_config.is_global_name == 1) || (global_config.is_global_name == 0xFF));
 
-    cbMenuKeyFunction->ItemIndex = global_config.menu_key_function?global_config.menu_key_function-1:0;
-    cbUpKeyFunction->ItemIndex = global_config.up_key_function?global_config.up_key_function-1:1;
-    cbDownKeyFunction->ItemIndex = global_config.down_key_function?global_config.down_key_function-1:2;
+    cbMenuKeyFunction->ItemIndex = FunctionKey2ItemIndex(global_config.menu_key_function, 0);
+    cbUpKeyFunction->ItemIndex = FunctionKey2ItemIndex(global_config.up_key_function, 1);
+    cbDownKeyFunction->ItemIndex = FunctionKey2ItemIndex(global_config.down_key_function, 2);
 
     cbLedTest->Checked = (global_config.led_test == 1);
     cbUsart1ReceiveAck->Checked = (global_config.usart1_receive_other_ack == 1);
@@ -7063,11 +7081,12 @@ void __fastcall TForm1::btnRebootDeviceClick(TObject *Sender)
     }
 }
 //---------------------------------------------------------------------------
-String function_key_value[3] =
+String function_key_value[4] =
 {
     "next_preset",
     "volume_up",
     "volume_down",
+    "master_mute",
 };
 void __fastcall TForm1::cbMenuKeyFunctionChange(TObject *Sender)
 {
