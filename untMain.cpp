@@ -3248,6 +3248,32 @@ static void ApplyLogData(TListItem* item, Event event, int address, String syn_t
         item->SubItems->Add("关机存盘成功时间");
         item->SubItems->Add(event.event_data);
         break;
+    case EVENT_SWITCH_ERROR:
+        item->SubItems->Add("开关错误");
+        {
+            switch (event.event_data)
+            {
+            case SE_12VA:
+                item->SubItems->Add("+12va开关");
+                break;
+            case SE_X12VA:
+                item->SubItems->Add("-12va开关, 请先检测+12vd开关");
+                break;
+            case SE_5VA:
+                item->SubItems->Add("5va开关");
+                break;
+            case SE_48VP:
+                item->SubItems->Add("48v开关");
+                break;
+            case SE_3_3VD:
+                item->SubItems->Add("3.3vd开关");
+                break;
+            case SE_5VD:
+                item->SubItems->Add("5vd开关");
+                break;
+            }
+        }
+        break;
     default:
         item->SubItems->Add(event.event_id);
         item->SubItems->Add(IntToStr(event.event_data) + "(0x"+IntToHex(event.event_data, 2)+")");
