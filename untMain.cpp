@@ -7188,6 +7188,8 @@ void __fastcall TForm1::btnSaveFlashToFileClick(TObject *Sender)
         }
         else
         {
+            StoreClick(Sender);
+
             smc_config.device_setting = device_setting;
 
             // 联机，保存为flash dump，读取完毕后转换成smc
@@ -7344,6 +7346,8 @@ void __fastcall TForm1::btnLoadFileToFlashClick(TObject *Sender)
         }
         else
         {
+            StoreClick(Sender);
+
             // 联机
             // Download To Device
             // 准备好所有报文
