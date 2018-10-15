@@ -1444,19 +1444,6 @@ void __fastcall TForm1::btnRefreshClick(TObject *Sender)
             }
         }
     }
-
-    if ((lvDevice->Selected != NULL) && (lvDevice->Selected->SubItems->Strings[6] == last_device_id))
-    {
-        if (lvDevice->Selected->SubItems->Strings[3] != "")
-            lblDeviceName->Caption = lvDevice->Selected->SubItems->Strings[3];
-        else
-        {
-            lblDeviceName->Caption = lvDevice->Selected->SubItems->Strings[4]+"-"+lvDevice->Selected->SubItems->Strings[7];
-            //edtDeviceFullName_data = lvDevice->Selected->SubItems->Strings[4]+"-"+lvDevice->Selected->SubItems->Strings[7];
-            if (lblDeviceName->Caption.Length() > 16)
-                lblDeviceName->Caption = lvDevice->Selected->SubItems->Strings[4];
-        }
-    }
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::udpSLPUDPRead(TObject *Sender,
@@ -1713,7 +1700,7 @@ void __fastcall TForm1::btnSelectClick(TObject *Sender)
     ini_file->WriteBool("connection", "is_disconnect", is_manual_disconnect);
     delete ini_file;
 
-    lblDeviceName->Hide();
+    memset(display_buffer, 0, sizeof(display_buffer));
 
     edtMAC->Text = selected->SubItems->Strings[6];
 
@@ -1723,8 +1710,6 @@ void __fastcall TForm1::btnSelectClick(TObject *Sender)
 
     // 从数据中获取版本信息
     last_connection = *(DeviceData*)selected->Data;
-    lblDeviceInfo->Caption = "VERSION " + VersionToStr(last_connection.data.version);
-    lblDeviceInfo->Hide();
 
     btnGetLog->Enabled = true;
 
@@ -2095,7 +2080,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
     else if (ABinding->PeerPort == UDP_PORT_GET_DISPLAY_BUFFER)
     {
         AData->ReadBuffer(display_buffer, std::min(sizeof(display_buffer), AData->Size));
-        PaintBox6->Refresh();
+        pbOLED->Refresh();
     }    
     else if (ABinding->PeerPort == UDP_PORT_CONTROL)
     {
@@ -2220,8 +2205,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
                     shape_live->Hide();
                     shape_link->Hide();
                     shape_power->Hide();
-                    lblDeviceName->Hide();
-                    lblDeviceInfo->Hide();
+                    memset(display_buffer, 0, sizeof(display_buffer));
                     // Level Meter归零
                     for (int i=0;i<32;i++)
                     {
@@ -2574,9 +2558,6 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             pbBackup->Position = pbBackup->Max - package_list.size();
             restor_delay_count = restor_delay_check_count * 3;
             tmDelayBackup->Enabled = true;
-
-            lblDeviceName->Show();
-            lblDeviceName->Caption = "LOAD FROM FILE......";
         }
     }
     else if (ABinding->PeerPort == UDP_PORT_READ_FLASH)
@@ -2643,9 +2624,6 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
             pbBackup->Position = pbBackup->Max - package_list.size();
             restor_delay_count = restor_delay_check_count * 3;
             tmDelayBackup->Enabled = true;
-
-            lblDeviceName->Show();
-            lblDeviceName->Caption = "SAVE TO FILE......";
         }
     }
 }
@@ -2899,8 +2877,6 @@ void TForm1::ProcessKeepAlive(int preset_id, bool need_reload, unsigned __int64 
     shape_live->Show();
     shape_link->Show();
     shape_power->Show();
-    lblDeviceName->Show();
-    lblDeviceInfo->Show();
     device_connected = true;
 }
 
@@ -3817,8 +3793,7 @@ void __fastcall TForm1::tmWatchTimer(TObject *Sender)
         shape_power->Hide();
         if (!is_manual_disconnect)
         {
-            lblDeviceName->Hide();
-            lblDeviceInfo->Hide();
+            memset(display_buffer, 0, sizeof(display_buffer));
         }
         // Level Meter归零
         for (int i=0;i<32;i++)
@@ -5062,8 +5037,7 @@ void __fastcall TForm1::ClearUI()
     lblDeviceRunningTime2->Caption = "----";
     lblVersion->Caption = "-------- " +VersionToStr(version)+ " " + DateTime2Str(GetDateTimeFromMarco(compile_time));;
 
-    lblDeviceName->Caption = "";
-    lblDeviceInfo->Caption = "";
+    memset(display_buffer, 0, sizeof(display_buffer));
 }
 
 // 按键功能额映射
@@ -7308,8 +7282,6 @@ void __fastcall TForm1::btnLoadFileToFlashClick(TObject *Sender)
                         smc_config.mac[3], smc_config.mac[4], smc_config.mac[5]);
             // 更新到界面
             lblVersion->Caption = VersionToStr(last_connection.data.version)+ " " +VersionToStr(version)+ " " + DateTime2Str(GetDateTimeFromMarco(compile_time));;
-            lblDeviceInfo->Caption = "VERSION " + VersionToStr(last_connection.data.version);
-            lblDeviceInfo->Show();
             UpdateDeviceType();
             UpdateBuildTime();
             edtMAC->Text = last_connection.data.mac;
@@ -7317,8 +7289,6 @@ void __fastcall TForm1::btnLoadFileToFlashClick(TObject *Sender)
             lvLog->Clear();
 
             const T_sn_pack * sn_pack_on_flash = (T_sn_pack*)(smc_config.device_flash_dump+(SN_START_PAGE-PRESET_START_PAGE)+active_code_length);
-            lblDeviceName->Caption = sn_pack_on_flash->sn;
-            lblDeviceName->Show();
 
             String device_cpuid;
             device_cpuid.sprintf("%08X%08X%08X", smc_config.cpu_id[0], smc_config.cpu_id[1], smc_config.cpu_id[2]);
@@ -8825,7 +8795,7 @@ void __fastcall TForm1::Button5Click(TObject *Sender)
         udpControl->SendBuffer(dst_ip, UDP_PORT_GET_DISPLAY_BUFFER, "1", 1);
 }
 //---------------------------------------------------------------------------
-void __fastcall TForm1::PaintBox6Paint(TObject *Sender)
+void __fastcall TForm1::pbOLEDPaint(TObject *Sender)
 {
     for (int page = 0; page < 4; page ++)
     {
@@ -8835,7 +8805,10 @@ void __fastcall TForm1::PaintBox6Paint(TObject *Sender)
 
             for (int y=0; y<8; y++)
             {
-                PaintBox6->Canvas->Pixels[x][page*8+y] = (data & (1<<y)) ? clWhite : 0x69241D;
+                pbOLED->Canvas->Pixels[x*2  ][(page*8+y)*2  ] = (data & (1<<y)) ? clAqua : 0x69241D;
+                pbOLED->Canvas->Pixels[x*2  ][(page*8+y)*2+1] = (data & (1<<y)) ? clAqua : 0x69241D;
+                pbOLED->Canvas->Pixels[x*2+1][(page*8+y)*2  ] = (data & (1<<y)) ? clAqua : 0x69241D;
+                pbOLED->Canvas->Pixels[x*2+1][(page*8+y)*2+1] = (data & (1<<y)) ? clAqua : 0x69241D;
             }
         }
     }

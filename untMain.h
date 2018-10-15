@@ -321,11 +321,8 @@ __published:	// IDE-managed Components
     TPaintBox *PaintBox2;
     TBevel *Bevel8;
     TPaintBox *PaintBox3;
-    TLabel *lblDeviceName;
-    TLabel *lblDeviceInfo;
     TShape *shape_link;
     TShape *shape_power;
-    TBevel *Bevel9;
     TPaintBox *PaintBox4;
     TImage *imgSystemBg2;
     TImage *imgSystemPresetBg;
@@ -530,13 +527,13 @@ __published:	// IDE-managed Components
     TButton *btnConfigPasswordError;
     TButton *btnParameterPasswordError;
     TButton *Button4;
-    TButton *Button5;
-    TPanel *Panel4;
-    TPaintBox *PaintBox6;
     TTabSheet *TabSheet6;
     TImage *imgBlank;
     TImage *imgInputTemplate;
     TImage *imgBlankWatchLevel;
+    TButton *Button5;
+    TPaintBox *pbOLED;
+    TBevel *Bevel9;
     void __fastcall FormCreate(TObject *Sender);
     void __fastcall btnRefreshClick(TObject *Sender);
     void __fastcall udpSLPUDPRead(TObject *Sender, TStream *AData,
@@ -738,7 +735,7 @@ __published:	// IDE-managed Components
     void __fastcall btnParameterPasswordErrorClick(TObject *Sender);
     void __fastcall Button4Click(TObject *Sender);
     void __fastcall Button5Click(TObject *Sender);
-    void __fastcall PaintBox6Paint(TObject *Sender);
+    void __fastcall pbOLEDPaint(TObject *Sender);
 private:
     HANDLE h_sem;
 
