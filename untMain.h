@@ -534,6 +534,8 @@ __published:	// IDE-managed Components
     TButton *Button5;
     TPaintBox *pbOLED;
     TBevel *Bevel9;
+    TComboBox *cbNetwork;
+    TLabel *Label31;
     void __fastcall FormCreate(TObject *Sender);
     void __fastcall btnRefreshClick(TObject *Sender);
     void __fastcall udpSLPUDPRead(TObject *Sender, TStream *AData,
@@ -736,6 +738,7 @@ __published:	// IDE-managed Components
     void __fastcall Button4Click(TObject *Sender);
     void __fastcall Button5Click(TObject *Sender);
     void __fastcall pbOLEDPaint(TObject *Sender);
+    void __fastcall cbNetworkClick(TObject *Sender);
 private:
     HANDLE h_sem;
 

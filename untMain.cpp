@@ -1389,8 +1389,31 @@ void __fastcall TForm1::btnRefreshClick(TObject *Sender)
         GetLocalIpList(ip_info);
     }
 
+    // ip_info 导出到界面
+    cbNetwork->Clear();
+    cbNetwork->Items->Add("所有网卡");
+    for (UINT i=0; i<ip_info.size(); i++)
+    {
+        cbNetwork->Items->Add(ip_info[i].ip);
+    }
+    cbNetwork->ItemIndex = 0;
+    // 读取IP地址保存值
+    TIniFile * ini_file = new TIniFile(ExtractFilePath(Application->ExeName) + "SMC.ini");
+    String saved_network = ini_file->ReadString("connection", "network", "");
+    delete ini_file;
+    if (saved_network != "")
+    {
+        // 查找
+        for (int i=0; i<cbNetwork->Items->Count; i++)
+        {
+            if (cbNetwork->Items->Strings[i] == saved_network)
+            {
+                cbNetwork->ItemIndex = i;
+                break;
+            }
+        }
+    }
 
-    
     bool is_ip_changed = false;
     UINT ip_count = 0;
     for (UINT i=0;i<3;i++)
@@ -1432,10 +1455,13 @@ void __fastcall TForm1::btnRefreshClick(TObject *Sender)
         {
             try
             {
-                udpSLPList[i]->Bindings->Add();
-                udpSLPList[i]->Bindings->Items[0]->IP = ip_info[i].ip;
-                udpSLPList[i]->Bindings->Items[0]->Port = 0;
-                udpSLPList[i]->Active = true;
+                if (cbNetwork->ItemIndex<=0 || (cbNetwork->Text == ip_info[i].ip))
+                {
+                    udpSLPList[i]->Bindings->Add();
+                    udpSLPList[i]->Bindings->Items[0]->IP = ip_info[i].ip;
+                    udpSLPList[i]->Bindings->Items[0]->Port = 0;
+                    udpSLPList[i]->Active = true;
+                }
             }
             catch(...)
             {
@@ -1747,47 +1773,48 @@ void __fastcall TForm1::tmSLPTimer(TObject *Sender)
                 if (need_chcek_ack_count && udpSLPList[i]->Tag == 0)
                 {
                     String ip = udpSLPList[i]->Bindings->Items[0]->IP;
-                    //int port = udpSLPList[i]->Bindings->Items[0]->Port;
-                    //AppendLog("reset SLP " + IntToStr(i+1) + " " + ip + ":" + IntToStr(port));
                     udpSLPList[i]->Active = false;
                 }
 
                 try{
-                    udpSLPList[i]->Active = true;
-                    String ip = udpSLPList[i]->Bindings->Items[0]->IP;
+                    if (udpSLPList[i]->Bindings->Count > 0)
+                    {
+                        udpSLPList[i]->Active = true;
+                        String ip = udpSLPList[i]->Bindings->Items[0]->IP;
 
-                    String text_cmd;
+                        String text_cmd;
 
-                    if (is_inner_pc)
-                        text_cmd = MSLP_FLAG;
-                    else
-                        text_cmd = SLP_FLAG;
+                        if (is_inner_pc)
+                            text_cmd = MSLP_FLAG;
+                        else
+                            text_cmd = SLP_FLAG;
 
-                    if (GetDhcpOfIp(ip))
-                        text_cmd = text_cmd + "DHCP=On;";
-                    else
-                        text_cmd = text_cmd + "DHCP=Off;";
+                        if (GetDhcpOfIp(ip))
+                            text_cmd = text_cmd + "DHCP=On;";
+                        else
+                            text_cmd = text_cmd + "DHCP=Off;";
 
-                    if (cbLanDebugLed->State == cbGrayed)
-                        ;
-                    else if (cbLanDebugLed->Checked)
-                        text_cmd = text_cmd + "LED_Debug=On;";
-                    else
-                        text_cmd = text_cmd + "LED_Debug=Off;";
+                        if (cbLanDebugLed->State == cbGrayed)
+                            ;
+                        else if (cbLanDebugLed->Checked)
+                            text_cmd = text_cmd + "LED_Debug=On;";
+                        else
+                            text_cmd = text_cmd + "LED_Debug=Off;";
 
-                    if (cbLanDebugOled->State == cbGrayed)
-                        ;
-                    else if (cbLanDebugOled->Checked)
-                        text_cmd = text_cmd + "OLED_Debug=On;";
-                    else
-                        text_cmd = text_cmd + "OLED_Debug=Off;";
+                        if (cbLanDebugOled->State == cbGrayed)
+                            ;
+                        else if (cbLanDebugOled->Checked)
+                            text_cmd = text_cmd + "OLED_Debug=On;";
+                        else
+                            text_cmd = text_cmd + "OLED_Debug=Off;";
 
-                    // 设置时间格式
-                    DateSeparator = '/';
-                    TimeSeparator = ':';
-                    text_cmd = text_cmd + "APP_Time="+FormatDateTime("yyyy/mm/dd hh:nn:ss.zzz", Now());
+                        // 设置时间格式
+                        DateSeparator = '/';
+                        TimeSeparator = ':';
+                        text_cmd = text_cmd + "APP_Time="+FormatDateTime("yyyy/mm/dd hh:nn:ss.zzz", Now());
 
-                    udpSLPList[i]->Send("255.255.255.255", UDP_PORT_SLP_EX, text_cmd+D1608CMD_TAIL);
+                        udpSLPList[i]->Send("255.255.255.255", UDP_PORT_SLP_EX, text_cmd+D1608CMD_TAIL);
+                    }
                 }
                 catch(...)
                 {
@@ -8814,4 +8841,12 @@ void __fastcall TForm1::pbOLEDPaint(TObject *Sender)
     }
 }
 //---------------------------------------------------------------------------
+void __fastcall TForm1::cbNetworkClick(TObject *Sender)
+{
+    TIniFile * ini_file = new TIniFile(ExtractFilePath(Application->ExeName) + "SMC.ini");
+    ini_file->WriteString("connection", "network", cbNetwork->Text);
+    delete ini_file;
+}
+//---------------------------------------------------------------------------
+
 
