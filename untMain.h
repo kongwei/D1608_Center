@@ -536,6 +536,10 @@ __published:	// IDE-managed Components
     TBevel *Bevel9;
     TComboBox *cbNetwork;
     TLabel *Label31;
+    TCheckBox *cb3VSwitch;
+    TCheckBox *cb5VSwitch;
+    TCheckBox *cb16VSwitch;
+    TCheckBox *cb48VSwitch;
     void __fastcall FormCreate(TObject *Sender);
     void __fastcall btnRefreshClick(TObject *Sender);
     void __fastcall udpSLPUDPRead(TObject *Sender, TStream *AData,
@@ -739,6 +743,10 @@ __published:	// IDE-managed Components
     void __fastcall Button5Click(TObject *Sender);
     void __fastcall pbOLEDPaint(TObject *Sender);
     void __fastcall cbNetworkClick(TObject *Sender);
+    void __fastcall cb3VSwitchClick(TObject *Sender);
+    void __fastcall cb5VSwitchClick(TObject *Sender);
+    void __fastcall cb16VSwitchClick(TObject *Sender);
+    void __fastcall cb48VSwitchClick(TObject *Sender);
 private:
     HANDLE h_sem;
 

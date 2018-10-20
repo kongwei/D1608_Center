@@ -1470,6 +1470,17 @@ void __fastcall TForm1::btnRefreshClick(TObject *Sender)
             }
         }
     }
+    else
+    {
+        for (UINT i=0;i<ip_info.size() && i<3;i++)
+        {
+            if (cbNetwork->ItemIndex>0 && (cbNetwork->Text != ip_info[i].ip))
+            {
+                udpSLPList[i]->Active = false;
+                udpSLPList[i]->Bindings->Clear();
+            }
+        }
+    }
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::udpSLPUDPRead(TObject *Sender,
@@ -1612,7 +1623,7 @@ void __fastcall TForm1::udpSLPUDPRead(TObject *Sender,
 
     if (!udpControl->Active && !is_manual_disconnect)
     {
-        if ((last_device_id == "") || (last_device_id == slp_pack_str.mac) || ( Now() > startup_time+10.0/3600/24 ))
+        if ((last_device_id == "") || (cbNetwork->ItemIndex>0) || (last_device_id == slp_pack_str.mac) || ( Now() > startup_time+10.0/3600/24 ))
         {
             // 连接第一个 或者 匹配ID 或者 5秒钟 或者 没有找到原先的设备
             item->Selected = true;
@@ -8848,5 +8859,32 @@ void __fastcall TForm1::cbNetworkClick(TObject *Sender)
     delete ini_file;
 }
 //---------------------------------------------------------------------------
-
+void __fastcall TForm1::cb3VSwitchClick(TObject *Sender)
+{
+    String cmd_text = DEBUG_FLAG;
+    cmd_text = cmd_text+ "debug.3v=" + (cb3VSwitch->Checked? "on" : "off");
+    SendCmd2(cmd_text+D1608CMD_TAIL);
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::cb5VSwitchClick(TObject *Sender)
+{
+    String cmd_text = DEBUG_FLAG;
+    cmd_text = cmd_text+ "debug.5v=" + (cb5VSwitch->Checked? "on" : "off");
+    SendCmd2(cmd_text+D1608CMD_TAIL);
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::cb16VSwitchClick(TObject *Sender)
+{
+    String cmd_text = DEBUG_FLAG;
+    cmd_text = cmd_text+ "debug.16v=" + (cb16VSwitch->Checked? "on" : "off");
+    SendCmd2(cmd_text+D1608CMD_TAIL);
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::cb48VSwitchClick(TObject *Sender)
+{
+    String cmd_text = DEBUG_FLAG;
+    cmd_text = cmd_text+ "debug.48v=" + (cb48VSwitch->Checked? "on" : "off");
+    SendCmd2(cmd_text+D1608CMD_TAIL);
+}
+//---------------------------------------------------------------------------
 
