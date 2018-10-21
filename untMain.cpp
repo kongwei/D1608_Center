@@ -1226,7 +1226,7 @@ void __fastcall TForm1::FormCreate(TObject *Sender)
     // 默认全局配置
     global_config.avaliable_preset[0] = 1;
     global_config.active_preset_id = 1;
-    global_config.version = sizeof(global_config);
+    global_config.version = GLOBAL_CONFIG_VERSION;
     global_config.auto_saved = 1;
     ApplyConfigToUI();
 }
@@ -2451,7 +2451,7 @@ void __fastcall TForm1::udpControlUDPRead(TObject *Sender, TStream *AData,
                 SetIOChannelNum();
             }
             cbGlobalDspName->Checked = ((global_config.is_global_name == 1) || (global_config.is_global_name == 0xFF));
-            if (global_config.version >= offsetof(GlobalConfig, auto_saved))
+            if (global_config.version == GLOBAL_CONFIG_VERSION)
             {
                 // 读取'自动保存'配置
                 cbPresetAutoSaved->Checked = ((global_config.auto_saved == 1) || (global_config.auto_saved == 0xFF));
@@ -3158,10 +3158,10 @@ static void ApplyLogData(TListItem* item, Event event, int address, String syn_t
         item->SubItems->Add("存盘或者恢复超时错误");
         item->SubItems->Add(event.event_data==1?"LOAD FROM FILE":"SAVE TO FILE");
         break;
-    case EVENT_48V:
-        item->SubItems->Add("48V与硬件不匹配");
-        item->SubItems->Add(event.event_data==0?"缺少":"多出");
-        break;
+    //case EVENT_48V:
+    //    item->SubItems->Add("48V与硬件不匹配");
+    //    item->SubItems->Add(event.event_data==0?"缺少":"多出");
+    //    break;
     case EVENT_RESET_RUNNING_TIME:
         item->SubItems->Add("重置运行时间警告");
         item->SubItems->Add("");
@@ -3480,10 +3480,10 @@ static String Event2Sring(Event event)
         item_caption = item_caption + " " +("存盘或者恢复超时错误");
         item_caption = item_caption + " " +(event.event_data==1?"LOAD FROM FILE":"SAVE TO FILE");
         break;
-    case EVENT_48V:
-        item_caption = item_caption + " " +("48V与硬件不匹配");
-        item_caption = item_caption + " " +(event.event_data==0?"缺少":"多出");
-        break;
+    //case EVENT_48V:
+    //    item_caption = item_caption + " " +("48V与硬件不匹配");
+    //    item_caption = item_caption + " " +(event.event_data==0?"缺少":"多出");
+    //    break;
     case EVENT_RESET_RUNNING_TIME:
         item_caption = item_caption + " " +("重置运行时间警告");
         item_caption = item_caption + " " +("");

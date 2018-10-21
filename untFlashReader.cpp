@@ -295,7 +295,7 @@ static void ResetGlobalConfig(GlobalConfig& global_config)
     memset(global_config.output_dsp_name, 0, sizeof(global_config.output_dsp_name));
     memset(global_config.preset_name, 0, sizeof(global_config.preset_name));
     memset(global_config.d1616_name, 0, sizeof(global_config.d1616_name));
-	global_config.version = sizeof(global_config);
+	global_config.version = GLOBAL_CONFIG_VERSION;
     global_config.active_preset_id = 1;
 	global_config.static_ip_address = 0;
 
