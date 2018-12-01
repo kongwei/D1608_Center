@@ -536,10 +536,14 @@ __published:	// IDE-managed Components
     TBevel *Bevel9;
     TComboBox *cbNetwork;
     TLabel *Label31;
-    TCheckBox *cb3VSwitch;
-    TCheckBox *cb5VSwitch;
-    TCheckBox *cb16VSwitch;
-    TCheckBox *cb48VSwitch;
+        TSpeedButton *btn3VClose;
+        TSpeedButton *btn3VOpen;
+        TSpeedButton *btn5VClose;
+        TSpeedButton *btn5VOpen;
+        TSpeedButton *btn16VClose;
+        TSpeedButton *btn16VOpen;
+        TSpeedButton *btn48VClose;
+        TSpeedButton *btn48VOpen;
     void __fastcall FormCreate(TObject *Sender);
     void __fastcall btnRefreshClick(TObject *Sender);
     void __fastcall udpSLPUDPRead(TObject *Sender, TStream *AData,
@@ -682,7 +686,7 @@ __published:	// IDE-managed Components
     void __fastcall clbAvaliablePresetMouseDown(TObject *Sender,
           TMouseButton Button, TShiftState Shift, int X, int Y);
     void __fastcall btnResetAllConfigClick(TObject *Sender);
-    void __fastcall lblDeviceNameDblClick(TObject *Sender);
+    void __fastcall pbOLEDDblClick(TObject *Sender);
     void __fastcall btnResetKeyFunctionClick(TObject *Sender);
     void __fastcall btnClearAllPresetClick(TObject *Sender);
     void __fastcall tmDelaySendCmdTimer(TObject *Sender);
@@ -743,10 +747,14 @@ __published:	// IDE-managed Components
     void __fastcall Button5Click(TObject *Sender);
     void __fastcall pbOLEDPaint(TObject *Sender);
     void __fastcall cbNetworkClick(TObject *Sender);
-    void __fastcall cb3VSwitchClick(TObject *Sender);
-    void __fastcall cb5VSwitchClick(TObject *Sender);
-    void __fastcall cb16VSwitchClick(TObject *Sender);
-    void __fastcall cb48VSwitchClick(TObject *Sender);
+        void __fastcall btn3VCloseClick(TObject *Sender);
+        void __fastcall btn3VOpenClick(TObject *Sender);
+        void __fastcall btn5VCloseClick(TObject *Sender);
+        void __fastcall btn5VOpenClick(TObject *Sender);
+        void __fastcall btn16VCloseClick(TObject *Sender);
+        void __fastcall btn16VOpenClick(TObject *Sender);
+        void __fastcall btn48VCloseClick(TObject *Sender);
+        void __fastcall btn48VOpenClick(TObject *Sender);
 private:
     HANDLE h_sem;
 
@@ -842,6 +850,10 @@ private:
         else if (mac_string == "38-2C-4A-BA-EF-54")
         {
             return "LX∞Â‘ÿÕ¯ø®";
+        }
+        else if (mac_string == "28-C6-3F-D2-55-C8")
+        {
+            return "KW X1";
         }
 
         return "";

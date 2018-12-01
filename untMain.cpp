@@ -37,7 +37,7 @@
 static int delay_send_cmd_check_count = 5;
 static int restor_delay_check_count = 5;
 
-String inner_mac[6] = {"10-0B-A9-2F-55-90", "00-5A-39-FF-49-28","00-E0-4C-39-17-31","74-D0-2B-95-48-02","00-E0-4C-15-1B-C0", "38-2C-4A-BA-EF-54"};
+String inner_mac[7] = {"10-0B-A9-2F-55-90", "00-5A-39-FF-49-28","00-E0-4C-39-17-31","74-D0-2B-95-48-02","00-E0-4C-15-1B-C0", "38-2C-4A-BA-EF-54", "28-C6-3F-D2-55-C8"};
 
 const String compile_time = __DATE__ " " __TIME__;
 
@@ -377,14 +377,15 @@ static void LoadMixBmp()
         MixPicture[i]->LoadFromResourceName(NULL, "mix"+IntToStr(i+1));
     }
 }
-static TSpeedButton * CopyInputPanelButton(TSpeedButton * src_btn, int dsp_id, Graphics::TBitmap* bmp=NULL)
+static TSpeedButton * CopyInputPanelButton(TSpeedButtonNoFrame * src_btn, int dsp_id, Graphics::TBitmap* bmp=NULL)
 {
-    TSpeedButton * dsp_btn = new TSpeedButtonNoFrame(src_btn->Owner);
+    TSpeedButtonNoFrame * dsp_btn = new TSpeedButtonNoFrame(src_btn->Owner);
     dsp_btn->Caption = src_btn->Caption;
     dsp_btn->BoundsRect = src_btn->BoundsRect;
     dsp_btn->Left = src_btn->Left + (dsp_id-1) * PANEL_WIDTH;
     dsp_btn->AllowAllUp = src_btn->AllowAllUp;
     dsp_btn->Flat = src_btn->Flat;
+    dsp_btn->SpeedCanvas->Font->Size = src_btn->SpeedCanvas->Font->Size;
     if (bmp == NULL)
     {
         dsp_btn->Glyph = src_btn->Glyph;
@@ -614,17 +615,13 @@ static void CreatePnlMix(int panel_id, TForm1 * form)
 __fastcall TForm1::TForm1(TComponent* Owner)
     : TForm(Owner)
 {
+    input_panel_dsp_btn->SpeedCanvas->Font->Size = input_panel_dsp_btn->Font->Size;
+    output_panel_dsp_btn->SpeedCanvas->Font->Size = output_panel_dsp_btn->Font->Size;
+
     startup_time = Now();
 
     // 参数处理
     on_loading = true;
-
-    //x=GetSystemMetrics(SM_CXSCREEN)
-    //y=GetSystemMetrics(SM_CYSCREEN)
-
-    // 调整尺寸
-    Width = 1664;//1366;
-    Height = 778;//798;
 
     for (int i=0;i<32;i++)
     {
@@ -1128,7 +1125,11 @@ void __fastcall TForm1::FormCreate(TObject *Sender)
 
     // 是否调试PC
     is_inner_pc = false;
-    if (ParamCount>0 && ParamStr(1)=="nodebug")
+    if (ParamCount>0 && ParamStr(1)=="debug")
+    {
+        is_inner_pc = true;
+    }
+    else if (ParamCount>0 && ParamStr(1)=="nodebug")
     {
     }
     else
@@ -7574,7 +7575,7 @@ void __fastcall TForm1::btnResetAllConfigClick(TObject *Sender)
     }
 }
 //---------------------------------------------------------------------------
-void __fastcall TForm1::lblDeviceNameDblClick(TObject *Sender)
+void __fastcall TForm1::pbOLEDDblClick(TObject *Sender)
 {
     // 闪动屏幕
     String cmd_text = D1608CMD_CONTROL_FLAG;
@@ -8859,31 +8860,59 @@ void __fastcall TForm1::cbNetworkClick(TObject *Sender)
     delete ini_file;
 }
 //---------------------------------------------------------------------------
-void __fastcall TForm1::cb3VSwitchClick(TObject *Sender)
+void __fastcall TForm1::btn3VCloseClick(TObject *Sender)
 {
     String cmd_text = DEBUG_FLAG;
-    cmd_text = cmd_text+ "debug.3v=" + (cb3VSwitch->Checked? "on" : "off");
+    cmd_text = cmd_text+ "debug.3v=off";
     SendCmd2(cmd_text+D1608CMD_TAIL);
 }
 //---------------------------------------------------------------------------
-void __fastcall TForm1::cb5VSwitchClick(TObject *Sender)
+void __fastcall TForm1::btn3VOpenClick(TObject *Sender)
 {
     String cmd_text = DEBUG_FLAG;
-    cmd_text = cmd_text+ "debug.5v=" + (cb5VSwitch->Checked? "on" : "off");
+    cmd_text = cmd_text+ "debug.3v=on";
     SendCmd2(cmd_text+D1608CMD_TAIL);
 }
 //---------------------------------------------------------------------------
-void __fastcall TForm1::cb16VSwitchClick(TObject *Sender)
+void __fastcall TForm1::btn5VCloseClick(TObject *Sender)
 {
     String cmd_text = DEBUG_FLAG;
-    cmd_text = cmd_text+ "debug.16v=" + (cb16VSwitch->Checked? "on" : "off");
+    cmd_text = cmd_text+ "debug.5v==off";
     SendCmd2(cmd_text+D1608CMD_TAIL);
 }
 //---------------------------------------------------------------------------
-void __fastcall TForm1::cb48VSwitchClick(TObject *Sender)
+void __fastcall TForm1::btn5VOpenClick(TObject *Sender)
 {
     String cmd_text = DEBUG_FLAG;
-    cmd_text = cmd_text+ "debug.48v=" + (cb48VSwitch->Checked? "on" : "off");
+    cmd_text = cmd_text+ "debug.5v=on";
+    SendCmd2(cmd_text+D1608CMD_TAIL);
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::btn16VCloseClick(TObject *Sender)
+{
+    String cmd_text = DEBUG_FLAG;
+    cmd_text = cmd_text+ "debug.16v==off";
+    SendCmd2(cmd_text+D1608CMD_TAIL);
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::btn16VOpenClick(TObject *Sender)
+{
+    String cmd_text = DEBUG_FLAG;
+    cmd_text = cmd_text+ "debug.16v=on";
+    SendCmd2(cmd_text+D1608CMD_TAIL);
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::btn48VCloseClick(TObject *Sender)
+{
+    String cmd_text = DEBUG_FLAG;
+    cmd_text = cmd_text+ "debug.48v==off";
+    SendCmd2(cmd_text+D1608CMD_TAIL);
+}
+//---------------------------------------------------------------------------
+void __fastcall TForm1::btn48VOpenClick(TObject *Sender)
+{
+    String cmd_text = DEBUG_FLAG;
+    cmd_text = cmd_text+ "debug.48v=on";
     SendCmd2(cmd_text+D1608CMD_TAIL);
 }
 //---------------------------------------------------------------------------
